@@ -6,7 +6,9 @@ This is our roadmap for the fork. esrauch's own roadmap is
 file is ours alone, so pulling upstream never conflicts with it.
 
 Setup decisions (fork, hosting, conventions) are in the decision map
-https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL.
+https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL. An overview of how the game
+is built, checked against the code on 2026-10-28, is at
+https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
 
 ## V1: Plays
 
