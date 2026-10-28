@@ -33,8 +33,18 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   today, so the offense needs play calling and throw timing of its own, and
   the coach needs something to do on defense that is still one-tap timing
   (GAMEPLAY.md, Design Pillars 2). _User, 2026-10-28._
-- **Power-ups on the field** that your players pick up by running through
-  them. A route that crosses one is worth more, so they feed play selection
-  and the paths you want players to take, and they touch the editor (routes)
-  and the carrier's choice of lane. Name and theme open. _User,
+- **Objects on the field that a player consumes by running through them,**
+  good or bad, so "power-up" is the wrong name (proposed: pickups, split into
+  charms and curses; glossary item g5 on the map). A lightning bolt gives a
+  speed boost; an oil slick trips the player. They feed play selection and the
+  paths you want players to take: a route through a charm is worth more, one
+  through a curse is a risk. They touch the editor (routes) and the carrier's
+  choice of lane. Unlike upstream's props, which are solid and steered around
+  (`sim/props.ts`), a pickup is run through. A tripped player can reuse the
+  existing time lying on the turf (`types.ts`, as Frog Rain uses). _User,
   2026-10-28._
+  - **Pickups can move** across the field the way players do, so taking one
+    is a matter of timing as well as of route. _User, 2026-10-28._
+  - Open, for when it's planned: can defenders take them too; which effects
+    exist and how long they last; whether a moving pickup's path is drawn
+    before the snap like routes; whether the editor places them.
