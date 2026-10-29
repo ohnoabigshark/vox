@@ -30,9 +30,11 @@ the item numbers below are the map's. Words are as in [`CONTEXT.md`](../CONTEXT.
   copied play keeps its exact numbers until a point is moved.
 - **Handoff** (e11): a row of None, R1, R2. The chosen Runner's route is the
   run's path, drawn gold. The Catchers keep their routes as decoys.
-- **Rules** (e4, e12): one function, beside `plays.ts`, checks the three play
-  rules and returns each problem with its slot and a sentence saying how to
-  fix it. The tests and the editor both use it. A broken route is red, its
+- **Rules** (e4, e12): one function, `playProblems` in
+  `content/playRules.ts`, checks the three play rules and returns each
+  problem with its slot and a sentence saying how to fix it. Rule 2 also
+  covers a Runner or Catcher left blocking, and rule 1 a route with no points
+  yet. The tests and the editor both use it. A broken route is red, its
   chip has a red edge, and a bar under the field shows the first problem
   ("+2 more" if there are others). Copy code is greyed and counts the
   problems; Try it always works.
@@ -42,7 +44,8 @@ the item numbers below are the map's. Words are as in [`CONTEXT.md`](../CONTEXT.
   link and the "Try with" settings from the drafts list (hard and two-tap on
   by default). The draft is one of the three cards every down, marked DRAFT;
   the other two are dealt from the play pool as usual. Back returns to the
-  editor. A broken or tampered link opens the game with a visible message.
+  editor. A broken or tampered link opens the game with a notice across the
+  top, until tapped, and no draft.
   On the Queen's drive her Royal Decree bans one of the other two cards,
   never the draft (e18).
 - **Copy code** (e2, e16) puts the play on the clipboard in esrauch's style
@@ -50,13 +53,30 @@ the item numbers below are the map's. Words are as in [`CONTEXT.md`](../CONTEXT.
   `src/arcade/content/ourPlays.ts`, which joins esrauch's `plays.ts` to make
   the play pool. His file stays untouched.
 
+- **Kept and shown:** drafts are stored as their link text, so they're read
+  back with the same checks as a Try it link; an unreadable one, or a browser
+  that keeps nothing, is reported on the list. The Try with settings are
+  remembered too. A problem (a failed save, a refused clipboard) stays at the
+  top of the screen until tapped, clear of the buttons. Renaming isn't a step
+  for Undo; every letter would be one.
+
+## Where it lives
+
+- `dev/plays.html`, `src/dev/playEditor/page.ts` and `page.css`: the page.
+- `src/dev/playEditor/editor.ts`: what each tap does, with no screen.
+- `src/dev/playEditor/drafts.ts`: drafts in localStorage.
+- `src/arcade/content/playRules.ts`, `playCode.ts`, `ourPlays.ts`,
+  `playPool.ts`: the rules, the link and Copy code, our plays, the pool.
+
 ## What changes in the game
 
 - **A run carries its own playbook** (e3): `RunState` holds the plays it can
   deal, and the sim reads plays from there instead of from `PLAYS`. With the
   play pool as the playbook and the same seed, every deal is the same as
   before, so balance is unchanged. This is also what plays as rewards needs.
-- **A tried draft is in every hand,** at a seeded position among the three.
+- **A tried draft is in every hand,** at a seeded position among the three
+  (`RunState.trial`, its index in the playbook), with a DRAFT ribbon on its
+  card.
 
 ## Tests, written first (e17)
 
