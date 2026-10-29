@@ -317,6 +317,12 @@ export interface RunState {
    * run was started with its own; plays as rewards will grow it.
    */
   readonly playbook: readonly Play[];
+  /**
+   * The play being tried from the play editor (Try it, docs/PLAY_EDITOR.md): its
+   * index in the playbook. It's dealt in every hand and never banned. Null in a
+   * normal run.
+   */
+  readonly trial: number | null;
   /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */
   hand: number[];
   called: number | null;

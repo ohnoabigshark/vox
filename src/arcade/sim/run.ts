@@ -89,11 +89,15 @@ export function createRun(
     readonly twoTapAim?: boolean;
     /** The plays it deals from; the whole play pool if not given. */
     readonly playbook?: readonly Play[];
+    /** A play to try (the play editor's Try it): added to the playbook and dealt every down. */
+    readonly trial?: Play;
   } = {},
 ): RunState {
+  const playbook = options.playbook ?? PLAYS;
   const state: RunState = {
     seed,
-    playbook: options.playbook ?? PLAYS,
+    playbook: options.trial ? [...playbook, options.trial] : playbook,
+    trial: options.trial ? playbook.length : null,
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
     step: 0,
@@ -199,15 +203,20 @@ const HAND = 3;
 export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   const { drive } = state;
   const rng = rngFor(state.seed, 'hand', state.drivesWon, drive.down, state.nextId);
-  const deck = state.playbook.map((_, i) => i);
+  const { trial } = state;
+  const deck = state.playbook.map((_, i) => i).filter((i) => i !== trial);
+  const size = Math.min(HAND, state.playbook.length);
   state.hand = [];
-  while (state.hand.length < Math.min(HAND, state.playbook.length)) {
+  while (state.hand.length < (trial === null ? size : size - 1)) {
     state.hand.push(deck.splice(rng.int(0, deck.length - 1), 1)[0] ?? 0);
   }
+  // A play being tried is in every hand, somewhere among the three.
+  if (trial !== null) state.hand.splice(rng.int(0, state.hand.length), 0, trial);
   state.called = null;
   const spec = driveDefense(state, drive.area, drive.index);
-  // The Queen's Royal Decree: one card of the three is banned this down.
-  state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
+  // The Queen's Royal Decree: one card of the three is banned this down, never a play being tried.
+  const bannable = state.hand.flatMap((index, card) => (index === trial ? [] : [card]));
+  state.banned = spec.decree ? (bannable[rng.int(0, bannable.length - 1)] ?? null) : null;
   const first = state.banned === 0 ? 1 : 0;
   state.play = { index: state.hand[first] ?? 0, flipped: state.flipped };
   const play = state.playbook[state.play.index];

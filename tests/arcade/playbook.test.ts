@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Assignment, Play } from '../../src/arcade/content/plays';
-import { createRun, dispatch, endDown, nextDown } from '../../src/arcade/sim/run';
+import { playSlot } from '../../src/arcade/content/team';
+import { createRun, dispatch, endDown, nextDown, setUpDrive } from '../../src/arcade/sim/run';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 
 const block: Assignment = { kind: 'block' };
@@ -63,3 +64,39 @@ describe("a run's playbook", () => {
     expect(events.map((e: ArcadeEvent) => e.type)).toContain('handoff');
   });
 });
+
+describe('trying a play (Try it)', () => {
+  it('deals the tried play in every hand, beside two from the pool', () => {
+    for (const seed of [1, 2, 3, 7]) {
+      for (const hand of firstHands(createRun(seed, undefined, 0, { trial: passPlay('mine') }))) {
+        expect(hand.filter((id) => id === 'mine'), `seed ${seed}`).toHaveLength(1);
+        expect(hand, `seed ${seed}`).toHaveLength(3);
+      }
+    }
+  });
+
+  it('a tried handoff hands off to its Runner, and flipped, to the other Runner', () => {
+    const mine: Play = { ...passPlay('mine'), handoff: 2 };
+    for (const flipped of [false, true]) {
+      let s = createRun(3, undefined, 0, { trial: mine });
+      const card = s.hand.findIndex((i) => s.playbook[i]?.id === 'mine');
+      s = dispatch(s, { type: 'call', hand: card }).state;
+      if (flipped) s = dispatch(s, { type: 'flip' }).state;
+      const { state, events } = dispatch(s, { type: 'hike' });
+      const handoff = events.find((e: ArcadeEvent) => e.type === 'handoff');
+      const runner = state.field.players.find((p) => p.id === (handoff?.type === 'handoff' ? handoff.id : -1));
+      expect(runner?.slot, `flipped ${flipped}`).toBe(playSlot(2, flipped));
+    }
+  });
+
+  it("the Queen's Royal Decree never bans the tried play", () => {
+    for (let seed = 1; seed <= 12; seed++) {
+      const s = createRun(seed, undefined, 0, { trial: passPlay('mine') });
+      setUpDrive(s, 1, 3, [], true);
+      expect(handIds(s), `seed ${seed}`).toContain('mine');
+      expect(s.banned, `seed ${seed}`).not.toBeNull();
+      expect(s.playbook[s.hand[s.banned ?? 0] ?? -1]?.id, `seed ${seed}`).not.toBe('mine');
+    }
+  });
+});
+
