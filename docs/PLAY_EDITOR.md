@@ -2,7 +2,7 @@
 
 A dev page for drawing plays on a phone, trying them in the game and keeping
 the good ones. Planned by grilling on the decision map
-(https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL), rounds 1–3, 2026-10-29;
+(https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL), rounds 1–3, 2026-10-29 (all approved);
 the item numbers below are the map's. Words are as in [`CONTEXT.md`](../CONTEXT.md).
 
 ## What it is
@@ -43,6 +43,8 @@ the item numbers below are the map's. Words are as in [`CONTEXT.md`](../CONTEXT.
   by default). The draft is one of the three cards every down, marked DRAFT;
   the other two are dealt from the play pool as usual. Back returns to the
   editor. A broken or tampered link opens the game with a visible message.
+  On the Queen's drive her Royal Decree bans one of the other two cards,
+  never the draft (e18).
 - **Copy code** (e2, e16) puts the play on the clipboard in esrauch's style
   (`route([x, y], …)`). Pasted to Claude, it goes into
   `src/arcade/content/ourPlays.ts`, which joins esrauch's `plays.ts` to make
@@ -64,7 +66,8 @@ the item numbers below are the map's. Words are as in [`CONTEXT.md`](../CONTEXT.
 2. **Playbook in the run:** a run deals only from its playbook; with the pool
    and a fixed seed, deals match today's.
 3. **Trying a draft:** a run started with a draft deals it in every hand,
-   flipped or not; a handoff draft hands off to its Runner.
+   flipped or not; a handoff draft hands off to its Runner; the decree never
+   bans it.
 4. **The draft link:** a play survives the trip into the link and back; a
    broken link gives a visible message and no draft.
 5. **Copy code:** what it writes, read back as a play, equals the draft.
