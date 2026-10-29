@@ -108,7 +108,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 | `props.ts` | Props on the field: laid per 10-yard stretch from the seed (`propsForDrive`), solid circles; `steerAround` (a body turns away from one in its path), `clearOfProps` (a target or waypoint inside one moves to its edge), `pushOutOfProps` (after the shoves). |
 | `random.ts`, `vec.ts`, `stats.ts` | Seeded randomness, 2D vectors, stat arithmetic. |
 
-**Determinism:** `step` and `dispatch` clone the state (`structuredClone`) and return a new one; the input state is never modified. A test runs long seeded runs and checks the invariants (no NaNs, nobody off the field but the carrier).
+**Determinism:** `step` and `dispatch` copy the state (`cloneRun`: a `structuredClone` of everything but the read-only playbook, which is shared) and return a new one; the input state is never modified. A test runs long seeded runs and checks the invariants (no NaNs, nobody off the field but the carrier).
 
 ---
 
