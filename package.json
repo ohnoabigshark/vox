@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "vite",
     "build": "npm run check-assets && tsc --noEmit && vite build",
     "build:release": "npm run check-assets && tsc --noEmit && RELEASE=1 vite build",
-    "preview": "vite preview --host",
+    "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",

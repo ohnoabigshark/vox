@@ -1,7 +1,15 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
+// Where the dev and preview servers listen. Loopback unless DEV_BIND says
+// otherwise: our droplet has a public address, so `--host`'s every-interface
+// default would put the dev server on the internet. On a home machine,
+// DEV_BIND=0.0.0.0 restores upstream's reach-it-from-your-phone setup.
+const host = process.env.DEV_BIND || '127.0.0.1';
+
 export default defineConfig({
+  server: { host },
+  preview: { host },
   // Relative base so the build works from any subpath (e.g. GitHub Pages /vox/).
   base: './',
   build: {
