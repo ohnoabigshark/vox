@@ -15,7 +15,9 @@ esrauch's roadmap is `MILESTONES.md`.
 - **The user plays with `?hard=1&aim=2`** (hard mode, two-tap throwing). Try
   changes in that mode as well as the default, and keep those flags on any
   link that opens the game.
-- **The built game is served at `https://…ts.net:8443/vox/`** straight from
-  `dist/`, so a change shows only after `npm run build`.
+- **The built game is served at `https://…ts.net:8443/vox/`,** rebuilt by git
+  hooks after every commit, merge and branch checkout in this checkout, and
+  swapped in only if the build passes (`docs/stacks/vox.md` in
+  `/root/projects`; log: `/root/.local/share/vox-serve/rebuild.log`).
 - `/root/projects/CLAUDE.md` loads here too: it covers the machine, the ports
   and the config repo.
