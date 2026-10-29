@@ -32,6 +32,8 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   - Start blank or from a copy; esrauch's five are never changed in place
     (e6).
   - A flat top-down field, dragged with a thumb (e7).
+  - Rounds 2 and 3 settled the screen and its tests (e8-e20); the design is
+    `docs/PLAY_EDITOR.md`. **Built 2026-10-29** on the `play-editor` branch.
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 

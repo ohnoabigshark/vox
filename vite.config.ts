@@ -45,11 +45,14 @@ export default defineConfig({
               devModels: resolve(import.meta.dirname, 'dev/models.html'),
               devAudio: resolve(import.meta.dirname, 'dev/audio.html'),
               devLyrics: resolve(import.meta.dirname, 'dev/lyrics.html'),
+              devPlays: resolve(import.meta.dirname, 'dev/plays.html'),
             }),
       },
     },
   },
   test: {
+    // The long sim tests take 5-6 s on a slow shared CPU (BUGS.md B2).
+    testTimeout: 20_000,
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
   },

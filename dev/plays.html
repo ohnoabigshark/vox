@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Plays · Dev</title>
+    <link rel="stylesheet" href="/src/ui/fonts.css" />
+    <link rel="stylesheet" href="/src/dev/playEditor/page.css" />
+  </head>
+  <body>
+    <!-- Dev tool: the play editor (docs/PLAY_EDITOR.md). Draw a play, try it in the game,
+         copy it as code for src/arcade/content/ourPlays.ts. Excluded by `npm run build:release`. -->
+    <main id="app"></main>
+    <div id="status" role="status" hidden></div>
+    <script type="module" src="/src/dev/playEditor/page.ts"></script>
+  </body>
+</html>

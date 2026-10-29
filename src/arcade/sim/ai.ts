@@ -15,7 +15,6 @@
  *   catch, everyone who moves chases the carrier; after a handoff, once the
  *   play fake wears off (fooled).
  */
-import { PLAYS } from '../content/plays';
 import { arcadeTuning } from '../content/tuning';
 import { lobReceivers } from './ball';
 import type { Defender, Player, RunState, Vec } from './types';
@@ -200,7 +199,7 @@ export function defenderTarget(state: RunState, d: Defender): Vec | null {
  */
 /** The ball was handed off (not thrown) this down. */
 export function handedOff(state: RunState): boolean {
-  return PLAYS[state.play.index]?.handoff !== undefined;
+  return state.playbook[state.play.index]?.handoff !== undefined;
 }
 
 function fooled(state: RunState, d: Defender, carrier: Player): boolean {

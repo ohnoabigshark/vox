@@ -94,6 +94,8 @@ export interface DraftView {
 export interface CardFace {
   readonly name: string;
   readonly blurb: string;
+  /** A tag across the top, such as DRAFT on a play being tried from the play editor. */
+  readonly ribbon?: string;
 }
 
 export class Hud {
@@ -106,6 +108,7 @@ export class Hud {
   private readonly flipButton: HTMLButtonElement;
   private readonly actionButton: HTMLButtonElement;
   private readonly popEl: HTMLElement;
+  private readonly noticeEl: HTMLButtonElement;
   private readonly draft: HTMLElement;
   private popTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly bigEl: HTMLElement;
@@ -132,7 +135,8 @@ export class Hud {
           <button class="hud-action interactive"></button>
         </div>
       </div>
-      <div class="hud-draft interactive" hidden></div>`;
+      <div class="hud-draft interactive" hidden></div>
+      <button class="hud-notice interactive" hidden></button>`;
     const q = <T extends HTMLElement>(sel: string): T => {
       const el = root.querySelector<T>(sel);
       if (!el) throw new Error(`HUD is missing ${sel}`);
@@ -147,6 +151,8 @@ export class Hud {
     this.flipButton = q<HTMLButtonElement>('.hud-flip');
     this.actionButton = q<HTMLButtonElement>('.hud-action');
     this.popEl = q('.hud-pop');
+    this.noticeEl = q<HTMLButtonElement>('.hud-notice');
+    this.noticeEl.addEventListener('click', () => this.notice(null));
     this.bigEl = q('.hud-big');
     this.draft = q('.hud-draft');
 
@@ -161,6 +167,12 @@ export class Hud {
     this.banner.hidden = !banner;
     this.downs.textContent = downs ?? '';
     this.downs.hidden = !downs;
+  }
+
+  /** A note across the top that stays until it's tapped, such as a link the game couldn't use. Null hides it. */
+  notice(text: string | null): void {
+    this.noticeEl.textContent = text ?? '';
+    this.noticeEl.hidden = text === null;
   }
 
   /** The big centre message and the context button. Null hides them. */
@@ -182,7 +194,9 @@ export class Hud {
   ): void {
     this.flipButton.hidden = !cards || called === null;
     this.flipButton.classList.toggle('on', flipped);
-    const key = cards ? `${cards.map((c) => c.name + c.blurb).join('|')}#${called}#${banned}` : '';
+    const key = cards
+      ? `${cards.map((c) => c.name + c.blurb + (c.ribbon ?? '')).join('|')}#${called}#${banned}`
+      : '';
     if (key === this.handKey) return;
     this.handKey = key;
     this.hand.classList.toggle('show', !!cards);
@@ -316,6 +330,12 @@ function cardButton(face: CardFace, className: string, onClick: () => void): HTM
   const blurb = document.createElement('span');
   blurb.textContent = face.blurb;
   b.append(name, blurb);
+  if (face.ribbon) {
+    const ribbon = document.createElement('em');
+    ribbon.className = 'hud-ribbon';
+    ribbon.textContent = face.ribbon;
+    b.append(ribbon);
+  }
   b.addEventListener('click', onClick);
   return b;
 }

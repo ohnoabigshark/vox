@@ -97,7 +97,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 | File | What it holds |
 |---|---|
 | `types.ts` | `RunState`, bodies, the ball's states, `Tackle`, `Action`, `StepInput`, `ArcadeEvent`, roster and perk types. |
-| `run.ts` | `createRun`, drives and downs (`setUpDrive`, `setUpDown` deals three cards), `dispatch` (call, Flip, hike, and TRICK OR TREAT's pick, place, swap, skip), `endDown`, `nextDown` (the offer after a won drive), `downAndDistance`. The hike hands off on a handoff card. |
+| `run.ts` | `createRun`, drives and downs (`setUpDrive`, `setUpDown` deals three cards from the run's playbook, with a play being tried always among them), `dispatch` (call, Flip, hike, and TRICK OR TREAT's pick, swap, skipDraft), `endDown`, `nextDown` (the offer after a won drive), `downAndDistance`, `cloneRun` (the copy `step` and `dispatch` change, sharing the read-only playbook). The hike hands off on a handoff card. |
 | `step.ts` | The 60 Hz step above; `canThrow`, `giveBall`, Break it! resolution, the pocket, the drag, tackles. |
 | `ai.ts` | Each body's target. Blockers stand between a rusher and the QB; route runners follow their waypoints; once someone has the ball, each helper takes **its own** threat (`carryBlocks`), and on a handoff the Catchers keep running their routes as decoys. Rushers charge the QB, Covers trail their mark, the Owl hangs deep, Bats loop. **The play fake:** for a moment after a handoff the defense keeps playing the pass. `chooseLane`, `assignMarks`. |
 | `physics.ts` | Moving and pushing apart by weight. Scarecrows can't be moved; teammates give way to the carrier; bodies lying down get nudged aside; blocked defenders are slowed; nobody but the carrier is shoved out of bounds. |
@@ -108,7 +108,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 | `props.ts` | Props on the field: laid per 10-yard stretch from the seed (`propsForDrive`), solid circles; `steerAround` (a body turns away from one in its path), `clearOfProps` (a target or waypoint inside one moves to its edge), `pushOutOfProps` (after the shoves). |
 | `random.ts`, `vec.ts`, `stats.ts` | Seeded randomness, 2D vectors, stat arithmetic. |
 
-**Determinism:** `step` and `dispatch` clone the state (`structuredClone`) and return a new one; the input state is never modified. A test runs long seeded runs and checks the invariants (no NaNs, nobody off the field but the carrier).
+**Determinism:** `step` and `dispatch` copy the state (`cloneRun`: a `structuredClone` of everything but the read-only playbook, which is shared) and return a new one; the input state is never modified. A test runs long seeded runs and checks the invariants (no NaNs, nobody off the field but the carrier).
 
 ---
 
@@ -179,6 +179,10 @@ src/arcade/content/
   tuning.ts    // arcadeTuning: every number the sim uses (field, body, contact, throw, sweep, breakit, carrier, defense, drive, run)
   team.ts      // roster roles and line-up, BASE_STATS, FORM_STATS (each kind's trade), POSITION_STAT, BENCH_SIZE, radii
   plays.ts     // PLAYS: each card's assignments (block, or a route of waypoints); handoff cards name the Runner
+  ourPlays.ts  // OUR_PLAYS: plays kept from the play editor, apart from esrauch's (fork)
+  playPool.ts  // PLAY_POOL: PLAYS then OUR_PLAYS; a run's playbook unless it's given one (fork)
+  playRules.ts // playProblems: the play rules, used by the tests and the play editor (fork)
+  playCode.ts  // a play in a ?try= link, and as plays.ts source for Copy code (fork)
   defense.ts   // DEFENDERS (each kind's stats, radius, reach bonus, planted) and FOREST: the area's drives and spots
   perks.ts     // ZONE_OFFER (a new player's total, by zone), names
 src/content/
@@ -187,7 +191,7 @@ src/content/
 ```
 
 - **Palettes have a single source of truth** (`src/content/palettes.ts`): it feeds the voxel colors, the CSS custom properties and the SVG icons.
-- **Content tests** keep it honest: every play's routes stay in range and every Runner gets past the line (`tests/arcade/plays.test.ts`), and so on.
+- **Content tests** keep it honest: every play keeps the play rules in `content/playRules.ts` (its routes stay in range, every Runner gets past the line; `tests/arcade/playRules.test.ts`), and so on.
 
 ---
 
@@ -292,7 +296,7 @@ slice 0
 - **TypeScript strict mode** (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), ESLint and Prettier.
 - **Unit tests (Vitest)** in `tests/`, mirroring `src/`: the sim's rules (catches, contests, blocks, pancakes, Break it!, the pocket, downs and drives, perks, the roster and bench, crowding), content checks, the voxel parser and mesher, audio data, palettes.
 - **Headless balance runs:** `npm run balance:arcade [runs]` (`tools/arcade-balance.ts`) plays whole runs through the sim with a bot and reports drives won, how downs end, each play type's spread of gains, Break it! results by kind, and where runs get stopped. The bot plays like a practised player by default; `BOT='{…}'` changes its knobs and `BALANCE_SCENARIO='{…}'` runs one custom scenario. It's slow (seconds a run), so use a few dozen runs per comparison.
-- **Dev pages** (in the normal build so they can be tried on phones; `npm run build:release` leaves them out): `/dev/` (an index), `models.html`, `audio.html`, `beat.html` (the beat clock and calibration).
+- **Dev pages** (in the normal build so they can be tried on phones; `npm run build:release` leaves them out): `/dev/` (an index), `models.html`, `audio.html`, `beat.html` (the beat clock and calibration), `lyrics.html`, and `plays.html` (the play editor, docs/PLAY_EDITOR.md).
 - **Device testing:** a regular check on a real mid-range Android phone and a real iPhone. Desktop emulation isn't enough for touch and feel.
 
 ---
@@ -311,7 +315,7 @@ slice 0
 ```
 /
 ├─ index.html
-├─ dev/                    // dev pages: index, models, audio, beat
+├─ dev/                    // dev pages: index, models, audio, beat, lyrics, plays
 ├─ src/
 │  ├─ main.ts              // waits for the font, then builds the game
 │  ├─ arcade/
@@ -359,7 +363,7 @@ Everything a future session (human or Claude) needs to carry on without the orig
 - **Node 24 LTS** (`.nvmrc`). Vite 8, Vitest 5, ESLint 10, TypeScript 5 strict.
 - **System Chrome** (`/usr/bin/google-chrome`) is driven by `playwright-core` (`channel: 'chrome'`) for every headless tool; WebGL runs headless via `--use-angle=swiftshader --enable-unsafe-swiftshader`.
 - **Dev server:** `npm run dev` (`vite --host`, port 5173). On a phone on the same Wi-Fi: `http://<this machine>:5173/` and `/dev/`. `.claude/launch.json` has a `dev` config for the Claude desktop Browser pane.
-- **URL options:** `?seed=N` fixes the run's seed; `?monsters=1` starts with Golem Blockers, Werewolf Runners and Ghost Catchers; `?area=2` or `?area=3` starts the run at that area's first drive (as if the areas before were won; the team is still the starting seven). `?win=1` goes straight from PLAY to the win cutscene (eleven recruits on the bench). `?hard=1` is hard mode (`RunState.hard`: endless zones, `driveDefense`'s extra defenders, `tuning.hard` recruits with `slowHands`, the sweep capped at the last area, `setsLineup`; the field wraps every three zones, `originOf` in game.ts). `?aim=2` is two-tap throwing (`RunState.twoTapAim`, `field.aim`, `aimDistance` / `lobTarget` in sim/ball.ts, a `lob` flight resolved only where it lands; `tuning.twoTap`). `?farmSong=2` plays the second Frederick's Farm song candidate (Spooky Cow, `FARM_SONGS`) instead of Harvest Moon Hoedown. They combine, e.g. `?area=2&monsters=1`. In dev builds the game is `window.game`.
+- **URL options:** `?seed=N` fixes the run's seed; `?monsters=1` starts with Golem Blockers, Werewolf Runners and Ghost Catchers; `?area=2` or `?area=3` starts the run at that area's first drive (as if the areas before were won; the team is still the starting seven). `?win=1` goes straight from PLAY to the win cutscene (eleven recruits on the bench). `?hard=1` is hard mode (`RunState.hard`: endless zones, `driveDefense`'s extra defenders, `tuning.hard` recruits with `slowHands`, the sweep capped at the last area, `setsLineup`; the field wraps every three zones, `originOf` in game.ts). `?aim=2` is two-tap throwing (`RunState.twoTapAim`, `field.aim`, `aimDistance` / `lobTarget` in sim/ball.ts, a `lob` flight resolved only where it lands; `tuning.twoTap`). `?farmSong=2` plays the second Frederick's Farm song candidate (Spooky Cow, `FARM_SONGS`) instead of Harvest Moon Hoedown. `?try=…` is a play from the play editor's Try it (`content/playCode.ts`): dealt every down with a DRAFT ribbon; a link it can't read shows a notice until tapped. They combine, e.g. `?area=2&monsters=1`. In dev builds the game is `window.game`.
 - **Git:** commit messages end with the `Co-Authored-By` line from the session instructions. Commit after a verified step; never push.
 
 ### Commands
@@ -434,6 +438,6 @@ Each of these needs a bigger change than a local cleanup:
 4. **Make the AI's "where to go" queries pure.** `playerTarget` advances a route's waypoint and `defenderTarget` a Bat's patrol while answering, and `carryBlocks` caches assignments in a module-level variable. Decide assignments once a step and store them in the state (e.g. `field.blocks`), and advance waypoints in a separate pass.
 5. **Name the spots.** Roster spots are an implicit number (0–6 the field, 7 up the bench; `BENCH_START`), and the `place` action calls its spot `slot`. A typed spot (`{ on: 'field' | 'bench', i }`) would make swaps self-explanatory.
 6. **One word for a player's kind.** It's `Form` in the types, `kind` on `RosterPlayer`, `form` on `Player`, and `FORM_STATS` in content. Pick `Kind` everywhere.
-7. **Remember how the ball changed hands.** Whether a down is a handoff is worked out from `PLAYS[state.play.index].handoff` in several places; a flag set at the hike would say it once.
+7. **Remember how the ball changed hands.** Whether a down is a handoff is worked out from `state.playbook[state.play.index].handoff` in several places; a flag set at the hike would say it once.
 8. **Speed up the sim.** `step()` deep-copies the whole state every step, which makes balance runs slow (seconds a run, much more with the bot's throw look-ahead). Copy-on-write for the field, or a mutable step with explicit snapshots for tests, would make them far faster.
 9. **Split the balance tool and the big test file.** `tools/arcade-balance.ts` (about 500 lines) mixes the bot, the scenarios and the report; `tests/arcade/sim.test.ts` (about 700 lines) covers everything. Split each by topic.

@@ -55,6 +55,43 @@
   transform: scale(1);
 }
 
+/* A note across the top that stays until tapped (a Try it link the game couldn't read). */
+.hud-notice {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 56px);
+  left: 12px;
+  right: 12px;
+  padding: 8px 12px;
+  border: 3px solid var(--ink);
+  background: var(--danger);
+  color: var(--bone);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* A tag across a card's top edge: DRAFT on a play being tried from the play editor. */
+.hud-card:has(.hud-ribbon) {
+  position: relative;
+}
+
+.hud-ribbon {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 1px 6px;
+  border: 2px solid var(--ink);
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: var(--pumpkin);
+  pointer-events: none;
+}
+
 .hud-pop {
   position: absolute;
   bottom: calc(env(safe-area-inset-bottom) + 190px);

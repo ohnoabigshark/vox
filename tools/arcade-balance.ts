@@ -23,7 +23,6 @@
  * catchable moment, and BOT='{"passOnly": false}' calls handoffs too: the
  * older, weaker bots. See BOT below for every knob.
  */
-import { PLAYS } from '../src/arcade/content/plays';
 import { pocketTime } from '../src/arcade/sim/ball';
 import { DRIVE_KINDS, createRun, dispatch, startingRoster } from '../src/arcade/sim/run';
 import { FORM_STATS } from '../src/arcade/content/team';
@@ -373,10 +372,10 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       if (rng.next() < 0.5) state = dispatch(state, { type: 'flip' }).state;
       const runs = state.hand
         .map((c, i) => ({ c, i }))
-        .filter(({ c, i }) => PLAYS[c]?.handoff !== undefined && i !== state.banned);
+        .filter(({ c, i }) => state.playbook[c]?.handoff !== undefined && i !== state.banned);
       const passes = state.hand
         .map((c, i) => ({ c, i }))
-        .filter(({ c, i }) => PLAYS[c]?.handoff === undefined && i !== state.banned);
+        .filter(({ c, i }) => state.playbook[c]?.handoff === undefined && i !== state.banned);
       const hand =
         BOT.runOnly && runs.length > 0
           ? (rng.pick(runs)?.i ?? 0)

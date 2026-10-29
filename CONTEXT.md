@@ -48,6 +48,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Route:** a player's path in a play, as waypoints in yards from where that
   player lines up. Only players run routes.
 - **Line-up:** where each of the seven slots stands at the snap (`LINEUP`).
+- **Slot** _(names ours)_: one of the seven places in the line-up, named in
+  roster order B1, B2, R1, R2, C1 (left outside), C2 (right outside), C3
+  (inside, right of centre). Flip swaps mirror partners.
 - **Playbook** _(ours)_: the plays your team can be dealt this run. **Play
   pool** _(ours)_: every play that exists, which rewards will draw from.
   Today they're the same five. _Avoid:_ "deck".
@@ -56,6 +59,15 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Handoff:** a play that gives a Runner the ball at the snap.
 - **Sweep** (the aim line): swings back and forth from Jack; THROW fires
   along it. Not to be confused with **Sweep**, the play.
+
+## The play editor _(ours)_
+
+- **Draft:** a play being drawn in the play editor, kept on the phone that
+  drew it. Not to be confused with **the draft** between drives
+  (TRICK OR TREAT!); map item g7 asks whether to rename these.
+- **Try it** and **trial:** playing a draft in the game. In code the play
+  being tried is the run's `trial`.
+- **Copy code:** the draft written as an entry for `ourPlays.ts`.
 
 ## The field
 

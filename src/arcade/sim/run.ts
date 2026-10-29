@@ -4,7 +4,8 @@
  * in step.ts. See GAMEPLAY.md, The Run, A Drive and A Down.
  */
 import { areaAt, type DefenseSpec } from '../content/defense';
-import { PLAYS } from '../content/plays';
+import { PLAY_POOL } from '../content/playPool';
+import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
@@ -84,10 +85,20 @@ export function createRun(
   seed: number,
   roster: RosterPlayer[] = startingRoster(),
   startArea = 0,
-  options: { readonly hard?: boolean; readonly twoTapAim?: boolean } = {},
+  options: {
+    readonly hard?: boolean;
+    readonly twoTapAim?: boolean;
+    /** The plays it deals from; the whole play pool if not given. */
+    readonly playbook?: readonly Play[];
+    /** A play to try (the play editor's Try it): added to the playbook and dealt every down. */
+    readonly trial?: Play;
+  } = {},
 ): RunState {
+  const playbook = options.playbook ?? PLAY_POOL;
   const state: RunState = {
     seed,
+    playbook: options.trial ? [...playbook, options.trial] : playbook,
+    trial: options.trial ? playbook.length : null,
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
     step: 0,
@@ -193,19 +204,24 @@ const HAND = 3;
 export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   const { drive } = state;
   const rng = rngFor(state.seed, 'hand', state.drivesWon, drive.down, state.nextId);
-  const deck = PLAYS.map((_, i) => i);
+  const { trial } = state;
+  const deck = state.playbook.map((_, i) => i).filter((i) => i !== trial);
+  const size = Math.min(HAND, state.playbook.length);
   state.hand = [];
-  while (state.hand.length < Math.min(HAND, PLAYS.length)) {
+  while (state.hand.length < (trial === null ? size : size - 1)) {
     state.hand.push(deck.splice(rng.int(0, deck.length - 1), 1)[0] ?? 0);
   }
+  // A play being tried is in every hand, somewhere among the three.
+  if (trial !== null) state.hand.splice(rng.int(0, state.hand.length), 0, trial);
   state.called = null;
   const spec = driveDefense(state, drive.area, drive.index);
-  // The Queen's Royal Decree: one card of the three is banned this down.
-  state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
+  // The Queen's Royal Decree: one card of the three is banned this down, never a play being tried.
+  const bannable = state.hand.flatMap((index, card) => (index === trial ? [] : [card]));
+  state.banned = spec.decree ? (bannable[rng.int(0, bannable.length - 1)] ?? null) : null;
   const first = state.banned === 0 ? 1 : 0;
   state.play = { index: state.hand[first] ?? 0, flipped: state.flipped };
-  const play = PLAYS[state.play.index] ?? PLAYS[0];
-  if (!play) throw new Error('No plays defined');
+  const play = state.playbook[state.play.index];
+  if (!play) throw new Error('The playbook has no plays');
   const players = lineUpTeam(state, play, state.flipped, drive.los, state.nextId);
   state.nextId += players.length;
   const boost = defenseBoost(drive.area, drive.kind, spec);
@@ -233,9 +249,19 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   events.push({ type: 'downStarted', down: drive.down, toGo: drive.firstDown - drive.los });
 }
 
+/**
+ * A copy of the run to change, for step() and dispatch(). The playbook is
+ * shared, not copied: plays are read-only, and copying them every step made
+ * the sim about a sixth slower.
+ */
+export function cloneRun(prev: RunState): RunState {
+  const { playbook, ...rest } = prev;
+  return { ...structuredClone(rest), playbook };
+}
+
 /** Apply an action between steps. Pure, like step(). Invalid actions change nothing. */
 export function dispatch(prev: RunState, action: Action): ArcadeResult {
-  const state = structuredClone(prev);
+  const state = cloneRun(prev);
   const events: ArcadeEvent[] = [];
   switch (action.type) {
     case 'call':
@@ -271,7 +297,7 @@ export function dispatch(prev: RunState, action: Action): ArcadeResult {
  */
 function call(state: RunState, hand: number, events: ArcadeEvent[]): void {
   const index = state.hand[hand];
-  const play = index === undefined ? undefined : PLAYS[index];
+  const play = index === undefined ? undefined : state.playbook[index];
   if (state.phase !== 'setup' || index === undefined || !play) return;
   if (hand === state.banned) {
     events.push({ type: 'banned' });
@@ -290,7 +316,7 @@ function call(state: RunState, hand: number, events: ArcadeEvent[]): void {
 
 /** The hike: the called play starts, Covers pick their marks, and a handoff play gives its Runner the ball. */
 function hike(state: RunState, events: ArcadeEvent[]): void {
-  const play = PLAYS[state.play.index];
+  const play = state.playbook[state.play.index];
   if (state.phase !== 'setup' || state.called === null || !play) return;
   state.phase = 'play';
   state.snappedAt = state.time;
@@ -369,7 +395,7 @@ function leaveDraft(state: RunState): void {
 
 /** Line your players up again where they stand, with the roster and perks as they now are. */
 function relineTeam(state: RunState): void {
-  const play = PLAYS[state.play.index];
+  const play = state.playbook[state.play.index];
   const firstId = state.field.players[0]?.id;
   if (!play || firstId === undefined) return;
   state.field.players.splice(

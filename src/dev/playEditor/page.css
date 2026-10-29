@@ -1,0 +1,468 @@
+/* The play editor (dev/plays.html): phone first, the field filling the width. */
+:root {
+  --night: #10170f;
+  --panel: #1b2419;
+  --edge: #3a4a36;
+  --text: #eef2e8;
+  --dim: #9fb09a;
+  --turf: #24482a;
+  --turf-out: #1d3a1f;
+  --pumpkin: #f0a14a;
+  --gold: #e7c14a;
+  --line: #9cc7ff;
+  --bad: #e5534b;
+  --bad-bg: #3b1614;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--text);
+  font:
+    15px/1.4 system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The list scrolls; the editor fits one screen, the field taking what's left (map item e8). */
+main.list {
+  height: auto;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--pumpkin);
+  outline-offset: 2px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 10px;
+  background: var(--panel);
+}
+
+.bar a,
+.bar .back {
+  color: var(--pumpkin);
+  font-weight: 600;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 4px 2px;
+  white-space: nowrap;
+}
+
+.bar h1 {
+  margin: 0;
+  font:
+    400 1.6rem 'Creepster',
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.bar input {
+  flex: 1;
+  min-width: 0;
+  background: var(--night);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-weight: 600;
+}
+
+.tog {
+  border: 1px solid var(--edge);
+  background: none;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 0.85rem;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.tog.on {
+  background: var(--pumpkin);
+  border-color: var(--pumpkin);
+  color: #1a1206;
+  font-weight: 700;
+}
+
+.try-with {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: var(--dim);
+  font-size: 0.9rem;
+}
+
+.head {
+  margin: 0;
+  padding: 8px 12px;
+  font:
+    600 0.72rem ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: #161e14;
+}
+
+.rows {
+  display: grid;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid #263023;
+  min-height: 52px;
+}
+
+.row .open {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 10px 12px;
+}
+
+.row .sub {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.row .sub.bad {
+  color: #ffb4ab;
+}
+
+.row .del {
+  background: none;
+  border: 0;
+  color: var(--dim);
+  padding: 10px 14px;
+  font-size: 1.1rem;
+}
+
+.confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bad-bg);
+  border-top: 1px solid #263023;
+}
+
+.confirm span {
+  flex: 1;
+}
+
+.empty,
+.note {
+  margin: 0;
+  padding: 12px;
+  color: var(--dim);
+}
+
+.note.bad {
+  color: #ffd2cc;
+  background: var(--bad-bg);
+}
+
+.field-box {
+  flex: 1 1 0;
+  min-height: 0;
+  position: relative;
+  background: var(--turf-out);
+}
+
+.field {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.note-bar {
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  min-height: 2.6em;
+  border-top: 2px solid var(--edge);
+  color: var(--dim);
+}
+
+.note-bar.bad {
+  background: var(--bad-bg);
+  border-top-color: var(--bad);
+  color: #ffd2cc;
+}
+
+.note-bar.ok {
+  border-top-color: var(--gold);
+  color: var(--text);
+}
+
+.chips,
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--panel);
+}
+
+.controls .label {
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.chip {
+  min-width: 40px;
+  min-height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--edge);
+  background: none;
+  font:
+    600 0.8rem ui-monospace,
+    Menlo,
+    monospace;
+  color: var(--text);
+}
+
+.chip:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.chip.on {
+  background: var(--pumpkin);
+  border-color: var(--pumpkin);
+  color: #1a1206;
+}
+
+.chip.bad {
+  border-color: var(--bad);
+  color: #ffb4ab;
+}
+
+.chip.on.bad {
+  color: #1a1206;
+  box-shadow: 0 0 0 2px var(--bad);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.btn {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 0;
+  font-weight: 700;
+}
+
+.btn.go {
+  background: var(--pumpkin);
+  color: #1a1206;
+}
+
+.btn.plain {
+  background: #2b3328;
+  color: var(--text);
+}
+
+.btn:disabled {
+  background: #2b3328;
+  color: #77836f;
+  cursor: default;
+}
+
+.small {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--edge);
+  background: none;
+}
+
+.small:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.code {
+  margin: 0 12px 12px;
+  width: calc(100% - 24px);
+  min-height: 12em;
+  background: var(--night);
+  color: var(--text);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  font:
+    0.8rem/1.45 ui-monospace,
+    Menlo,
+    monospace;
+}
+
+/* At the top, under the bar: the bottom is where the thumb's buttons are, and a
+   problem stays until it's tapped. */
+#status {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  top: calc(env(safe-area-inset-top, 0px) + 60px);
+  max-width: 456px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #2b3328;
+  border: 1px solid var(--edge);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.4);
+}
+
+#status.bad {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+  color: #ffd2cc;
+}
+
+/* The field's drawing, in yards (one SVG unit a yard). */
+.f-turf {
+  fill: var(--turf);
+}
+.f-out {
+  fill: var(--turf-out);
+}
+.f-yard {
+  stroke: #3d6a43;
+  stroke-width: 0.08;
+}
+.f-los {
+  stroke: var(--line);
+  stroke-width: 0.15;
+}
+.f-first {
+  stroke: var(--gold);
+  stroke-width: 0.18;
+}
+.f-reach {
+  stroke: var(--bad);
+  stroke-width: 0.14;
+  stroke-dasharray: 0.6 0.4;
+}
+.f-text {
+  font:
+    600 0.62px ui-monospace,
+    Menlo,
+    monospace;
+  fill: #cfe3c6;
+}
+.f-text.gold {
+  fill: var(--gold);
+}
+.f-text.bad {
+  fill: #ff9d94;
+}
+.f-route {
+  fill: none;
+  stroke: #c7d0c0;
+  stroke-width: 0.28;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.f-route.carry {
+  stroke: var(--gold);
+  stroke-width: 0.4;
+}
+.f-route.bad {
+  stroke: var(--bad);
+}
+.f-route.on {
+  stroke: var(--pumpkin);
+  stroke-width: 0.38;
+}
+.f-end {
+  fill: #c7d0c0;
+}
+.f-end.carry {
+  fill: var(--gold);
+}
+.f-end.bad {
+  fill: var(--bad);
+}
+.f-point {
+  fill: var(--pumpkin);
+  stroke: #1a1206;
+  stroke-width: 0.12;
+}
+.f-point.on {
+  stroke: #fff;
+  stroke-width: 0.22;
+}
+.f-hit {
+  fill: transparent;
+}
+.f-blocker {
+  fill: #8a948c;
+}
+.f-runner {
+  fill: #6fb6d8;
+}
+.f-catcher {
+  fill: var(--gold);
+}
+.f-player.on {
+  stroke: #fff;
+  stroke-width: 0.18;
+}
+.f-player.bad {
+  fill: var(--bad);
+}
+.f-name {
+  font:
+    700 0.7px ui-monospace,
+    Menlo,
+    monospace;
+  fill: #10170f;
+  pointer-events: none;
+}
