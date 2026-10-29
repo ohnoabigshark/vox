@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { playProblems } from '../../src/arcade/content/playRules';
-import { PLAYS, type Assignment, type Play } from '../../src/arcade/content/plays';
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
+import type { Assignment, Play } from '../../src/arcade/content/plays';
 
 const block: Assignment = { kind: 'block' };
 const route = (...to: [number, number][]): Assignment => ({
@@ -36,7 +37,12 @@ describe('play rules', () => {
   });
 
   it('every play in the pool keeps them', () => {
-    for (const p of PLAYS) expect(playProblems(p), p.id).toEqual([]);
+    for (const p of PLAY_POOL) expect(playProblems(p), p.id).toEqual([]);
+  });
+
+  it('every play in the pool has its own id', () => {
+    const ids = PLAY_POOL.map((p) => p.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('a route that ends going sideways breaks the first rule, for its slot', () => {

@@ -4,7 +4,8 @@
  * in step.ts. See GAMEPLAY.md, The Run, A Drive and A Down.
  */
 import { areaAt, type DefenseSpec } from '../content/defense';
-import { PLAYS, type Play } from '../content/plays';
+import { PLAY_POOL } from '../content/playPool';
+import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
@@ -93,7 +94,7 @@ export function createRun(
     readonly trial?: Play;
   } = {},
 ): RunState {
-  const playbook = options.playbook ?? PLAYS;
+  const playbook = options.playbook ?? PLAY_POOL;
   const state: RunState = {
     seed,
     playbook: options.trial ? [...playbook, options.trial] : playbook,
