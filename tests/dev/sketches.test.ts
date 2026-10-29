@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { draftStore, idFromName } from '../../src/dev/playEditor/drafts';
+import { sketchStore, idFromName } from '../../src/dev/playEditor/sketches';
 import type { Assignment, Play } from '../../src/arcade/content/plays';
 
 const block: Assignment = { kind: 'block' };
@@ -27,17 +27,17 @@ const memoryStorage = (): Pick<Storage, 'getItem' | 'setItem'> & { data: Map<str
   return { data, getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) };
 };
 
-describe('drafts kept on the phone', () => {
-  it('lists saved drafts newest first, and a saved draft replaces its older self', async () => {
+describe('sketches kept on the phone', () => {
+  it('lists saved sketches newest first, and a saved sketch replaces its older self', async () => {
     let t = 1000;
-    const store = draftStore(memoryStorage(), () => t);
+    const store = sketchStore(memoryStorage(), () => t);
     await store.save('a', play('Bootleg'));
     t = 2000;
     await store.save('b', play('Flood Left'));
     t = 3000;
     await store.save('a', play('Bootleg 2'));
     expect(await store.list()).toEqual({
-      drafts: [
+      sketches: [
         { key: 'a', play: play('Bootleg 2'), edited: 3000 },
         { key: 'b', play: play('Flood Left'), edited: 2000 },
       ],
@@ -45,40 +45,40 @@ describe('drafts kept on the phone', () => {
     });
   });
 
-  it('deletes a draft', async () => {
-    const store = draftStore(memoryStorage(), () => 1);
+  it('deletes a sketch', async () => {
+    const store = sketchStore(memoryStorage(), () => 1);
     await store.save('a', play('Bootleg'));
     await store.remove('a');
-    expect(await store.list()).toEqual({ drafts: [], problem: null });
+    expect(await store.list()).toEqual({ sketches: [], problem: null });
   });
 
-  it("a draft that can't be read is left out, and the list says so", async () => {
+  it("a sketch that can't be read is left out, and the list says so", async () => {
     const storage = memoryStorage();
-    const store = draftStore(storage, () => 1);
+    const store = sketchStore(storage, () => 1);
     await store.save('a', play('Bootleg'));
     const saved = JSON.parse(storage.data.values().next().value ?? '{}') as { drafts: unknown[] };
     saved.drafts.push({ key: 'x', edited: 2, link: '{oops' });
     storage.data.set([...storage.data.keys()][0] ?? '', JSON.stringify(saved));
     expect(await store.list()).toEqual({
-      drafts: [{ key: 'a', play: play('Bootleg'), edited: 1 }],
-      problem: "1 saved draft can't be read and isn't shown.",
+      sketches: [{ key: 'a', play: play('Bootleg'), edited: 1 }],
+      problem: "1 saved sketch can't be read and isn't shown.",
     });
   });
 
-  it('drafts saved by another version of the editor are reported, and never overwritten', async () => {
+  it('sketches saved by another version of the editor are reported, and never overwritten', async () => {
     const storage = memoryStorage();
-    const store = draftStore(storage, () => 1);
+    const store = sketchStore(storage, () => 1);
     await store.save('a', play('Bootleg'));
     const key = [...storage.data.keys()][0] ?? '';
     const later = JSON.stringify({
       version: 99,
-      drafts: [{ key: 'z', edited: 5, anything: true }],
+      sketches: [{ key: 'z', edited: 5, anything: true }],
     });
     storage.data.set(key, later);
     expect(await store.list()).toEqual({
-      drafts: [],
+      sketches: [],
       problem:
-        "Your saved drafts are from another version of the play editor, so they can't be shown.",
+        "Your saved sketches are from another version of the play editor, so they can't be shown.",
     });
     await expect(store.save('b', play('Flood Left'))).rejects.toThrow('from another version');
     expect(storage.data.get(key)).toBe(later);
@@ -93,13 +93,13 @@ describe('drafts kept on the phone', () => {
         throw new Error('denied');
       },
     };
-    const store = draftStore(broken, () => 1);
+    const store = sketchStore(broken, () => 1);
     expect(await store.list()).toEqual({
-      drafts: [],
-      problem: "This browser isn't keeping drafts (private browsing?).",
+      sketches: [],
+      problem: "This browser isn't keeping sketches (private browsing?).",
     });
     await expect(store.save('a', play('Bootleg'))).rejects.toThrow(
-      "This browser isn't keeping drafts (private browsing?).",
+      "This browser isn't keeping sketches (private browsing?).",
     );
   });
 

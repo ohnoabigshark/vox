@@ -1,37 +1,38 @@
 /**
- * Drafts: plays being drawn in the editor, kept in this browser's
+ * Sketches: plays being drawn in the editor, kept in this browser's
  * localStorage (map items e2, e13). Each is stored as its link text
- * (content/playCode.ts), so a draft is read back with the same checks as a
+ * (content/playCode.ts), so a sketch is read back with the same checks as a
  * Try it link. Storage can be unavailable or hold something unreadable; the
  * list then says so rather than quietly showing less.
  */
 import { playFromLink, playToLink } from '../../arcade/content/playCode';
 import type { Play } from '../../arcade/content/plays';
 
+// Sketches were called drafts when this format was set: the key and field keep that name.
 const KEY = 'getJackBack.playEditor.drafts';
 const VERSION = 1;
-const UNAVAILABLE = "This browser isn't keeping drafts (private browsing?).";
-const UNREADABLE = "Your saved drafts can't be read, so they can't be shown.";
+const UNAVAILABLE = "This browser isn't keeping sketches (private browsing?).";
+const UNREADABLE = "Your saved sketches can't be read, so they can't be shown.";
 const OTHER_VERSION =
-  "Your saved drafts are from another version of the play editor, so they can't be shown.";
+  "Your saved sketches are from another version of the play editor, so they can't be shown.";
 
-export interface Draft {
-  /** Which draft this is, kept as it's renamed. */
+export interface Sketch {
+  /** Which sketch this is, kept as it's renamed. */
   readonly key: string;
   readonly play: Play;
   /** When it was last saved, in milliseconds. */
   readonly edited: number;
 }
 
-export interface DraftList {
+export interface SketchList {
   /** Newest first. */
-  readonly drafts: readonly Draft[];
+  readonly sketches: readonly Sketch[];
   /** Why the list may be short or empty, for the page to show; null when nothing's wrong. */
   readonly problem: string | null;
 }
 
-export interface DraftStore {
-  list(): Promise<DraftList>;
+export interface SketchStore {
+  list(): Promise<SketchList>;
   save(key: string, play: Play): Promise<void>;
   remove(key: string): Promise<void>;
 }
@@ -42,13 +43,13 @@ interface Saved {
   readonly link: string;
 }
 
-/** Drafts kept in `storage` (localStorage on the page); `now` stamps each save. */
-export function draftStore(
+/** Sketches kept in `storage` (localStorage on the page); `now` stamps each save. */
+export function sketchStore(
   storage: Pick<Storage, 'getItem' | 'setItem'>,
   now: () => number,
-): DraftStore {
+): SketchStore {
   // Anything stored that can't be read is reported, and never written over:
-  // the drafts may still matter to whichever editor wrote them.
+  // the sketches may still matter to whichever editor wrote them.
   const read = (): Saved[] => {
     let raw: string | null;
     try {
@@ -66,9 +67,9 @@ export function draftStore(
     if (parsed.version !== VERSION || !Array.isArray(parsed.drafts)) throw new Error(OTHER_VERSION);
     return parsed.drafts as Saved[];
   };
-  const write = (drafts: readonly Saved[]): void => {
+  const write = (sketches: readonly Saved[]): void => {
     try {
-      storage.setItem(KEY, JSON.stringify({ version: VERSION, drafts }));
+      storage.setItem(KEY, JSON.stringify({ version: VERSION, drafts: sketches }));
     } catch {
       throw new Error(UNAVAILABLE);
     }
@@ -76,30 +77,30 @@ export function draftStore(
   const failed = (e: unknown): Promise<never> =>
     Promise.reject(e instanceof Error ? e : new Error(UNAVAILABLE));
   return {
-    list(): Promise<DraftList> {
+    list(): Promise<SketchList> {
       let saved: Saved[];
       try {
         saved = read();
       } catch (e) {
         return Promise.resolve({
-          drafts: [],
+          sketches: [],
           problem: e instanceof Error ? e.message : UNAVAILABLE,
         });
       }
-      const drafts: Draft[] = [];
+      const sketches: Sketch[] = [];
       let unreadable = 0;
       for (const d of saved) {
         const back = typeof d?.link === 'string' ? playFromLink(d.link) : null;
         if (back?.ok && typeof d.key === 'string' && typeof d.edited === 'number') {
-          drafts.push({ key: d.key, play: back.play, edited: d.edited });
+          sketches.push({ key: d.key, play: back.play, edited: d.edited });
         } else unreadable++;
       }
-      drafts.sort((a, b) => b.edited - a.edited);
+      sketches.sort((a, b) => b.edited - a.edited);
       const problem =
         unreadable === 0
           ? null
-          : `${unreadable} saved ${unreadable === 1 ? "draft can't" : "drafts can't"} be read and ${unreadable === 1 ? "isn't" : "aren't"} shown.`;
-      return Promise.resolve({ drafts, problem });
+          : `${unreadable} saved ${unreadable === 1 ? "sketch can't" : "sketches can't"} be read and ${unreadable === 1 ? "isn't" : "aren't"} shown.`;
+      return Promise.resolve({ sketches, problem });
     },
     save(key: string, play: Play): Promise<void> {
       try {
