@@ -67,7 +67,7 @@ import type {
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls, type BreakView } from './ui/controls';
-import type { FromLink } from './content/playCode';
+import type { Practice } from './content/playCode';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
 
@@ -96,10 +96,11 @@ export interface ArcadeOptions {
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
   /**
-   * The play in a ?try= link, from the play editor's Try it: dealt in every
-   * hand, marked DRAFT; or why it couldn't be read, shown until tapped.
+   * A practice link (?try=, the play editor's Try it): its sketch on the field
+   * straight away, rep after rep, with ‹ Sketch back to the editor. A play the
+   * link can't give opens the ordinary game, saying why until tapped.
    */
-  tried?: FromLink;
+  practice?: Practice;
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -156,7 +157,8 @@ export class ArcadeGame {
   private readonly video: boolean;
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
-  private readonly trial: Play | null;
+  /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
+  private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -206,7 +208,8 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    this.trial = options.tried?.ok ? options.tried.play : null;
+    const link = options.practice;
+    this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
     this.state = this.newRun();
@@ -241,9 +244,9 @@ export class ArcadeGame {
       onDraft: (offer) => this.act({ type: 'pick', offer }),
       onSkip: () => this.act({ type: 'skipDraft' }),
       onRoster: (spot) => this.onRoster(spot),
+      onBack: () => this.backToSketch(),
     });
-    if (options.tried && !options.tried.ok)
-      this.hud.notice(`${options.tried.reason} Playing without it.`);
+    if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),
@@ -253,6 +256,7 @@ export class ArcadeGame {
 
     document.addEventListener('keydown', (e) => this.onKey(e));
     // The first screen: just PLAY, on the backdrop; it starts the music and the intro.
+    // Practice has none: it opens on the field.
     this.startScreen = document.createElement('div');
     this.startScreen.className = 'start-screen interactive';
     const play = document.createElement('button');
@@ -260,7 +264,7 @@ export class ArcadeGame {
     play.textContent = 'PLAY';
     play.addEventListener('click', () => void this.onAction());
     this.startScreen.append(play);
-    uiRoot.append(this.startScreen);
+    if (!this.practice) uiRoot.append(this.startScreen);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') this.pause();
     });
@@ -298,7 +302,7 @@ export class ArcadeGame {
       this.view.render();
       return;
     }
-    if (this.conductor.started && !this.paused) {
+    if (this.live && !this.paused) {
       this.accumulator += dt * TIME_SCALE;
       while (this.accumulator >= DT) {
         this.stepOnce();
@@ -317,8 +321,37 @@ export class ArcadeGame {
     this.after(events, prev);
   }
 
+  /**
+   * Whether the game takes taps and runs: once PLAY has started the music, or
+   * in practice from the start (its sound starts with the first tap, wakeSound).
+   */
+  private get live(): boolean {
+    return this.practice !== null || this.conductor.started;
+  }
+
+  /**
+   * Practice: a browser plays no sound until the page is tapped, so the first
+   * tap starts it. Call from inside a tap.
+   */
+  private wakeSound(): void {
+    if (!this.practice || this.conductor.started || this.starting) return;
+    this.starting = true;
+    this.conductor.start(this.areaSong()).catch((e: unknown) => {
+      this.starting = false;
+      this.hud.notice(`The sound couldn't start (${e instanceof Error ? e.message : String(e)}).`);
+    });
+  }
+
+  /** Practice: ‹ Sketch, back to the play editor with the sketch open. */
+  private backToSketch(): void {
+    const editor = new URL('dev/plays.html', location.href);
+    if (this.practice?.sketch) editor.hash = this.practice.sketch;
+    location.assign(editor.href);
+  }
+
   private act(action: Action): void {
-    if (!this.conductor.started || this.paused) return;
+    this.wakeSound();
+    if (!this.live || this.paused) return;
     const prev = this.state;
     const { state, events } = dispatch(prev, action);
     this.state = state;
@@ -346,7 +379,8 @@ export class ArcadeGame {
 
   /** A button press, applied on the next step (if it means anything right now). */
   private press(input: StepInput): void {
-    if (!this.conductor.started || this.paused) return;
+    this.wakeSound();
+    if (!this.live || this.paused) return;
     this.pending = { ...this.pending, ...input };
   }
 
@@ -589,16 +623,14 @@ export class ArcadeGame {
         : '';
     const live = phase === 'setup' || phase === 'play' || phase === 'breakit';
     this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
-    const ready = this.conductor.started && !this.paused;
+    const ready = this.live && !this.paused;
+    // Practice: ‹ Sketch between reps (map item t4), not mid-play.
+    if (this.practice) this.hud.setBack(phase === 'setup' || phase === 'downOver');
     const cards =
       ready && phase === 'setup'
         ? hand.map((i) => {
             const p = this.state.playbook[i];
-            return {
-              name: p?.name ?? '?',
-              blurb: p?.handoff !== undefined ? 'Run' : 'Pass',
-              ...(i === this.state.trial ? { ribbon: 'DRAFT' } : {}),
-            };
+            return { name: p?.name ?? '?', blurb: p?.handoff !== undefined ? 'Run' : 'Pass' };
           })
         : null;
     this.hud.setHand(cards, called, flipped, banned);
@@ -606,7 +638,7 @@ export class ArcadeGame {
     this.hud.setDraft(
       ready && phase === 'draft' ? trickOrTreatView(this.state, this.swapFrom) : null,
     );
-    if (!this.conductor.started) this.hud.setPrompt(null, null);
+    if (!this.live) this.hud.setPrompt(null, null);
     else if (this.paused) this.hud.setPrompt('Paused', 'RESUME');
     else if (phase === 'setup')
       this.hud.setPrompt(called === null ? 'Pick a play' : null, called === null ? null : 'HIKE!');
@@ -624,7 +656,7 @@ export class ArcadeGame {
   private async onAction(): Promise<void> {
     this.conductor.play('uiClick');
     const { phase } = this.state;
-    if (!this.conductor.started) {
+    if (!this.live) {
       // The music starts, then the intro plays (once a game: AGAIN goes straight to the field).
       // The start screen stays up until the intro has drawn its first frame, so the field
       // never shows in between.
@@ -655,12 +687,16 @@ export class ArcadeGame {
     this.syncHud();
   }
 
-  /** Where a run's first drive sits on the long field: past the areas it skipped. */
+  /** A new run (practice: always the Forest's first drive, map item t3). */
   private newRun(): RunState {
+    if (this.practice)
+      return createRun(this.seed, firstRoster(this.monsters), 0, {
+        twoTapAim: this.twoTapAim,
+        practice: this.practice.play,
+      });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
-      ...(this.trial ? { trial: this.trial } : {}),
     });
   }
 
@@ -748,7 +784,8 @@ export class ArcadeGame {
   }
 
   private pause(): void {
-    if (!this.conductor.started || this.paused) return;
+    // Practice runs before its sound has started (wakeSound), so it pauses then too.
+    if (!this.live || this.paused) return;
     this.paused = true;
     this.pending = {};
     this.conductor.pause();

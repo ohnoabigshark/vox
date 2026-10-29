@@ -14,7 +14,9 @@ esrauch's roadmap is `MILESTONES.md`.
   from it; our own remote comes with the fork.
 - **The user plays with `?hard=1&aim=2`** (hard mode, two-tap throwing). Try
   changes in that mode as well as the default, and keep those flags on any
-  link that opens the game.
+  link that opens the game. Practice links (the play editor's Try it) are the
+  exception: they carry only `aim=2`, since hard mode changes nothing on the
+  Forest's first drive (decision map t3).
 - **The built game is served at `https://…ts.net:8443/vox/`,** rebuilt by git
   hooks after every commit, merge and branch checkout in this checkout, and
   swapped in only if the build passes (`docs/stacks/vox.md` in

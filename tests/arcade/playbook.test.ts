@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Assignment, Play } from '../../src/arcade/content/plays';
 import { playSlot } from '../../src/arcade/content/team';
-import { createRun, dispatch, endDown, nextDown, setUpDrive } from '../../src/arcade/sim/run';
-import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
+import { createRun, dispatch, endDown, nextDown } from '../../src/arcade/sim/run';
+import { step } from '../../src/arcade/sim/step';
+import type { ArcadeEvent, DownResult, RunState } from '../../src/arcade/sim/types';
 
 const block: Assignment = { kind: 'block' };
 const route = (...to: [number, number][]): Assignment => ({
@@ -65,29 +66,86 @@ describe("a run's playbook", () => {
   });
 });
 
-describe('trying a play (Try it)', () => {
-  it('deals the tried play in every hand, flipped or not, beside two from the pool', () => {
-    for (const seed of [1, 2, 3, 7]) {
-      const s = createRun(seed, undefined, 0, { trial: passPlay('mine') });
-      // Flipped from the first down on, Flip stays on as the downs go by.
-      const flipped = dispatch(s, { type: 'flip' }).state;
-      expect(flipped.flipped).toBe(true);
-      for (const hand of [...firstHands(s), ...firstHands(flipped)]) {
+describe('practice (Try it): one sketch, rep after rep', () => {
+  /** Where a rep lines up: the down, the line, the hand, the call and the mirror. */
+  const lineUp = (s: RunState) => ({
+    phase: s.phase,
+    down: s.drive.down,
+    los: s.drive.los,
+    hand: handIds(s),
+    called: s.called,
+    play: s.play,
+    slots: s.field.players.map((p) => p.slot),
+  });
+
+  /** Where each body stands and what it will do: a mirrored play differs here. */
+  const jobs = (s: RunState) => s.field.players.map((p) => ({ pos: p.pos, job: p.job }));
+
+  it('deals only the sketch, already called, at 1st & 10', () => {
+    const s = createRun(5, undefined, 0, { practice: passPlay('mine') });
+    expect(lineUp(s)).toEqual({
+      phase: 'setup',
+      down: 1,
+      los: 0,
+      hand: ['mine'],
+      called: 0,
+      play: { index: 0, flipped: false },
+      // Jack, then the seven.
+      slots: [-1, 0, 1, 2, 3, 4, 5, 6],
+    });
+  });
+
+  it('after every kind of ending, on any down, the next rep is the same spot, Flip kept', () => {
+    const endings: [DownResult, number][] = [
+      ['tackled', 6],
+      ['firstDown', 14],
+      ['incomplete', 0],
+      ['batted', 0],
+      ['sacked', -3],
+      ['outOfBounds', 2],
+    ];
+    for (const [result, at] of endings) {
+      for (const down of [1, 4]) {
+        let s = createRun(5, undefined, 0, { practice: passPlay('mine') });
+        s = dispatch(s, { type: 'flip' }).state;
+        const before = lineUp(s);
+        const beforeJobs = jobs(s);
+        s = dispatch(s, { type: 'hike' }).state;
+        s.drive.down = down;
+        endDown(s, result, at, []);
+        const events: ArcadeEvent[] = [];
+        nextDown(s, events);
+        expect(lineUp(s), `${result} on down ${down}`).toEqual(before);
+        expect(jobs(s), `${result} on down ${down}`).toEqual(beforeJobs);
+        expect(before.play.flipped).toBe(true);
         expect(
-          hand.filter((id) => id === 'mine'),
-          `seed ${seed}`,
-        ).toHaveLength(1);
-        expect(hand, `seed ${seed}`).toHaveLength(3);
+          events.map((e) => e.type),
+          `${result} on down ${down}`,
+        ).not.toContain('gameOver');
       }
     }
   });
 
-  it('a tried handoff hands off to its Runner, and flipped, to the other Runner', () => {
+  it('a rep played out in the sim lines up the same spot again', () => {
+    let s = createRun(5, undefined, 0, { practice: passPlay('mine') });
+    const start = lineUp(s);
+    const startJobs = jobs(s);
+    s = dispatch(s, { type: 'hike' }).state;
+    // Never throwing: the pocket collapses and the rep ends in a sack.
+    let ended = false;
+    for (let i = 0; i < 60 * 60 && !(ended && s.phase === 'setup'); i++) {
+      s = step(s, {}).state;
+      if (s.phase === 'downOver') ended = true;
+    }
+    expect(ended).toBe(true);
+    expect(lineUp(s)).toEqual(start);
+    expect(jobs(s)).toEqual(startJobs);
+  });
+
+  it('a handoff sketch hands off to its Runner, and flipped, to the other Runner', () => {
     const mine: Play = { ...passPlay('mine'), handoff: 2 };
     for (const flipped of [false, true]) {
-      let s = createRun(3, undefined, 0, { trial: mine });
-      const card = s.hand.findIndex((i) => s.playbook[i]?.id === 'mine');
-      s = dispatch(s, { type: 'call', hand: card }).state;
+      let s = createRun(3, undefined, 0, { practice: mine });
       if (flipped) s = dispatch(s, { type: 'flip' }).state;
       const { state, events } = dispatch(s, { type: 'hike' });
       const handoff = events.find((e: ArcadeEvent) => e.type === 'handoff');
@@ -95,16 +153,6 @@ describe('trying a play (Try it)', () => {
         (p) => p.id === (handoff?.type === 'handoff' ? handoff.id : -1),
       );
       expect(runner?.slot, `flipped ${flipped}`).toBe(playSlot(2, flipped));
-    }
-  });
-
-  it("the Queen's Royal Decree never bans the tried play", () => {
-    for (let seed = 1; seed <= 12; seed++) {
-      const s = createRun(seed, undefined, 0, { trial: passPlay('mine') });
-      setUpDrive(s, 1, 3, [], true);
-      expect(handIds(s), `seed ${seed}`).toContain('mine');
-      expect(s.banned, `seed ${seed}`).not.toBeNull();
-      expect(s.playbook[s.hand[s.banned ?? 0] ?? -1]?.id, `seed ${seed}`).not.toBe('mine');
     }
   });
 });

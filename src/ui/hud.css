@@ -23,6 +23,22 @@
   text-overflow: ellipsis;
 }
 
+/* Practice: back to the play editor, between reps. */
+.hud-back {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--ink);
+  background: var(--pumpkin);
+  padding: 4px 10px;
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.hud-back.held {
+  visibility: hidden;
+}
+
 .hud-downs {
   font-size: 1.3rem;
   font-weight: 900;
@@ -55,7 +71,7 @@
   transform: scale(1);
 }
 
-/* A note across the top that stays until tapped (a Try it link the game couldn't read). */
+/* A note across the top that stays until tapped (a practice link the game couldn't read). */
 .hud-notice {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 56px);
@@ -69,27 +85,6 @@
   font-size: 0.95rem;
   text-align: left;
   box-shadow: 3px 3px 0 var(--ink);
-}
-
-/* A tag across a card's top edge: DRAFT on a play being tried from the play editor. */
-.hud-card:has(.hud-ribbon) {
-  position: relative;
-}
-
-.hud-ribbon {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  translate: -50% 0;
-  padding: 1px 6px;
-  border: 2px solid var(--ink);
-  font-style: normal;
-  font-size: 0.7rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  color: var(--ink);
-  background: var(--pumpkin);
-  pointer-events: none;
 }
 
 .hud-pop {

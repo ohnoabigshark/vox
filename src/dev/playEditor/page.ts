@@ -1,18 +1,18 @@
 /**
  * The play editor's page (dev/plays.html; docs/PLAY_EDITOR.md). It draws
- * the state that editor.ts and drafts.ts keep and passes taps in; the rules
+ * the state that editor.ts and sketches.ts keep and passes taps in; the rules
  * of editing live there, tested, and not here.
  *
- * Two views: the drafts list, and the editor for one draft. The open draft's
+ * Two views: the sketches list, and the editor for one sketch. The open sketch's
  * key is the page's hash, so Back from Try it returns to it.
  */
-import { playToLink, playToSource } from '../../arcade/content/playCode';
+import { practiceQuery, playToSource } from '../../arcade/content/playCode';
 import { PLAY_POOL } from '../../arcade/content/playPool';
 import { DEEPEST, playProblems, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
 import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES } from '../../arcade/content/team';
 import { arcadeTuning } from '../../arcade/content/tuning';
-import { draftStore, idFromName, type Draft, type DraftList } from './drafts';
+import { sketchStore, idFromName, type Sketch, type SketchList } from './sketches';
 import {
   addPoint,
   fieldView,
@@ -37,7 +37,7 @@ function required(selector: string): HTMLElement {
 const app = required('#app');
 const statusEl = required('#status');
 
-// The only place the page reads the time: when a draft was saved, and "how long ago".
+// The only place the page reads the time: when a sketch was saved, and "how long ago".
 const now = (): number => Date.now();
 /** The browser's localStorage, or, where even reaching it throws, a stand-in that always refuses. */
 function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
@@ -51,7 +51,7 @@ function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
   }
 }
 const storage = browserStorage();
-const store = draftStore(storage, now);
+const store = sketchStore(storage, now);
 
 // ── Status line ─────────────────────────────────────────────────────────────
 
@@ -79,25 +79,23 @@ async function attempt(work: () => Promise<void>): Promise<boolean> {
 
 // ── Try with: the game's settings for Try it ────────────────────────────────
 
-// Kept synchronously, unlike drafts: a two-switch convenience for this one
-// page, read once at load, where a failure only means the defaults come back.
+// Kept synchronously, unlike sketches: a one-switch convenience for this one
+// page, read once at load, where a failure only means the default comes back.
+// There's no Hard: practice plays the Forest's first drive, where it changes
+// nothing (map item t3). An older save's `hard` is ignored.
 const TRY_KEY = 'getJackBack.playEditor.tryWith';
 const TRY_VERSION = 1;
 interface TryWith {
-  hard: boolean;
   twoTap: boolean;
 }
 function loadTryWith(): TryWith {
-  // How the Coach plays: hard mode, two-tap throwing (vox CLAUDE.md).
-  const fallback = { hard: true, twoTap: true };
+  // How the Coach plays: two-tap throwing (vox CLAUDE.md).
+  const fallback = { twoTap: true };
   try {
     const saved = JSON.parse(storage.getItem(TRY_KEY) ?? 'null') as
       (Partial<TryWith> & { version?: unknown }) | null;
     if (saved?.version !== TRY_VERSION) return fallback;
-    return {
-      hard: typeof saved?.hard === 'boolean' ? saved.hard : fallback.hard,
-      twoTap: typeof saved?.twoTap === 'boolean' ? saved.twoTap : fallback.twoTap,
-    };
+    return { twoTap: typeof saved?.twoTap === 'boolean' ? saved.twoTap : fallback.twoTap };
   } catch {
     return fallback;
   }
@@ -143,20 +141,14 @@ function stateOf(play: Play): { text: string; bad: boolean } {
     : { text: `${n} ${n === 1 ? 'problem' : 'problems'}`, bad: true };
 }
 
-// ── The drafts list ─────────────────────────────────────────────────────────
+// ── The sketches list ─────────────────────────────────────────────────────────
 
 let confirming: string | null = null;
 
 async function showList(): Promise<void> {
   history.replaceState(null, '', location.pathname + location.search);
-  const list: DraftList = await store.list();
-  const hard = el('button', { className: `tog${tryWith.hard ? ' on' : ''}`, text: 'Hard' });
+  const list: SketchList = await store.list();
   const twoTap = el('button', { className: `tog${tryWith.twoTap ? ' on' : ''}`, text: 'Two-tap' });
-  hard.addEventListener('click', () => {
-    tryWith.hard = !tryWith.hard;
-    hard.classList.toggle('on', tryWith.hard);
-    saveTryWith();
-  });
   twoTap.addEventListener('click', () => {
     tryWith.twoTap = !tryWith.twoTap;
     twoTap.classList.toggle('on', tryWith.twoTap);
@@ -164,9 +156,9 @@ async function showList(): Promise<void> {
   });
 
   const rows = el('div', { className: 'rows' });
-  for (const d of list.drafts) rows.append(draftRow(d));
-  if (list.drafts.length === 0) {
-    rows.append(el('p', { className: 'empty', text: 'No drafts yet. Start one below.' }));
+  for (const d of list.sketches) rows.append(sketchRow(d));
+  if (list.sketches.length === 0) {
+    rows.append(el('p', { className: 'empty', text: 'No sketches yet. Start one below.' }));
   }
 
   const starts = el('div', { className: 'rows' });
@@ -178,16 +170,16 @@ async function showList(): Promise<void> {
   back.href = './';
   app.replaceChildren(
     el('header', { className: 'bar' }, back, el('h1', { text: 'Plays' })),
-    el('div', { className: 'try-with' }, 'Try with:', hard, twoTap),
+    el('div', { className: 'try-with' }, 'Try with:', twoTap),
     ...(list.problem ? [el('p', { className: 'note bad', text: list.problem })] : []),
-    el('h2', { className: 'head', text: 'Your drafts · on this phone' }),
+    el('h2', { className: 'head', text: 'Your sketches · on this phone' }),
     rows,
     el('h2', { className: 'head', text: 'Start a play' }),
     starts,
   );
 }
 
-function draftRow(d: Draft): HTMLElement {
+function sketchRow(d: Sketch): HTMLElement {
   if (confirming === d.key) {
     return el(
       'div',
@@ -219,7 +211,7 @@ function draftRow(d: Draft): HTMLElement {
     { className: 'row' },
     el(
       'button',
-      { className: 'open', onClick: () => openDraft(d) },
+      { className: 'open', onClick: () => openSketch(d) },
       d.play.name || 'Untitled',
       el('span', {
         className: `sub${st.bad ? ' bad' : ''}`,
@@ -245,8 +237,8 @@ function startRow(label: string, play: Play): HTMLElement {
       className: 'open',
       text: label,
       onClick: () => {
-        const draft: Draft = { key: `d${now()}`, play, edited: now() };
-        void attempt(() => store.save(draft.key, play)).then((ok) => ok && openDraft(draft));
+        const sketch: Sketch = { key: `s${now()}`, play, edited: now() };
+        void attempt(() => store.save(sketch.key, play)).then((ok) => ok && openSketch(sketch));
       },
     }),
   );
@@ -292,7 +284,7 @@ interface Editing {
 
 let editing: Editing | null = null;
 
-function openDraft(d: Draft): void {
+function openSketch(d: Sketch): void {
   history.replaceState(null, '', `#${d.key}`);
   const name = el('input');
   name.id = 'play-name';
@@ -338,7 +330,7 @@ function openDraft(d: Draft): void {
     el(
       'header',
       { className: 'bar' },
-      el('button', { className: 'back', text: '‹ Drafts', onClick: () => void showList() }),
+      el('button', { className: 'back', text: '‹ Sketches', onClick: () => void showList() }),
       name,
       flip,
     ),
@@ -559,22 +551,20 @@ function drawField(f: SVGSVGElement, ed: EditorState): void {
 function tryIt(): void {
   const e = editing;
   if (!e) return;
-  const params = new URLSearchParams({ try: playToLink(e.ed.play) });
-  if (tryWith.hard) params.set('hard', '1');
-  if (tryWith.twoTap) params.set('aim', '2');
+  const query = practiceQuery(e.ed.play, e.key, tryWith.twoTap);
   const go = (): void => {
-    location.href = `${new URL('../', location.href).href}?${params}`;
+    location.href = `${new URL('../', location.href).href}?${query}`;
   };
   if (tryUnsaved) return go();
   store.save(e.key, e.ed.play).then(go, (err: unknown) => {
-    // Going would lose the problem from view, and Back wouldn't find the draft as it is.
+    // Going would lose the problem from view, and Back wouldn't find the sketch as it is.
     tryUnsaved = true;
     const why = err instanceof Error ? err.message : String(err);
-    say(`${why} This draft isn't saved. Tap Try it again to go anyway.`, true);
+    say(`${why} This sketch isn't saved. Tap Try it again to go anyway.`, true);
   });
 }
 
-/** Try it couldn't save the draft and said so: the next tap goes without saving. */
+/** Try it couldn't save the sketch and said so: the next tap goes without saving. */
 let tryUnsaved = false;
 
 /** While a waypoint is dragged: where it is, in yards from where its player lines up. */
@@ -609,9 +599,9 @@ async function copyCode(): Promise<void> {
 async function start(): Promise<void> {
   const key = location.hash.slice(1);
   if (key) {
-    const { drafts } = await store.list();
-    const d = drafts.find((x) => x.key === key);
-    if (d) return openDraft(d);
+    const { sketches } = await store.list();
+    const d = sketches.find((x) => x.key === key);
+    if (d) return openSketch(d);
   }
   await showList();
 }

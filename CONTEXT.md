@@ -62,12 +62,12 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 
 ## The play editor _(ours)_
 
-- **Draft:** a play being drawn in the play editor, kept on the phone that
-  drew it. Not to be confused with **the draft** between drives
-  (TRICK OR TREAT!); map item g7 asks whether to rename these.
-- **Try it** and **trial:** playing a draft in the game. In code the play
-  being tried is the run's `trial`.
-- **Copy code:** the draft written as an entry for `ourPlays.ts`.
+- **Sketch:** a play being drawn in the play editor, kept on the phone that
+  drew it (map item g7). _Avoid:_ "draft", which is TRICK OR TREAT!.
+- **Practice** and **rep:** what Try it opens: one sketch on the field,
+  played over and over from the same spot (map item t6). Each go is a rep.
+  In code, a run with `practice` set. _Avoid:_ "trial", the old in-game Try it.
+- **Copy code:** the sketch written as an entry for `ourPlays.ts`.
 
 ## The field
 
