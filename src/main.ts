@@ -1,4 +1,4 @@
-import { playFromLink } from './arcade/content/playCode';
+import { readPractice } from './arcade/content/playCode';
 import { ArcadeGame } from './arcade/game';
 import { applyPaletteVars } from './ui/paletteVars';
 
@@ -19,9 +19,9 @@ await Promise.race([
 
 const params = new URLSearchParams(location.search);
 const seed = Number(params.get('seed')) || Math.floor(Math.random() * 1e9);
-// ?try=… is a play from the play editor's Try it (dev/plays.html): dealt every down.
-const tryText = params.get('try');
-const tried = tryText === null ? null : playFromLink(tryText);
+// ?try=…&sketch=… is practice, from the play editor's Try it (dev/plays.html): that
+// one play on the field, rep after rep, with ‹ Sketch back to the editor.
+const practice = readPractice(location.search);
 // ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area;
 // ?hard=1 is hard mode (endless zones); ?aim=2 throws with two taps (aim, then distance).
 // ?win=1 goes straight from PLAY to the win cutscene (with ?video=1, frame by frame for
@@ -36,7 +36,7 @@ const game = new ArcadeGame(canvas, ui, {
   hard: params.get('hard') === '1',
   twoTapAim: params.get('aim') === '2',
   farmSong: Number(params.get('farmSong')) || 1,
-  ...(tried ? { tried } : {}),
+  ...(practice ? { practice } : {}),
 });
 
 // Dev builds expose the game for debugging from the console.

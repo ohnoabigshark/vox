@@ -6,7 +6,7 @@
  * Two views: the sketches list, and the editor for one sketch. The open sketch's
  * key is the page's hash, so Back from Try it returns to it.
  */
-import { playToLink, playToSource } from '../../arcade/content/playCode';
+import { practiceQuery, playToSource } from '../../arcade/content/playCode';
 import { PLAY_POOL } from '../../arcade/content/playPool';
 import { DEEPEST, playProblems, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
 import type { Assignment, Play } from '../../arcade/content/plays';
@@ -79,25 +79,23 @@ async function attempt(work: () => Promise<void>): Promise<boolean> {
 
 // ── Try with: the game's settings for Try it ────────────────────────────────
 
-// Kept synchronously, unlike sketches: a two-switch convenience for this one
-// page, read once at load, where a failure only means the defaults come back.
+// Kept synchronously, unlike sketches: a one-switch convenience for this one
+// page, read once at load, where a failure only means the default comes back.
+// There's no Hard: practice plays the Forest's first drive, where it changes
+// nothing (map item t3). An older save's `hard` is ignored.
 const TRY_KEY = 'getJackBack.playEditor.tryWith';
 const TRY_VERSION = 1;
 interface TryWith {
-  hard: boolean;
   twoTap: boolean;
 }
 function loadTryWith(): TryWith {
-  // How the Coach plays: hard mode, two-tap throwing (vox CLAUDE.md).
-  const fallback = { hard: true, twoTap: true };
+  // How the Coach plays: two-tap throwing (vox CLAUDE.md).
+  const fallback = { twoTap: true };
   try {
     const saved = JSON.parse(storage.getItem(TRY_KEY) ?? 'null') as
       (Partial<TryWith> & { version?: unknown }) | null;
     if (saved?.version !== TRY_VERSION) return fallback;
-    return {
-      hard: typeof saved?.hard === 'boolean' ? saved.hard : fallback.hard,
-      twoTap: typeof saved?.twoTap === 'boolean' ? saved.twoTap : fallback.twoTap,
-    };
+    return { twoTap: typeof saved?.twoTap === 'boolean' ? saved.twoTap : fallback.twoTap };
   } catch {
     return fallback;
   }
@@ -150,13 +148,7 @@ let confirming: string | null = null;
 async function showList(): Promise<void> {
   history.replaceState(null, '', location.pathname + location.search);
   const list: SketchList = await store.list();
-  const hard = el('button', { className: `tog${tryWith.hard ? ' on' : ''}`, text: 'Hard' });
   const twoTap = el('button', { className: `tog${tryWith.twoTap ? ' on' : ''}`, text: 'Two-tap' });
-  hard.addEventListener('click', () => {
-    tryWith.hard = !tryWith.hard;
-    hard.classList.toggle('on', tryWith.hard);
-    saveTryWith();
-  });
   twoTap.addEventListener('click', () => {
     tryWith.twoTap = !tryWith.twoTap;
     twoTap.classList.toggle('on', tryWith.twoTap);
@@ -178,7 +170,7 @@ async function showList(): Promise<void> {
   back.href = './';
   app.replaceChildren(
     el('header', { className: 'bar' }, back, el('h1', { text: 'Plays' })),
-    el('div', { className: 'try-with' }, 'Try with:', hard, twoTap),
+    el('div', { className: 'try-with' }, 'Try with:', twoTap),
     ...(list.problem ? [el('p', { className: 'note bad', text: list.problem })] : []),
     el('h2', { className: 'head', text: 'Your sketches · on this phone' }),
     rows,
@@ -559,11 +551,9 @@ function drawField(f: SVGSVGElement, ed: EditorState): void {
 function tryIt(): void {
   const e = editing;
   if (!e) return;
-  const params = new URLSearchParams({ try: playToLink(e.ed.play) });
-  if (tryWith.hard) params.set('hard', '1');
-  if (tryWith.twoTap) params.set('aim', '2');
+  const query = practiceQuery(e.ed.play, e.key, tryWith.twoTap);
   const go = (): void => {
-    location.href = `${new URL('../', location.href).href}?${params}`;
+    location.href = `${new URL('../', location.href).href}?${query}`;
   };
   if (tryUnsaved) return go();
   store.save(e.key, e.ed.play).then(go, (err: unknown) => {

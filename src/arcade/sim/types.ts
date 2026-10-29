@@ -318,11 +318,10 @@ export interface RunState {
    */
   readonly playbook: readonly Play[];
   /**
-   * The play being tried from the play editor (Try it, docs/PLAY_EDITOR.md): its
-   * index in the playbook. It's dealt in every hand and never banned. Null in a
-   * normal run.
+   * Practice (the play editor's Try it, docs/PLAY_EDITOR.md): the playbook is
+   * one sketch, called at every setup, and every rep lines up the same spot.
    */
-  readonly trial: number | null;
+  readonly practice: boolean;
   /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */
   hand: number[];
   called: number | null;

@@ -22,6 +22,8 @@ export interface HudHandlers {
   /** TRICK OR TREAT!: tap a roster spot (to place a recruit there, or to swap two). */
   /** A tap on a roster spot (RosterRow.spot). */
   onRoster?(spot: number): void;
+  /** Practice: ‹ Sketch, back to the play editor. */
+  onBack?(): void;
 }
 
 /** One of your players on the roster panel. */
@@ -94,8 +96,6 @@ export interface DraftView {
 export interface CardFace {
   readonly name: string;
   readonly blurb: string;
-  /** A tag across the top, such as DRAFT on a play being tried from the play editor. */
-  readonly ribbon?: string;
 }
 
 export class Hud {
@@ -109,6 +109,7 @@ export class Hud {
   private readonly actionButton: HTMLButtonElement;
   private readonly popEl: HTMLElement;
   private readonly noticeEl: HTMLButtonElement;
+  private readonly backButton: HTMLButtonElement;
   private readonly draft: HTMLElement;
   private popTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly bigEl: HTMLElement;
@@ -122,6 +123,7 @@ export class Hud {
   ) {
     root.innerHTML = `
       <div class="hud-top">
+        <button class="hud-back interactive" hidden>‹ Sketch</button>
         <div class="hud-banner"></div>
         <div class="hud-downs"></div>
       </div>
@@ -153,6 +155,8 @@ export class Hud {
     this.popEl = q('.hud-pop');
     this.noticeEl = q<HTMLButtonElement>('.hud-notice');
     this.noticeEl.addEventListener('click', () => this.notice(null));
+    this.backButton = q<HTMLButtonElement>('.hud-back');
+    this.backButton.addEventListener('click', () => handlers.onBack?.());
     this.bigEl = q('.hud-big');
     this.draft = q('.hud-draft');
 
@@ -175,6 +179,11 @@ export class Hud {
     this.noticeEl.hidden = text === null;
   }
 
+  /** Practice: show or hide ‹ Sketch (it shows between reps). */
+  setBack(show: boolean): void {
+    this.backButton.hidden = !show;
+  }
+
   /** The big centre message and the context button. Null hides them. */
   setPrompt(message: string | null, action: string | null): void {
     this.message.textContent = message ?? '';
@@ -194,9 +203,7 @@ export class Hud {
   ): void {
     this.flipButton.hidden = !cards || called === null;
     this.flipButton.classList.toggle('on', flipped);
-    const key = cards
-      ? `${cards.map((c) => c.name + c.blurb + (c.ribbon ?? '')).join('|')}#${called}#${banned}`
-      : '';
+    const key = cards ? `${cards.map((c) => c.name + c.blurb).join('|')}#${called}#${banned}` : '';
     if (key === this.handKey) return;
     this.handKey = key;
     this.hand.classList.toggle('show', !!cards);
@@ -330,12 +337,6 @@ function cardButton(face: CardFace, className: string, onClick: () => void): HTM
   const blurb = document.createElement('span');
   blurb.textContent = face.blurb;
   b.append(name, blurb);
-  if (face.ribbon) {
-    const ribbon = document.createElement('em');
-    ribbon.className = 'hud-ribbon';
-    ribbon.textContent = face.ribbon;
-    b.append(ribbon);
-  }
   b.addEventListener('click', onClick);
   return b;
 }
