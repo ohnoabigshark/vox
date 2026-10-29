@@ -35,6 +35,10 @@
   box-shadow: 3px 3px 0 var(--ink);
 }
 
+.hud-back.held {
+  visibility: hidden;
+}
+
 .hud-downs {
   font-size: 1.3rem;
   font-weight: 900;

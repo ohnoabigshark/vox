@@ -628,7 +628,7 @@ export class ArcadeGame {
     this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
     const ready = this.live && !this.paused;
     // Practice: ‹ Sketch between reps (map item t4), not mid-play.
-    this.hud.setBack(this.practice !== null && (phase === 'setup' || phase === 'downOver'));
+    if (this.practice) this.hud.setBack(phase === 'setup' || phase === 'downOver');
     const cards =
       ready && phase === 'setup'
         ? hand.map((i) => {

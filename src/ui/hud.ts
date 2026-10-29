@@ -179,9 +179,13 @@ export class Hud {
     this.noticeEl.hidden = text === null;
   }
 
-  /** Practice: show or hide ‹ Sketch (it shows between reps). */
+  /**
+   * Practice: ‹ Sketch, shown between reps. Hidden mid-play, it keeps its
+   * place, so down and distance doesn't jump across the top.
+   */
   setBack(show: boolean): void {
-    this.backButton.hidden = !show;
+    this.backButton.hidden = false;
+    this.backButton.classList.toggle('held', !show);
   }
 
   /** The big centre message and the context button. Null hides them. */
