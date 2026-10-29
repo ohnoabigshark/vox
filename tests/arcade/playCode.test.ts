@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { playFromLink, playToLink } from '../../src/arcade/content/playCode';
+import { playFromLink, playToLink, playToSource } from '../../src/arcade/content/playCode';
 import { PLAYS, type Assignment, type Play } from '../../src/arcade/content/plays';
 
 const block: Assignment = { kind: 'block' };
@@ -61,5 +61,47 @@ describe('a play in a link', () => {
       ok: false,
       reason: "The play in this link has a waypoint for C1 that isn't a pair of numbers.",
     });
+  });
+});
+
+describe('Copy code', () => {
+  /** Read written source back the way plays.ts would: an object literal using block and route. */
+  const readBack = (source: string): unknown =>
+    new Function('block', 'route', `return ${source.trim().replace(/,$/, '')};`)(block, route);
+
+  it('writes a play as plays.ts does, which reads back as the same play', () => {
+    expect(readBack(playToSource(mine))).toEqual(mine);
+    for (const p of PLAYS) expect(readBack(playToSource(p))).toEqual(p);
+  });
+
+  it('writes it in the style of plays.ts', () => {
+    expect(
+      playToSource({
+        id: 'bob',
+        name: "Bob's Bootleg",
+        slots: [
+          block,
+          block,
+          route([-2, 6]),
+          route([2, 6]),
+          route([0, 10], [3, 14]),
+          route([0, 10]),
+          route([0, 8]),
+        ],
+      }),
+    ).toBe(`  {
+    id: 'bob',
+    name: 'Bob\\'s Bootleg',
+    slots: [
+      block,
+      block,
+      route([-2, 6]),
+      route([2, 6]),
+      route([0, 10], [3, 14]),
+      route([0, 10]),
+      route([0, 8]),
+    ],
+  },
+`);
   });
 });

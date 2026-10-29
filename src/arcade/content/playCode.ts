@@ -79,3 +79,26 @@ export function playFromLink(text: string): FromLink {
   }
   return { ok: true, play: { id: i, name: n, slots, handoff: h } };
 }
+
+/** A string as a single-quoted TypeScript literal. */
+const quote = (text: string): string => `'${text.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+
+/**
+ * A play as an entry for the list in `ourPlays.ts`, written the way
+ * `plays.ts` writes them (Copy code, map items e2 and e16).
+ */
+export function playToSource(play: Play): string {
+  const slot = (a: Assignment): string =>
+    a.kind === 'block' ? 'block' : `route(${a.to.map((w) => `[${w.x}, ${w.y}]`).join(', ')})`;
+  return [
+    '  {',
+    `    id: ${quote(play.id)},`,
+    `    name: ${quote(play.name)},`,
+    '    slots: [',
+    ...play.slots.map((a) => `      ${slot(a)},`),
+    '    ],',
+    ...(play.handoff === undefined ? [] : [`    handoff: ${play.handoff},`]),
+    '  },',
+    '',
+  ].join('\n');
+}
