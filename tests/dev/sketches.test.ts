@@ -128,6 +128,32 @@ describe('sketches kept on the phone', () => {
     expect(storage.data.get('getJackBack.playEditor.drafts')).toBe(old);
   });
 
+  it('old drafts carry over once: deleting every sketch does not bring them back', async () => {
+    const storage = memoryStorage();
+    storage.data.set(
+      'getJackBack.playEditor.drafts',
+      JSON.stringify({
+        version: 1,
+        drafts: [{ key: 'a', edited: 7, link: playToLink(play('Bootleg')) }],
+      }),
+    );
+    const store = sketchStore(storage, () => 9);
+    await store.remove('a');
+    expect(await store.list()).toEqual({ sketches: [], problem: null });
+  });
+
+  it("old drafts that can't be read are reported, and nothing is saved over them", async () => {
+    const storage = memoryStorage();
+    storage.data.set('getJackBack.playEditor.drafts', '{oops');
+    const store = sketchStore(storage, () => 9);
+    expect(await store.list()).toEqual({
+      sketches: [],
+      problem: "Your saved sketches can't be read, so they can't be shown.",
+    });
+    await expect(store.save('b', play('Flood Left'))).rejects.toThrow("can't be read");
+    expect([...storage.data.entries()]).toEqual([['getJackBack.playEditor.drafts', '{oops']]);
+  });
+
   it('a play gets its id from its name, as plays.ts ids look', () => {
     expect(idFromName('Curl & Flat 2')).toBe('curlFlat2');
     expect(idFromName("  Bob's  deep SHOT ")).toBe('bobsDeepShot');
