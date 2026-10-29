@@ -787,7 +787,8 @@ export class ArcadeGame {
   }
 
   private pause(): void {
-    if (!this.conductor.started || this.paused) return;
+    // Practice runs before its sound has started (wakeSound), so it pauses then too.
+    if (!this.live || this.paused) return;
     this.paused = true;
     this.pending = {};
     this.conductor.pause();
