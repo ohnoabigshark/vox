@@ -34,6 +34,11 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   - A flat top-down field, dragged with a thumb (e7).
   - Rounds 2 and 3 settled the screen and its tests (e8-e20); the design is
     `docs/PLAY_EDITOR.md`. **Built 2026-10-29** on the `play-editor` branch.
+  - Round 4, decided 2026-10-29 (t1–t7, g7): a play being drawn is a
+    **sketch**; Try it opens **practice**, one sketch on the field rep after
+    rep from the same spot, against the Forest's first defense, with
+    "‹ Sketch" between reps (_user's note on t4: "Only between reps"_). The
+    in-game trial is removed. Built on the `sketch-practice` branch.
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
@@ -42,6 +47,9 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
 - **Editing where players line up,** and other advanced play editing such as
   route timing. Parked from the editor's v1 (e5). _User, 2026-10-29: "Definitely
   want to be able to edit where players line up eventually."_
+- **Choosing the defense in practice** (each area's drives, the decree, the
+  crows). Offered as t3's alternative; practice always plays the Forest's
+  first drive for now. _2026-10-29._
 - **Sharing plays.** A Copy code play can be pasted to anyone, which the user
   called "a backdoor way to sharing plays". A real way to share, such as a
   link that opens the play, could grow from Try it's link (e2, e3). _User,
