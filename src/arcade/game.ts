@@ -157,10 +157,8 @@ export class ArcadeGame {
   private readonly video: boolean;
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
-  /** Practice: the sketch being practised, or null in an ordinary game. */
-  private readonly practice: Play | null;
-  /** Practice: the sketch's key in the editor, for ‹ Sketch. */
-  private readonly sketch: string | null;
+  /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
+  private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -210,9 +208,8 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    const tried = options.practice?.tried;
-    this.practice = tried?.ok ? tried.play : null;
-    this.sketch = options.practice?.sketch ?? null;
+    const link = options.practice;
+    this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
     this.state = this.newRun();
@@ -249,7 +246,7 @@ export class ArcadeGame {
       onRoster: (spot) => this.onRoster(spot),
       onBack: () => this.backToSketch(),
     });
-    if (tried && !tried.ok) this.hud.notice(`${tried.reason} Playing without it.`);
+    if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),
@@ -348,7 +345,7 @@ export class ArcadeGame {
   /** Practice: ‹ Sketch, back to the play editor with the sketch open. */
   private backToSketch(): void {
     const editor = new URL('dev/plays.html', location.href);
-    if (this.sketch) editor.hash = this.sketch;
+    if (this.practice?.sketch) editor.hash = this.practice.sketch;
     location.assign(editor.href);
   }
 
@@ -695,7 +692,7 @@ export class ArcadeGame {
     if (this.practice)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
-        practice: this.practice,
+        practice: this.practice.play,
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,

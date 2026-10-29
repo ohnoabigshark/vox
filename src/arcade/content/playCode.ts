@@ -85,7 +85,7 @@ const quote = (text: string): string => `'${text.replace(/\\/g, '\\\\').replace(
 
 /** What a practice link holds: its play (or why it can't be read), and which sketch it is. */
 export interface Practice {
-  readonly tried: FromLink;
+  readonly play: FromLink;
   /** The sketch's key in the editor, for ‹ Sketch; null if the link has none. */
   readonly sketch: string | null;
 }
@@ -105,7 +105,7 @@ export function readPractice(search: string): Practice | null {
   const params = new URLSearchParams(search);
   const text = params.get('try');
   if (text === null) return null;
-  return { tried: playFromLink(text), sketch: params.get('sketch') };
+  return { play: playFromLink(text), sketch: params.get('sketch') };
 }
 
 /**

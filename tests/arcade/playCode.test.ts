@@ -74,7 +74,7 @@ describe('the practice link (Try it)', () => {
   it('carries the play and which sketch it is, so ‹ Sketch can go back to it', () => {
     const query = practiceQuery(mine, 'd1767000000000', true);
     expect(readPractice(`?${query}`)).toEqual({
-      tried: { ok: true, play: mine },
+      play: { ok: true, play: mine },
       sketch: 'd1767000000000',
     });
     expect(new URLSearchParams(query).get('aim')).toBe('2');
@@ -83,7 +83,7 @@ describe('the practice link (Try it)', () => {
 
   it('a broken play still says why, and still knows its sketch', () => {
     expect(readPractice('?try=%7Boops&sketch=d1')).toEqual({
-      tried: { ok: false, reason: "The play in this link can't be read." },
+      play: { ok: false, reason: "The play in this link can't be read." },
       sketch: 'd1',
     });
   });
