@@ -45,6 +45,7 @@ export default defineConfig({
               devModels: resolve(import.meta.dirname, 'dev/models.html'),
               devAudio: resolve(import.meta.dirname, 'dev/audio.html'),
               devLyrics: resolve(import.meta.dirname, 'dev/lyrics.html'),
+              devPlays: resolve(import.meta.dirname, 'dev/plays.html'),
             }),
       },
     },
