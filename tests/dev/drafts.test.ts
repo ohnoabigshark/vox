@@ -65,6 +65,25 @@ describe('drafts kept on the phone', () => {
     });
   });
 
+  it('drafts saved by another version of the editor are reported, and never overwritten', async () => {
+    const storage = memoryStorage();
+    const store = draftStore(storage, () => 1);
+    await store.save('a', play('Bootleg'));
+    const key = [...storage.data.keys()][0] ?? '';
+    const later = JSON.stringify({
+      version: 99,
+      drafts: [{ key: 'z', edited: 5, anything: true }],
+    });
+    storage.data.set(key, later);
+    expect(await store.list()).toEqual({
+      drafts: [],
+      problem:
+        "Your saved drafts are from another version of the play editor, so they can't be shown.",
+    });
+    await expect(store.save('b', play('Flood Left'))).rejects.toThrow('from another version');
+    expect(storage.data.get(key)).toBe(later);
+  });
+
   it('when the browser keeps nothing, the list says why instead of looking empty', async () => {
     const broken = {
       getItem: (): string => {

@@ -11,6 +11,9 @@ import type { Play } from '../../arcade/content/plays';
 const KEY = 'getJackBack.playEditor.drafts';
 const VERSION = 1;
 const UNAVAILABLE = "This browser isn't keeping drafts (private browsing?).";
+const UNREADABLE = "Your saved drafts can't be read, so they can't be shown.";
+const OTHER_VERSION =
+  "Your saved drafts are from another version of the play editor, so they can't be shown.";
 
 export interface Draft {
   /** Which draft this is, kept as it's renamed. */
@@ -44,11 +47,23 @@ export function draftStore(
   storage: Pick<Storage, 'getItem' | 'setItem'>,
   now: () => number,
 ): DraftStore {
+  // Anything stored that can't be read is reported, and never written over:
+  // the drafts may still matter to whichever editor wrote them.
   const read = (): Saved[] => {
-    const raw = storage.getItem(KEY);
+    let raw: string | null;
+    try {
+      raw = storage.getItem(KEY);
+    } catch {
+      throw new Error(UNAVAILABLE);
+    }
     if (!raw) return [];
-    const parsed = JSON.parse(raw) as { version?: unknown; drafts?: unknown };
-    if (parsed.version !== VERSION || !Array.isArray(parsed.drafts)) return [];
+    let parsed: { version?: unknown; drafts?: unknown };
+    try {
+      parsed = JSON.parse(raw) as typeof parsed;
+    } catch {
+      throw new Error(UNREADABLE);
+    }
+    if (parsed.version !== VERSION || !Array.isArray(parsed.drafts)) throw new Error(OTHER_VERSION);
     return parsed.drafts as Saved[];
   };
   const write = (drafts: readonly Saved[]): void => {
@@ -58,20 +73,18 @@ export function draftStore(
       throw new Error(UNAVAILABLE);
     }
   };
-  const readOrThrow = (): Saved[] => {
-    try {
-      return read();
-    } catch {
-      throw new Error(UNAVAILABLE);
-    }
-  };
+  const failed = (e: unknown): Promise<never> =>
+    Promise.reject(e instanceof Error ? e : new Error(UNAVAILABLE));
   return {
     list(): Promise<DraftList> {
       let saved: Saved[];
       try {
         saved = read();
-      } catch {
-        return Promise.resolve({ drafts: [], problem: UNAVAILABLE });
+      } catch (e) {
+        return Promise.resolve({
+          drafts: [],
+          problem: e instanceof Error ? e.message : UNAVAILABLE,
+        });
       }
       const drafts: Draft[] = [];
       let unreadable = 0;
@@ -90,19 +103,19 @@ export function draftStore(
     },
     save(key: string, play: Play): Promise<void> {
       try {
-        const others = readOrThrow().filter((d) => d.key !== key);
+        const others = read().filter((d) => d.key !== key);
         write([...others, { key, edited: now(), link: playToLink(play) }]);
         return Promise.resolve();
       } catch (e) {
-        return Promise.reject(e instanceof Error ? e : new Error(UNAVAILABLE));
+        return failed(e);
       }
     },
     remove(key: string): Promise<void> {
       try {
-        write(readOrThrow().filter((d) => d.key !== key));
+        write(read().filter((d) => d.key !== key));
         return Promise.resolve();
       } catch (e) {
-        return Promise.reject(e instanceof Error ? e : new Error(UNAVAILABLE));
+        return failed(e);
       }
     },
   };
