@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { playFromLink, playToLink, playToSource } from '../../src/arcade/content/playCode';
+import {
+  playFromLink,
+  playToLink,
+  playToSource,
+  practiceQuery,
+  readPractice,
+} from '../../src/arcade/content/playCode';
 import { PLAYS, type Assignment, type Play } from '../../src/arcade/content/plays';
 
 const block: Assignment = { kind: 'block' };
@@ -61,6 +67,29 @@ describe('a play in a link', () => {
       ok: false,
       reason: "The play in this link has a waypoint for C1 that isn't a pair of numbers.",
     });
+  });
+});
+
+describe('the practice link (Try it)', () => {
+  it('carries the play and which sketch it is, so ‹ Sketch can go back to it', () => {
+    const query = practiceQuery(mine, 'd1767000000000', true);
+    expect(readPractice(`?${query}`)).toEqual({
+      tried: { ok: true, play: mine },
+      sketch: 'd1767000000000',
+    });
+    expect(new URLSearchParams(query).get('aim')).toBe('2');
+    expect(new URLSearchParams(practiceQuery(mine, 'd1', false)).has('aim')).toBe(false);
+  });
+
+  it('a broken play still says why, and still knows its sketch', () => {
+    expect(readPractice('?try=%7Boops&sketch=d1')).toEqual({
+      tried: { ok: false, reason: "The play in this link can't be read." },
+      sketch: 'd1',
+    });
+  });
+
+  it('a link with no play is not practice', () => {
+    expect(readPractice('?seed=3&aim=2')).toBeNull();
   });
 });
 

@@ -1,6 +1,6 @@
 /**
  * A play written as text, for the play editor (docs/PLAY_EDITOR.md): in a
- * link, so Try it can hand a play to the game. The link is compact JSON
+ * link, so Try it can hand a play to practice. The link is compact JSON
  * (`i` id, `n` name, `s` slots, each "b" to block or a list of [x, y]
  * waypoints, `h` the handoff slot), and anything read back from one is
  * checked, since a link can be edited by hand.
@@ -82,6 +82,31 @@ export function playFromLink(text: string): FromLink {
 
 /** A string as a single-quoted TypeScript literal. */
 const quote = (text: string): string => `'${text.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+
+/** What a practice link holds: its play (or why it can't be read), and which sketch it is. */
+export interface Practice {
+  readonly tried: FromLink;
+  /** The sketch's key in the editor, for ‹ Sketch; null if the link has none. */
+  readonly sketch: string | null;
+}
+
+/**
+ * The query of a practice link (Try it, round 4 of the map): `try` the play,
+ * `sketch` its key in the editor, and `aim=2` for two-tap throwing.
+ */
+export function practiceQuery(play: Play, sketch: string, twoTap: boolean): string {
+  const params = new URLSearchParams({ try: playToLink(play), sketch });
+  if (twoTap) params.set('aim', '2');
+  return params.toString();
+}
+
+/** A page's query read as a practice link, or null if it has no play (an ordinary game). */
+export function readPractice(search: string): Practice | null {
+  const params = new URLSearchParams(search);
+  const text = params.get('try');
+  if (text === null) return null;
+  return { tried: playFromLink(text), sketch: params.get('sketch') };
+}
 
 /**
  * A play as an entry for the list in `ourPlays.ts`, written the way
