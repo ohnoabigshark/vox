@@ -730,7 +730,7 @@ describe('determinism', () => {
         }
       }
     }
-  });
+  }, 60_000); // about 6 s on a slow shared CPU, past vitest's 5 s default (BUGS.md B2)
 });
 
 it('dist is Euclidean', () => {
