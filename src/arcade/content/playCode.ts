@@ -6,6 +6,7 @@
  * checked, since a link can be edited by hand.
  */
 import type { Assignment, Play } from './plays';
+import { runsRoutes, takesHandoff } from './playRules';
 import { ROSTER_ROLES, SLOT_NAMES } from './team';
 
 type SlotCode = 'b' | (readonly [number, number])[];
@@ -56,8 +57,7 @@ export function playFromLink(text: string): FromLink {
       continue;
     }
     if (!Array.isArray(a)) return unreadable;
-    if (ROSTER_ROLES[slot] === 'blocker')
-      return refuse(`gives ${name} a route; Blockers always block.`);
+    if (!runsRoutes(slot)) return refuse(`gives ${name} a route; Blockers always block.`);
     const to: { x: number; y: number }[] = [];
     for (const w of a as unknown[]) {
       if (
@@ -74,7 +74,7 @@ export function playFromLink(text: string): FromLink {
   if (h === undefined) return { ok: true, play: { id: i, name: n, slots } };
   if (typeof h !== 'number' || !Number.isInteger(h) || h < 0 || h >= slots.length)
     return unreadable;
-  if (ROSTER_ROLES[h] !== 'runner') {
+  if (!takesHandoff(h)) {
     return refuse(`hands off to ${SLOT_NAMES[h] ?? h}; only a Runner can take a handoff.`);
   }
   return { ok: true, play: { id: i, name: n, slots, handoff: h } };

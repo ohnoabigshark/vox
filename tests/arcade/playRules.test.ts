@@ -78,7 +78,7 @@ describe('play rules', () => {
     expect(playProblems(withSlot(2, route([-2, 5.5])))).toEqual([
       {
         slot: 2,
-        rule: 'pastLine',
+        rule: 'roles',
         message:
           "R1 doesn't get past the line. Take its route more than a yard past the line of scrimmage.",
       },
@@ -90,7 +90,7 @@ describe('play rules', () => {
     expect(playProblems(withSlot(6, block))).toEqual([
       {
         slot: 6,
-        rule: 'pastLine',
+        rule: 'roles',
         message: 'C3 is blocking. Only Blockers block: give it a route.',
       },
     ]);
@@ -117,5 +117,22 @@ describe('play rules', () => {
         message: "C2's route goes off the field. Keep it inside the sidelines.",
       },
     ]);
+  });
+
+  it('Blockers always block', () => {
+    expect(playProblems(withSlot(1, route([0, 3])))).toEqual([
+      { slot: 1, rule: 'roles', message: 'B2 has a route. Blockers always block.' },
+    ]);
+  });
+
+  it('only a Runner takes a handoff', () => {
+    expect(playProblems({ ...play(legal()), handoff: 5 })).toEqual([
+      {
+        slot: 5,
+        rule: 'roles',
+        message: 'C2 takes the handoff. Only a Runner can take a handoff.',
+      },
+    ]);
+    expect(playProblems({ ...play(legal()), handoff: 3 })).toEqual([]);
   });
 });
