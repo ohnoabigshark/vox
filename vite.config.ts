@@ -7,8 +7,23 @@ import { defineConfig } from 'vitest/config';
 // DEV_BIND=0.0.0.0 restores upstream's reach-it-from-your-phone setup.
 const host = process.env.DEV_BIND || '127.0.0.1';
 
+// Behind an https proxy (tailscale serve), the browser reaches the dev server
+// by a name Vite can't see. DEV_HOST is that name: Vite accepts requests for
+// it, and hot reload dials it over wss on DEV_HMR_PORT (default 443), since a
+// plain ws dial from an https page is blocked. Unset, Vite's defaults stand.
+const proxiedHost = process.env.DEV_HOST || '';
+const hmrPort = Number(process.env.DEV_HMR_PORT || '') || 443;
+
 export default defineConfig({
-  server: { host },
+  server: {
+    host,
+    ...(proxiedHost
+      ? {
+          allowedHosts: [proxiedHost],
+          hmr: { host: proxiedHost, protocol: 'wss', clientPort: hmrPort },
+        }
+      : {}),
+  },
   preview: { host },
   // Relative base so the build works from any subpath (e.g. GitHub Pages /vox/).
   base: './',
