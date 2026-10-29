@@ -50,6 +50,8 @@ export default defineConfig({
     },
   },
   test: {
+    // The long sim tests take 5-6 s on a slow shared CPU (BUGS.md B2).
+    testTimeout: 20_000,
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
   },
