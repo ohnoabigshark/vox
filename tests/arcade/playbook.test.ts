@@ -66,9 +66,13 @@ describe("a run's playbook", () => {
 });
 
 describe('trying a play (Try it)', () => {
-  it('deals the tried play in every hand, beside two from the pool', () => {
+  it('deals the tried play in every hand, flipped or not, beside two from the pool', () => {
     for (const seed of [1, 2, 3, 7]) {
-      for (const hand of firstHands(createRun(seed, undefined, 0, { trial: passPlay('mine') }))) {
+      const s = createRun(seed, undefined, 0, { trial: passPlay('mine') });
+      // Flipped from the first down on, Flip stays on as the downs go by.
+      const flipped = dispatch(s, { type: 'flip' }).state;
+      expect(flipped.flipped).toBe(true);
+      for (const hand of [...firstHands(s), ...firstHands(flipped)]) {
         expect(
           hand.filter((id) => id === 'mine'),
           `seed ${seed}`,

@@ -140,3 +140,21 @@ describe('the play editor: the rest of the play', () => {
     expect(toggleFlip(flipped).flipped).toBe(false);
   });
 });
+
+describe('the play editor: what Undo leaves alone', () => {
+  it('Undo keeps the name: renaming is not a step', () => {
+    const s = setName(addPoint(select(startEditing(curlFlat), 4), { x: -4, y: 12 }), 'Flood Left');
+    expect(undo(s).play).toEqual({ ...curlFlat, name: 'Flood Left' });
+  });
+
+  it('Undo waits while Flip is on, like every other edit', () => {
+    const s = toggleFlip(addPoint(select(startEditing(curlFlat), 4), { x: -4, y: 12 }));
+    expect(undo(s).play).toEqual(s.play);
+  });
+
+  it('picking the handoff it already has is not a step for Undo', () => {
+    const s = setHandoff(startEditing(curlFlat), 2);
+    expect(setHandoff(s, 2).history).toHaveLength(1);
+    expect(setHandoff(startEditing(curlFlat), null).history).toHaveLength(0);
+  });
+});

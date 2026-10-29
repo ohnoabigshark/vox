@@ -220,7 +220,7 @@ input:focus-visible {
   -webkit-user-select: none;
 }
 
-.say {
+.note-bar {
   padding: 8px 12px;
   font-size: 0.88rem;
   min-height: 2.6em;
@@ -228,13 +228,13 @@ input:focus-visible {
   color: var(--dim);
 }
 
-.say.bad {
+.note-bar.bad {
   background: var(--bad-bg);
   border-top-color: var(--bad);
   color: #ffd2cc;
 }
 
-.say.ok {
+.note-bar.ok {
   border-top-color: var(--gold);
   color: var(--text);
 }

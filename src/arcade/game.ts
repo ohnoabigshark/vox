@@ -67,6 +67,7 @@ import type {
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls, type BreakView } from './ui/controls';
+import type { FromLink } from './content/playCode';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
 
@@ -94,10 +95,11 @@ export interface ArcadeOptions {
   twoTapAim?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
-  /** A play to try, from the play editor's Try it (?try=…): dealt in every hand, marked DRAFT. */
-  trial?: Play;
-  /** Why the ?try= link's play couldn't be used, shown until tapped. */
-  trialProblem?: string;
+  /**
+   * The play in a ?try= link, from the play editor's Try it: dealt in every
+   * hand, marked DRAFT; or why it couldn't be read, shown until tapped.
+   */
+  tried?: FromLink;
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -204,7 +206,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    this.trial = options.trial ?? null;
+    this.trial = options.tried?.ok ? options.tried.play : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
     this.state = this.newRun();
@@ -240,7 +242,8 @@ export class ArcadeGame {
       onSkip: () => this.act({ type: 'skipDraft' }),
       onRoster: (spot) => this.onRoster(spot),
     });
-    if (options.trialProblem) this.hud.notice(`${options.trialProblem} Playing without it.`);
+    if (options.tried && !options.tried.ok)
+      this.hud.notice(`${options.tried.reason} Playing without it.`);
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),

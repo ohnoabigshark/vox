@@ -8,7 +8,7 @@
  * stored, as in plays.ts, in yards from where its slot lines up.
  */
 import type { Play } from '../../arcade/content/plays';
-import { playProblems } from '../../arcade/content/playRules';
+import { playProblems, routePath, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
 import { LINEUP, ROSTER_ROLES, playSlot } from '../../arcade/content/team';
 
 export interface Yards {
@@ -55,7 +55,7 @@ function withRoute(
 
 /** Pick a player to draw its route. */
 export function select(s: EditorState, slot: number): EditorState {
-  if (ROSTER_ROLES[slot] === undefined || ROSTER_ROLES[slot] === 'blocker') return s;
+  if (!runsRoutes(slot)) return s;
   return { ...s, selected: slot, point: null };
 }
 
@@ -106,16 +106,22 @@ export function removePoint(s: EditorState): EditorState {
   );
 }
 
-/** Step back one change. */
+/** Step back one change. The name stays as it is: renaming isn't a step. */
 export function undo(s: EditorState): EditorState {
   const before = s.history[s.history.length - 1];
-  if (!before) return s;
-  return { ...s, play: before, point: null, history: s.history.slice(0, -1) };
+  if (!before || s.flipped) return s;
+  return {
+    ...s,
+    play: { ...before, name: s.play.name },
+    point: null,
+    history: s.history.slice(0, -1),
+  };
 }
 
 /** Give the ball to this Runner at the snap, or to nobody (a pass play). */
 export function setHandoff(s: EditorState, slot: number | null): EditorState {
-  if (s.flipped || (slot !== null && ROSTER_ROLES[slot] !== 'runner')) return s;
+  if (s.flipped || (slot !== null && !takesHandoff(slot))) return s;
+  if ((s.play.handoff ?? null) === slot) return s;
   const base = { id: s.play.id, name: s.play.name, slots: s.play.slots };
   const play: Play = slot === null ? base : { ...base, handoff: slot };
   return { ...s, play, history: [...s.history, s.play] };
@@ -147,18 +153,12 @@ export interface FieldRoute {
  * (sim/bodies.ts, lineUpTeam).
  */
 export function fieldView(s: EditorState): FieldRoute[] {
-  const mirror = s.flipped ? -1 : 1;
   const broken = new Set(playProblems(s.play).map((p) => p.slot));
   return ROSTER_ROLES.map((_, slot): FieldRoute => {
     const k = playSlot(slot, s.flipped);
-    const spot = LINEUP[k] ?? { x: 0, y: 0 };
-    const start = { x: spot.x * mirror, y: spot.y };
-    const a = s.play.slots[k];
-    const path =
-      a?.kind === 'route'
-        ? [start, ...a.to.map((w) => ({ x: start.x + w.x * mirror, y: start.y + w.y }))]
-        : [start];
-    const kind = a?.kind !== 'route' ? 'block' : s.play.handoff === k ? 'carry' : 'route';
+    const a = s.play.slots[k] ?? { kind: 'block' };
+    const path = routePath(k, a, s.flipped);
+    const kind = a.kind !== 'route' ? 'block' : s.play.handoff === k ? 'carry' : 'route';
     return { slot, kind, path, broken: broken.has(k) };
   });
 }

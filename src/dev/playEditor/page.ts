@@ -8,7 +8,7 @@
  */
 import { playToLink, playToSource } from '../../arcade/content/playCode';
 import { PLAY_POOL } from '../../arcade/content/playPool';
-import { DEEPEST, playProblems } from '../../arcade/content/playRules';
+import { DEEPEST, playProblems, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
 import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES } from '../../arcade/content/team';
 import { arcadeTuning } from '../../arcade/content/tuning';
@@ -39,7 +39,19 @@ const statusEl = required('#status');
 
 // The only place the page reads the time: when a draft was saved, and "how long ago".
 const now = (): number => Date.now();
-const store = draftStore(localStorage, now);
+/** The browser's localStorage, or, where even reaching it throws, a stand-in that always refuses. */
+function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
+  try {
+    return localStorage;
+  } catch {
+    const refuse = (): never => {
+      throw new Error('localStorage is unavailable');
+    };
+    return { getItem: refuse, setItem: refuse };
+  }
+}
+const storage = browserStorage();
+const store = draftStore(storage, now);
 
 // ── Status line ─────────────────────────────────────────────────────────────
 
@@ -67,16 +79,21 @@ async function attempt(work: () => Promise<void>): Promise<boolean> {
 
 // ── Try with: the game's settings for Try it ────────────────────────────────
 
+// Kept synchronously, unlike drafts: a two-switch convenience for this one
+// page, read once at load, where a failure only means the defaults come back.
 const TRY_KEY = 'getJackBack.playEditor.tryWith';
+const TRY_VERSION = 1;
 interface TryWith {
   hard: boolean;
   twoTap: boolean;
 }
 function loadTryWith(): TryWith {
-  // How the user plays: hard mode, two-tap throwing (vox CLAUDE.md).
+  // How the Coach plays: hard mode, two-tap throwing (vox CLAUDE.md).
   const fallback = { hard: true, twoTap: true };
   try {
-    const saved = JSON.parse(localStorage.getItem(TRY_KEY) ?? 'null') as Partial<TryWith> | null;
+    const saved = JSON.parse(storage.getItem(TRY_KEY) ?? 'null') as
+      (Partial<TryWith> & { version?: unknown }) | null;
+    if (saved?.version !== TRY_VERSION) return fallback;
     return {
       hard: typeof saved?.hard === 'boolean' ? saved.hard : fallback.hard,
       twoTap: typeof saved?.twoTap === 'boolean' ? saved.twoTap : fallback.twoTap,
@@ -88,7 +105,7 @@ function loadTryWith(): TryWith {
 const tryWith = loadTryWith();
 function saveTryWith(): void {
   try {
-    localStorage.setItem(TRY_KEY, JSON.stringify(tryWith));
+    storage.setItem(TRY_KEY, JSON.stringify({ version: TRY_VERSION, ...tryWith }));
   } catch {
     say("This browser isn't keeping settings; they'll reset next time.", true);
   }
@@ -180,9 +197,9 @@ function draftRow(d: Draft): HTMLElement {
         className: 'small',
         text: 'Delete',
         onClick: () =>
-          void attempt(() => store.remove(d.key)).then(() => {
+          void attempt(() => store.remove(d.key)).then((ok) => {
             confirming = null;
-            say(`Deleted ${d.play.name}.`);
+            if (ok) say(`Deleted ${d.play.name}.`);
             return showList();
           }),
       }),
@@ -240,7 +257,7 @@ function blankPlay(): Play {
   return {
     id: 'newPlay',
     name: 'New play',
-    slots: ROSTER_ROLES.map((r) => (r === 'blocker' ? BLOCK : { kind: 'route', to: [] })),
+    slots: ROSTER_ROLES.map((_, slot) => (runsRoutes(slot) ? { kind: 'route', to: [] } : BLOCK)),
   };
 }
 
@@ -265,7 +282,7 @@ interface Editing {
     name: HTMLInputElement;
     flip: HTMLButtonElement;
     field: SVGSVGElement;
-    say: HTMLElement;
+    note: HTMLElement;
     chips: HTMLElement;
     controls: HTMLElement;
     actions: HTMLElement;
@@ -297,7 +314,7 @@ function openDraft(d: Draft): void {
     name,
     flip,
     field,
-    say: el('div', { className: 'say' }),
+    note: el('div', { className: 'note-bar' }),
     chips: el('div', { className: 'chips' }),
     controls: el('div', { className: 'controls' }),
     actions: el('div', { className: 'controls' }),
@@ -326,7 +343,7 @@ function openDraft(d: Draft): void {
       flip,
     ),
     el('div', { className: 'field-box' }, field),
-    parts.say,
+    parts.note,
     parts.chips,
     parts.controls,
     parts.actions,
@@ -368,7 +385,7 @@ function onDown(ev: PointerEvent): void {
     draw();
   } else if (slot != null) {
     const s = Number(slot);
-    if (ROSTER_ROLES[s] === 'blocker') say('Blockers always block.');
+    if (!runsRoutes(s)) say('Blockers always block.');
     else if (e.ed.flipped) say('Turn Flip off to edit.');
     else change(select(e.ed, s));
   } else if (e.ed.flipped) {
@@ -404,20 +421,23 @@ function draw(): void {
   const e = editing;
   if (!e) return;
   const { ed, parts } = e;
+  const dragging = e.drag?.moved ?? false;
   const problems = playProblems(ed.play);
   parts.flip.classList.toggle('on', ed.flipped);
   drawField(parts.field, ed);
 
   // What's wrong, or what to do next.
   const first = problems[0];
-  parts.say.className = `say${ed.flipped ? '' : first ? ' bad' : ' ok'}`;
-  parts.say.textContent = ed.flipped
-    ? 'Flipped: the play as the game runs it mirrored. Turn Flip off to edit.'
-    : first
-      ? `${first.message}${problems.length > 1 ? ` +${problems.length - 1} more` : ''}`
-      : ed.selected === null
-        ? 'Ready to copy. Tap a player to change its route.'
-        : 'Ready to copy.';
+  parts.note.className = `note-bar${dragging ? '' : ed.flipped ? '' : first ? ' bad' : ' ok'}`;
+  parts.note.textContent = dragging
+    ? dragReadout(ed)
+    : ed.flipped
+      ? 'Flipped: the play as the game runs it mirrored. Turn Flip off to edit.'
+      : first
+        ? `${first.message}${problems.length > 1 ? ` +${problems.length - 1} more` : ''}`
+        : ed.selected === null
+          ? 'Ready to copy. Tap a player to change its route.'
+          : 'Ready to copy.';
 
   // One chip per slot.
   const broken = new Set(problems.map((p) => p.slot));
@@ -428,7 +448,7 @@ function draw(): void {
         text: name,
         onClick: () => change(select(ed, slot)),
       });
-      b.disabled = ROSTER_ROLES[slot] === 'blocker' || ed.flipped;
+      b.disabled = !runsRoutes(slot) || ed.flipped;
       return b;
     }),
   );
@@ -454,12 +474,11 @@ function draw(): void {
     text: 'Undo',
     onClick: () => change(undo(ed)),
   });
-  undoButton.disabled = ed.history.length === 0;
+  undoButton.disabled = ed.history.length === 0 || ed.flipped;
   parts.controls.replaceChildren(
     el('span', { className: 'label', text: 'Handoff' }),
     handoffChip('None', null),
-    handoffChip('R1', 2),
-    handoffChip('R2', 3),
+    ...SLOT_NAMES.flatMap((name, slot) => (takesHandoff(slot) ? [handoffChip(name, slot)] : [])),
     el('span', { className: 'spacer' }),
     remove,
     undoButton,
@@ -543,9 +562,29 @@ function tryIt(): void {
   const params = new URLSearchParams({ try: playToLink(e.ed.play) });
   if (tryWith.hard) params.set('hard', '1');
   if (tryWith.twoTap) params.set('aim', '2');
-  void attempt(() => store.save(e.key, e.ed.play)).then(() => {
+  const go = (): void => {
     location.href = `${new URL('../', location.href).href}?${params}`;
+  };
+  if (tryUnsaved) return go();
+  store.save(e.key, e.ed.play).then(go, (err: unknown) => {
+    // Going would lose the problem from view, and Back wouldn't find the draft as it is.
+    tryUnsaved = true;
+    const why = err instanceof Error ? err.message : String(err);
+    say(`${why} This draft isn't saved. Tap Try it again to go anyway.`, true);
   });
+}
+
+/** Try it couldn't save the draft and said so: the next tap goes without saving. */
+let tryUnsaved = false;
+
+/** While a waypoint is dragged: where it is, in yards from where its player lines up. */
+function dragReadout(ed: EditorState): string {
+  const slot = ed.selected;
+  const a = slot === null ? undefined : ed.play.slots[slot];
+  const w = a?.kind === 'route' && ed.point !== null ? a.to[ed.point] : undefined;
+  if (slot === null || ed.point === null || !w) return '';
+  const signed = (n: number): string => (n > 0 ? `+${n}` : `${n}`);
+  return `${SLOT_NAMES[slot] ?? ''}, point ${ed.point + 1}: ${signed(w.x)} across, ${signed(w.y)} upfield from where it lines up`;
 }
 
 async function copyCode(): Promise<void> {

@@ -36,8 +36,7 @@ const game = new ArcadeGame(canvas, ui, {
   hard: params.get('hard') === '1',
   twoTapAim: params.get('aim') === '2',
   farmSong: Number(params.get('farmSong')) || 1,
-  ...(tried?.ok ? { trial: tried.play } : {}),
-  ...(tried && !tried.ok ? { trialProblem: tried.reason } : {}),
+  ...(tried ? { tried } : {}),
 });
 
 // Dev builds expose the game for debugging from the console.
