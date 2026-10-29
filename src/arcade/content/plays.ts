@@ -5,7 +5,7 @@
  * Blockers do). Every Runner gets out past the line of scrimmage; every route
  * finishes going upfield, except a curl's angled comeback (the curl is where
  * it stops); and none goes deeper than a throw can reach
- * (tests/arcade/plays.test.ts). A `handoff` play gives one Runner the ball at
+ * (`playRules.ts`). A `handoff` play gives one Runner the ball at
  * the snap: calling that card is choosing to run.
  */
 export type Assignment =

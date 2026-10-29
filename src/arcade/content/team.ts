@@ -15,6 +15,9 @@ export const ROSTER_ROLES: readonly Role[] = [
   'catcher',
 ];
 
+/** Each slot's short name, in roster order: the play editor's chips and its messages. */
+export const SLOT_NAMES: readonly string[] = ['B1', 'B2', 'R1', 'R2', 'C1', 'C2', 'C3'];
+
 /** Where each roster slot lines up, relative to the line of scrimmage (x across, y upfield). */
 export const LINEUP: readonly { readonly x: number; readonly y: number }[] = [
   { x: -0.9, y: -0.7 },

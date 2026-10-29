@@ -187,7 +187,7 @@ src/content/
 ```
 
 - **Palettes have a single source of truth** (`src/content/palettes.ts`): it feeds the voxel colors, the CSS custom properties and the SVG icons.
-- **Content tests** keep it honest: every play's routes stay in range and every Runner gets past the line (`tests/arcade/plays.test.ts`), and so on.
+- **Content tests** keep it honest: every play keeps the play rules in `content/playRules.ts` (its routes stay in range, every Runner gets past the line; `tests/arcade/playRules.test.ts`), and so on.
 
 ---
 

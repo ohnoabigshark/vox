@@ -9,6 +9,9 @@ Numbered; each with dated decisions.
 2026-10-28 while reading how plays work. Upstream's; fix it here or send it
 back to esrauch.
 
+**2026-10-29: fixed** on the `play-editor` branch: the test file is replaced by
+`tests/arcade/playRules.test.ts`, which checks every play in the pool.
+
 ## B2. A long sim test times out on the droplet
 
 `tests/arcade/sim.test.ts`, "keeps its invariants through long runs", takes
