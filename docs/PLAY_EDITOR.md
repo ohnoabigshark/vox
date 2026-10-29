@@ -48,7 +48,8 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
   moment, then the next rep lines up at the same spot: 1st & 10 from the same
   line, the same defense, the sketch called, Flip as it was left. No drives,
   no TRICK OR TREAT!, no Game Over. A browser plays no sound until the page is
-  tapped, so the first tap starts the sound and the music.
+  tapped, so the first tap (HIKE, Flip or the card) starts the sound and the
+  music; t1 said the first HIKE, and any first tap does the same job.
 - **The defense** (t3) is Froggy's Forest's first drive, the one a run
   starts against. Hard mode changes nothing there, so "Try with" has only
   Two-tap.
@@ -101,7 +102,8 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
    rep is 1st & 10 at the same line, the sketch called, Flip kept, never
    TRICK OR TREAT! or Game Over; a handoff sketch hands off to its Runner.
 4. **The practice link:** a play and its sketch's key survive the trip into
-   the link and back; a broken link gives a visible message and no sketch.
+   the link and back; a broken play gives a visible message instead of a
+   play (the game then opens as usual, with no ‹ Sketch).
 5. **Copy code:** what it writes, read back as a play, equals the sketch.
 6. **The editor's logic** (no screen): add, move, snap, remove and undo
    waypoints; pick the handoff; the mirrored view.
