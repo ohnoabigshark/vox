@@ -65,7 +65,9 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
 
 - `dev/plays.html`, `src/dev/playEditor/page.ts` and `page.css`: the page.
 - `src/dev/playEditor/editor.ts`: what each tap does, with no screen.
-- `src/dev/playEditor/sketches.ts`: sketches in localStorage.
+- `src/dev/playEditor/sketches.ts`: sketches in localStorage; ones saved as
+  drafts before the rename are read from the old key until the first save moves
+  them.
 - `src/arcade/content/playRules.ts`, `playCode.ts`, `ourPlays.ts`,
   `playPool.ts`: the rules, the link and Copy code, our plays, the pool.
 

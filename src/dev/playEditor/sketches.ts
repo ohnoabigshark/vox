@@ -8,8 +8,9 @@
 import { playFromLink, playToLink } from '../../arcade/content/playCode';
 import type { Play } from '../../arcade/content/plays';
 
-// Sketches were called drafts when this format was set: the key and field keep that name.
-const KEY = 'getJackBack.playEditor.drafts';
+const KEY = 'getJackBack.playEditor.sketches';
+/** Where sketches were kept while they were called drafts: read until the first save moves them. */
+const OLD_KEY = 'getJackBack.playEditor.drafts';
 const VERSION = 1;
 const UNAVAILABLE = "This browser isn't keeping sketches (private browsing?).";
 const UNREADABLE = "Your saved sketches can't be read, so they can't be shown.";
@@ -50,26 +51,29 @@ export function sketchStore(
 ): SketchStore {
   // Anything stored that can't be read is reported, and never written over:
   // the sketches may still matter to whichever editor wrote them.
-  const read = (): Saved[] => {
+  // What one key holds (its list is under `field`), or null when it holds nothing.
+  const load = (key: string, field: 'sketches' | 'drafts'): Saved[] | null => {
     let raw: string | null;
     try {
-      raw = storage.getItem(KEY);
+      raw = storage.getItem(key);
     } catch {
       throw new Error(UNAVAILABLE);
     }
-    if (!raw) return [];
-    let parsed: { version?: unknown; drafts?: unknown };
+    if (!raw) return null;
+    let parsed: { version?: unknown; [list: string]: unknown };
     try {
       parsed = JSON.parse(raw) as typeof parsed;
     } catch {
       throw new Error(UNREADABLE);
     }
-    if (parsed.version !== VERSION || !Array.isArray(parsed.drafts)) throw new Error(OTHER_VERSION);
-    return parsed.drafts as Saved[];
+    const list = parsed[field];
+    if (parsed.version !== VERSION || !Array.isArray(list)) throw new Error(OTHER_VERSION);
+    return list as Saved[];
   };
+  const read = (): Saved[] => load(KEY, 'sketches') ?? load(OLD_KEY, 'drafts') ?? [];
   const write = (sketches: readonly Saved[]): void => {
     try {
-      storage.setItem(KEY, JSON.stringify({ version: VERSION, drafts: sketches }));
+      storage.setItem(KEY, JSON.stringify({ version: VERSION, sketches }));
     } catch {
       throw new Error(UNAVAILABLE);
     }

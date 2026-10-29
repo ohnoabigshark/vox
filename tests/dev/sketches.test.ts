@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sketchStore, idFromName } from '../../src/dev/playEditor/sketches';
+import { playToLink } from '../../src/arcade/content/playCode';
 import type { Assignment, Play } from '../../src/arcade/content/plays';
 
 const block: Assignment = { kind: 'block' };
@@ -56,8 +57,8 @@ describe('sketches kept on the phone', () => {
     const storage = memoryStorage();
     const store = sketchStore(storage, () => 1);
     await store.save('a', play('Bootleg'));
-    const saved = JSON.parse(storage.data.values().next().value ?? '{}') as { drafts: unknown[] };
-    saved.drafts.push({ key: 'x', edited: 2, link: '{oops' });
+    const saved = JSON.parse(storage.data.values().next().value ?? '{}') as { sketches: unknown[] };
+    saved.sketches.push({ key: 'x', edited: 2, link: '{oops' });
     storage.data.set([...storage.data.keys()][0] ?? '', JSON.stringify(saved));
     expect(await store.list()).toEqual({
       sketches: [{ key: 'a', play: play('Bootleg'), edited: 1 }],
@@ -101,6 +102,30 @@ describe('sketches kept on the phone', () => {
     await expect(store.save('a', play('Bootleg'))).rejects.toThrow(
       "This browser isn't keeping sketches (private browsing?).",
     );
+  });
+
+  it('drafts saved before the rename are listed as sketches, and the next save keeps them', async () => {
+    const storage = memoryStorage();
+    const old = JSON.stringify({
+      version: 1,
+      drafts: [{ key: 'a', edited: 7, link: playToLink(play('Bootleg')) }],
+    });
+    storage.data.set('getJackBack.playEditor.drafts', old);
+    const store = sketchStore(storage, () => 9);
+    expect(await store.list()).toEqual({
+      sketches: [{ key: 'a', play: play('Bootleg'), edited: 7 }],
+      problem: null,
+    });
+    await store.save('b', play('Flood Left'));
+    expect(JSON.parse(storage.data.get('getJackBack.playEditor.sketches') ?? 'null')).toEqual({
+      version: 1,
+      sketches: [
+        { key: 'a', edited: 7, link: playToLink(play('Bootleg')) },
+        { key: 'b', edited: 9, link: playToLink(play('Flood Left')) },
+      ],
+    });
+    // The old copy is left as it was, never written over.
+    expect(storage.data.get('getJackBack.playEditor.drafts')).toBe(old);
   });
 
   it('a play gets its id from its name, as plays.ts ids look', () => {
