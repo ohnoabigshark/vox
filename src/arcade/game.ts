@@ -67,6 +67,7 @@ import type {
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls, type BreakView } from './ui/controls';
+import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
 
 export interface ArcadeOptions {
@@ -93,6 +94,10 @@ export interface ArcadeOptions {
   twoTapAim?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
+  /** A play to try, from the play editor's Try it (?try=…): dealt in every hand, marked DRAFT. */
+  trial?: Play;
+  /** Why the ?try= link's play couldn't be used, shown until tapped. */
+  trialProblem?: string;
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -149,6 +154,7 @@ export class ArcadeGame {
   private readonly video: boolean;
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
+  private readonly trial: Play | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -198,6 +204,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
+    this.trial = options.trial ?? null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
     this.state = this.newRun();
@@ -233,6 +240,7 @@ export class ArcadeGame {
       onSkip: () => this.act({ type: 'skipDraft' }),
       onRoster: (spot) => this.onRoster(spot),
     });
+    if (options.trialProblem) this.hud.notice(`${options.trialProblem} Playing without it.`);
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),
@@ -583,7 +591,11 @@ export class ArcadeGame {
       ready && phase === 'setup'
         ? hand.map((i) => {
             const p = this.state.playbook[i];
-            return { name: p?.name ?? '?', blurb: p?.handoff !== undefined ? 'Run' : 'Pass' };
+            return {
+              name: p?.name ?? '?',
+              blurb: p?.handoff !== undefined ? 'Run' : 'Pass',
+              ...(i === this.state.trial ? { ribbon: 'DRAFT' } : {}),
+            };
           })
         : null;
     this.hud.setHand(cards, called, flipped, banned);
@@ -645,6 +657,7 @@ export class ArcadeGame {
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
+      ...(this.trial ? { trial: this.trial } : {}),
     });
   }
 
