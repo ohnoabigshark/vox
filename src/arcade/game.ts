@@ -17,7 +17,6 @@ import { Conductor } from '../game/conductor';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
-import { PLAYS } from './content/plays';
 import { arcadeTuning, DT } from './content/tuning';
 import { ArcadeBall } from './render/ball';
 import { ArcadeBodies } from './render/bodies';
@@ -461,7 +460,10 @@ export class ArcadeGame {
           this.hud.pop('BY ROYAL DECREE!', 'bad');
           break;
         case 'snapped':
-          this.hud.pop(`${(PLAYS[this.state.play.index]?.name ?? '').toUpperCase()}!`, 'good');
+          this.hud.pop(
+            `${(this.state.playbook[this.state.play.index]?.name ?? '').toUpperCase()}!`,
+            'good',
+          );
           break;
         case 'thrown':
           play('throw');
@@ -580,7 +582,7 @@ export class ArcadeGame {
     const cards =
       ready && phase === 'setup'
         ? hand.map((i) => {
-            const p = PLAYS[i];
+            const p = this.state.playbook[i];
             return { name: p?.name ?? '?', blurb: p?.handoff !== undefined ? 'Run' : 'Pass' };
           })
         : null;

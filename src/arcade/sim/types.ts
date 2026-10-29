@@ -8,6 +8,7 @@
  * left), y upfield. Each drive starts its line of scrimmage at y = 0 and its
  * first-down line at y = 10. Times are seconds.
  */
+import type { Play } from '../content/plays';
 
 export interface Vec {
   readonly x: number;
@@ -311,7 +312,12 @@ export interface RunState {
   time: number;
   phase: Phase;
   drive: Drive;
-  /** The three play cards on offer this down (indices into PLAYS), which one is called (null until one is), and whether Flip is on. */
+  /**
+   * The plays this run can deal (CONTEXT.md, playbook). The play pool unless the
+   * run was started with its own; plays as rewards will grow it.
+   */
+  readonly playbook: readonly Play[];
+  /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */
   hand: number[];
   called: number | null;
   /** The Queen's Royal Decree (her drive): the card in the hand that's banned this down, or null. */

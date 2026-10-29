@@ -27,7 +27,7 @@ import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle
 import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
-import { endDown, nextDown } from './run';
+import { cloneRun, endDown, nextDown } from './run';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -51,7 +51,7 @@ export function forceBreakKind(kind: BreakKind | undefined): void {
 }
 
 export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
-  const state = structuredClone(prev);
+  const state = cloneRun(prev);
   const events: ArcadeEvent[] = [];
   state.step += 1;
   state.time = state.step * DT;
