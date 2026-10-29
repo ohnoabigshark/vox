@@ -69,7 +69,10 @@ describe('trying a play (Try it)', () => {
   it('deals the tried play in every hand, beside two from the pool', () => {
     for (const seed of [1, 2, 3, 7]) {
       for (const hand of firstHands(createRun(seed, undefined, 0, { trial: passPlay('mine') }))) {
-        expect(hand.filter((id) => id === 'mine'), `seed ${seed}`).toHaveLength(1);
+        expect(
+          hand.filter((id) => id === 'mine'),
+          `seed ${seed}`,
+        ).toHaveLength(1);
         expect(hand, `seed ${seed}`).toHaveLength(3);
       }
     }
@@ -84,7 +87,9 @@ describe('trying a play (Try it)', () => {
       if (flipped) s = dispatch(s, { type: 'flip' }).state;
       const { state, events } = dispatch(s, { type: 'hike' });
       const handoff = events.find((e: ArcadeEvent) => e.type === 'handoff');
-      const runner = state.field.players.find((p) => p.id === (handoff?.type === 'handoff' ? handoff.id : -1));
+      const runner = state.field.players.find(
+        (p) => p.id === (handoff?.type === 'handoff' ? handoff.id : -1),
+      );
       expect(runner?.slot, `flipped ${flipped}`).toBe(playSlot(2, flipped));
     }
   });
@@ -99,4 +104,3 @@ describe('trying a play (Try it)', () => {
     }
   });
 });
-
