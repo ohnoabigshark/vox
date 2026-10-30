@@ -30,6 +30,12 @@ export const LINEUP: readonly { readonly x: number; readonly y: number }[] = [
   { x: 4.2, y: -1.2 },
 ];
 
+/** Whether this slot stands where the standard line-up puts it. */
+export function standardSpot(slot: number, spot: { x: number; y: number }): boolean {
+  const usual = LINEUP[slot];
+  return usual !== undefined && spot.x === usual.x && spot.y === usual.y;
+}
+
 /** Where a roster slot lines up for this play: the play's own line-up, or the standard one. */
 export function lineUpSpot(play: Pick<Play, 'lineup'>, slot: number): { x: number; y: number } {
   return play.lineup?.[slot] ?? LINEUP[slot] ?? { x: 0, y: 0 };

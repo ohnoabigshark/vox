@@ -27,10 +27,26 @@ const mine: Play = {
   ],
   handoff: 3,
 };
+/** The standard line-up (team.ts, LINEUP), written out. */
+const standard = [
+  { x: -0.9, y: -0.7 },
+  { x: 0.9, y: -0.7 },
+  { x: -1.1, y: -4.5 },
+  { x: 1.1, y: -4.5 },
+  { x: -7, y: -0.7 },
+  { x: 7, y: -0.7 },
+  { x: 4.2, y: -1.2 },
+];
+/** Mine, with R2 moved up and right. */
+const moved: Play = {
+  ...mine,
+  lineup: standard.map((spot, slot) => (slot === 3 ? { x: 3, y: -2 } : spot)),
+};
 
 describe('a play in a link', () => {
   it('comes back from the link exactly as it went in', () => {
     expect(playFromLink(playToLink(mine))).toEqual({ ok: true, play: mine });
+    expect(playFromLink(playToLink(moved))).toEqual({ ok: true, play: moved });
     for (const p of PLAYS) expect(playFromLink(playToLink(p))).toEqual({ ok: true, play: p });
   });
 
@@ -68,6 +84,15 @@ describe('a play in a link', () => {
       reason: "The play in this link has a waypoint for C1 that isn't a pair of numbers.",
     });
   });
+
+  it('a tampered line-up is refused, with what is wrong with it', () => {
+    const tamper = (l: unknown): string =>
+      JSON.stringify({ ...(JSON.parse(playToLink(moved)) as object), l });
+    const reason = "The play in this link has a line-up that isn't seven pairs of numbers.";
+    expect(playFromLink(tamper([[0, -1]]))).toEqual({ ok: false, reason });
+    expect(playFromLink(tamper(standard.map(() => [0, 'back'])))).toEqual({ ok: false, reason });
+    expect(playFromLink(tamper('wide'))).toEqual({ ok: false, reason });
+  });
 });
 
 describe('the practice link (Try it)', () => {
@@ -101,6 +126,21 @@ describe('Copy code', () => {
   it('writes a play as plays.ts does, which reads back as the same play', () => {
     expect(readBack(playToSource(mine))).toEqual(mine);
     for (const p of PLAYS) expect(readBack(playToSource(p))).toEqual(p);
+    expect(readBack(playToSource(moved))).toEqual(moved);
+  });
+
+  it('writes a line-up only when it differs from the standard one', () => {
+    expect(readBack(playToSource({ ...mine, lineup: standard }))).toEqual(mine);
+    expect(playToSource(moved)).toContain(`    lineup: [
+      { x: -0.9, y: -0.7 },
+      { x: 0.9, y: -0.7 },
+      { x: -1.1, y: -4.5 },
+      { x: 3, y: -2 },
+      { x: -7, y: -0.7 },
+      { x: 7, y: -0.7 },
+      { x: 4.2, y: -1.2 },
+    ],
+`);
   });
 
   it('writes it in the style of plays.ts', () => {

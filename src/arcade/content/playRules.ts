@@ -9,7 +9,7 @@
  * editor shows them as you draw (docs/PLAY_EDITOR.md).
  */
 import type { Play } from './plays';
-import { LINEUP, QB_DEPTH, ROSTER_ROLES, SLOT_NAMES, lineUpSpot } from './team';
+import { QB_DEPTH, ROSTER_ROLES, SLOT_NAMES, lineUpSpot, standardSpot } from './team';
 import { arcadeTuning } from './tuning';
 
 export type PlayRule = 'ends' | 'roles' | 'inRange' | 'lineUp';
@@ -165,10 +165,8 @@ function lineUpProblems(play: Play): PlayProblem[] {
       problems.push({ slot, rule: 'lineUp', message });
     };
     if (!runsRoutes(slot)) {
-      const usual = LINEUP[slot];
-      if (usual && (spot.x !== usual.x || spot.y !== usual.y)) {
+      if (!standardSpot(slot, spot))
         tell(`${name} has moved. Blockers line up where they always do.`);
-      }
       return;
     }
     if (spot.y > -NEAREST_LINE) {
