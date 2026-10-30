@@ -52,3 +52,23 @@ when you can't respond on defense", parks them with defensive play in
 
 The balance tool runs before and after: the all-human scenario, and a
 hard-mode run (zones reached).
+
+## Balance
+
+`BALANCE_SCENARIO='{"name": "Hard, a new player every time", "hard": true,
+"perks": true}' npm run balance:arcade 20`, 2026-10-30. Normal mode can't
+change (its line-ups, boosts and Break it! are untouched, which the tests
+pin, and the runs are seeded), so its all-human run was skipped.
+
+| Hard mode, 20 runs | Before | Stats +15 | Stats +20 (shipped) |
+| --- | --- | --- | --- |
+| Drives won, median | 9 | 11 | 10 |
+| Drives won, top tenth | 14 | 19 | 15 |
+| Best run | 15 | 21 | 16 |
+| Passes batted | 1% | 3% | 4% |
+| Break it!: broke free | 24% | 20% | 22% |
+
+At +15, fewer defenders made hard mode easier, so the user approved +20
+(map item r1): about as hard as before, with four times the batted passes
+and at most 12 defenders on the field. The bot seldom gets past zone 4, so
+Break it!'s tightening past the Farm barely shows here.
