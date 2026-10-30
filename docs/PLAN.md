@@ -73,6 +73,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
 - **Moving a player clears its route,** another way l4 could go, which the
   user raised: "We could also consider making moving a player just cancel
   their route entirely." _2026-10-30._
+- **A play dealt twice.** A sketch left in the game after its Copy code has
+  gone into `ourPlays.ts`, or an unchanged copy of a built-in play, is dealt
+  as often as two plays. Found in the round 6 review; not decided.
+  _2026-10-30._
 - **Choosing the defense in practice** (each area's drives, the decree, the
   crows). Offered as t3's alternative; practice always plays the Forest's
   first drive for now. _2026-10-29._

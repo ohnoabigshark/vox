@@ -145,11 +145,15 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
    moves a Runner or Catcher, snapped and stopped at the limits, its
    waypoints staying put on the field; Blockers can't be moved; Undo puts it
    back.
-9. **In the game** (n8): a run's playbook is the play pool plus the
-   switched-on sketches, and with none on every seeded run deals as before;
-   only switched-on sketches with no problems join, each with its own id;
-   the switch is kept per sketch, kept when the sketch is saved, and off for
-   sketches saved before it existed.
+9. **In the game** (n8): a sketch is off, dealt, or sits out (`inGameOf`,
+   the one rule the list and the game share); only dealt sketches join, each
+   with its own id, oldest first; the store refuses to switch on a sketch with
+   problems and says why; the switch is kept per sketch, kept when the sketch
+   is saved, and off for sketches saved before it existed. A run given the
+   pool as its playbook deals as before (the seeded test). The game's wiring,
+   the pool plus the sketches read at PLAY and again at AGAIN, isn't unit
+   tested (`game.ts` needs a browser): it was checked in a headless
+   walk-through.
 
 ## Not in v1
 

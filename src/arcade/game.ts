@@ -72,9 +72,12 @@ import { PLAY_POOL } from './content/playPool';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
 
-/** Your plays couldn't be read: the run goes on with the play pool, and the editor's list says why (map item n4). */
-function sitOut(e: unknown): readonly Play[] {
-  console.error('Your sketches could not be read for this run:', e);
+/**
+ * The sketches in the game couldn't be read: the run goes on with the play
+ * pool, and the editor's list says why; the game stays quiet (map item n4).
+ */
+function unreadSketches(e: unknown): readonly Play[] {
+  console.error('The sketches in the game could not be read for this run:', e);
   return [];
 }
 
@@ -112,7 +115,7 @@ export interface ArcadeOptions {
    * The play editor's sketches switched on In the game (map round 6), read
    * when each run starts and dealt alongside the play pool.
    */
-  yourPlays?: () => Promise<readonly Play[]>;
+  sketchesInGame?: () => Promise<readonly Play[]>;
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -171,10 +174,8 @@ export class ArcadeGame {
   private readonly twoTapAim: boolean;
   /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
   private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
-  /** Reads your sketches switched on In the game; none without it. */
-  private readonly readYours: (() => Promise<readonly Play[]>) | null;
-  /** Those sketches, as read when this run started. */
-  private yours: readonly Play[] = [];
+  /** Reads the play editor's sketches in the game; none without it. */
+  private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -226,7 +227,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    this.readYours = options.yourPlays ?? null;
+    this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
@@ -701,24 +702,30 @@ export class ArcadeGame {
       // plays takes a moment, so a second tap meanwhile mustn't start another run.
       if (this.renewing) return;
       this.renewing = true;
-      this.seed++;
-      await this.freshRun();
-      this.renewing = false;
+      try {
+        this.seed++;
+        await this.freshRun();
+      } finally {
+        this.renewing = false;
+      }
       this.focus = v(0, -4);
     }
     this.syncHud();
   }
 
-  /** A new run with the plays as they are now: your sketches are read as each run starts (n6). */
+  /** A new run with the plays as they are now: the sketches in the game are read as each run starts (n6). */
   private async freshRun(): Promise<void> {
-    this.yours = this.practice || !this.readYours ? [] : await this.readYours().catch(sitOut);
-    this.state = this.newRun();
+    const sketches = this.sketchesInGame ? await this.sketchesInGame().catch(unreadSketches) : [];
+    this.state = this.newRun(sketches);
     this.origin = this.startOrigin();
     this.bodies.sync(this.state);
   }
 
-  /** A new run (practice: always the Forest's first drive, map item t3). */
-  private newRun(): RunState {
+  /**
+   * A new run, dealing the play pool and these sketches (practice: always the
+   * Forest's first drive with its one sketch, map item t3).
+   */
+  private newRun(sketches: readonly Play[] = []): RunState {
     if (this.practice)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
@@ -727,7 +734,7 @@ export class ArcadeGame {
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
-      playbook: [...PLAY_POOL, ...this.yours],
+      playbook: [...PLAY_POOL, ...sketches],
     });
   }
 

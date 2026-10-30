@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inGamePlays, sketchStore, idFromName } from '../../src/dev/playEditor/sketches';
+import { inGameOf, inGamePlays, sketchStore, idFromName } from '../../src/dev/playEditor/sketches';
 import { playToLink } from '../../src/arcade/content/playCode';
 import type { Assignment, Play } from '../../src/arcade/content/plays';
 
@@ -170,6 +170,33 @@ describe('sketches kept on the phone', () => {
     expect((await store.list()).sketches.map((d) => d.inGame)).toEqual([false, false]);
   });
 
+  it('only a sketch with no problems switches on; one that has them says why', async () => {
+    const store = sketchStore(memoryStorage(), () => 1);
+    const broken: Play = {
+      ...play('Wing Slant'),
+      slots: play('Wing Slant').slots.map((a, i) => (i === 6 ? block : a)),
+    };
+    await store.save('w', broken);
+    await expect(store.setInGame('w', true)).rejects.toThrow(
+      'Fix Wing Slant first: C3 is blocking. Only Blockers block: give it a route.',
+    );
+    expect((await store.list()).sketches.map((d) => d.inGame)).toEqual([false]);
+  });
+
+  it('sketches saved before the switch existed start off', async () => {
+    const storage = memoryStorage();
+    storage.data.set(
+      'getJackBack.playEditor.sketches',
+      JSON.stringify({
+        version: 1,
+        sketches: [{ key: 'a', edited: 7, link: playToLink(play('Bootleg')) }],
+      }),
+    );
+    expect((await sketchStore(storage, () => 9).list()).sketches.map((d) => d.inGame)).toEqual([
+      false,
+    ]);
+  });
+
   it("switching a sketch that isn't saved says so", async () => {
     const store = sketchStore(memoryStorage(), () => 1);
     await expect(store.setInGame('gone', true)).rejects.toThrow(
@@ -190,6 +217,13 @@ describe('sketches in the full game (map round 6)', () => {
     slots: play('Wing Slant').slots.map((a, i) => (i === 6 ? block : a)),
   };
   const sketch = (key: string, p: Play, inGame: boolean) => ({ key, play: p, edited: 1, inGame });
+
+  it('a sketch is off, dealt, or switched on but sitting out with problems', () => {
+    expect(inGameOf(sketch('a', play('Bootleg'), false))).toBe('off');
+    expect(inGameOf(sketch('a', play('Bootleg'), true))).toBe('dealt');
+    expect(inGameOf(sketch('a', broken, true))).toBe('sitsOut');
+    expect(inGameOf(sketch('a', broken, false))).toBe('off');
+  });
 
   it('deals only switched-on sketches with no problems, oldest first, each with its key as its id', () => {
     expect(

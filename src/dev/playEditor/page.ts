@@ -19,7 +19,14 @@ import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES, lineUpSpot } from '../../arcade/content/team';
 import { arcadeTuning } from '../../arcade/content/tuning';
 import { now } from '../../clock';
-import { browserStorage, sketchStore, idFromName, type Sketch, type SketchList } from './sketches';
+import {
+  browserStorage,
+  inGameOf,
+  sketchStore,
+  idFromName,
+  type Sketch,
+  type SketchList,
+} from './sketches';
 import {
   addPoint,
   brokenSlots,
@@ -130,30 +137,28 @@ function ago(edited: number): string {
   return days === 1 ? 'yesterday' : `${days} days ago`;
 }
 
-/** A sketch's state on the list: whether it's ready, and whether the full game deals it (map items n1, n3). */
+/** A sketch's state on the list: whether it's ready, and where it stands with the full game (map items n1, n3). */
 function stateOf(d: Sketch): { text: string; bad: boolean } {
   const n = playProblems(d.play).length;
   const problems = `${n} ${n === 1 ? 'problem' : 'problems'}`;
-  if (n === 0)
-    return { text: d.inGame ? 'ready to copy · in the game' : 'ready to copy', bad: false };
-  return { text: d.inGame ? `in the game · sits out, ${problems}` : problems, bad: true };
+  const state = inGameOf(d);
+  switch (state) {
+    case 'dealt':
+      return { text: 'ready to copy · in the game', bad: false };
+    case 'sitsOut':
+      return { text: `in the game · sits out, ${problems}`, bad: true };
+    case 'off':
+      return n === 0 ? { text: 'ready to copy', bad: false } : { text: problems, bad: true };
+  }
 }
 
-/** The In the game switch: on only for a sketch with no problems, and a problem says why rather than doing nothing. */
+/** The In the game switch. The store refuses a sketch with problems and says why, so it's greyed then. */
 function inGameSwitch(d: Sketch): HTMLElement {
-  const problems = playProblems(d.play);
-  const blocked = !d.inGame && problems.length > 0;
+  const greyed = !d.inGame && playProblems(d.play).length > 0;
   return el('button', {
-    className: `chip in-game${d.inGame ? ' on' : ''}${blocked ? ' dim' : ''}`,
+    className: `chip in-game${d.inGame ? ' on' : ''}${greyed ? ' dim' : ''}`,
     text: 'In the game',
-    onClick: () => {
-      const first = problems[0];
-      if (blocked && first) {
-        say(`Fix ${d.play.name || 'this sketch'} first: ${first.message}`, true);
-        return;
-      }
-      void attempt(() => store.setInGame(d.key, !d.inGame)).then(() => showList());
-    },
+    onClick: () => void attempt(() => store.setInGame(d.key, !d.inGame)).then(() => showList()),
   });
 }
 

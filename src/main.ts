@@ -39,10 +39,10 @@ const game = new ArcadeGame(canvas, ui, {
   twoTapAim: params.get('aim') === '2',
   farmSong: Number(params.get('farmSong')) || 1,
   ...(practice ? { practice } : {}),
-  // The sketches switched on In the game in the play editor join the plays dealt, read at
-  // every PLAY and AGAIN. Ones that can't be read sit out quietly: the editor's list says
-  // why (map item n4).
-  yourPlays: async () => inGamePlays((await sketchStore(browserStorage(), now).list()).sketches),
+  // The play editor's sketches in the game join the plays dealt, read at every PLAY and
+  // AGAIN. If they can't be read the game stays quiet: the editor's list says why (n4).
+  sketchesInGame: async () =>
+    inGamePlays((await sketchStore(browserStorage(), now).list()).sketches),
 });
 
 // Dev builds expose the game for debugging from the console.

@@ -62,6 +62,13 @@ export function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
   }
 }
 
+/** A saved sketch with its In the game switch set: written only when on, so older saves read as off. */
+function switched(d: Saved, on: boolean): Saved {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the old switch, replaced
+  const { inGame, ...rest } = d;
+  return on ? { ...rest, inGame: true } : rest;
+}
+
 /** Sketches kept in `storage` (localStorage on the page); `now` stamps each save. */
 export function sketchStore(
   storage: Pick<Storage, 'getItem' | 'setItem'>,
@@ -134,8 +141,10 @@ export function sketchStore(
         const all = read();
         const was = all.find((d) => d.key === key);
         const others = all.filter((d) => d.key !== key);
-        const inGame = was?.inGame === true ? { inGame: true as const } : {};
-        write([...others, { key, edited: now(), link: playToLink(play), ...inGame }]);
+        write([
+          ...others,
+          switched({ key, edited: now(), link: playToLink(play) }, was?.inGame === true),
+        ]);
         return Promise.resolve();
       } catch (e) {
         return failed(e);
@@ -144,19 +153,17 @@ export function sketchStore(
     setInGame(key: string, on: boolean): Promise<void> {
       try {
         const all = read();
-        if (!all.some((d) => d.key === key)) throw new Error("That sketch isn't saved any more.");
-        write(
-          all.map((d) =>
-            d.key !== key
-              ? d
-              : {
-                  key: d.key,
-                  edited: d.edited,
-                  link: d.link,
-                  ...(on ? { inGame: true as const } : {}),
-                },
-          ),
-        );
+        const was = all.find((d) => d.key === key);
+        if (!was) throw new Error("That sketch isn't saved any more.");
+        if (on) {
+          // Only a sketch with no problems switches on (map item n3).
+          const back = playFromLink(was.link);
+          const first = back.ok ? playProblems(back.play)[0] : undefined;
+          if (back.ok && first) {
+            throw new Error(`Fix ${back.play.name || 'this sketch'} first: ${first.message}`);
+          }
+        }
+        write(all.map((d) => (d.key === key ? switched(d, on) : d)));
         return Promise.resolve();
       } catch (e) {
         return failed(e);
@@ -174,13 +181,25 @@ export function sketchStore(
 }
 
 /**
- * The sketches the full game deals (map round 6): switched on and with no
- * problems (n3), oldest first so a seeded run deals the same each time, each
- * with its key as its id, so two sketches with one name never clash.
+ * Where a sketch stands with the full game (map items n1, n3): switched off,
+ * dealt, or switched on but sitting out until its problems are fixed. The one
+ * place this is decided: the game deals by it and the list shows it.
+ */
+export type InGame = 'off' | 'dealt' | 'sitsOut';
+export function inGameOf(d: Sketch): InGame {
+  if (!d.inGame) return 'off';
+  return playProblems(d.play).length === 0 ? 'dealt' : 'sitsOut';
+}
+
+/**
+ * The sketches the full game deals (map round 6), oldest first so a seeded
+ * run deals the same each time, each with its key as its id, so two sketches
+ * with one name never clash. Oldest first is by key: the page makes keys as
+ * `s` and the time it was made, all the same length (older `d` keys sort first).
  */
 export function inGamePlays(sketches: readonly Sketch[]): Play[] {
   return sketches
-    .filter((d) => d.inGame && playProblems(d.play).length === 0)
+    .filter((d) => inGameOf(d) === 'dealt')
     .sort((a, b) => (a.key < b.key ? -1 : 1))
     .map((d) => ({ ...d.play, id: d.key }));
 }
