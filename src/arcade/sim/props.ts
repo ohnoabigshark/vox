@@ -74,7 +74,7 @@ export function drivePropsWithBoss(
 }
 
 /** One 10-yard stretch's props (y from 0 to 10 within it), the same every time for this seed. */
-function stretchProps(seed: number, k: number): FieldProp[] {
+export function stretchProps(seed: number, k: number): FieldProp[] {
   const kinds = areaAt(Math.floor(k / DRIVES_PER_AREA)).fieldProps;
   const rng = rngFor(seed, 'fieldProps', k);
   const want = tuning.min + rng.int(0, tuning.max - tuning.min);

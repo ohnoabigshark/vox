@@ -10,6 +10,7 @@ import { playSlot } from '../content/team';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
+import { pickupsForDrive } from './pickups';
 import { BOSS_SPOT, drivePropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
@@ -101,6 +102,7 @@ export function createRun(
     seed,
     playbook: options.practice ? [options.practice] : (options.playbook ?? PLAY_POOL),
     practice: options.practice !== undefined,
+    taken: [],
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
     step: 0,
@@ -121,6 +123,7 @@ export function createRun(
       players: [],
       defenders: [],
       props: [],
+      pickups: [],
       frogLane: null,
       frogDump: null,
       crows: null,
@@ -171,9 +174,14 @@ export function setUpDrive(
     down: 1,
     los: start,
   };
+  const props = drivePropsWithBoss(state.seed, area, index, spec.boss);
   state.field = {
     ...state.field,
-    props: drivePropsWithBoss(state.seed, area, index, spec.boss),
+    props,
+    // Practice tests the play by itself (map item k8); a pickup taken never comes back (k3).
+    pickups: state.practice
+      ? []
+      : pickupsForDrive(state.seed, area, index).filter((p) => !state.taken.includes(p.id)),
   };
   events.push({ type: 'driveStarted', drive: index, name: spec.name });
   setUpDown(state, events);
@@ -229,6 +237,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
     players,
     defenders,
     props: state.field.props,
+    pickups: state.field.pickups,
     frogLane: spec.frogRain ? frogLane(state) : null,
     frogDump: null,
     crows: spec.boss === 'king' ? perchedCrows() : null,

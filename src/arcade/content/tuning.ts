@@ -222,6 +222,19 @@ export const arcadeTuning = {
     /** A Boss stands this far past its drive's first-down line, in the middle of the end zone. */
     bossBeyond: 2.5,
   },
+  pickups: {
+    /** A pickup's size (yards): one of your players whose body touches it takes it. */
+    radius: 0.5,
+    /** Kept this far out of the middle (the pumpkin's lane), this far in from the sidelines… */
+    center: 2.2,
+    edge: 1,
+    /** …and this far from any prop (edge to edge). */
+    gap: 0.6,
+    /** The lightning bolt: this much faster (a share of top speed), for this long (seconds). */
+    bolt: { faster: 0.5, time: 3 },
+    /** The oil slick: whoever slips lies on the turf this long (a carrier is tackled: SLIPPED!). */
+    slick: { time: 1.2 },
+  },
   crows: {
     /** The King's crows take off this long after the snap (seconds of live play)… */
     takeoff: 0.5,
