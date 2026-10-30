@@ -18,7 +18,8 @@
  *   7. The bullet in the air (ball.ts).
  *   8. The carrier over the first-down line wins the drive; over the
  *      sideline, it's down there.
- * In Break it! the play is frozen until it's decided (sim/breakit.ts).
+ * In Break it! the play is frozen until it's decided (sim/breakit.ts), and
+ * so it is in SNAG IT!, on a contested ball (sim/snag.ts).
  * Before the snap and between drives only the Bats move.
  */
 import { assertNever } from '../../assertNever';
@@ -29,6 +30,7 @@ import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
+import { judgeSnag, snagOn, startSnag } from './snag';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -65,6 +67,10 @@ export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
   }
   if (state.phase === 'breakit') {
     breakIt(state, input, events);
+    return { state, events };
+  }
+  if (state.phase === 'snag') {
+    snag(state, input, events);
     return { state, events };
   }
   if (state.phase !== 'play') {
@@ -247,6 +253,43 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
     return;
   }
   tackle(state, carrier, t.tacklers[0] ?? -1, events);
+}
+
+/**
+ * SNAG IT! (sim/snag.ts): judge the taps, and once every dot is played carry
+ * out the grade. GREAT: caught, and the defenders reaching for it go flying,
+ * so the receiver runs free. OK: caught, and tackled on the spot. BAD:
+ * batted down by the first of them.
+ */
+function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
+  const t = state.snag;
+  const grade = judgeSnag(state, input, events);
+  if (!grade || !t) return;
+  events.push({ type: 'snagResult', grade });
+  state.snag = null;
+  state.phase = 'play';
+  const receiver = state.field.players.find((p) => p.id === t.receiver);
+  const defenders = state.field.defenders.filter((d) => t.defenders.includes(d.id));
+  const first = defenders[0];
+  if (grade === 'bad' || !receiver) {
+    const at = first?.pos ?? receiver?.pos ?? v(0, state.drive.los);
+    events.push({ type: 'batted', by: first?.id ?? -1, at, contested: true });
+    state.field.ball = { at: 'dead', pos: at, how: 'batted' };
+    endDown(state, 'batted', state.drive.los, events);
+    return;
+  }
+  giveBall(state, receiver);
+  events.push({ type: 'caught', id: receiver.id, contested: true });
+  if (grade === 'ok') {
+    tackle(state, receiver, first?.id ?? -1, events);
+    return;
+  }
+  for (const d of defenders) {
+    d.down = contact.brokenTime;
+    d.vel = scale(norm(sub(d.pos, receiver.pos)), 5);
+  }
+  state.field.breakaway = arcadeTuning.breakit.breakaway;
+  checkCarrier(state, events);
 }
 
 /**
@@ -434,6 +477,12 @@ function royalCrows(state: RunState, input: StepInput, events: ArcadeEvent[]): b
 function flight(state: RunState, events: ArcadeEvent[]): boolean {
   const outcome = resolveFlight(state);
   if (!outcome) return false;
+  // SNAG IT!: a contested ball, from drive 5, is the Coach's to win (docs/SNAG.md).
+  const ball = state.field.ball;
+  if (outcome.kind !== 'incomplete' && outcome.contest && ball.at === 'flight' && snagOn(state)) {
+    startSnag(state, outcome.contest, ball.from, events);
+    return true;
+  }
   if (outcome.kind === 'caught') {
     giveBall(state, outcome.by);
     events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contested });

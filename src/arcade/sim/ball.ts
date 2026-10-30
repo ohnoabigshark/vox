@@ -97,15 +97,24 @@ export function lobReceivers(state: RunState, from: Vec, at: Vec): Player[] {
  */
 export function lobLanding(state: RunState, from: Vec, at: Vec): FlightOutcome {
   const receiver = lobReceivers(state, from, at)[0];
-  const defender = state.field.defenders
-    .filter((d) => d.down <= 0 && !engaged(state, d) && dist(d.pos, at) <= d.reach)
-    .sort((a, b) => dist(a.pos, at) - dist(b.pos, at) || a.id - b.id)[0];
+  const reaching = reachingDefenders(state, at).sort(
+    (a, b) => dist(a.pos, at) - dist(b.pos, at) || a.id - b.id,
+  );
+  const defender = reaching[0];
+  const contest = receiver && defender ? { receiver, defenders: reaching } : undefined;
   if (receiver && defender && dist(defender.pos, at) < dist(receiver.pos, at)) {
-    return { kind: 'batted', by: defender.id, at: defender.pos, contested: true };
+    return { kind: 'batted', by: defender.id, at: defender.pos, contested: true, contest };
   }
-  if (receiver) return { kind: 'caught', by: receiver, contested: defender !== undefined };
+  if (receiver) return { kind: 'caught', by: receiver, contested: defender !== undefined, contest };
   if (defender) return { kind: 'batted', by: defender.id, at: defender.pos, contested: false };
   return { kind: 'incomplete', at };
+}
+
+/** The defenders who could get a hand to a ball at `at`: up, not locked up at the line, within reach. */
+export function reachingDefenders(state: RunState, at: Vec): Defender[] {
+  return state.field.defenders.filter(
+    (d) => d.down <= 0 && !engaged(state, d) && dist(d.pos, at) <= d.reach,
+  );
 }
 
 /** Where a bullet along `angle` from `from` would go: as far as its range, or the sideline. */
@@ -123,9 +132,30 @@ export function flightTime(from: Vec, to: Vec, scale = 1): number {
   return Math.max(0.1, dist(from, to) / (t.speed * scale));
 }
 
+/**
+ * A contested ball (docs/SNAG.md): who'd catch it, and every defender who
+ * could get a hand to it, the one today's rule would pit against the
+ * receiver first.
+ */
+export interface Contest {
+  readonly receiver: Player;
+  readonly defenders: readonly Defender[];
+}
+
 export type FlightOutcome =
-  | { readonly kind: 'caught'; readonly by: Player; readonly contested: boolean }
-  | { readonly kind: 'batted'; readonly by: number; readonly at: Vec; readonly contested: boolean }
+  | {
+      readonly kind: 'caught';
+      readonly by: Player;
+      readonly contested: boolean;
+      readonly contest?: Contest | undefined;
+    }
+  | {
+      readonly kind: 'batted';
+      readonly by: number;
+      readonly at: Vec;
+      readonly contested: boolean;
+      readonly contest?: Contest | undefined;
+    }
   | { readonly kind: 'incomplete'; readonly at: Vec }
   | null;
 
@@ -161,13 +191,13 @@ export function contact(
         dist(p.pos, at) <= p.reach,
     )
     .sort((a, b) => dist(a.pos, at) - dist(b.pos, at) || a.id - b.id)[0];
-  const defender = state.field.defenders
-    .filter((d) => d.down <= 0 && !engaged(state, d) && dist(d.pos, at) <= d.reach)
-    .sort(byHands(at))[0];
+  const reaching = reachingDefenders(state, at).sort(byHands(at));
+  const defender = reaching[0];
+  const contest = catcher && defender ? { receiver: catcher, defenders: reaching } : undefined;
   if (catcher && defender && defender.stats.hands > catcher.stats.hands) {
-    return { kind: 'batted', by: defender.id, at: defender.pos, contested: true };
+    return { kind: 'batted', by: defender.id, at: defender.pos, contested: true, contest };
   }
-  if (catcher) return { kind: 'caught', by: catcher, contested: defender !== undefined };
+  if (catcher) return { kind: 'caught', by: catcher, contested: defender !== undefined, contest };
   if (defender) return { kind: 'batted', by: defender.id, at: defender.pos, contested: false };
   if (last) {
     // Candy Corn Magnet (a perk): a ball about to fall incomplete gets twice the reach.
