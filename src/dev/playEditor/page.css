@@ -285,6 +285,15 @@ input:focus-visible {
   color: #ffb4ab;
 }
 
+.chip.dim {
+  opacity: 0.35;
+}
+
+.row .in-game {
+  flex: 0 0 auto;
+  padding: 0 10px;
+}
+
 .chip.on.bad {
   color: #1a1206;
   box-shadow: 0 0 0 2px var(--bad);

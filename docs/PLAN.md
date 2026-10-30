@@ -47,6 +47,14 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     spot"_); a fourth play rule keeps players behind the line, inside the
     sidelines, no more than 6 yards back and a yard apart. Built on the
     `lineup` branch.
+  - Round 6, decided 2026-10-30 (n1–n8): each sketch has an **In the game**
+    switch; the full game on that phone deals switched-on sketches alongside
+    the play pool, read when a run starts. Only a sketch with no problems can
+    be switched on, and one broken later sits out. The game says nothing
+    about a sketch that sits out or storage it can't read: the editor's list
+    shows both (_user's note on n4: "Only in editor list"_, a deliberate
+    exception to "never fail silently"). Copy code stays the way to keep a
+    play for good. Built on the `sketches-in-game` branch.
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
@@ -65,6 +73,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
 - **Moving a player clears its route,** another way l4 could go, which the
   user raised: "We could also consider making moving a player just cancel
   their route entirely." _2026-10-30._
+- **A play dealt twice.** A sketch left in the game after its Copy code has
+  gone into `ourPlays.ts`, or an unchanged copy of a built-in play, is dealt
+  as often as two plays. Found in the round 6 review; not decided.
+  _2026-10-30._
 - **Choosing the defense in practice** (each area's drives, the decree, the
   crows). Offered as t3's alternative; practice always plays the Forest's
   first drive for now. _2026-10-29._

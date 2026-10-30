@@ -68,8 +68,18 @@ import type {
 import { v } from './sim/vec';
 import { ArcadeControls, type BreakView } from './ui/controls';
 import type { Practice } from './content/playCode';
+import { PLAY_POOL } from './content/playPool';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
+
+/**
+ * The sketches in the game couldn't be read: the run goes on with the play
+ * pool, and the editor's list says why; the game stays quiet (map item n4).
+ */
+function unreadSketches(e: unknown): readonly Play[] {
+  console.error('The sketches in the game could not be read for this run:', e);
+  return [];
+}
 
 export interface ArcadeOptions {
   seed: number;
@@ -101,6 +111,11 @@ export interface ArcadeOptions {
    * link can't give opens the ordinary game, saying why until tapped.
    */
   practice?: Practice;
+  /**
+   * The play editor's sketches switched on In the game (map round 6), read
+   * when each run starts and dealt alongside the play pool.
+   */
+  sketchesInGame?: () => Promise<readonly Play[]>;
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -159,6 +174,8 @@ export class ArcadeGame {
   private readonly twoTapAim: boolean;
   /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
   private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
+  /** Reads the play editor's sketches in the game; none without it. */
+  private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -189,6 +206,8 @@ export class ArcadeGame {
   private readonly startScreen: HTMLElement;
   /** PLAY was tapped and the music is getting ready (a second tap does nothing). */
   private starting = false;
+  /** AGAIN is reading your plays for the next run: further taps wait. */
+  private renewing = false;
   /** The win cutscene, after the last Boss: the end (it dances on, with no AGAIN). */
   private outro: ArcadeOutro | null = null;
   /** The opening cutscene, while it plays (after the first PLAY). */
@@ -208,6 +227,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
+    this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
@@ -669,6 +689,7 @@ export class ArcadeGame {
         this.syncHud();
         return;
       }
+      await this.freshRun();
       this.intro = new ArcadeIntro(this.view.scene, this.uiRoot, (id) => this.conductor.play(id));
     } else if (this.paused) {
       this.paused = false;
@@ -677,18 +698,34 @@ export class ArcadeGame {
     } else if (phase === 'setup') {
       this.act({ type: 'hike' });
     } else if (phase === 'over') {
-      // AGAIN after a Game Over (a win is the end: there's no AGAIN).
-      this.seed++;
-      this.state = this.newRun();
-      this.origin = this.startOrigin();
+      // AGAIN after a Game Over (a win is the end: there's no AGAIN). Reading your
+      // plays takes a moment, so a second tap meanwhile mustn't start another run.
+      if (this.renewing) return;
+      this.renewing = true;
+      try {
+        this.seed++;
+        await this.freshRun();
+      } finally {
+        this.renewing = false;
+      }
       this.focus = v(0, -4);
-      this.bodies.sync(this.state);
     }
     this.syncHud();
   }
 
-  /** A new run (practice: always the Forest's first drive, map item t3). */
-  private newRun(): RunState {
+  /** A new run with the plays as they are now: the sketches in the game are read as each run starts (n6). */
+  private async freshRun(): Promise<void> {
+    const sketches = this.sketchesInGame ? await this.sketchesInGame().catch(unreadSketches) : [];
+    this.state = this.newRun(sketches);
+    this.origin = this.startOrigin();
+    this.bodies.sync(this.state);
+  }
+
+  /**
+   * A new run, dealing the play pool and these sketches (practice: always the
+   * Forest's first drive with its one sketch, map item t3).
+   */
+  private newRun(sketches: readonly Play[] = []): RunState {
     if (this.practice)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
@@ -697,6 +734,7 @@ export class ArcadeGame {
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
+      playbook: [...PLAY_POOL, ...sketches],
     });
   }
 

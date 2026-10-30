@@ -55,9 +55,10 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Slot** _(names ours)_: one of the seven places in the line-up, named in
   roster order B1, B2, R1, R2, C1 (left outside), C2 (right outside), C3
   (inside, right of centre). Flip swaps mirror partners.
-- **Playbook** _(ours)_: the plays your team can be dealt this run. **Play
-  pool** _(ours)_: every play that exists, which rewards will draw from.
-  Today they're the same five. _Avoid:_ "deck".
+- **Playbook** _(ours)_: the plays your team can be dealt this run: the play
+  pool plus your sketches that are in the game (map item n7). **Play pool**
+  _(ours)_: every play in the code (esrauch's five and `ourPlays.ts`), which
+  rewards will draw from. _Avoid:_ "deck".
 - **Play card:** one play dealt for a down. **Hand:** the three dealt.
 - **Flip:** mirrors the called play. Mirror partners swap jobs.
 - **Handoff:** a play that gives a Runner the ball at the snap.
@@ -68,6 +69,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 
 - **Sketch:** a play being drawn in the play editor, kept on the phone that
   drew it (map item g7). _Avoid:_ "draft", which is TRICK OR TREAT!.
+- **In the game:** a sketch with its In the game switch on, which the full
+  game on that phone deals alongside the play pool, if it has no problems
+  (map items n1, n3). One with problems **sits out**.
 - **Practice** and **rep:** what Try it opens: one sketch on the field,
   played over and over from the same spot (map item t6). Each go is a rep.
   In code, a run with `practice` set. _Avoid:_ "trial", the old in-game Try it.
