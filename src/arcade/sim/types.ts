@@ -58,6 +58,8 @@ export interface Player extends BodyBase {
   readonly slot: number;
   readonly form: Form;
   job: Job;
+  /** Seconds left at a lightning bolt's speed (0 = none: docs/PICKUPS.md). */
+  fast: number;
 }
 
 export interface Defender extends BodyBase {
@@ -436,6 +438,15 @@ export type ArcadeEvent =
   | { readonly type: 'frogRain'; readonly flattened: readonly number[] }
   /** …and the carrier was in it: tackled there. */
   | { readonly type: 'frogged'; readonly id: number }
+  /** One of your players ran through a pickup and took it (docs/PICKUPS.md). */
+  | {
+      readonly type: 'pickupTaken';
+      readonly id: number;
+      readonly kind: PickupKind;
+      readonly pickup: number;
+    }
+  /** A carrier slipped on an oil slick and is down there: SLIPPED! */
+  | { readonly type: 'slipped'; readonly id: number }
   | { readonly type: 'driveStarted'; readonly drive: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
   | { readonly type: 'gameOver'; readonly drivesWon: number; readonly yards: number };

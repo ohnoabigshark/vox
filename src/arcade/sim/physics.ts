@@ -15,7 +15,7 @@ import { clearOfProps, steerAround } from './props';
 import type { Body, RunState } from './types';
 import { add, clampLen, dist, len, norm, scale, sub, v } from './vec';
 
-const { body: bodyTuning, field } = arcadeTuning;
+const { body: bodyTuning, field, pickups: pickupTuning } = arcadeTuning;
 
 export function allBodies(state: RunState): Body[] {
   return [...state.field.players, ...state.field.defenders];
@@ -27,6 +27,8 @@ export function moveBodies(state: RunState): void {
   const carrier = state.field.players.find((p) => p.id === carrierId);
   const hanging = state.field.defenders.filter((d) => d.latch !== null);
   for (const b of allBodies(state)) {
+    // A lightning bolt wears off (docs/PICKUPS.md).
+    if (b.side === 'team' && b.fast > 0) b.fast = Math.max(0, b.fast - DT);
     // Tacklers hanging on ride along with the carrier (below).
     if (b.side === 'defense' && b.latch) continue;
     if (b.down > 0) {
@@ -46,12 +48,14 @@ export function moveBodies(state: RunState): void {
     let desired = v(0, 0);
     if (target) {
       const to = sub(target, b.pos);
+      const top =
+        b.side === 'team' && b.fast > 0 ? b.speed * (1 + pickupTuning.bolt.faster) : b.speed;
       const speed =
         b.side === 'defense'
           ? b.speed * blockedShare(state, b, carrierId)
           : b.id === carrierId
-            ? b.speed * (b.mass / (b.mass + hanging.reduce((m, d) => m + d.mass, 0)))
-            : b.speed;
+            ? top * (b.mass / (b.mass + hanging.reduce((m, d) => m + d.mass, 0)))
+            : top;
       // Arrive: ease off over the last stretch so nobody orbits its target.
       desired = scale(norm(to), speed * Math.min(1, len(to) / 0.6));
       // And go round any prop in the way.

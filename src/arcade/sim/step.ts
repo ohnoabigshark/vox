@@ -81,6 +81,7 @@ export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
   moveBodies(state);
   separate(state);
   pushOutOfProps(state);
+  if (takePickups(state, events)) return { state, events };
   if (frogRain(state, events)) return { state, events };
   if (royalCrows(state, input, events)) return { state, events };
   if (resolveContact(state, events)) return { state, events };
@@ -286,6 +287,40 @@ function frogRain(state: RunState, events: ArcadeEvent[]): boolean {
     return true;
   }
   return false;
+}
+
+/**
+ * Tricks and treats (docs/PICKUPS.md): one of your players on its feet who
+ * runs through a pickup takes it, and it's gone for good. A bolt speeds it up
+ * for a while; a slick trips it, and a carrier who slips is tackled there:
+ * SLIPPED! Defenders run over them and leave them be (only offense, for now).
+ */
+function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
+  if (state.field.pickups.length === 0) return false;
+  const r = arcadeTuning.pickups.radius;
+  let slipped: Player | null = null;
+  for (const p of state.field.players) {
+    if (p.down > 0) continue;
+    const pickup = state.field.pickups.find((q) => dist(p.pos, v(q.x, q.y)) <= p.radius + r);
+    if (!pickup) continue;
+    state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
+    state.taken.push(pickup.id);
+    events.push({ type: 'pickupTaken', id: p.id, kind: pickup.kind, pickup: pickup.id });
+    switch (pickup.kind) {
+      case 'bolt':
+        p.fast = arcadeTuning.pickups.bolt.time;
+        break;
+      case 'slick':
+        p.down = arcadeTuning.pickups.slick.time;
+        p.vel = v(0, 0);
+        if (p === carrierOf(state)) slipped = p;
+        break;
+    }
+  }
+  if (!slipped) return false;
+  events.push({ type: 'slipped', id: slipped.id });
+  tackle(state, slipped, -1, events);
+  return true;
 }
 
 /** A carrier dragging tacklers goes down once it reaches the end of the drag. */
