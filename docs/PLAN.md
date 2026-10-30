@@ -60,10 +60,18 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   2026-10-30 (k1–k9); the design is `docs/PICKUPS.md`. Only your team takes
   them for now (_user's note on k3 and k4: "Only offense for now"_). Built on
   the `pickups` branch.
+- **Harder, not busier** (hard mode): one extra defender a zone, at most 12,
+  with stats growing faster and Break it! tightening past zone 3. Round 9,
+  decided 2026-10-30 (d1–d4, d7); the design is `docs/DIFFICULTY.md`. Built
+  on the `harder-not-busier` branch. _User, 2026-10-30: "increasing
+  difficulty right now really just adds more players and makes the screen
+  really busy."_
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
 ## Later (not yet in order)
+
+- **A native Android build** of the game. _User, 2026-10-30._
 
 - **Route timing and speeds,** the rest of e5's advanced play editing. Where
   players line up was built in round 5. _User, 2026-10-29._
@@ -98,6 +106,12 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   today, so the offense needs play calling and throw timing of its own, and
   the Coach needs something to do on defense that is still one-tap timing
   (GAMEPLAY.md, Design Pillars 2). _User, 2026-10-28._
+  - **Turnovers come with it:** interceptions (and fumbles) only once the
+    Coach can answer on defense. _User's note on d5, 2026-10-30: "Nah let's
+    skip this for now because turnovers are annoying in general when you
+    can't respond on defense... we can add turnovers to the plan as part of
+    adding defensive play."_ The round 9 proposal (a defender that out-Hands
+    the receiver by 20 intercepts; what a pick costs) is on the map, d5–d6.
 - **Objects on the field that a player consumes by running through them,**
   good or bad, so "power-up" is the wrong name (pickups: treats help, tricks
   hurt; `CONTEXT.md`, decided as g5). A lightning bolt gives a
