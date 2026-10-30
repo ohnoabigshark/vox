@@ -78,6 +78,14 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   and "level" count (zones or drives won); what a miss costs (an
   incomplete, a batted ball, or later a pick); whether it counts toward
   Break it!'s two a down; the dots' size against a thumb.
+- **Losses move you back past the drive's start** (difficulty), so a sack
+  or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
+  the line back, but never behind where the drive started (`endDown` in
+  `sim/run.ts`: "Never behind the drive's start (there's no room for the
+  QB)"), so a loss on the drive's first snap leaves 2nd & 10. Open for its
+  grilling: what that "no room" was (the camera, the field behind, the
+  previous drive's props and pickups), and how far back a drive may go.
+  _User, 2026-10-30._
 - **A play clock** (difficulty). Today you can wait forever before
   calling a play and hiking. From some level on, a clock counts down the
   call and the hike, to force a faster choice. _User, 2026-10-30._ Open for
