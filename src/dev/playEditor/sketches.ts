@@ -50,6 +50,18 @@ interface Saved {
   readonly inGame?: true;
 }
 
+/** The browser's localStorage, or, where even reaching it throws, a stand-in that always refuses. */
+export function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
+  try {
+    return localStorage;
+  } catch {
+    const refuse = (): never => {
+      throw new Error('localStorage is unavailable');
+    };
+    return { getItem: refuse, setItem: refuse };
+  }
+}
+
 /** Sketches kept in `storage` (localStorage on the page); `now` stamps each save. */
 export function sketchStore(
   storage: Pick<Storage, 'getItem' | 'setItem'>,

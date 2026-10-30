@@ -18,7 +18,8 @@ import {
 import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES, lineUpSpot } from '../../arcade/content/team';
 import { arcadeTuning } from '../../arcade/content/tuning';
-import { sketchStore, idFromName, type Sketch, type SketchList } from './sketches';
+import { now } from '../../clock';
+import { browserStorage, sketchStore, idFromName, type Sketch, type SketchList } from './sketches';
 import {
   addPoint,
   brokenSlots,
@@ -45,19 +46,6 @@ function required(selector: string): HTMLElement {
 const app = required('#app');
 const statusEl = required('#status');
 
-// The only place the page reads the time: when a sketch was saved, and "how long ago".
-const now = (): number => Date.now();
-/** The browser's localStorage, or, where even reaching it throws, a stand-in that always refuses. */
-function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
-  try {
-    return localStorage;
-  } catch {
-    const refuse = (): never => {
-      throw new Error('localStorage is unavailable');
-    };
-    return { getItem: refuse, setItem: refuse };
-  }
-}
 const storage = browserStorage();
 const store = sketchStore(storage, now);
 
@@ -142,11 +130,31 @@ function ago(edited: number): string {
   return days === 1 ? 'yesterday' : `${days} days ago`;
 }
 
-function stateOf(play: Play): { text: string; bad: boolean } {
-  const n = playProblems(play).length;
-  return n === 0
-    ? { text: 'ready to copy', bad: false }
-    : { text: `${n} ${n === 1 ? 'problem' : 'problems'}`, bad: true };
+/** A sketch's state on the list: whether it's ready, and whether the full game deals it (map items n1, n3). */
+function stateOf(d: Sketch): { text: string; bad: boolean } {
+  const n = playProblems(d.play).length;
+  const problems = `${n} ${n === 1 ? 'problem' : 'problems'}`;
+  if (n === 0)
+    return { text: d.inGame ? 'ready to copy · in the game' : 'ready to copy', bad: false };
+  return { text: d.inGame ? `in the game · sits out, ${problems}` : problems, bad: true };
+}
+
+/** The In the game switch: on only for a sketch with no problems, and a problem says why rather than doing nothing. */
+function inGameSwitch(d: Sketch): HTMLElement {
+  const problems = playProblems(d.play);
+  const blocked = !d.inGame && problems.length > 0;
+  return el('button', {
+    className: `chip in-game${d.inGame ? ' on' : ''}${blocked ? ' dim' : ''}`,
+    text: 'In the game',
+    onClick: () => {
+      const first = problems[0];
+      if (blocked && first) {
+        say(`Fix ${d.play.name || 'this sketch'} first: ${first.message}`, true);
+        return;
+      }
+      void attempt(() => store.setInGame(d.key, !d.inGame)).then(() => showList());
+    },
+  });
 }
 
 // ── The sketches list ─────────────────────────────────────────────────────────
@@ -213,7 +221,7 @@ function sketchRow(d: Sketch): HTMLElement {
       }),
     );
   }
-  const st = stateOf(d.play);
+  const st = stateOf(d);
   return el(
     'div',
     { className: 'row' },
@@ -226,6 +234,7 @@ function sketchRow(d: Sketch): HTMLElement {
         text: `${st.text} · edited ${ago(d.edited)}`,
       }),
     ),
+    inGameSwitch(d),
     el('button', {
       className: 'del',
       text: '✕',

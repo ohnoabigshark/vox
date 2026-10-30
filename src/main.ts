@@ -1,5 +1,7 @@
 import { readPractice } from './arcade/content/playCode';
 import { ArcadeGame } from './arcade/game';
+import { now } from './clock';
+import { browserStorage, inGamePlays, sketchStore } from './dev/playEditor/sketches';
 import { applyPaletteVars } from './ui/paletteVars';
 
 applyPaletteVars();
@@ -37,6 +39,10 @@ const game = new ArcadeGame(canvas, ui, {
   twoTapAim: params.get('aim') === '2',
   farmSong: Number(params.get('farmSong')) || 1,
   ...(practice ? { practice } : {}),
+  // The sketches switched on In the game in the play editor join the plays dealt, read at
+  // every PLAY and AGAIN. Ones that can't be read sit out quietly: the editor's list says
+  // why (map item n4).
+  yourPlays: async () => inGamePlays((await sketchStore(browserStorage(), now).list()).sketches),
 });
 
 // Dev builds expose the game for debugging from the console.
