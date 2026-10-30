@@ -91,3 +91,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   and reach.
 - **Break it!:** the tap test when a defender grabs the carrier: a break, a
   drag or a tackle.
+- **SNAG IT!** _(ours)_: the tap test on a **contested** ball, one a
+  receiver and a defender could both get to: dots pop up one after
+  another, each tapped as its ring closes. GREAT, OK or BAD: caught and
+  free, caught and tackled, or batted (`docs/SNAG.md`). In code, the
+  `snag` phase. It isn't a Break it! and doesn't count toward their two a
+  down. _Avoid:_ "catch Break it!".
