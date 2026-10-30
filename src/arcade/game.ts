@@ -23,6 +23,7 @@ import { ArcadeBodies } from './render/bodies';
 import { ArcadeLines, createArcadeTurf } from './render/field';
 import { ArcadeFieldProps } from './render/fieldProps';
 import { ArcadeFrogRain } from './render/frogRain';
+import { ArcadePickups } from './render/pickups';
 import { ArcadeIntro } from './render/intro';
 import { ArcadeOutro } from './render/outro';
 import { BOSS_SPOT } from './sim/props';
@@ -189,6 +190,7 @@ export class ArcadeGame {
   private readonly royalCrows: ArcadeRoyalCrows;
   private readonly queenCrown: ArcadeQueenCrown;
   private readonly fieldProps: ArcadeFieldProps;
+  private readonly pickups: ArcadePickups;
   private readonly hud: Hud;
   private readonly controls: ArcadeControls;
 
@@ -254,6 +256,7 @@ export class ArcadeGame {
     this.royalCrows = new ArcadeRoyalCrows(scene);
     this.queenCrown = new ArcadeQueenCrown(scene);
     this.fieldProps = new ArcadeFieldProps(scene);
+    this.pickups = new ArcadePickups(scene);
     this.bodies = new ArcadeBodies(scene);
     this.ball = new ArcadeBall(scene);
     this.sweep = new ArcadeSweep(scene);
@@ -432,6 +435,8 @@ export class ArcadeGame {
     );
     this.fieldProps.update(state, this.origin);
     this.fieldProps.animate(performance.now() / 1000);
+    this.pickups.update(state, this.origin);
+    this.pickups.animate(performance.now() / 1000);
     this.controls.setButtons(canThrow(state) && !this.paused);
     this.controls.setBreak(this.breakView());
     this.follow(dt);
@@ -590,6 +595,12 @@ export class ArcadeGame {
           break;
         case 'frogged':
           this.hud.big('FROGGED!', 'bad');
+          break;
+        case 'pickupTaken':
+          play(e.kind === 'bolt' ? 'zap' : 'slip');
+          break;
+        case 'slipped':
+          this.hud.big('SLIPPED!', 'bad');
           break;
         case 'outOfBounds':
           this.hud.pop('OUT OF BOUNDS', 'bad');

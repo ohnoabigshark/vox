@@ -119,6 +119,19 @@ export const SFX = {
     notes: [1, 1.26, 1.5, 2, 1.5, 2],
     noteStep: 0.09,
   },
+  /** A lightning bolt taken (docs/PICKUPS.md): a bright rising zap. */
+  zap: {
+    wave: 'square',
+    freq: 660,
+    freqEnd: 1980,
+    attack: 0.002,
+    decay: 0.18,
+    volume: 0.3,
+    notes: [1, 1.5, 2],
+    noteStep: 0.04,
+  },
+  /** An oil slick: a sliding whoop down. */
+  slip: { wave: 'sine', freq: 520, freqEnd: 120, attack: 0.004, decay: 0.35, volume: 0.55 },
   uiClick: { wave: 'triangle', freq: 660, attack: 0.001, decay: 0.05, volume: 0.3, bus: 'ui' },
 } as const satisfies Record<string, SfxDef>;
 
