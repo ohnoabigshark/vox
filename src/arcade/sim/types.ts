@@ -58,6 +58,8 @@ export interface Player extends BodyBase {
   readonly slot: number;
   readonly form: Form;
   job: Job;
+  /** Seconds left at a lightning bolt's speed (0 = none: docs/PICKUPS.md). */
+  boltLeft: number;
 }
 
 export interface Defender extends BodyBase {
@@ -112,6 +114,18 @@ export interface FieldProp extends PropKind {
   readonly y: number;
 }
 
+/** A trick or a treat (docs/PICKUPS.md): the lightning bolt speeds up whoever takes it, the oil slick trips them. */
+export type PickupKind = 'bolt' | 'slick';
+
+/** A pickup on the field (sim/pickups.ts), in the drive's own coordinates; the first of your players to run through it takes it. */
+export interface Pickup {
+  /** Unique in the run, so one taken stays gone (RunState.taken). */
+  readonly id: number;
+  readonly kind: PickupKind;
+  readonly x: number;
+  readonly y: number;
+}
+
 /** Mister Frog's Frog Rain: the lane it falls in this down (shown before the snap). */
 export interface FrogLane {
   /** The lane's middle (yards across) and half its width. */
@@ -144,6 +158,8 @@ export interface Field {
   readonly defenders: Defender[];
   /** This drive's props on the field (and the stretches either side of it). */
   props: readonly FieldProp[];
+  /** The pickups lying there, not yet taken (none in practice). */
+  pickups: readonly Pickup[];
   /**
    * Frog Rain (Mister Frog's drive): this down's lane, and once it's snapped,
    * the seconds of live play until the frogs all come down in it (negative
@@ -322,6 +338,8 @@ export interface RunState {
    * one sketch, called at every setup, and every rep lines up the same spot.
    */
   readonly practice: boolean;
+  /** The pickups taken this run, by id: they never come back (map item k3). */
+  taken: number[];
   /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */
   hand: number[];
   called: number | null;
@@ -420,6 +438,15 @@ export type ArcadeEvent =
   | { readonly type: 'frogRain'; readonly flattened: readonly number[] }
   /** …and the carrier was in it: tackled there. */
   | { readonly type: 'frogged'; readonly id: number }
+  /** One of your players ran through a pickup and took it (docs/PICKUPS.md). */
+  | {
+      readonly type: 'pickupTaken';
+      readonly id: number;
+      readonly kind: PickupKind;
+      readonly pickup: number;
+    }
+  /** A carrier slipped on an oil slick and is down there: SLIPPED! */
+  | { readonly type: 'slipped'; readonly id: number }
   | { readonly type: 'driveStarted'; readonly drive: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
   | { readonly type: 'gameOver'; readonly drivesWon: number; readonly yards: number };

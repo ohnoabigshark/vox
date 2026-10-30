@@ -13,6 +13,7 @@
  * and taps the bar and the mash), ← and → juke, S shoos the King's crows. The music is the soundtrack only: nothing waits for the beat.
  */
 import * as THREE from 'three';
+import type { SfxId } from '../audio/sfx';
 import { Conductor } from '../game/conductor';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
@@ -23,6 +24,7 @@ import { ArcadeBodies } from './render/bodies';
 import { ArcadeLines, createArcadeTurf } from './render/field';
 import { ArcadeFieldProps } from './render/fieldProps';
 import { ArcadeFrogRain } from './render/frogRain';
+import { ArcadePickups } from './render/pickups';
 import { ArcadeIntro } from './render/intro';
 import { ArcadeOutro } from './render/outro';
 import { BOSS_SPOT } from './sim/props';
@@ -64,6 +66,7 @@ import type {
   RosterPlayer,
   RunState,
   StepInput,
+  PickupKind,
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls, type BreakView } from './ui/controls';
@@ -71,6 +74,9 @@ import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
+
+/** The sound of taking each kind of pickup (docs/PICKUPS.md). */
+const PICKUP_SOUND: Readonly<Record<PickupKind, SfxId>> = { bolt: 'zap', slick: 'slip' };
 
 /**
  * The sketches in the game couldn't be read: the run goes on with the play
@@ -189,6 +195,7 @@ export class ArcadeGame {
   private readonly royalCrows: ArcadeRoyalCrows;
   private readonly queenCrown: ArcadeQueenCrown;
   private readonly fieldProps: ArcadeFieldProps;
+  private readonly pickups: ArcadePickups;
   private readonly hud: Hud;
   private readonly controls: ArcadeControls;
 
@@ -254,6 +261,7 @@ export class ArcadeGame {
     this.royalCrows = new ArcadeRoyalCrows(scene);
     this.queenCrown = new ArcadeQueenCrown(scene);
     this.fieldProps = new ArcadeFieldProps(scene);
+    this.pickups = new ArcadePickups(scene);
     this.bodies = new ArcadeBodies(scene);
     this.ball = new ArcadeBall(scene);
     this.sweep = new ArcadeSweep(scene);
@@ -432,6 +440,8 @@ export class ArcadeGame {
     );
     this.fieldProps.update(state, this.origin);
     this.fieldProps.animate(performance.now() / 1000);
+    this.pickups.update(state, this.origin);
+    this.pickups.animate(performance.now() / 1000);
     this.controls.setButtons(canThrow(state) && !this.paused);
     this.controls.setBreak(this.breakView());
     this.follow(dt);
@@ -590,6 +600,12 @@ export class ArcadeGame {
           break;
         case 'frogged':
           this.hud.big('FROGGED!', 'bad');
+          break;
+        case 'pickupTaken':
+          play(PICKUP_SOUND[e.kind]);
+          break;
+        case 'slipped':
+          this.hud.big('SLIPPED!', 'bad');
           break;
         case 'outOfBounds':
           this.hud.pop('OUT OF BOUNDS', 'bad');

@@ -20,7 +20,7 @@ import { add, dist, len, norm, scale, sub, v } from './vec';
 const { fieldProps: tuning, field, drive: driveTuning } = arcadeTuning;
 
 /** How many drives (10-yard stretches) each area has. */
-const DRIVES_PER_AREA = 4;
+export const DRIVES_PER_AREA = 4;
 
 /**
  * The props around a drive, in its own coordinates (its start line at 0):
@@ -74,7 +74,7 @@ export function drivePropsWithBoss(
 }
 
 /** One 10-yard stretch's props (y from 0 to 10 within it), the same every time for this seed. */
-function stretchProps(seed: number, k: number): FieldProp[] {
+export function stretchProps(seed: number, k: number): FieldProp[] {
   const kinds = areaAt(Math.floor(k / DRIVES_PER_AREA)).fieldProps;
   const rng = rngFor(seed, 'fieldProps', k);
   const want = tuning.min + rng.int(0, tuning.max - tuning.min);
