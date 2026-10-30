@@ -157,7 +157,7 @@ export function fieldView(s: EditorState): FieldRoute[] {
   return ROSTER_ROLES.map((_, slot): FieldRoute => {
     const k = playSlot(slot, s.flipped);
     const a = s.play.slots[k] ?? { kind: 'block' };
-    const path = routePath(k, a, s.flipped);
+    const path = routePath(s.play, k, s.flipped);
     const kind = a.kind !== 'route' ? 'block' : s.play.handoff === k ? 'carry' : 'route';
     return { slot, kind, path, broken: broken.has(k) };
   });
