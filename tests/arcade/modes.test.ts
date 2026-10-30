@@ -60,13 +60,13 @@ describe('hard mode', () => {
     ]);
   });
 
-  it('defenders gain 15 a zone in hard mode, 10 otherwise', () => {
+  it('defenders gain 20 a zone in hard mode, 10 otherwise', () => {
     const hard = createRun(3, undefined, 0, { hard: true });
     const easy = createRun(3);
     for (const area of [0, 1, 2, 5]) {
       const spec = driveDefense(easy, area, 1);
       expect(defenseBoost(hard, area, 'challenge', spec) - spec.boost, `zone ${area + 1}`).toBe(
-        15 * area,
+        20 * area,
       );
       if (area < 3)
         expect(defenseBoost(easy, area, 'challenge', spec) - spec.boost).toBe(10 * area);

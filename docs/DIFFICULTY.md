@@ -33,7 +33,7 @@ the item numbers below are the map's.
   it. The first floors (a 0.3 s juke window, 0.06 a tap) were raised after
   review: a GREAT there needed about 11 taps a second, or a tap faster than
   most people react.
-- **Stats grow +15 a zone** (d4) in hard mode, instead of +10: fewer
+- **Stats grow +20 a zone** (d4) in hard mode, instead of +10: fewer
   defenders, each tougher. More Hands is more reach, so more passes are
   batted. Normal mode stays at +10.
 
@@ -47,7 +47,7 @@ when you can't respond on defense", parks them with defensive play in
 
 1. Hard mode's extra defenders: one a zone, and never more than 12.
 2. Normal mode's line-ups and stat boosts are unchanged.
-3. Hard mode's stat boost is +15 a zone.
+3. Hard mode's stat boost is +20 a zone.
 4. Break it! tightens past zone 3 and never goes past its floor.
 
 The balance tool runs before and after: the all-human scenario, and a
