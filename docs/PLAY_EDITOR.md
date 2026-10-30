@@ -72,6 +72,16 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
   route (l5, the rule `lineUp`), and both players of the pair show red. A
   drag that snaps back to where the player stood is not a step. Flip mirrors the line-up with the routes. A
   handoff Runner can line up anywhere for now (l6, parked).
+- **In the game** (round 6, n1–n7, 2026-10-30): each sketch on the list has
+  an In the game switch. The full game on this phone deals switched-on
+  sketches alongside the play pool (n2): ordinary, unmarked cards that Flip,
+  the decree and handoffs treat like any other (n5). The game reads them when
+  a run starts, at PLAY or AGAIN, so a change counts from the next run (n6).
+  The switch turns on only for a sketch with no problems; one broken later
+  stays switched on but sits out, and its row says "in the game · sits out,
+  1 problem" (n3). The game itself says nothing about a sketch that sits out
+  or storage it can't read; the list shows both (n4, the user's choice).
+  Practice is unchanged: only the sketch being tried.
 - **Copy code** (e2, e16) puts the play on the clipboard in esrauch's style
   (`route([x, y], …)`). Pasted to Claude, it goes into
   `src/arcade/content/ourPlays.ts`, which joins esrauch's `plays.ts` to make
@@ -133,6 +143,11 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
    moves a Runner or Catcher, snapped and stopped at the limits, its
    waypoints staying put on the field; Blockers can't be moved; Undo puts it
    back.
+9. **In the game** (n8): a run's playbook is the play pool plus the
+   switched-on sketches, and with none on every seeded run deals as before;
+   only switched-on sketches with no problems join, each with its own id;
+   the switch is kept per sketch, kept when the sketch is saved, and off for
+   sketches saved before it existed.
 
 ## Not in v1
 

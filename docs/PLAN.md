@@ -47,6 +47,14 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     spot"_); a fourth play rule keeps players behind the line, inside the
     sidelines, no more than 6 yards back and a yard apart. Built on the
     `lineup` branch.
+  - Round 6, decided 2026-10-30 (n1–n8): each sketch has an **In the game**
+    switch; the full game on that phone deals switched-on sketches alongside
+    the play pool, read when a run starts. Only a sketch with no problems can
+    be switched on, and one broken later sits out. The game says nothing
+    about a sketch that sits out or storage it can't read: the editor's list
+    shows both (_user's note on n4: "Only in editor list"_, a deliberate
+    exception to "never fail silently"). Copy code stays the way to keep a
+    play for good. Built on the `sketches-in-game` branch.
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
