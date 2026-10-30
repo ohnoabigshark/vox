@@ -224,7 +224,7 @@ export const arcadeTuning = {
   },
   pickups: {
     /** A pickup's size (yards): one of your players whose body touches it takes it. */
-    radius: 0.5,
+    radius: 0.75,
     /** Kept this far out of the middle (the pumpkin's lane), this far in from the sidelines… */
     center: 2.2,
     edge: 1,
