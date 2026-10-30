@@ -47,8 +47,9 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   and the gap between dots shrinks in step (it stays five-eighths of the
   close), down to a floor of 0.5 s to close and 0.3 s apart (drive 18).
 - **The box** sits where the bar test does, a little bigger: a square
-  92% of the screen's width (at most 460 pixels), centred at the same
-  height. The dots are 72 pixels across. Each new dot is at least about a
+  92% of the screen's width (at most 460 pixels, and at most 60% of the
+  screen's height, so it fits a phone held sideways or a laptop), centred
+  at the same height. The dots are 72 pixels across. Each new dot is at least about a
   dot and a half from the two before it, and at most half the box from the
   last, so the thumb's next move is short and readable.
 
@@ -70,9 +71,11 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   nobody can grab it).
 - **OK** (one miss): caught, and tackled on the spot. The yards count.
 - **BAD** (two or more misses): batted down by the defender: incomplete.
-- Each hit pops its dot; each miss cracks it red. The grade is called in
-  the middle of the screen, as Break it!'s is, then the catch (or the bat)
-  plays out with today's sounds.
+- Each hit pops its dot green, with the catch sound and a short buzz
+  (where the phone can: iPhones can't); each miss cracks it red, with the
+  fumble sound. The grade is called in the middle of the screen, as Break
+  it!'s is, then the catch (or the bat) plays out with today's sounds.
+  On a keyboard, Space taps the dot that closes first.
 - **Second Wind** (the perk that turns a BAD Break it! into an OK) doesn't
   apply: SNAG IT! isn't a Break it!.
 

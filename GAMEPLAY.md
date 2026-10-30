@@ -123,7 +123,16 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 ### Catching
 
 - **A catch is reach.** The bullet is caught by the first of your players whose reach it passes through, and **Hands is reach**: better Hands catch a bullet that would have gone by.
-- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you.
+- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from drive 5 (the Candy Queendom's first), a contested ball is SNAG IT! instead**, whichever way that rule would go (below).
+
+### SNAG IT! *(fork: the contested-catch test, `docs/SNAG.md`)*
+
+**From drive 5, a contested ball freezes the play** with Jack hanging a yard short of the receiver's hands, and **SNAG IT!** is called for half a second. Then **dots pop up in a box**, where the Break it! panel sits, one every half second, **each with a ring closing onto it** in 0.8 s. **Tap each dot as its ring closes** (within 0.15 s): a tap too early, or none, misses it. **Every dot hit is a GREAT** (caught, and the defenders reaching for it go flying, so the receiver runs free), **one miss an OK** (caught and tackled on the spot), **more a BAD** (batted down).
+
+- **How many dots:** 2 on drives 5–8, one more each zone after (5 from drive 17), one more for each extra defender reaching for the ball, one fewer when the receiver's Hands beat the best defender's by 20 (one more the other way); always 2 to 5.
+- **Faster later:** past drive 10 the rings close 0.04 s sooner each drive, to a floor of 0.5 s.
+- **It isn't a Break it!:** it doesn't count toward the two a down, and Second Wind doesn't save it.
+- **`?snag=1`** turns it on from the first drive, for trying it.
 - **It goes past the scrum:** your Blockers never touch the ball (linemen aren't eligible), and a Rhino Beetle locked up with one of your players can't get a hand to it.
 - **Throwing lanes matter:** a bullet passes every defender between the QB and the receiver, and any of them that can reach it bats it down. **A Scarecrow's wide ring blocks a whole lane.** So the timing is: when the line is over an open receiver *and* the lane to it is clear.
 
@@ -138,6 +147,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Before the snap** | **HIKE!** | Start the called play. |
 | **Pass play** | **THROW** | Fire a bullet along the sweeping line. |
 | **Grabbed** | **Tap** anywhere (a juke: its ◀ or ▶ button) | Break it! |
+| **A contested ball** *(fork, from drive 5)* | **Tap each dot** as its ring closes | SNAG IT! |
 | **The King's crows land** | **SHOO CROWS!** | Drive them off. |
 | **Between drives** | **Tap a card** | Take one of the two new players. |
 | **Between drives** | **Tap a New Player! card** | Take that player (it goes where it helps most). |
