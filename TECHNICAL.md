@@ -180,7 +180,7 @@ src/arcade/content/
   team.ts      // roster roles, the standard line-up and lineUpSpot (a play's own, or standard), BASE_STATS, FORM_STATS (each kind's trade), POSITION_STAT, BENCH_SIZE, radii
   plays.ts     // PLAYS: each card's assignments (block, or a route of waypoints); handoff cards name the Runner
   ourPlays.ts  // OUR_PLAYS: plays kept from the play editor, apart from esrauch's (fork)
-  playPool.ts  // PLAY_POOL: PLAYS then OUR_PLAYS; a run's playbook unless it's given one (fork)
+  playPool.ts  // PLAY_POOL: PLAYS then OUR_PLAYS; with your sketches in the game, a run's playbook (fork)
   playRules.ts // playProblems: the play rules, used by the tests and the play editor (fork)
   playCode.ts  // a play (and its line-up) in a practice link (?try=), and as plays.ts source for Copy code (fork)
   defense.ts   // DEFENDERS (each kind's stats, radius, reach bonus, planted) and FOREST: the area's drives and spots
@@ -317,7 +317,8 @@ slice 0
 ├─ index.html
 ├─ dev/                    // dev pages: index, models, audio, beat, lyrics, plays
 ├─ src/
-│  ├─ main.ts              // waits for the font, then builds the game
+│  ├─ main.ts              // waits for the font, then builds the game (with your sketches in the game)
+│  ├─ clock.ts             // now(): the one place our code reads the wall clock (fork)
 │  ├─ arcade/
 │  │  ├─ game.ts           // the controller: loop, camera, input, HUD sync, feedback
 │  │  ├─ content/          // tuning, team, plays, defense, perks

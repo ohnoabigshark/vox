@@ -98,7 +98,9 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
 
 - `dev/plays.html`, `src/dev/playEditor/page.ts` and `page.css`: the page.
 - `src/dev/playEditor/editor.ts`: what each tap does, with no screen.
-- `src/dev/playEditor/sketches.ts`: sketches in localStorage; ones saved as
+- `src/dev/playEditor/sketches.ts`: sketches in localStorage, each with its
+  In the game switch, and `inGamePlays`, what the full game deals (read in
+  `src/main.ts`, dealt by `game.ts`); ones saved as
   drafts before the rename are read from the old key until the first save moves
   them.
 - `src/arcade/content/playRules.ts`, `playCode.ts`, `ourPlays.ts`,
