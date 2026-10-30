@@ -66,6 +66,18 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   on the `harder-not-busier` branch. _User, 2026-10-30: "increasing
   difficulty right now really just adds more players and makes the screen
   really busy."_
+- **Next, after harder-not-busier: a Break it! test on catches.** Once the
+  run is far enough along, a catch can be contested by a new kind of Break
+  it!: a box on screen, placed like the other tests but a little bigger,
+  holds X dots, and the Coach taps every one within Y seconds. X runs from 2
+  to 5, set by the level, how many defenders' catch reach is near the ball,
+  and the receiver's Hands (the formula is open). Y starts at about 5
+  seconds and drops half a second each level past 10. _User, 2026-10-30:
+  "let's park this for doing right after we finish the general difficulty
+  improvements."_ Open for its grilling: what "a certain number of floors"
+  and "level" count (zones or drives won); what a miss costs (an
+  incomplete, a batted ball, or later a pick); whether it counts toward
+  Break it!'s two a down; the dots' size against a thumb.
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
