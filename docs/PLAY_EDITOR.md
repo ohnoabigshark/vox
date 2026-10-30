@@ -32,10 +32,10 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
 - **Handoff** (e11): a row of None, R1, R2. The chosen Runner's route is the
   run's path, drawn gold. The Catchers keep their routes as decoys.
 - **Rules** (e4, e12): one function, `playProblems` in
-  `content/playRules.ts`, checks the three play rules and returns each
-  problem with its slot and a sentence saying how to fix it. Rule 2 also
-  covers a Runner or Catcher left blocking, and rule 1 a route with no points
-  yet. The tests and the editor both use it. A broken route is red, its
+  `content/playRules.ts`, checks the play rules (esrauch's three, and the
+  line-up rule, l5) and returns each problem with its slot and a sentence
+  saying how to fix it. Rule 2 also covers a Runner or Catcher left blocking,
+  and rule 1 a route with no points yet. The tests and the editor both use it. A broken route is red, its
   chip has a red edge, and a bar under the field shows the first problem
   ("+2 more" if there are others). Copy code is greyed and counts the
   problems; Try it always works.
@@ -60,8 +60,10 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
 - **Where players line up** (round 5, l1–l7, 2026-10-30): each play carries
   its own line-up, and a play without one uses the standard line-up
   (`LINEUP`), so esrauch's plays, older sketches and old links are unchanged.
-  Drag a Runner or Catcher to move it: it snaps to the half yard and shows how
-  far it is from the middle and from the line while you drag. A touch that
+  Drag a Runner or Catcher to move it: it snaps to the half yard, and the bar
+  under the field (not a label on the field, as l3's mockup had it) says how
+  far it is from the middle and from the line while you drag. That bar keeps
+  room for two lines, so the field never resizes under the finger. A touch that
   moves less than half a yard is a tap. Blockers can't be moved or picked
   (l1). A move changes only the route's first leg: its waypoints stay where
   they are on the field (l4). Each move is one step for Undo. The drag stops

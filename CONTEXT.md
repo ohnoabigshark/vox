@@ -47,7 +47,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   (`content/plays.ts`).
 - **Route:** a player's path in a play, as waypoints in yards from where that
   player lines up. Only players run routes.
-- **Line-up:** where each of the seven slots stands at the snap (`LINEUP`).
+- **Line-up:** where each of the seven slots stands at the snap. Each play
+  can set its own (`Play.lineup`, map item l7); the **standard line-up**
+  (`LINEUP`) is the one a play uses when it doesn't. _Avoid:_ "lineup" for
+  who plays which slot, upstream's word on TRICK OR TREAT! (`setsLineup`):
+  that is arranging the roster.
 - **Slot** _(names ours)_: one of the seven places in the line-up, named in
   roster order B1, B2, R1, R2, C1 (left outside), C2 (right outside), C3
   (inside, right of centre). Flip swaps mirror partners.
