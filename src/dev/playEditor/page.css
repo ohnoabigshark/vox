@@ -223,7 +223,9 @@ input:focus-visible {
 .note-bar {
   padding: 8px 12px;
   font-size: 0.88rem;
-  min-height: 2.6em;
+  /* Room for two lines whatever it says, so the field above never resizes under a finger mid-drag. */
+  line-height: 1.35;
+  min-height: calc(2.7em + 18px);
   border-top: 2px solid var(--edge);
   color: var(--dim);
 }
