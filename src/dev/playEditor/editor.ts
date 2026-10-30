@@ -8,8 +8,16 @@
  * stored, as in plays.ts, in yards from where its slot lines up.
  */
 import type { Play } from '../../arcade/content/plays';
-import { playProblems, routePath, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
-import { LINEUP, ROSTER_ROLES, playSlot } from '../../arcade/content/team';
+import {
+  FARTHEST_BACK,
+  NEAREST_LINE,
+  playProblems,
+  routePath,
+  runsRoutes,
+  takesHandoff,
+} from '../../arcade/content/playRules';
+import { ROSTER_ROLES, lineUpSpot, playSlot } from '../../arcade/content/team';
+import { arcadeTuning } from '../../arcade/content/tuning';
 
 export interface Yards {
   readonly x: number;
@@ -36,10 +44,9 @@ export function startEditing(play: Play): EditorState {
 function picked(s: EditorState): { slot: number; start: Yards; to: readonly Yards[] } | null {
   if (s.flipped) return null;
   const slot = s.selected;
-  const start = slot === null ? undefined : LINEUP[slot];
   const a = slot === null ? undefined : s.play.slots[slot];
-  if (slot === null || !start || a?.kind !== 'route') return null;
-  return { slot, start, to: a.to };
+  if (slot === null || a?.kind !== 'route') return null;
+  return { slot, start: lineUpSpot(s.play, slot), to: a.to };
 }
 
 /** The state with the picked player's route replaced, remembered for Undo. */
@@ -87,6 +94,48 @@ export function movePoint(s: EditorState, index: number, at: Yards): EditorState
   );
 }
 
+const clamp = (n: number, low: number, high: number): number => Math.min(high, Math.max(low, n));
+/** A waypoint re-measured from a new spot, to the hundredth: 4.6 - 3 is 1.5999…. */
+const hundredth = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Move where a Runner or Catcher lines up to this field position, snapped to
+ * the half yard, stopping at the line, the sidelines and FARTHEST_BACK
+ * (map items l3, l5), and pick it. Its waypoints stay where they are on the
+ * field, so only the route's first leg changes (l4). Blockers stay put (l1).
+ * During a drag, call it each time from the state where the drag began, so
+ * the whole drag is one step for Undo.
+ */
+export function moveLineUpSpot(s: EditorState, slot: number, at: Yards): EditorState {
+  if (s.flipped || !runsRoutes(slot)) return s;
+  const side = arcadeTuning.field.halfWidth;
+  const was = lineUpSpot(s.play, slot);
+  const spot = {
+    x: snap(clamp(at.x, -side, side)),
+    y: snap(clamp(at.y, -FARTHEST_BACK, -NEAREST_LINE)),
+  };
+  if (spot.x === was.x && spot.y === was.y) return s;
+  const lineup = ROSTER_ROLES.map((_, i) => (i === slot ? spot : lineUpSpot(s.play, i)));
+  const slots = s.play.slots.map((a, i) =>
+    i === slot && a.kind === 'route'
+      ? {
+          kind: 'route' as const,
+          to: a.to.map((w) => ({
+            x: hundredth(was.x + w.x - spot.x),
+            y: hundredth(was.y + w.y - spot.y),
+          })),
+        }
+      : a,
+  );
+  return {
+    ...s,
+    play: { ...s.play, slots, lineup },
+    selected: slot,
+    point: null,
+    history: [...s.history, s.play],
+  };
+}
+
 /** Pick one of the picked player's waypoints, for Remove. */
 export function selectPoint(s: EditorState, index: number): EditorState {
   const p = picked(s);
@@ -122,7 +171,8 @@ export function undo(s: EditorState): EditorState {
 export function setHandoff(s: EditorState, slot: number | null): EditorState {
   if (s.flipped || (slot !== null && !takesHandoff(slot))) return s;
   if ((s.play.handoff ?? null) === slot) return s;
-  const base = { id: s.play.id, name: s.play.name, slots: s.play.slots };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- dropped on purpose: the rest of the play is kept
+  const { handoff, ...base } = s.play;
   const play: Play = slot === null ? base : { ...base, handoff: slot };
   return { ...s, play, history: [...s.history, s.play] };
 }
@@ -147,17 +197,24 @@ export interface FieldRoute {
   readonly broken: boolean;
 }
 
+/** The slots the play rules mark red: each problem's slot, and both players of a crowded pair. */
+export function brokenSlots(play: Play): Set<number> {
+  return new Set(
+    playProblems(play).flatMap((p) => (p.other === undefined ? [p.slot] : [p.slot, p.other])),
+  );
+}
+
 /**
  * Every player on the field, by roster slot. With Flip on, each runs its
  * mirror partner's assignment, mirrored, as the game lines it up
  * (sim/bodies.ts, lineUpTeam).
  */
 export function fieldView(s: EditorState): FieldRoute[] {
-  const broken = new Set(playProblems(s.play).map((p) => p.slot));
+  const broken = brokenSlots(s.play);
   return ROSTER_ROLES.map((_, slot): FieldRoute => {
     const k = playSlot(slot, s.flipped);
     const a = s.play.slots[k] ?? { kind: 'block' };
-    const path = routePath(k, a, s.flipped);
+    const path = routePath(s.play, k, s.flipped);
     const kind = a.kind !== 'route' ? 'block' : s.play.handoff === k ? 'carry' : 'route';
     return { slot, kind, path, broken: broken.has(k) };
   });

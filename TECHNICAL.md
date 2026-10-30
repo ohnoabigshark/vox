@@ -177,12 +177,12 @@ All game content is **typed data**, kept apart from the engine code.
 ```
 src/arcade/content/
   tuning.ts    // arcadeTuning: every number the sim uses (field, body, contact, throw, sweep, breakit, carrier, defense, drive, run)
-  team.ts      // roster roles and line-up, BASE_STATS, FORM_STATS (each kind's trade), POSITION_STAT, BENCH_SIZE, radii
+  team.ts      // roster roles, the standard line-up and lineUpSpot (a play's own, or standard), BASE_STATS, FORM_STATS (each kind's trade), POSITION_STAT, BENCH_SIZE, radii
   plays.ts     // PLAYS: each card's assignments (block, or a route of waypoints); handoff cards name the Runner
   ourPlays.ts  // OUR_PLAYS: plays kept from the play editor, apart from esrauch's (fork)
   playPool.ts  // PLAY_POOL: PLAYS then OUR_PLAYS; a run's playbook unless it's given one (fork)
   playRules.ts // playProblems: the play rules, used by the tests and the play editor (fork)
-  playCode.ts  // a play in a practice link (?try=), and as plays.ts source for Copy code (fork)
+  playCode.ts  // a play (and its line-up) in a practice link (?try=), and as plays.ts source for Copy code (fork)
   defense.ts   // DEFENDERS (each kind's stats, radius, reach bonus, planted) and FOREST: the area's drives and spots
   perks.ts     // ZONE_OFFER (a new player's total, by zone), names
 src/content/
@@ -191,7 +191,7 @@ src/content/
 ```
 
 - **Palettes have a single source of truth** (`src/content/palettes.ts`): it feeds the voxel colors, the CSS custom properties and the SVG icons.
-- **Content tests** keep it honest: every play keeps the play rules in `content/playRules.ts` (its routes stay in range, every Runner gets past the line; `tests/arcade/playRules.test.ts`), and so on.
+- **Content tests** keep it honest: every play keeps the play rules in `content/playRules.ts` (its routes stay in range, every Runner gets past the line, its players line up behind the line and apart; `tests/arcade/playRules.test.ts`), and so on.
 
 ---
 

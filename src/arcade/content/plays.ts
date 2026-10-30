@@ -19,6 +19,8 @@ export interface Play {
   readonly slots: readonly Assignment[];
   /** A handoff play: this roster slot gets the ball at the snap, heading for its route's hole. */
   readonly handoff?: number;
+  /** Where each roster slot lines up (as `LINEUP`); a play without one uses the standard line-up. */
+  readonly lineup?: readonly { readonly x: number; readonly y: number }[];
 }
 
 const block: Assignment = { kind: 'block' };

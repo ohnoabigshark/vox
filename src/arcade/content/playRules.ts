@@ -2,15 +2,17 @@
  * The rules a play has to keep (GAMEPLAY.md, A Down): every route finishes
  * going upfield, except a curl's angled comeback (`ends`); Blockers block,
  * everyone else runs a route, every Runner gets out past the line of
- * scrimmage, and only a Runner takes a handoff (`roles`); and no route goes
- * deeper than a throw can reach, or off the field (`inRange`). The tests hold every play in the pool to them, and the play
+ * scrimmage, and only a Runner takes a handoff (`roles`); no route goes
+ * deeper than a throw can reach, or off the field (`inRange`); and players
+ * line up behind the line, apart, Blockers where they always stand
+ * (`lineUp`). The tests hold every play in the pool to them, and the play
  * editor shows them as you draw (docs/PLAY_EDITOR.md).
  */
-import type { Assignment, Play } from './plays';
-import { LINEUP, ROSTER_ROLES, SLOT_NAMES } from './team';
+import type { Play } from './plays';
+import { QB_DEPTH, ROSTER_ROLES, SLOT_NAMES, lineUpSpot, isStandardSpot } from './team';
 import { arcadeTuning } from './tuning';
 
-export type PlayRule = 'ends' | 'roles' | 'inRange';
+export type PlayRule = 'ends' | 'roles' | 'inRange' | 'lineUp';
 
 /** Whether this roster slot runs routes: everyone but the Blockers, who always block. */
 export function runsRoutes(slot: number): boolean {
@@ -25,28 +27,42 @@ export function takesHandoff(slot: number): boolean {
 
 /**
  * Where a slot's assignment goes on the field, in yards from the line of
- * scrimmage: where it lines up, then each waypoint. Mirrored across the
- * field when `flipped` (sim/bodies.ts, lineUpTeam, lines the flipped play up
- * the same way).
+ * scrimmage: where the play lines it up, then each waypoint. Mirrored across
+ * the field when `flipped` (sim/bodies.ts, lineUpTeam, lines the flipped
+ * play up the same way).
  */
-export function routePath(
-  slot: number,
-  a: Assignment,
-  flipped = false,
-): { x: number; y: number }[] {
+export function routePath(play: Play, slot: number, flipped = false): { x: number; y: number }[] {
   const mirror = flipped ? -1 : 1;
-  const spot = LINEUP[slot] ?? { x: 0, y: 0 };
+  const spot = lineUpSpot(play, slot);
   const start = { x: spot.x * mirror, y: spot.y };
-  if (a.kind !== 'route') return [start];
+  const a = play.slots[slot];
+  if (a?.kind !== 'route') return [start];
   return [start, ...a.to.map((w) => ({ x: start.x + w.x * mirror, y: start.y + w.y }))];
 }
 
 /** One broken rule: the roster slot whose assignment breaks it, and how to fix it. */
 export interface PlayProblem {
   readonly slot: number;
+  /** The other player of a crowded pair (the line-up rule), which the editor shows red too. */
+  readonly other?: number;
   readonly rule: PlayRule;
   readonly message: string;
 }
+
+/**
+ * Where a player may line up (map item l5): at least this far behind the
+ * line, no farther back than this (the bottom of the editor's field), and
+ * this far from anyone else, Jack included. The editor's drag stops at the
+ * first two and at the sidelines.
+ */
+export const NEAREST_LINE = 0.5;
+export const FARTHEST_BACK = 6;
+export const APART = 1;
+/** A hair, so a spot exactly at a limit isn't lost to rounding (1.9 - 0.9 is 0.9999…). */
+/** A distance as a message says it: "half a yard", "a yard", "6 yards". */
+const yards = (n: number): string =>
+  n === 0.5 ? 'half a yard' : n === 1 ? 'a yard' : `${n} yards`;
+const HAIR = 1e-9;
 
 /** How deep a route may go: a little short of the longest throw, so it can still be reached. */
 export const DEEPEST = arcadeTuning.throw.maxAhead - 2;
@@ -82,7 +98,7 @@ export function playProblems(play: Play): PlayProblem[] {
       });
       return;
     }
-    const path = routePath(slot, a);
+    const path = routePath(play, slot);
     const end = path[path.length - 1];
     const before = path[path.length - 2];
     if (!end || !before) return;
@@ -131,6 +147,54 @@ export function playProblems(play: Play): PlayProblem[] {
       message: `${name} takes the handoff. Only a Runner can take a handoff.`,
     });
   }
-  // In slot order, the handoff's problem with the rest of its slot's.
+  problems.push(...lineUpProblems(play));
+  // In slot order, the handoff's and line-up's problems with the rest of their slot's.
   return problems.sort((a, b) => a.slot - b.slot);
+}
+
+/**
+ * The line-up rule (l1, l5): Blockers stand where they always do; everyone
+ * else lines up behind the line, inside the sidelines, no deeper than
+ * FARTHEST_BACK and APART from the rest. A crowded pair is told on its later
+ * slot, so a Blocker is never told.
+ */
+function lineUpProblems(play: Play): PlayProblem[] {
+  const problems: PlayProblem[] = [];
+  const spots = ROSTER_ROLES.map((_, slot) => lineUpSpot(play, slot));
+  const jack = { x: 0, y: -QB_DEPTH };
+  const apart = (a: { x: number; y: number }, b: { x: number; y: number }): boolean =>
+    Math.hypot(a.x - b.x, a.y - b.y) >= APART - HAIR;
+  spots.forEach((spot, slot) => {
+    const name = SLOT_NAMES[slot] ?? `Slot ${slot}`;
+    const tell = (message: string, other?: number): void => {
+      problems.push({ slot, ...(other === undefined ? {} : { other }), rule: 'lineUp', message });
+    };
+    if (!runsRoutes(slot)) {
+      if (!isStandardSpot(slot, spot))
+        tell(`${name} has moved. Blockers line up where they always do.`);
+      return;
+    }
+    if (spot.y > -NEAREST_LINE) {
+      tell(
+        `${name} lines up too close to the line. Line up at least ${yards(NEAREST_LINE)} behind it.`,
+      );
+    } else if (spot.y < -FARTHEST_BACK) {
+      tell(
+        `${name} lines up too deep. Line up no more than ${yards(FARTHEST_BACK)} behind the line.`,
+      );
+    }
+    if (Math.abs(spot.x) > arcadeTuning.field.halfWidth) {
+      tell(`${name} lines up off the field. Line up inside the sidelines.`);
+    }
+    if (!apart(spot, jack))
+      tell(`${name} lines up on top of Jack. Keep players ${yards(APART)} from Jack.`);
+    const crowded = spots.slice(0, slot).findIndex((other) => !apart(spot, other));
+    if (crowded >= 0) {
+      tell(
+        `${name} lines up on top of ${SLOT_NAMES[crowded] ?? `Slot ${crowded}`}. Keep players ${yards(APART)} apart.`,
+        crowded,
+      );
+    }
+  });
+  return problems;
 }

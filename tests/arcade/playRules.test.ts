@@ -136,3 +136,90 @@ describe('play rules', () => {
     expect(playProblems({ ...play(legal()), handoff: 3 })).toEqual([]);
   });
 });
+
+describe('the line-up rule', () => {
+  /** The standard line-up with one slot moved. */
+  const standard = [
+    { x: -0.9, y: -0.7 },
+    { x: 0.9, y: -0.7 },
+    { x: -1.1, y: -4.5 },
+    { x: 1.1, y: -4.5 },
+    { x: -7, y: -0.7 },
+    { x: 7, y: -0.7 },
+    { x: 4.2, y: -1.2 },
+  ];
+  const movedTo = (slot: number, x: number, y: number, slots = legal()): Play => ({
+    ...play(slots),
+    lineup: standard.map((spot, i) => (i === slot ? { x, y } : spot)),
+  });
+
+  it('measures routes from where the play lines its players up', () => {
+    // Off the field from C2's standard spot (x 7), inside it from x 2.5.
+    const slots = legal();
+    slots[5] = route([2.5, 3], [0, 10]);
+    expect(playProblems(movedTo(5, 2.5, -0.7, slots))).toEqual([]);
+  });
+
+  it('a player lines up at least half a yard behind the line', () => {
+    expect(playProblems(movedTo(4, -7, -0.5))).toEqual([]);
+    expect(playProblems(movedTo(4, -7, -0.4))).toEqual([
+      {
+        slot: 4,
+        rule: 'lineUp',
+        message: 'C1 lines up too close to the line. Line up at least half a yard behind it.',
+      },
+    ]);
+  });
+
+  it('a player lines up inside the sidelines', () => {
+    // C1 has no route past its own spot here, so only the line-up breaks.
+    expect(playProblems(movedTo(4, -9.1, -0.7))).toEqual([]);
+    expect(playProblems(movedTo(4, -9.5, -0.7, legal()))).toContainEqual({
+      slot: 4,
+      rule: 'lineUp',
+      message: 'C1 lines up off the field. Line up inside the sidelines.',
+    });
+  });
+
+  it('a player lines up no more than 6 yards back', () => {
+    expect(playProblems(movedTo(4, -7, -6))).toEqual([]);
+    expect(playProblems(movedTo(4, -7, -6.5))).toEqual([
+      {
+        slot: 4,
+        rule: 'lineUp',
+        message: 'C1 lines up too deep. Line up no more than 6 yards behind the line.',
+      },
+    ]);
+  });
+
+  it('two players keep a yard apart; the later slot of the two is told, naming the other', () => {
+    // B2 stands at x 0.9: 1.9 is a yard away, 1.5 is too close.
+    expect(playProblems(movedTo(6, 1.9, -0.7))).toEqual([]);
+    expect(playProblems(movedTo(6, 1.5, -0.7))).toEqual([
+      {
+        slot: 6,
+        other: 1,
+        rule: 'lineUp',
+        message: 'C3 lines up on top of B2. Keep players a yard apart.',
+      },
+    ]);
+  });
+
+  it('nobody lines up on top of Jack, 4 yards behind the middle', () => {
+    // C3 between the Runners, 1.2 yards from each.
+    expect(playProblems(movedTo(6, 0, -5))).toEqual([]);
+    expect(playProblems(movedTo(6, 0, -4.5))).toEqual([
+      {
+        slot: 6,
+        rule: 'lineUp',
+        message: 'C3 lines up on top of Jack. Keep players a yard from Jack.',
+      },
+    ]);
+  });
+
+  it('Blockers line up where they always do', () => {
+    expect(playProblems(movedTo(0, -2, -0.7))).toEqual([
+      { slot: 0, rule: 'lineUp', message: 'B1 has moved. Blockers line up where they always do.' },
+    ]);
+  });
+});

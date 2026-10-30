@@ -2,6 +2,7 @@
  * Your team (GAMEPLAY.md, Your Team): the QB plus seven players in three
  * roles, where they line up, their base stats, and the monster forms.
  */
+import type { Play } from './plays';
 import type { Form, Position, Role, Stats } from '../sim/types';
 
 /** The seven players, in roster order: 2 Blockers, 2 Runners, 3 Catchers. */
@@ -18,7 +19,7 @@ export const ROSTER_ROLES: readonly Role[] = [
 /** Each slot's short name, in roster order: the play editor's chips and its messages. */
 export const SLOT_NAMES: readonly string[] = ['B1', 'B2', 'R1', 'R2', 'C1', 'C2', 'C3'];
 
-/** Where each roster slot lines up, relative to the line of scrimmage (x across, y upfield). */
+/** The standard line-up: where each roster slot lines up, relative to the line of scrimmage (x across, y upfield). */
 export const LINEUP: readonly { readonly x: number; readonly y: number }[] = [
   { x: -0.9, y: -0.7 },
   { x: 0.9, y: -0.7 },
@@ -28,6 +29,17 @@ export const LINEUP: readonly { readonly x: number; readonly y: number }[] = [
   { x: 7, y: -0.7 },
   { x: 4.2, y: -1.2 },
 ];
+
+/** Whether this slot stands where the standard line-up puts it. */
+export function isStandardSpot(slot: number, spot: { x: number; y: number }): boolean {
+  const usual = LINEUP[slot];
+  return usual !== undefined && spot.x === usual.x && spot.y === usual.y;
+}
+
+/** Where a roster slot lines up for this play: the play's own line-up, or the standard one. */
+export function lineUpSpot(play: Pick<Play, 'lineup'>, slot: number): { x: number; y: number } {
+  return play.lineup?.[slot] ?? LINEUP[slot] ?? { x: 0, y: 0 };
+}
 
 /**
  * Flip mirrors the play, and mirror partners (the two Blockers, the two

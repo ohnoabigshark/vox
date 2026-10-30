@@ -7,10 +7,10 @@ import { arcadeTuning } from '../content/tuning';
 import {
   BASE_STATS,
   GOLEM_RADIUS,
-  LINEUP,
   QB_DEPTH,
   ROLE_RADIUS,
   ROSTER_ROLES,
+  lineUpSpot,
   playSlot,
 } from '../content/team';
 import { even, plus } from './stats';
@@ -42,9 +42,10 @@ export function defenderPhysics(stats: Stats, reachBonus: number): ReturnType<ty
 
 /**
  * Your team for a down: the QB behind the line of scrimmage, and the seven
- * lined up with the play's assignments (mirrored if `flipped`, mirror
- * partners swapping, so the roster still lines up left to right). Route
- * waypoints become field positions.
+ * where the play lines them up (its own line-up, or the standard one) with
+ * its assignments. If `flipped`, all of it is mirrored and mirror partners
+ * swap spots and jobs, so the standard line-up still reads left to right.
+ * Route waypoints become field positions.
  */
 export function lineUpTeam(
   state: RunState,
@@ -73,7 +74,7 @@ export function lineUpTeam(
     // The slot decides the position it plays; its stats come with it (and the perks).
     const role = ROSTER_ROLES[slot] ?? p.preferred;
     const k = playSlot(slot, flipped);
-    const spot = LINEUP[k] ?? v(0, 0);
+    const spot = lineUpSpot(play, k);
     const start = v(spot.x * mirror, los + spot.y);
     const a = play.slots[k] ?? { kind: 'block' };
     const stats = playerStats(state, slot);
