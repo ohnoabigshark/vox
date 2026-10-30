@@ -58,6 +58,24 @@ pickups, more kinds and placing them in the editor are later rounds
 
 The balance tool (`npm run balance:arcade`) runs before and after.
 
+## Balance
+
+`npm run balance:arcade 40`, the "All human (never upgrade)" scenario only
+(each scenario takes about 25 minutes on the droplet), 2026-10-30. The bot
+never aims for or away from pickups (k7):
+
+| | before | after |
+| --- | --- | --- |
+| Drives won (of 12) | 8.5 | 8.3 |
+| Beat the game | 35% | 30% |
+| Yards a down | 4.5 | 4.7 |
+| Yards a pass play | 4.6 | 4.8 |
+| Passes of 10+ yards | 13% | 16% |
+
+Within the noise of 40 runs (the win rate is 14 runs against 12): bolts add
+a little to passes, slicks take a little away. The bot calls handoffs only
+when it has no pass card, 9 a scenario, too few to read.
+
 ## On screen
 
 A bolt is a gold zigzag of voxels, hovering and turning, drawn 1.7 times its
