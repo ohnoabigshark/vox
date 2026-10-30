@@ -39,14 +39,32 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     rep from the same spot, against the Forest's first defense, with
     "‹ Sketch" between reps (_user's note on t4: "Only between reps"_). The
     in-game trial is removed. Built on the `sketch-practice` branch.
+  - Round 5, decided 2026-10-30 (l1–l8): a play carries its own **line-up**;
+    one without one uses the **standard line-up**. Runners and Catchers are
+    moved by dragging them in the editor (_user's note on l1: "Only runners
+    and catchers can move for now"_); a move changes only the route's first
+    leg, its points staying put on the field (_note on l4: "Only it's first
+    spot"_); a fourth play rule keeps players behind the line, inside the
+    sidelines, no more than 6 yards back and a yard apart. Built on the
+    `lineup` branch.
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
 ## Later (not yet in order)
 
-- **Editing where players line up,** and other advanced play editing such as
-  route timing. Parked from the editor's v1 (e5). _User, 2026-10-29: "Definitely
-  want to be able to edit where players line up eventually."_
+- **Route timing and speeds,** the rest of e5's advanced play editing. Where
+  players line up was built in round 5. _User, 2026-10-29._
+- **Moving the Blockers, and blocking by others:** a Catcher or Runner told to
+  block on some plays. _User's note on l1, 2026-10-30: "In a later iteration,
+  we can move blockers and assign catchers or runners to block on certain
+  plays."_
+- **A handoff to a Runner lined up far from Jack** (l6, Not now, 2026-10-30).
+  The ball goes straight to the Runner at the snap, so from out wide it jumps
+  across the field. Offered: a rule keeping the handoff Runner within 2 yards
+  of Jack, or a real pitch, the ball tossed to the Runner.
+- **Moving a player clears its route,** another way l4 could go, which the
+  user raised: "We could also consider making moving a player just cancel
+  their route entirely." _2026-10-30._
 - **Choosing the defense in practice** (each area's drives, the decree, the
   crows). Offered as t3's alternative; practice always plays the Forest's
   first drive for now. _2026-10-29._

@@ -57,6 +57,18 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
   shows, not mid-play), opens the editor on the sketch. The practice link
   carries the sketch's key for it. A broken or tampered link opens the
   ordinary game with a notice across the top, until tapped.
+- **Where players line up** (round 5, l1–l7, 2026-10-30): each play carries
+  its own line-up, and a play without one uses the standard line-up
+  (`LINEUP`), so esrauch's plays, older sketches and old links are unchanged.
+  Drag a Runner or Catcher to move it: it snaps to the half yard and shows how
+  far it is from the middle and from the line while you drag. A touch that
+  moves less than half a yard is a tap. Blockers can't be moved or picked
+  (l1). A move changes only the route's first leg: its waypoints stay where
+  they are on the field (l4). Each move is one step for Undo. The drag stops
+  at the line (half a yard behind it), the sidelines, and 6 yards back; two
+  players less than a yard apart, or one on Jack, is a problem like a broken
+  route (l5, the rule `lineUp`). Flip mirrors the line-up with the routes. A
+  handoff Runner can line up anywhere for now (l6, parked).
 - **Copy code** (e2, e16) puts the play on the clipboard in esrauch's style
   (`route([x, y], …)`). Pasted to Claude, it goes into
   `src/arcade/content/ourPlays.ts`, which joins esrauch's `plays.ts` to make
@@ -108,8 +120,19 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
 6. **The editor's logic** (no screen): add, move, snap, remove and undo
    waypoints; pick the handoff; the mirrored view.
 7. **Sketches carry over** from the drafts key, once, never overwriting it.
+8. **Line-ups** (l8): a play's line-up survives the link and Copy code (which
+   writes it only when it differs from standard); a play without one reads
+   as standard; a link with a bad one says why. The game and practice line
+   players up where the play says, Flip giving the mirror picture, and the
+   pool's plays line up as before. The `lineUp` rule: behind the line, inside
+   the sidelines, no more than 6 back, a yard apart and off Jack, Blockers
+   where they always stand; every play in the pool passes. The editor: a drag
+   moves a Runner or Catcher, snapped and stopped at the limits, its
+   waypoints staying put on the field; Blockers can't be moved; Undo puts it
+   back.
 
 ## Not in v1
 
-Where players line up, route timing and speeds (e5, parked in `PLAN.md`);
+Route timing and speeds (e5), moving the Blockers (l1) and a handoff
+Runner far from Jack (l6), all parked in `PLAN.md`;
 placing pickups; sharing plays other than by Copy code.
