@@ -2,9 +2,11 @@
  * Tricks and treats on the field (docs/PICKUPS.md): a gold lightning bolt
  * that hovers and turns, an oil slick lying flat with a purple sheen, each
  * where the sim has it, gone once taken. Built from voxel boxes in code
- * (there's no model file). Anyone running at a bolt's speed trails sparks.
+ * (there's no model file), merged so each pickup is one mesh. Anyone running at a bolt's speed trails sparks.
  */
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { assertNever } from '../../assertNever';
 import { common, hexToNumber, voxel } from '../../content/palettes';
 import type { Pickup, RunState } from '../sim/types';
 import { v } from '../sim/vec';
@@ -52,33 +54,43 @@ const oil = new THREE.MeshLambertMaterial({ color: hexToNumber(voxel.ink) });
 const sheen = new THREE.MeshLambertMaterial({ color: hexToNumber(common.candyPurple) });
 const spark = new THREE.MeshBasicMaterial({ color: hexToNumber(voxel.glow) });
 
-function boltMesh(): THREE.Group {
-  const g = new THREE.Group();
-  for (const [c, r] of BOLT) {
-    const m = new THREE.Mesh(box, gold);
-    m.position.set((c - 1.5) * VOX, r * VOX, 0);
-    m.castShadow = true;
-    g.add(m);
-  }
-  return g;
+/** Boxes at these voxel spots, merged into one geometry (one draw call). */
+function merged(
+  spots: readonly [number, number][],
+  place: (c: number, r: number) => [number, number, number],
+  shape: THREE.BoxGeometry,
+): THREE.BufferGeometry {
+  const parts = spots.map(([c, r]) => shape.clone().translate(...place(c, r)));
+  const out = mergeGeometries(parts);
+  for (const g of parts) g.dispose();
+  if (!out) throw new Error('The pickup voxels could not be merged');
+  return out;
 }
 
-function slickMesh(): THREE.Group {
-  const g = new THREE.Group();
-  for (const [c, r] of SLICK) {
-    const m = new THREE.Mesh(flatBox, SHEEN.has(`${c},${r}`) ? sheen : oil);
-    m.position.set(c * VOX, 0.02, r * VOX);
-    m.receiveShadow = true;
-    g.add(m);
-  }
-  return g;
-}
+/** Built once and shared by every bolt and slick. */
+const BOLT_GEO = merged(BOLT, (c, r) => [(c - 1.5) * VOX, r * VOX, 0], box);
+const onSlick = (c: number, r: number): [number, number, number] => [c * VOX, 0.02, r * VOX];
+const isSheen = ([c, r]: [number, number]): boolean => SHEEN.has(`${c},${r}`);
+/** The slick's ink voxels then its sheen: two groups, drawn with [oil, sheen]. */
+const SLICK_GEO = (() => {
+  const ink = merged(
+    SLICK.filter((s) => !isSheen(s)),
+    onSlick,
+    flatBox,
+  );
+  const shine = merged(SLICK.filter(isSheen), onSlick, flatBox);
+  const out = mergeGeometries([ink, shine], true);
+  ink.dispose();
+  shine.dispose();
+  if (!out) throw new Error('The slick could not be merged');
+  return out;
+})();
 
 export class ArcadePickups {
   private readonly group = new THREE.Group();
   private readonly sparks: THREE.Mesh[] = [];
   private key = '';
-  private bolts: THREE.Group[] = [];
+  private bolts: THREE.Mesh[] = [];
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
@@ -117,16 +129,22 @@ export class ArcadePickups {
     holder.position.copy(toWorld(v(p.x, p.y), origin));
     switch (p.kind) {
       case 'bolt': {
-        const bolt = boltMesh();
+        const bolt = new THREE.Mesh(BOLT_GEO, gold);
         // Big enough to read from the camera, edge-on included.
         bolt.scale.setScalar(BOLT_SCALE);
+        bolt.castShadow = true;
         this.bolts.push(bolt);
         holder.add(bolt);
         break;
       }
-      case 'slick':
-        holder.add(slickMesh());
+      case 'slick': {
+        const slick = new THREE.Mesh(SLICK_GEO, [oil, sheen]);
+        slick.receiveShadow = true;
+        holder.add(slick);
         break;
+      }
+      default:
+        assertNever(p.kind);
     }
     return holder;
   }
@@ -136,7 +154,7 @@ export class ArcadePickups {
     let n = 0;
     const flicker = Math.floor(state.time * 20);
     for (const p of state.field.players) {
-      if (p.fast <= 0) continue;
+      if (p.boltLeft <= 0) continue;
       const speed = Math.hypot(p.vel.x, p.vel.y) || 1;
       const back = v(-p.vel.x / speed, -p.vel.y / speed);
       for (let i = 0; i < SPARKS && n < this.sparks.length; i++, n++) {

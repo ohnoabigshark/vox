@@ -21,6 +21,7 @@
  * In Break it! the play is frozen until it's decided (sim/breakit.ts).
  * Before the snap and between drives only the Bats move.
  */
+import { assertNever } from '../../assertNever';
 import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
 import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle } from './ball';
@@ -308,13 +309,15 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     events.push({ type: 'pickupTaken', id: p.id, kind: pickup.kind, pickup: pickup.id });
     switch (pickup.kind) {
       case 'bolt':
-        p.fast = arcadeTuning.pickups.bolt.time;
+        p.boltLeft = arcadeTuning.pickups.bolt.time;
         break;
       case 'slick':
         p.down = arcadeTuning.pickups.slick.time;
         p.vel = v(0, 0);
         if (p === carrierOf(state)) slipped = p;
         break;
+      default:
+        assertNever(pickup.kind);
     }
   }
   if (!slipped) return false;

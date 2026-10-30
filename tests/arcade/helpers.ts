@@ -55,7 +55,7 @@ export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = [])
     stats: qbStats,
     ...physicsOf(qbStats),
     down: 0,
-    fast: 0,
+    boltLeft: 0,
     job: { kind: 'qb' },
   };
   const team = players.map((spec, i): Player => {
@@ -73,7 +73,7 @@ export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = [])
       stats,
       ...physicsOf(stats),
       down: 0,
-      fast: 0,
+      boltLeft: 0,
       job: spec.job ?? { kind: 'route', to: [v(spec.pos.x, spec.pos.y + 30)], index: 0 },
     };
   });

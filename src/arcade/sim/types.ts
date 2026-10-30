@@ -59,7 +59,7 @@ export interface Player extends BodyBase {
   readonly form: Form;
   job: Job;
   /** Seconds left at a lightning bolt's speed (0 = none: docs/PICKUPS.md). */
-  fast: number;
+  boltLeft: number;
 }
 
 export interface Defender extends BodyBase {

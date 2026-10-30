@@ -6,15 +6,13 @@
  * prop. A Boss stands in the middle lane, so it's never in the way either.
  */
 import { arcadeTuning } from '../content/tuning';
-import { stretchProps } from './props';
+import { DRIVES_PER_AREA, stretchProps } from './props';
 import { rngFor } from './random';
 import type { FieldProp, Pickup, PickupKind } from './types';
 import { dist, v } from './vec';
 
 const { pickups: tuning, field, drive: driveTuning } = arcadeTuning;
 
-/** How many drives (10-yard stretches) each area has (as sim/props.ts). */
-const DRIVES_PER_AREA = 4;
 const KINDS: readonly PickupKind[] = ['bolt', 'slick'];
 
 /**

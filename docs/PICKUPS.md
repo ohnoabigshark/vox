@@ -26,7 +26,13 @@ pickups, more kinds and placing them in the editor are later rounds
   reappear when that drive starts). The rest stay put.
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
   your team takes them, Jack and the carrier included. Defenders run over
-  them and leave them be.
+  them and leave them be. Jack stands in the middle until he runs, and
+  pickups are never in the middle lane, so in practice it's a scrambling or
+  handoff carrier, not Jack in the pocket. A player lined up on a pickup (it
+  showed before the snap) takes it the moment the play starts.
+- **One of each, nearly always:** each kind gets 40 tries to find a clear
+  spot in its stretch; if every try lands on a prop, that kind is left out
+  of that stretch. In 12,000 stretches tried (1,000 seeds) none was.
 - **The bolt** (k5): whoever takes it runs 50% faster for 3 seconds, trailing
   sparks, with a zap. Both numbers are in `tuning.ts`.
 - **The slick** (k6): whoever runs through it slips and lies on the turf for
@@ -57,5 +63,5 @@ The balance tool (`npm run balance:arcade`) runs before and after.
 A bolt is a gold zigzag of voxels, hovering and turning, drawn 1.7 times its
 voxels' size so it reads from the camera; a slick is a flat ink puddle with a
 purple sheen. Both are built from boxes in `render/pickups.ts` (no model
-file). Taking a bolt zaps (`zap`), a slick whoops (`slip`), and a carrier who
+file), merged once into one geometry each, so a pickup is one draw call. Taking a bolt zaps (`zap`), a slick whoops (`slip`), and a carrier who
 slips gets SLIPPED!

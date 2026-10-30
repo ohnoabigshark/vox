@@ -13,6 +13,7 @@
  * and taps the bar and the mash), ← and → juke, S shoos the King's crows. The music is the soundtrack only: nothing waits for the beat.
  */
 import * as THREE from 'three';
+import type { SfxId } from '../audio/sfx';
 import { Conductor } from '../game/conductor';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
@@ -65,6 +66,7 @@ import type {
   RosterPlayer,
   RunState,
   StepInput,
+  PickupKind,
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls, type BreakView } from './ui/controls';
@@ -72,6 +74,9 @@ import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
+
+/** The sound of taking each kind of pickup (docs/PICKUPS.md). */
+const PICKUP_SOUND: Readonly<Record<PickupKind, SfxId>> = { bolt: 'zap', slick: 'slip' };
 
 /**
  * The sketches in the game couldn't be read: the run goes on with the play
@@ -597,7 +602,7 @@ export class ArcadeGame {
           this.hud.big('FROGGED!', 'bad');
           break;
         case 'pickupTaken':
-          play(e.kind === 'bolt' ? 'zap' : 'slip');
+          play(PICKUP_SOUND[e.kind]);
           break;
         case 'slipped':
           this.hud.big('SLIPPED!', 'bad');

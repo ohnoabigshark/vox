@@ -20,7 +20,7 @@ import { add, dist, len, norm, scale, sub, v } from './vec';
 const { fieldProps: tuning, field, drive: driveTuning } = arcadeTuning;
 
 /** How many drives (10-yard stretches) each area has. */
-const DRIVES_PER_AREA = 4;
+export const DRIVES_PER_AREA = 4;
 
 /**
  * The props around a drive, in its own coordinates (its start line at 0):

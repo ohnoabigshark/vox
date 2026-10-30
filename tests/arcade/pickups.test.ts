@@ -101,6 +101,17 @@ describe('tricks and treats: taking them', () => {
     expect(speedOf(later, 2) / speedOf(run(plain, bolt.time).state, 2)).toBeCloseTo(1, 1);
   });
 
+  it('a pickup is taken once: the next player through the same spot gets nothing', () => {
+    const s = playState([
+      { pos: v(5, 0), job: { kind: 'route', to: [v(5, 40)], index: 0 } },
+      { pos: v(5, -3), job: { kind: 'route', to: [v(5, 40)], index: 0 } },
+    ]);
+    s.field.pickups = [{ id: 7, kind: 'bolt', x: 5, y: 0.5 }];
+    const { state, events } = run(s, 1);
+    expect(ofType(events, 'pickupTaken').map((e) => e.id)).toEqual([2]);
+    expect(state.field.players.find((p) => p.id === 3)?.boltLeft).toBe(0);
+  });
+
   it('an oil slick trips whoever runs through it: they lie on the turf for a moment', () => {
     const { state, events } = run(runner([{ id: 8, kind: 'slick', x: 5, y: 0.5 }]), 0.2);
     expect(ofType(events, 'pickupTaken')).toEqual([
