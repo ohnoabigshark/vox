@@ -86,7 +86,11 @@ export class ArcadeFrogRain {
 
   update(state: RunState, origin: number): void {
     const lane = state.field.frogLane;
-    const live = state.phase === 'setup' || state.phase === 'play' || state.phase === 'breakit';
+    const live =
+      state.phase === 'setup' ||
+      state.phase === 'play' ||
+      state.phase === 'breakit' ||
+      state.phase === 'snag';
     const showLane = lane !== null && live;
     this.lane.visible = showLane;
     for (const e of this.edges) e.visible = showLane;

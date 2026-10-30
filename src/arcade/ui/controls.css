@@ -220,3 +220,114 @@
     scale: 1.08;
   }
 }
+
+/*
+ * SNAG IT! (docs/SNAG.md): a square box where the Break it! panel sits, a
+ * little bigger; dots pop up in it, each with a ring closing onto it.
+ */
+.arc-snag {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(92vw, 460px, 60vh);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border: var(--edge) solid var(--bone);
+  background: var(--scanlines), rgb(20 14 36 / 0.55);
+  box-shadow: 6px 6px 0 var(--ink);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.arc-snag[hidden],
+.arc-snag [hidden] {
+  display: none;
+}
+
+.arc-snag-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  text-align: center;
+  font-size: 1.8rem;
+  letter-spacing: 0.08em;
+  color: var(--pumpkin);
+  text-shadow: 3px 3px 0 var(--ink);
+  pointer-events: none;
+}
+
+/* The call: big in the middle until the first dot shows. */
+.arc-snag-title.calling {
+  top: 50%;
+  translate: 0 -50%;
+  font-size: 3rem;
+}
+
+.arc-snag-dot {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  translate: -50% -50%;
+  padding: 0;
+  border: var(--edge) solid var(--ink);
+  border-radius: 50%;
+  font: inherit;
+  background: var(--pumpkin);
+  box-shadow:
+    inset 0 4px 0 rgb(255 255 255 / 0.45),
+    inset 0 -6px 0 rgb(0 0 0 / 0.2);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+/* The ring: from twice the dot's size down onto its edge. */
+.arc-snag-ring {
+  position: absolute;
+  inset: -4px;
+  border: 4px solid var(--bone);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.arc-snag-dot.hit {
+  background: var(--slime-green);
+  animation: arc-snag-pop 0.25s ease-out forwards;
+  pointer-events: none;
+}
+
+.arc-snag-dot.miss {
+  background: var(--danger);
+  animation: arc-snag-crack 0.3s ease-in forwards;
+  pointer-events: none;
+}
+
+.arc-snag-dot.hit .arc-snag-ring,
+.arc-snag-dot.miss .arc-snag-ring {
+  display: none;
+}
+
+@keyframes arc-snag-pop {
+  to {
+    scale: 1.6;
+    opacity: 0;
+  }
+}
+
+@keyframes arc-snag-crack {
+  30% {
+    rotate: -12deg;
+  }
+  to {
+    scale: 0.6;
+    rotate: 8deg;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arc-snag-dot.hit,
+  .arc-snag-dot.miss {
+    animation-duration: 0.01s;
+  }
+}

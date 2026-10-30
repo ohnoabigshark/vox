@@ -6,6 +6,7 @@
  * MASH! (a filling bar), or JUKE! (two buttons, one lighting up). Each
  * opens with a countdown ("GET READY TO MASH! 2"). For the bar and the mash
  * a tap anywhere counts; a juke takes its two buttons.
+ * SNAG IT! (docs/SNAG.md) has its own box of dots, each tapped on its own.
  * Buttons fire on press, not release: in a timing game every frame counts.
  */
 import './controls.css';
@@ -18,6 +19,25 @@ export interface ControlHandlers {
   onJuke(side: -1 | 1): void;
   /** SHOO!: drive the King's crows off. */
   onShoo(): void;
+  /** SNAG IT!: a tap on this dot. */
+  onSnag(dot: number): void;
+}
+
+/**
+ * What the SNAG IT! box shows: whether the call is still on (no dot yet),
+ * and each dot, placed as shares of the box, with how far its ring has
+ * closed (null before it shows) and how it went.
+ */
+export interface SnagView {
+  /** Which SNAG IT! this is (its start time), so a new one starts clean. */
+  readonly id: number;
+  readonly calling: boolean;
+  readonly dots: readonly {
+    readonly x: number;
+    readonly y: number;
+    readonly ring: number | null;
+    readonly result: 'hit' | 'miss' | null;
+  }[];
 }
 
 /**
@@ -56,6 +76,11 @@ export class ArcadeControls {
   private readonly jukeLeft: HTMLElement;
   private readonly jukeRight: HTMLElement;
   private readonly shoo: HTMLElement;
+  private readonly snagBox: HTMLElement;
+  private readonly snagTitle: HTMLElement;
+  private snagDots: HTMLElement[] = [];
+  private snagId: number | null = null;
+  private readonly onSnag: (dot: number) => void;
   private breaking = false;
   private juking = false;
 
@@ -80,6 +105,9 @@ export class ArcadeControls {
           <button class="arc-juke-btn arc-juke-right">▶</button>
         </div>
         <div class="arc-meter-hint">TAP!</div>
+      </div>
+      <div class="arc-snag interactive" hidden>
+        <div class="arc-snag-title">SNAG IT!</div>
       </div>`;
     parent.append(this.root);
     const q = (sel: string): HTMLElement => {
@@ -109,9 +137,46 @@ export class ArcadeControls {
     press(this.shoo, () => handlers.onShoo());
     press(this.jukeLeft, () => handlers.onJuke(-1));
     press(this.jukeRight, () => handlers.onJuke(1));
+    this.snagBox = q('.arc-snag');
+    this.snagTitle = q('.arc-snag-title');
+    this.onSnag = (dot) => handlers.onSnag(dot);
     // For the bar and the mash, a tap anywhere on the screen counts.
     window.addEventListener('pointerdown', () => {
       if (this.breaking && !this.juking) handlers.onBreakTap();
+    });
+  }
+
+  /** Show the SNAG IT! box (null hides it). */
+  setSnag(view: SnagView | null): void {
+    this.snagBox.hidden = !view;
+    if (!view) return;
+    // A new SNAG IT!: fresh dots, one button each.
+    if (view.id !== this.snagId) {
+      this.snagId = view.id;
+      for (const el of this.snagDots) el.remove();
+      this.snagDots = view.dots.map((_, i) => {
+        const el = document.createElement('button');
+        el.className = 'arc-snag-dot';
+        el.innerHTML = '<div class="arc-snag-ring"></div>';
+        el.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          this.onSnag(i);
+        });
+        this.snagBox.append(el);
+        return el;
+      });
+    }
+    this.snagTitle.classList.toggle('calling', view.calling);
+    view.dots.forEach((d, i) => {
+      const el = this.snagDots[i];
+      if (!el) return;
+      el.hidden = d.ring === null;
+      el.style.left = `${d.x * 100}%`;
+      el.style.top = `${d.y * 100}%`;
+      el.className = `arc-snag-dot${d.result ? ` ${d.result}` : ''}`;
+      const ring = el.firstElementChild;
+      // From twice the dot's size as it shows, down onto it as it closes.
+      if (ring instanceof HTMLElement) ring.style.scale = String(2 - (d.ring ?? 0));
     });
   }
 
