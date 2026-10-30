@@ -433,7 +433,7 @@ function report(scenario: Scenario, t: Tally): void {
     const at = (q: number): number =>
       sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
     console.log(
-      `  hard mode: drives won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (4 drives a zone)`,
+      `  hard mode: drives won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (${DRIVE_KINDS.length} drives a zone)`,
     );
   }
   const results = [...t.results.entries()]

@@ -129,8 +129,13 @@ export const arcadeTuning = {
      * this much more, but never past the floor, where a GREAT still breaks
      * free (docs/DIFFICULTY.md, d3).
      */
-    perZonePast: { sweet: -0.01, mashPerTap: -0.007, jukeWindow: -0.04 },
-    floor: { sweet: 0.035, mashPerTap: 0.06, jukeWindow: 0.3 },
+    perAreaPast: { sweet: -0.01, mashPerTap: -0.004, jukeWindow: -0.02 },
+    /**
+     * A fast player can still get a GREAT at the floor (with one tackler):
+     * the bar's sweet spot 3.5% of it, a full mash at about 10 taps a second
+     * on screen, a juke tapped within about 0.225 s on screen.
+     */
+    floor: { sweet: 0.035, mashPerTap: 0.068, jukeWindow: 0.36 },
     /** At most this many a down: the grab after that is a tackle. */
     perDown: 2,
     /** Every extra tackler on it makes it this many times harder. */

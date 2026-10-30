@@ -19,22 +19,26 @@ const BREAK_KINDS: readonly BreakKind[] = ['bar', 'mash', 'juke'];
 
 const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
+/** How hard the three tests are: the bar's sweet spot, the mash's fill per tap, the juke's window. */
+export type BreakHardness = { -readonly [K in keyof (typeof b.byArea)[number]]: number };
+
 /**
  * How hard Break it! is in this area (0-based): set by area for the first
- * three; past them (hard mode), a step tighter each zone, down to a floor.
+ * three; past them (hard mode's later zones), a step tighter each area, down
+ * to a floor. The floor is for one tackler: each extra one still makes it
+ * harder (`perExtraTackler`).
  */
-export function breakHardness(area: number): {
-  sweet: number;
-  mashPerTap: number;
-  jukeWindow: number;
-} {
+export function breakHardness(area: number): BreakHardness {
   const last = b.byArea.length - 1;
   const known = b.byArea[Math.min(area, last)] ?? b.byArea[0];
   const past = Math.max(0, area - last);
-  if (past === 0) return { ...known };
-  const step = (k: 'sweet' | 'mashPerTap' | 'jukeWindow'): number =>
-    Math.max(b.floor[k], known[k] + past * b.perZonePast[k]);
-  return { sweet: step('sweet'), mashPerTap: step('mashPerTap'), jukeWindow: step('jukeWindow') };
+  const tightened = (k: keyof BreakHardness): number =>
+    Math.max(b.floor[k], known[k] + past * b.perAreaPast[k]);
+  return {
+    sweet: tightened('sweet'),
+    mashPerTap: tightened('mashPerTap'),
+    jukeWindow: tightened('jukeWindow'),
+  };
 }
 
 /** Start Break it! for a carrier the `tacklers` have grabbed. `kind` forces one (for tests); otherwise it's random. */
@@ -48,7 +52,7 @@ export function startBreakIt(
   // How many steps (10 points) of Heft the carrier has over its heaviest tackler (for the drag).
   const step = arcadeTuning.body.statStep;
   const heftGap = (carrier.stats.heft - Math.max(...grabbers.map((d) => d.stats.heft))) / step;
-  const hard = breakHardness(state.drive.area);
+  const level = breakHardness(state.drive.area);
   const pile = b.perExtraTackler ** (tacklers.length - 1);
   const rng = rngFor(state.seed, 'break', state.step);
   const last = state.field.lastBreak;
@@ -68,7 +72,7 @@ export function startBreakIt(
         ...base,
         kind: 'mash',
         fill: 0,
-        perTap: hard.mashPerTap * pile,
+        perTap: level.mashPerTap * pile,
       };
       break;
     case 'juke':
@@ -77,13 +81,13 @@ export function startBreakIt(
         kind: 'juke',
         showAt: state.time + ready,
         side: rng.next() < 0.5 ? -1 : 1,
-        window: hard.jukeWindow * pile,
+        window: level.jukeWindow * pile,
       };
       break;
     default: {
       // Where the sweet spot sits, and which way the marker runs, is a fresh surprise every time;
       // but never in the first third of the marker's trip, so there's time to see it and react.
-      const width = hard.sweet * pile;
+      const width = level.sweet * pile;
       const at = b.earliest + rng.next() * Math.max(0, 1 - b.earliest - width);
       tackle = {
         ...base,

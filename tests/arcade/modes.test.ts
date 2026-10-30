@@ -1,5 +1,5 @@
-import { breakHardness } from '../../src/arcade/sim/breakit';
 import { describe, expect, it } from 'vitest';
+import { breakHardness } from '../../src/arcade/sim/breakit';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { lobLanding, sweepSpeed } from '../../src/arcade/sim/ball';
 import {
@@ -54,6 +54,10 @@ describe('hard mode', () => {
       (area) => driveDefense(hard, area, 3).defenders.length,
     );
     expect(busiest).toEqual([8, 10, 11, 11, 12, 12, 12, 12]);
+    // Normal mode's own line-ups, the busiest drive of each area, are as they were.
+    expect([0, 1, 2].map((area) => driveDefense(easy, area, 3).defenders.length)).toEqual([
+      8, 9, 9,
+    ]);
   });
 
   it('defenders gain 15 a zone in hard mode, 10 otherwise', () => {

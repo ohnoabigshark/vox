@@ -20,7 +20,19 @@ the item numbers below are the map's.
 - **Break it! keeps tightening past zone 3** (d3), a step a zone (a narrower
   sweet spot, slower mash fill, a shorter juke window), down to a floor where
   a GREAT still breaks. It used to stop at the third area. The steps and the
-  floor are set after a balance run and shown to the user before merging.
+  floor are checked with a balance run and shown to the user before merging:
+
+  | Zone | 3 (as today) | 4 | 5 | 6 on (the floor) |
+  | --- | --- | --- | --- | --- |
+  | Bar's sweet spot | 6% | 5% | 4% | 3.5% |
+  | A GREAT mash, taps a second on screen | 8.5 | 9.0 | 9.5 | 9.8 |
+  | Juke: tap within (s, on screen) | 0.26 | 0.25 | 0.24 | 0.225 |
+
+  The floor is for one tackler. Each extra tackler on the carrier still makes
+  the test harder (`perExtraTackler`, as before), so a pile-up can go past
+  it. The first floors (a 0.3 s juke window, 0.06 a tap) were raised after
+  review: a GREAT there needed about 11 taps a second, or a tap faster than
+  most people react.
 - **Stats grow +15 a zone** (d4) in hard mode, instead of +10: fewer
   defenders, each tougher. More Hands is more reach, so more passes are
   batted. Normal mode stays at +10.
