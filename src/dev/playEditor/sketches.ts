@@ -6,6 +6,7 @@
  * list then says so rather than quietly showing less.
  */
 import { playFromLink, playToLink } from '../../arcade/content/playCode';
+import { playProblems } from '../../arcade/content/playRules';
 import type { Play } from '../../arcade/content/plays';
 
 const KEY = 'getJackBack.playEditor.sketches';
@@ -23,6 +24,8 @@ export interface Sketch {
   readonly play: Play;
   /** When it was last saved, in milliseconds. */
   readonly edited: number;
+  /** Its In the game switch (map item n1): the full game deals it, if it has no problems. */
+  readonly inGame: boolean;
 }
 
 export interface SketchList {
@@ -36,12 +39,15 @@ export interface SketchStore {
   list(): Promise<SketchList>;
   save(key: string, play: Play): Promise<void>;
   remove(key: string): Promise<void>;
+  setInGame(key: string, on: boolean): Promise<void>;
 }
 
 interface Saved {
   readonly key: string;
   readonly edited: number;
   readonly link: string;
+  /** Written only when on, so a sketch saved before the switch existed reads as off. */
+  readonly inGame?: true;
 }
 
 /** Sketches kept in `storage` (localStorage on the page); `now` stamps each save. */
@@ -96,7 +102,12 @@ export function sketchStore(
       for (const d of saved) {
         const back = typeof d?.link === 'string' ? playFromLink(d.link) : null;
         if (back?.ok && typeof d.key === 'string' && typeof d.edited === 'number') {
-          sketches.push({ key: d.key, play: back.play, edited: d.edited });
+          sketches.push({
+            key: d.key,
+            play: back.play,
+            edited: d.edited,
+            inGame: d.inGame === true,
+          });
         } else unreadable++;
       }
       sketches.sort((a, b) => b.edited - a.edited);
@@ -108,8 +119,32 @@ export function sketchStore(
     },
     save(key: string, play: Play): Promise<void> {
       try {
-        const others = read().filter((d) => d.key !== key);
-        write([...others, { key, edited: now(), link: playToLink(play) }]);
+        const all = read();
+        const was = all.find((d) => d.key === key);
+        const others = all.filter((d) => d.key !== key);
+        const inGame = was?.inGame === true ? { inGame: true as const } : {};
+        write([...others, { key, edited: now(), link: playToLink(play), ...inGame }]);
+        return Promise.resolve();
+      } catch (e) {
+        return failed(e);
+      }
+    },
+    setInGame(key: string, on: boolean): Promise<void> {
+      try {
+        const all = read();
+        if (!all.some((d) => d.key === key)) throw new Error("That sketch isn't saved any more.");
+        write(
+          all.map((d) =>
+            d.key !== key
+              ? d
+              : {
+                  key: d.key,
+                  edited: d.edited,
+                  link: d.link,
+                  ...(on ? { inGame: true as const } : {}),
+                },
+          ),
+        );
         return Promise.resolve();
       } catch (e) {
         return failed(e);
@@ -124,6 +159,18 @@ export function sketchStore(
       }
     },
   };
+}
+
+/**
+ * The sketches the full game deals (map round 6): switched on and with no
+ * problems (n3), oldest first so a seeded run deals the same each time, each
+ * with its key as its id, so two sketches with one name never clash.
+ */
+export function inGamePlays(sketches: readonly Sketch[]): Play[] {
+  return sketches
+    .filter((d) => d.inGame && playProblems(d.play).length === 0)
+    .sort((a, b) => (a.key < b.key ? -1 : 1))
+    .map((d) => ({ ...d.play, id: d.key }));
 }
 
 /** An id for a play, from its name, shaped like plays.ts ids: "Curl & Flat 2" is curlFlat2. */

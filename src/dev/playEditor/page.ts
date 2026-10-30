@@ -245,7 +245,7 @@ function startRow(label: string, play: Play): HTMLElement {
       className: 'open',
       text: label,
       onClick: () => {
-        const sketch: Sketch = { key: `s${now()}`, play, edited: now() };
+        const sketch: Sketch = { key: `s${now()}`, play, edited: now(), inGame: false };
         void attempt(() => store.save(sketch.key, play)).then((ok) => ok && openSketch(sketch));
       },
     }),
