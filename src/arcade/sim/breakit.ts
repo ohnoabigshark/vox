@@ -19,6 +19,24 @@ const BREAK_KINDS: readonly BreakKind[] = ['bar', 'mash', 'juke'];
 
 const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
+/**
+ * How hard Break it! is in this area (0-based): set by area for the first
+ * three; past them (hard mode), a step tighter each zone, down to a floor.
+ */
+export function breakHardness(area: number): {
+  sweet: number;
+  mashPerTap: number;
+  jukeWindow: number;
+} {
+  const last = b.byArea.length - 1;
+  const known = b.byArea[Math.min(area, last)] ?? b.byArea[0];
+  const past = Math.max(0, area - last);
+  if (past === 0) return { ...known };
+  const step = (k: 'sweet' | 'mashPerTap' | 'jukeWindow'): number =>
+    Math.max(b.floor[k], known[k] + past * b.perZonePast[k]);
+  return { sweet: step('sweet'), mashPerTap: step('mashPerTap'), jukeWindow: step('jukeWindow') };
+}
+
 /** Start Break it! for a carrier the `tacklers` have grabbed. `kind` forces one (for tests); otherwise it's random. */
 export function startBreakIt(
   state: RunState,
@@ -30,7 +48,7 @@ export function startBreakIt(
   // How many steps (10 points) of Heft the carrier has over its heaviest tackler (for the drag).
   const step = arcadeTuning.body.statStep;
   const heftGap = (carrier.stats.heft - Math.max(...grabbers.map((d) => d.stats.heft))) / step;
-  const hard = b.byArea[Math.min(state.drive.area, b.byArea.length - 1)] ?? b.byArea[0];
+  const hard = breakHardness(state.drive.area);
   const pile = b.perExtraTackler ** (tacklers.length - 1);
   const rng = rngFor(state.seed, 'break', state.step);
   const last = state.field.lastBreak;
