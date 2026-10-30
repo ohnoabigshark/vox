@@ -8,8 +8,16 @@
  * stored, as in plays.ts, in yards from where its slot lines up.
  */
 import type { Play } from '../../arcade/content/plays';
-import { playProblems, routePath, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
-import { LINEUP, ROSTER_ROLES, playSlot } from '../../arcade/content/team';
+import {
+  FARTHEST_BACK,
+  NEAREST_LINE,
+  playProblems,
+  routePath,
+  runsRoutes,
+  takesHandoff,
+} from '../../arcade/content/playRules';
+import { ROSTER_ROLES, lineUpSpot, playSlot } from '../../arcade/content/team';
+import { arcadeTuning } from '../../arcade/content/tuning';
 
 export interface Yards {
   readonly x: number;
@@ -36,10 +44,9 @@ export function startEditing(play: Play): EditorState {
 function picked(s: EditorState): { slot: number; start: Yards; to: readonly Yards[] } | null {
   if (s.flipped) return null;
   const slot = s.selected;
-  const start = slot === null ? undefined : LINEUP[slot];
   const a = slot === null ? undefined : s.play.slots[slot];
-  if (slot === null || !start || a?.kind !== 'route') return null;
-  return { slot, start, to: a.to };
+  if (slot === null || a?.kind !== 'route') return null;
+  return { slot, start: lineUpSpot(s.play, slot), to: a.to };
 }
 
 /** The state with the picked player's route replaced, remembered for Undo. */
@@ -87,6 +94,47 @@ export function movePoint(s: EditorState, index: number, at: Yards): EditorState
   );
 }
 
+const clamp = (n: number, low: number, high: number): number => Math.min(high, Math.max(low, n));
+/** A waypoint re-measured from a new spot, to the hundredth: 4.6 - 3 is 1.5999…. */
+const hundredth = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Move where a Runner or Catcher lines up to this field position, snapped to
+ * the half yard, stopping at the line, the sidelines and FARTHEST_BACK
+ * (map items l3, l5), and pick it. Its waypoints stay where they are on the
+ * field, so only the route's first leg changes (l4). Blockers stay put (l1).
+ * During a drag, call it each time from the state where the drag began, so
+ * the whole drag is one step for Undo.
+ */
+export function moveStart(s: EditorState, slot: number, at: Yards): EditorState {
+  if (s.flipped || !runsRoutes(slot)) return s;
+  const side = arcadeTuning.field.halfWidth;
+  const was = lineUpSpot(s.play, slot);
+  const spot = {
+    x: snap(clamp(at.x, -side, side)),
+    y: snap(clamp(at.y, -FARTHEST_BACK, -NEAREST_LINE)),
+  };
+  const lineup = ROSTER_ROLES.map((_, i) => (i === slot ? spot : lineUpSpot(s.play, i)));
+  const slots = s.play.slots.map((a, i) =>
+    i === slot && a.kind === 'route'
+      ? {
+          kind: 'route' as const,
+          to: a.to.map((w) => ({
+            x: hundredth(was.x + w.x - spot.x),
+            y: hundredth(was.y + w.y - spot.y),
+          })),
+        }
+      : a,
+  );
+  return {
+    ...s,
+    play: { ...s.play, slots, lineup },
+    selected: slot,
+    point: null,
+    history: [...s.history, s.play],
+  };
+}
+
 /** Pick one of the picked player's waypoints, for Remove. */
 export function selectPoint(s: EditorState, index: number): EditorState {
   const p = picked(s);
@@ -122,7 +170,8 @@ export function undo(s: EditorState): EditorState {
 export function setHandoff(s: EditorState, slot: number | null): EditorState {
   if (s.flipped || (slot !== null && !takesHandoff(slot))) return s;
   if ((s.play.handoff ?? null) === slot) return s;
-  const base = { id: s.play.id, name: s.play.name, slots: s.play.slots };
+  const { id, name, slots, lineup } = s.play;
+  const base: Play = { id, name, slots, ...(lineup ? { lineup } : {}) };
   const play: Play = slot === null ? base : { ...base, handoff: slot };
   return { ...s, play, history: [...s.history, s.play] };
 }

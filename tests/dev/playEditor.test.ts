@@ -3,6 +3,7 @@ import {
   addPoint,
   fieldView,
   movePoint,
+  moveStart,
   removePoint,
   select,
   selectPoint,
@@ -156,5 +157,65 @@ describe('the play editor: what Undo leaves alone', () => {
     const s = setHandoff(startEditing(curlFlat), 2);
     expect(setHandoff(s, 2).history).toHaveLength(1);
     expect(setHandoff(startEditing(curlFlat), null).history).toHaveLength(0);
+  });
+});
+
+describe('the play editor: where players line up', () => {
+  /** R2 dragged near (3, -2): its spot, and its route's points as they stand on the field. */
+  const moved = () => moveStart(startEditing(curlFlat), 3, { x: 2.8, y: -2.2 });
+
+  it("dragging a Runner or Catcher moves where it lines up, snapped, and picks it; the route's points stay put", () => {
+    const s = moved();
+    expect(s.play.lineup).toEqual([
+      { x: -0.9, y: -0.7 },
+      { x: 0.9, y: -0.7 },
+      { x: -1.1, y: -4.5 },
+      { x: 3, y: -2 },
+      { x: -7, y: -0.7 },
+      { x: 7, y: -0.7 },
+      { x: 4.2, y: -1.2 },
+    ]);
+    expect(s.selected).toBe(3);
+    // Only the first leg changes: from (1.1, -4.5) the route ran to (4.6, -3.5), (7.4, -2.5), (7.4, 7.5).
+    expect(routeOf(s.play, 3)).toEqual([
+      { x: 1.6, y: -1.5 },
+      { x: 4.4, y: -0.5 },
+      { x: 4.4, y: 9.5 },
+    ]);
+    expect(fieldView(s)[3]?.path).toEqual([
+      { x: 3, y: -2 },
+      { x: 4.6, y: -3.5 },
+      { x: 7.4, y: -2.5 },
+      { x: 7.4, y: 7.5 },
+    ]);
+  });
+
+  it('the drag stops half a yard behind the line, at the sidelines and 6 yards back', () => {
+    const s = startEditing(curlFlat);
+    expect(moveStart(s, 5, { x: 12, y: 3 }).play.lineup?.[5]).toEqual({ x: 9, y: -0.5 });
+    expect(moveStart(s, 4, { x: -12, y: -9 }).play.lineup?.[4]).toEqual({ x: -9, y: -6 });
+  });
+
+  it("a Blocker can't be moved, and nothing moves while Flip is on", () => {
+    const s = startEditing(curlFlat);
+    expect(moveStart(s, 0, { x: -3, y: -2 })).toBe(s);
+    const flipped = toggleFlip(s);
+    expect(moveStart(flipped, 3, { x: 3, y: -2 })).toBe(flipped);
+  });
+
+  it('a whole drag is one step, and Undo puts the player back', () => {
+    const s = startEditing(curlFlat);
+    moveStart(s, 3, { x: 2, y: -3 });
+    const dragged = moveStart(s, 3, { x: 3, y: -2 });
+    expect(dragged.history).toHaveLength(1);
+    expect(undo(dragged).play).toEqual(curlFlat);
+  });
+
+  it('a waypoint added after a move is measured from the new spot', () => {
+    expect(routeOf(addPoint(moved(), { x: 5, y: 5 }).play, 3).at(-1)).toEqual({ x: 2, y: 7 });
+  });
+
+  it('picking the handoff keeps the line-up', () => {
+    expect(setHandoff(moved(), 2).play.lineup?.[3]).toEqual({ x: 3, y: -2 });
   });
 });
