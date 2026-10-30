@@ -105,6 +105,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 | `breakit.ts` | The three tests (the bar, MASH!, JUKE!), each sized by the Heft or Hustle gap and narrowed by extra tacklers, with its countdown; `judgeBreakIt` gives break, drag or tackle. |
 | `team.ts` | The roster and bench: `startingRoster`, `playerStats` (own stats + perks), `fieldedStats`, the offer (`rollOffer`: two new players of different kinds, sized by zone), `bestSpot` (where a new player goes), `applyPerk` (the old perks, unused for now), spots (`BENCH_START`, `atSpot`, `setSpot`). |
 | `bodies.ts` | Stats into physics, and lining both teams up for a down. |
+| `pickups.ts` | Tricks and treats (fork, `docs/PICKUPS.md`): `pickupsForDrive` lays a lightning bolt and an oil slick per 10-yard stretch from the seed, each stretch clear of a fixed set of props (its own and its neighbours') so a pickup seen ahead doesn't move when its drive comes. Taking one is `takePickups` in `step.ts`; `RunState.taken` keeps them gone. |
 | `props.ts` | Props on the field: laid per 10-yard stretch from the seed (`propsForDrive`), solid circles; `steerAround` (a body turns away from one in its path), `clearOfProps` (a target or waypoint inside one moves to its edge), `pushOutOfProps` (after the shoves). |
 | `random.ts`, `vec.ts`, `stats.ts` | Seeded randomness, 2D vectors, stat arithmetic. |
 
@@ -126,6 +127,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
   - `sweep.ts`: the sweeping aim line, stopping at the first catch or block a throw now would meet (`aimNow`, from the sim's `aimContact`), and the receiver it stops on (`litPlayers`).
   - `routes.ts`: the called play's routes before the snap.
   - `frogRain.ts`: Mister Frog's lane on the turf, its shadows filling in, and the shower of frogs.
+  - `pickups.ts`: the bolts (hovering, turning) and slicks, built from voxel boxes in code, and the sparks behind anyone at a bolt's speed (fork).
   - `fieldProps.ts`: the props on the field, rebuilt when a new drive lays its own; on the last drive, the pumpkin patch behind the King.
   - `royalCrows.ts`: the King's two pairs of crows (`field.crows`, in the order they go): on his arms and shoulders, flying at the ball, flapping over the holder.
   - `queenCrown.ts`: the Queen's crown glowing purple, pulsing slowly (just for looks).

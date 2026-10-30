@@ -81,9 +81,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 
 - **Prop:** a solid object on the field that bodies steer around, such as a
   Scarecrow (`sim/props.ts`).
-- **Pickup** _(ours, not built)_: an object a player takes by running through
-  it. A **treat** helps (a lightning bolt's speed); a **trick** hurts (an oil
-  slick's trip). A pickup that moves follows a **path**. _Avoid:_
+- **Pickup** _(ours)_: an object one of your players **takes** by running
+  through it, after which it's gone for good (`docs/PICKUPS.md`). A **treat**
+  helps: the **lightning bolt** (a burst of speed). A **trick** hurts: the
+  **oil slick** (the player slips and lies down; a carrier is tackled,
+  SLIPPED!). A pickup that moves (not built) follows a **path**. _Avoid:_
   "power-up", which covers only treats, and "route" for a pickup's path.
 - **Heft, Hustle, Hands:** the three stats, which are physics: weight, speed
   and reach.

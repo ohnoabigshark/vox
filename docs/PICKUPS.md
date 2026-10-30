@@ -14,12 +14,16 @@ pickups, more kinds and placing them in the editor are later rounds
 - **Where** (k2): each 10-yard stretch of the field gets one **lightning
   bolt** and one **oil slick**, laid from the run's seed the way props are
   (`sim/props.ts`), so a seeded run lays them out the same every time. Never
-  in the middle lane, against a sideline or on a prop (a Boss included). They
+  in the middle lane, against a sideline or on a prop (a Boss included: it
+  stands in the middle lane). Each stretch keeps clear of its own props and
+  its neighbours', so a pickup seen ahead lies in the same place when its
+  drive comes. They
   show before the snap, so you can call a play, or Flip it, to run through a
   bolt and clear of a slick.
 - **Taken** (k3): the first of your players to run through a pickup takes it,
-  and it's gone: it doesn't come back at the next down or the next drive. The
-  rest stay put.
+  and it's gone: it doesn't come back at the next down or the next drive (the
+  map said "for the rest of the drive"; a pickup used up ahead would otherwise
+  reappear when that drive starts). The rest stay put.
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
   your team takes them, Jack and the carrier included. Defenders run over
   them and leave them be.
@@ -47,3 +51,11 @@ pickups, more kinds and placing them in the editor are later rounds
 5. **Practice** has none.
 
 The balance tool (`npm run balance:arcade`) runs before and after.
+
+## On screen
+
+A bolt is a gold zigzag of voxels, hovering and turning, drawn 1.7 times its
+voxels' size so it reads from the camera; a slick is a flat ink puddle with a
+purple sheen. Both are built from boxes in `render/pickups.ts` (no model
+file). Taking a bolt zaps (`zap`), a slick whoops (`slip`), and a carrier who
+slips gets SLIPPED!
