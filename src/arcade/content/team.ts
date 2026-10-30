@@ -31,7 +31,7 @@ export const LINEUP: readonly { readonly x: number; readonly y: number }[] = [
 ];
 
 /** Whether this slot stands where the standard line-up puts it. */
-export function standardSpot(slot: number, spot: { x: number; y: number }): boolean {
+export function isStandardSpot(slot: number, spot: { x: number; y: number }): boolean {
   const usual = LINEUP[slot];
   return usual !== undefined && spot.x === usual.x && spot.y === usual.y;
 }

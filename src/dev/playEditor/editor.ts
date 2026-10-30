@@ -106,7 +106,7 @@ const hundredth = (n: number): number => Math.round(n * 100) / 100;
  * During a drag, call it each time from the state where the drag began, so
  * the whole drag is one step for Undo.
  */
-export function moveStart(s: EditorState, slot: number, at: Yards): EditorState {
+export function moveLineUpSpot(s: EditorState, slot: number, at: Yards): EditorState {
   if (s.flipped || !runsRoutes(slot)) return s;
   const side = arcadeTuning.field.halfWidth;
   const was = lineUpSpot(s.play, slot);
@@ -114,6 +114,7 @@ export function moveStart(s: EditorState, slot: number, at: Yards): EditorState 
     x: snap(clamp(at.x, -side, side)),
     y: snap(clamp(at.y, -FARTHEST_BACK, -NEAREST_LINE)),
   };
+  if (spot.x === was.x && spot.y === was.y) return s;
   const lineup = ROSTER_ROLES.map((_, i) => (i === slot ? spot : lineUpSpot(s.play, i)));
   const slots = s.play.slots.map((a, i) =>
     i === slot && a.kind === 'route'
@@ -170,8 +171,8 @@ export function undo(s: EditorState): EditorState {
 export function setHandoff(s: EditorState, slot: number | null): EditorState {
   if (s.flipped || (slot !== null && !takesHandoff(slot))) return s;
   if ((s.play.handoff ?? null) === slot) return s;
-  const { id, name, slots, lineup } = s.play;
-  const base: Play = { id, name, slots, ...(lineup ? { lineup } : {}) };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- dropped on purpose: the rest of the play is kept
+  const { handoff, ...base } = s.play;
   const play: Play = slot === null ? base : { ...base, handoff: slot };
   return { ...s, play, history: [...s.history, s.play] };
 }
@@ -196,13 +197,20 @@ export interface FieldRoute {
   readonly broken: boolean;
 }
 
+/** The slots the play rules mark red: each problem's slot, and both players of a crowded pair. */
+export function brokenSlots(play: Play): Set<number> {
+  return new Set(
+    playProblems(play).flatMap((p) => (p.other === undefined ? [p.slot] : [p.slot, p.other])),
+  );
+}
+
 /**
  * Every player on the field, by roster slot. With Flip on, each runs its
  * mirror partner's assignment, mirrored, as the game lines it up
  * (sim/bodies.ts, lineUpTeam).
  */
 export function fieldView(s: EditorState): FieldRoute[] {
-  const broken = new Set(playProblems(s.play).map((p) => p.slot));
+  const broken = brokenSlots(s.play);
   return ROSTER_ROLES.map((_, slot): FieldRoute => {
     const k = playSlot(slot, s.flipped);
     const a = s.play.slots[k] ?? { kind: 'block' };

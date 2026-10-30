@@ -9,7 +9,7 @@
  * editor shows them as you draw (docs/PLAY_EDITOR.md).
  */
 import type { Play } from './plays';
-import { QB_DEPTH, ROSTER_ROLES, SLOT_NAMES, lineUpSpot, standardSpot } from './team';
+import { QB_DEPTH, ROSTER_ROLES, SLOT_NAMES, lineUpSpot, isStandardSpot } from './team';
 import { arcadeTuning } from './tuning';
 
 export type PlayRule = 'ends' | 'roles' | 'inRange' | 'lineUp';
@@ -43,6 +43,8 @@ export function routePath(play: Play, slot: number, flipped = false): { x: numbe
 /** One broken rule: the roster slot whose assignment breaks it, and how to fix it. */
 export interface PlayProblem {
   readonly slot: number;
+  /** The other player of a crowded pair (the line-up rule), which the editor shows red too. */
+  readonly other?: number;
   readonly rule: PlayRule;
   readonly message: string;
 }
@@ -57,6 +59,9 @@ export const NEAREST_LINE = 0.5;
 export const FARTHEST_BACK = 6;
 export const APART = 1;
 /** A hair, so a spot exactly at a limit isn't lost to rounding (1.9 - 0.9 is 0.9999…). */
+/** A distance as a message says it: "half a yard", "a yard", "6 yards". */
+const yards = (n: number): string =>
+  n === 0.5 ? 'half a yard' : n === 1 ? 'a yard' : `${n} yards`;
 const HAIR = 1e-9;
 
 /** How deep a route may go: a little short of the longest throw, so it can still be reached. */
@@ -161,29 +166,33 @@ function lineUpProblems(play: Play): PlayProblem[] {
     Math.hypot(a.x - b.x, a.y - b.y) >= APART - HAIR;
   spots.forEach((spot, slot) => {
     const name = SLOT_NAMES[slot] ?? `Slot ${slot}`;
-    const tell = (message: string): void => {
-      problems.push({ slot, rule: 'lineUp', message });
+    const tell = (message: string, other?: number): void => {
+      problems.push({ slot, ...(other === undefined ? {} : { other }), rule: 'lineUp', message });
     };
     if (!runsRoutes(slot)) {
-      if (!standardSpot(slot, spot))
+      if (!isStandardSpot(slot, spot))
         tell(`${name} has moved. Blockers line up where they always do.`);
       return;
     }
     if (spot.y > -NEAREST_LINE) {
-      tell(`${name} lines up too close to the line. Line up at least half a yard behind it.`);
+      tell(
+        `${name} lines up too close to the line. Line up at least ${yards(NEAREST_LINE)} behind it.`,
+      );
     } else if (spot.y < -FARTHEST_BACK) {
       tell(
-        `${name} lines up too deep. Line up no more than ${FARTHEST_BACK} yards behind the line.`,
+        `${name} lines up too deep. Line up no more than ${yards(FARTHEST_BACK)} behind the line.`,
       );
     }
     if (Math.abs(spot.x) > arcadeTuning.field.halfWidth) {
       tell(`${name} lines up off the field. Line up inside the sidelines.`);
     }
-    if (!apart(spot, jack)) tell(`${name} lines up on top of Jack. Keep players a yard from Jack.`);
+    if (!apart(spot, jack))
+      tell(`${name} lines up on top of Jack. Keep players ${yards(APART)} from Jack.`);
     const crowded = spots.slice(0, slot).findIndex((other) => !apart(spot, other));
     if (crowded >= 0) {
       tell(
-        `${name} lines up on top of ${SLOT_NAMES[crowded] ?? `Slot ${crowded}`}. Keep players a yard apart.`,
+        `${name} lines up on top of ${SLOT_NAMES[crowded] ?? `Slot ${crowded}`}. Keep players ${yards(APART)} apart.`,
+        crowded,
       );
     }
   });

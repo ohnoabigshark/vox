@@ -8,16 +8,23 @@
  */
 import { practiceQuery, playToSource } from '../../arcade/content/playCode';
 import { PLAY_POOL } from '../../arcade/content/playPool';
-import { DEEPEST, playProblems, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
+import {
+  DEEPEST,
+  FARTHEST_BACK,
+  playProblems,
+  runsRoutes,
+  takesHandoff,
+} from '../../arcade/content/playRules';
 import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES, lineUpSpot } from '../../arcade/content/team';
 import { arcadeTuning } from '../../arcade/content/tuning';
 import { sketchStore, idFromName, type Sketch, type SketchList } from './sketches';
 import {
   addPoint,
+  brokenSlots,
   fieldView,
   movePoint,
-  moveStart,
+  moveLineUpSpot,
   removePoint,
   select,
   selectPoint,
@@ -263,11 +270,19 @@ function copyOf(p: Play): Play {
 
 const SVG = 'http://www.w3.org/2000/svg';
 const HALF = arcadeTuning.field.halfWidth;
-/** The field shown: a little past each sideline, from 6 yards behind the line to just past a throw's reach. */
-const VIEW = { left: -HALF - 0.7, right: HALF + 0.7, back: -6.6, deep: DEEPEST + 1.4 };
+/** The field shown: a little past each sideline, from just behind the deepest line-up spot to just past a throw's reach. */
+const VIEW = {
+  left: -HALF - 0.7,
+  right: HALF + 0.7,
+  back: -FARTHEST_BACK - 0.6,
+  deep: DEEPEST + 1.4,
+};
 
 /** What a drag moves: a waypoint of the picked route, or where a player lines up. */
-type Dragged = { kind: 'point'; index: number } | { kind: 'start'; slot: number };
+type Dragged = { kind: 'point'; index: number } | { kind: 'spot'; slot: number };
+
+/** How far a finger moves before a touch is a drag, not a tap: half a yard for a player (map item l3), so picking one doesn't nudge it. */
+const STILL: Readonly<Record<Dragged['kind'], number>> = { point: 0.3, spot: 0.5 };
 
 interface Editing {
   key: string;
@@ -397,7 +412,7 @@ function onDown(ev: PointerEvent): void {
     else if (e.ed.flipped) say('Turn Flip off to edit.');
     else {
       // A tap picks the player; a drag moves where it lines up as well.
-      e.drag = { from: select(e.ed, s), at, moved: false, what: { kind: 'start', slot: s } };
+      e.drag = { from: select(e.ed, s), at, moved: false, what: { kind: 'spot', slot: s } };
       e.ed = e.drag.from;
       e.parts.field.setPointerCapture(ev.pointerId);
       draw();
@@ -417,18 +432,23 @@ function onMove(ev: PointerEvent): void {
   const { from, what } = e.drag;
   const at = yardsAt(e.parts.field, ev);
   const by = { x: at.x - e.drag.at.x, y: at.y - e.drag.at.y };
-  // Less than this is a tap: half a yard for a player (map item l3), so picking one doesn't nudge it.
-  const still = what.kind === 'start' ? 0.5 : 0.3;
-  if (!e.drag.moved && Math.hypot(by.x, by.y) < still) return;
+  if (!e.drag.moved && Math.hypot(by.x, by.y) < STILL[what.kind]) return;
   e.drag.moved = true;
-  if (what.kind === 'point') {
-    e.ed = movePoint(from, what.index, at);
-  } else {
-    // The player keeps its place under the finger, wherever on it the drag began.
-    const spot = lineUpSpot(from.play, what.slot);
-    e.ed = moveStart(from, what.slot, { x: spot.x + by.x, y: spot.y + by.y });
-  }
+  e.ed = dragged(from, what, at, by);
   draw();
+}
+
+/** The state a drag has reached, from the state where it began. */
+function dragged(from: EditorState, what: Dragged, at: Yards, by: Yards): EditorState {
+  switch (what.kind) {
+    case 'point':
+      return movePoint(from, what.index, at);
+    case 'spot': {
+      // The player keeps its place under the finger, wherever on it the drag began.
+      const spot = lineUpSpot(from.play, what.slot);
+      return moveLineUpSpot(from, what.slot, { x: spot.x + by.x, y: spot.y + by.y });
+    }
+  }
 }
 
 function onUp(): void {
@@ -464,7 +484,7 @@ function draw(): void {
           : 'Ready to copy.';
 
   // One chip per slot.
-  const broken = new Set(problems.map((p) => p.slot));
+  const broken = brokenSlots(ed.play);
   parts.chips.replaceChildren(
     ...SLOT_NAMES.map((name, slot) => {
       const b = el('button', {
@@ -599,14 +619,24 @@ function tryIt(): void {
 /** Try it couldn't save the sketch and said so: the next tap goes without saving. */
 let tryUnsaved = false;
 
-/** While a waypoint is dragged: where it is, in yards from where its player lines up. */
+/**
+ * During a drag: where a player lines up, in yards from the middle and the
+ * line; or where a waypoint is, in yards from where its player lines up.
+ */
 function dragReadout(ed: EditorState, what: Dragged): string {
-  if (what.kind === 'start') {
-    const spot = lineUpSpot(ed.play, what.slot);
-    const across =
-      spot.x === 0 ? 'in the middle' : `${Math.abs(spot.x)} ${spot.x > 0 ? 'right' : 'left'}`;
-    return `${SLOT_NAMES[what.slot] ?? ''} lines up ${across}, ${-spot.y} back`;
+  switch (what.kind) {
+    case 'spot': {
+      const spot = lineUpSpot(ed.play, what.slot);
+      const across =
+        spot.x === 0 ? 'in the middle' : `${Math.abs(spot.x)} ${spot.x > 0 ? 'right' : 'left'}`;
+      return `${SLOT_NAMES[what.slot] ?? ''} lines up ${across}, ${-spot.y} back`;
+    }
+    case 'point':
+      return pointReadout(ed);
   }
+}
+
+function pointReadout(ed: EditorState): string {
   const slot = ed.selected;
   const a = slot === null ? undefined : ed.play.slots[slot];
   const w = a?.kind === 'route' && ed.point !== null ? a.to[ed.point] : undefined;

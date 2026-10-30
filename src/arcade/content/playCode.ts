@@ -7,7 +7,7 @@
  */
 import type { Assignment, Play } from './plays';
 import { runsRoutes, takesHandoff } from './playRules';
-import { LINEUP, ROSTER_ROLES, SLOT_NAMES, standardSpot } from './team';
+import { LINEUP, ROSTER_ROLES, SLOT_NAMES, isStandardSpot } from './team';
 
 type SlotCode = 'b' | (readonly [number, number])[];
 
@@ -118,7 +118,7 @@ export function readPractice(search: string): Practice | null {
 
 /** Whether a play's line-up is the standard one, so Copy code can leave it out (map item l2). */
 const isStandard = (lineup: readonly { x: number; y: number }[]): boolean =>
-  lineup.length === LINEUP.length && lineup.every((spot, slot) => standardSpot(slot, spot));
+  lineup.length === LINEUP.length && lineup.every((spot, slot) => isStandardSpot(slot, spot));
 
 /**
  * A play as an entry for the list in `ourPlays.ts`, written the way

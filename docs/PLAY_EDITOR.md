@@ -69,7 +69,8 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
   they are on the field (l4). Each move is one step for Undo. The drag stops
   at the line (half a yard behind it), the sidelines, and 6 yards back; two
   players less than a yard apart, or one on Jack, is a problem like a broken
-  route (l5, the rule `lineUp`). Flip mirrors the line-up with the routes. A
+  route (l5, the rule `lineUp`), and both players of the pair show red. A
+  drag that snaps back to where the player stood is not a step. Flip mirrors the line-up with the routes. A
   handoff Runner can line up anywhere for now (l6, parked).
 - **Copy code** (e2, e16) puts the play on the clipboard in esrauch's style
   (`route([x, y], …)`). Pasted to Claude, it goes into

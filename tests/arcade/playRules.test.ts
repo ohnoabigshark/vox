@@ -192,12 +192,13 @@ describe('the line-up rule', () => {
     ]);
   });
 
-  it('two players keep a yard apart; the later slot of the two is told', () => {
+  it('two players keep a yard apart; the later slot of the two is told, naming the other', () => {
     // B2 stands at x 0.9: 1.9 is a yard away, 1.5 is too close.
     expect(playProblems(movedTo(6, 1.9, -0.7))).toEqual([]);
     expect(playProblems(movedTo(6, 1.5, -0.7))).toEqual([
       {
         slot: 6,
+        other: 1,
         rule: 'lineUp',
         message: 'C3 lines up on top of B2. Keep players a yard apart.',
       },
