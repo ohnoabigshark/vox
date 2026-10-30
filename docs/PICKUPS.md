@@ -39,6 +39,10 @@ pickups, more kinds and placing them in the editor are later rounds
   a moment, as Frog Rain flattens. A carrier who slips is tackled there:
   **SLIPPED!** A Catcher lying down can't catch (the existing rule for anyone
   down).
+- **Reach:** a player takes a pickup when its body comes within 0.75 yards
+  of the pickup's middle (`tuning.pickups.radius`; it was 0.5 until the
+  user asked for 50% more, 2026-10-30), so a route or lane that brushes past
+  one takes it.
 - **Nobody steers for them** (k7): routes run as drawn, and carriers and
   defenders pick their lanes as they do today.
 - **Not in practice or the editor** (k8): practice has none, so a rep tests

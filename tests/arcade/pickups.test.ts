@@ -101,6 +101,14 @@ describe('tricks and treats: taking them', () => {
     expect(speedOf(later, 2) / speedOf(run(plain, bolt.time).state, 2)).toBeCloseTo(1, 1);
   });
 
+  it('a pickup reaches three quarters of a yard: a player brushing past a yard off takes it', () => {
+    // The Catcher (0.45 across) runs up x 5; a bolt a yard to its side is touched at 0.45 + 0.75.
+    const near = run(runner([{ id: 7, kind: 'bolt', x: 6, y: 2 }]), 1);
+    expect(ofType(near.events, 'pickupTaken').map((e) => e.pickup)).toEqual([7]);
+    const far = run(runner([{ id: 7, kind: 'bolt', x: 6.3, y: 2 }]), 1);
+    expect(ofType(far.events, 'pickupTaken')).toEqual([]);
+  });
+
   it('a pickup is taken once: the next player through the same spot gets nothing', () => {
     const s = playState([
       { pos: v(5, 0), job: { kind: 'route', to: [v(5, 40)], index: 0 } },
