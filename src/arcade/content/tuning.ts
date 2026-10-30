@@ -155,8 +155,15 @@ export const arcadeTuning = {
   },
   /** Hard mode (?hard=1): the endless run. */
   hard: {
-    /** Every zone after the first lines up this many more defenders than the one before. */
-    extraDefendersPerZone: 2,
+    /**
+     * Every zone after the first lines up this many more defenders than the
+     * one before, never past this many on the field: harder, not busier
+     * (docs/DIFFICULTY.md)…
+     */
+    extraDefendersPerZone: 1,
+    maxDefenders: 12,
+    /** …and every defender's stats grow this much a zone (defense.perArea in normal mode). */
+    statsPerZone: 15,
     /** A recruit's stats add up to this in the first zone, and this much more every zone after. */
     recruitTotal: 200,
     recruitPerZone: 30,

@@ -56,13 +56,15 @@ export function defenseFor(seed: number, area: number, index: number): DefenseSp
 }
 
 /**
- * A drive's defense as it lines up: its spec, plus in hard mode two more
- * defenders for every zone after the first, alternately a Cover and a Bat,
- * spread over the field.
+ * A drive's defense as it lines up: its spec, plus in hard mode one more
+ * defender for every zone after the first (never past `maxDefenders` on the
+ * field), alternately a Cover and a Bat, spread over the field.
  */
 export function driveDefense(state: RunState, area: number, index: number): DefenseSpec {
   const spec = defenseFor(state.seed, area, index);
-  const extra = state.hard ? area * arcadeTuning.hard.extraDefendersPerZone : 0;
+  const { extraDefendersPerZone, maxDefenders } = arcadeTuning.hard;
+  const room = Math.max(0, maxDefenders - spec.defenders.length);
+  const extra = state.hard ? Math.min(area * extraDefendersPerZone, room) : 0;
   if (extra === 0) return spec;
   const spots = Array.from({ length: extra }, (_, k) => ({
     kind: k % 2 === 0 ? ('cover' as const) : ('bat' as const),
@@ -72,10 +74,16 @@ export function driveDefense(state: RunState, area: number, index: number): Defe
   return { ...spec, defenders: [...spec.defenders, ...spots] };
 }
 
-/** How much stiffer a drive's defense is than its spec: more each area, more on the Boss. */
-export function defenseBoost(area: number, kind: DriveKind, spec: DefenseSpec): number {
+/** How much stiffer a drive's defense is than its spec: more each area (faster in hard mode), more on the Boss. */
+export function defenseBoost(
+  state: RunState,
+  area: number,
+  kind: DriveKind,
+  spec: DefenseSpec,
+): number {
   const d = arcadeTuning.defense;
-  return area * d.perArea + (kind === 'boss' ? d.boss : 0) + spec.boost;
+  const perArea = state.hard ? arcadeTuning.hard.statsPerZone : d.perArea;
+  return area * perArea + (kind === 'boss' ? d.boss : 0) + spec.boost;
 }
 
 /**
@@ -230,7 +238,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   if (!play) throw new Error('The playbook has no plays');
   const players = lineUpTeam(state, play, state.flipped, drive.los, state.nextId);
   state.nextId += players.length;
-  const boost = defenseBoost(drive.area, drive.kind, spec);
+  const boost = defenseBoost(state, drive.area, drive.kind, spec);
   const defenders = lineUpDefense(spec, drive, boost, state.nextId);
   state.nextId += defenders.length;
   state.field = {

@@ -5,6 +5,7 @@ import {
   DRIVE_KINDS,
   createRun,
   dispatch,
+  defenseBoost,
   driveDefense,
   endDown,
   nextDown,
@@ -39,13 +40,31 @@ describe('hard mode', () => {
     expect(easy.phase).toBe('won');
   });
 
-  it('lines up two more defenders every zone', () => {
+  it('lines up one more defender every zone, never more than 12 on the field (docs/DIFFICULTY.md)', () => {
     const hard = createRun(3, undefined, 0, { hard: true });
     const easy = createRun(3);
-    for (const area of [0, 1, 4]) {
+    for (const area of [0, 1, 2]) {
       const extra =
         driveDefense(hard, area, 1).defenders.length - driveDefense(easy, area, 1).defenders.length;
-      expect(extra).toBe(2 * area);
+      expect(extra, `zone ${area + 1}`).toBe(area);
+    }
+    // The busiest drive of each zone (its Boss), zones 1 to 8.
+    const busiest = [0, 1, 2, 3, 4, 5, 6, 7].map(
+      (area) => driveDefense(hard, area, 3).defenders.length,
+    );
+    expect(busiest).toEqual([8, 10, 11, 11, 12, 12, 12, 12]);
+  });
+
+  it('defenders gain 15 a zone in hard mode, 10 otherwise', () => {
+    const hard = createRun(3, undefined, 0, { hard: true });
+    const easy = createRun(3);
+    for (const area of [0, 1, 2, 5]) {
+      const spec = driveDefense(easy, area, 1);
+      expect(defenseBoost(hard, area, 'challenge', spec) - spec.boost, `zone ${area + 1}`).toBe(
+        15 * area,
+      );
+      if (area < 3)
+        expect(defenseBoost(easy, area, 'challenge', spec) - spec.boost).toBe(10 * area);
     }
   });
 
