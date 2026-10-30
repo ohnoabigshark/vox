@@ -83,6 +83,16 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
 
 ## Later (not yet in order)
 
+- **Tackles for a loss, explored.** They already happen: a tackled carrier
+  is down where it falls (`tackle` in `sim/step.ts`), and behind the line the
+  screen says "LOSS OF N". What's open is making them a moment of their own
+  (more often, called out, the defense driving the carrier back). _User,
+  2026-10-30: "I'm not sure if this is possible but may be interesting to
+  explore."_
+- **Forward progress: called down when driven back.** A carrier with the
+  ball who keeps getting pushed backward for some time is ruled down there,
+  rather than being shoved yards back. How long, and how far back counts, is
+  open. _User, 2026-10-30._
 - **A native Android build** of the game. _User, 2026-10-30._
 
 - **Route timing and speeds,** the rest of e5's advanced play editing. Where
