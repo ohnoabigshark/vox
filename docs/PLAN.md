@@ -60,10 +60,47 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   2026-10-30 (k1–k9); the design is `docs/PICKUPS.md`. Only your team takes
   them for now (_user's note on k3 and k4: "Only offense for now"_). Built on
   the `pickups` branch.
+- **Harder, not busier** (hard mode): one extra defender a zone, at most 12,
+  with stats growing faster and Break it! tightening past zone 3. Round 9,
+  decided 2026-10-30 (d1–d4, d7); the design is `docs/DIFFICULTY.md`. Built
+  on the `harder-not-busier` branch. _User, 2026-10-30: "increasing
+  difficulty right now really just adds more players and makes the screen
+  really busy."_
+- **Next, after harder-not-busier: a Break it! test on catches.** Once the
+  run is far enough along, a catch can be contested by a new kind of Break
+  it!: a box on screen, placed like the other tests but a little bigger,
+  holds X dots, and the Coach taps every one within Y seconds. X runs from 2
+  to 5, set by the level, how many defenders' catch reach is near the ball,
+  and the receiver's Hands (the formula is open). Y starts at about 5
+  seconds and drops half a second each level past 10. _User, 2026-10-30:
+  "let's park this for doing right after we finish the general difficulty
+  improvements."_ Open for its grilling: what "a certain number of floors"
+  and "level" count (zones or drives won); what a miss costs (an
+  incomplete, a batted ball, or later a pick); whether it counts toward
+  Break it!'s two a down; the dots' size against a thumb.
+- **A play clock** (difficulty). Today you can wait forever before
+  calling a play and hiking. From some level on, a clock counts down the
+  call and the hike, to force a faster choice. _User, 2026-10-30._ Open for
+  its grilling: from which zone or drive, and how long (shrinking as it
+  goes?); what running out costs (delay of game, 5 yards back, or a random
+  card called and hiked for you); whether practice has one; how it's shown
+  (a countdown in the HUD, the cards flashing).
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
 ## Later (not yet in order)
+
+- **Tackles for a loss, explored.** They already happen: a tackled carrier
+  is down where it falls (`tackle` in `sim/step.ts`), and behind the line the
+  screen says "LOSS OF N". What's open is making them a moment of their own
+  (more often, called out, the defense driving the carrier back). _User,
+  2026-10-30: "I'm not sure if this is possible but may be interesting to
+  explore."_
+- **Forward progress: called down when driven back.** A carrier with the
+  ball who keeps getting pushed backward for some time is ruled down there,
+  rather than being shoved yards back. How long, and how far back counts, is
+  open. _User, 2026-10-30._
+- **A native Android build** of the game. _User, 2026-10-30._
 
 - **Route timing and speeds,** the rest of e5's advanced play editing. Where
   players line up was built in round 5. _User, 2026-10-29._
@@ -98,6 +135,12 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   today, so the offense needs play calling and throw timing of its own, and
   the Coach needs something to do on defense that is still one-tap timing
   (GAMEPLAY.md, Design Pillars 2). _User, 2026-10-28._
+  - **Turnovers come with it:** interceptions (and fumbles) only once the
+    Coach can answer on defense. _User's note on d5, 2026-10-30: "Nah let's
+    skip this for now because turnovers are annoying in general when you
+    can't respond on defense... we can add turnovers to the plan as part of
+    adding defensive play."_ The round 9 proposal (a defender that out-Hands
+    the receiver by 20 intercepts; what a pick costs) is on the map, d5–d6.
 - **Objects on the field that a player consumes by running through them,**
   good or bad, so "power-up" is the wrong name (pickups: treats help, tricks
   hurt; `CONTEXT.md`, decided as g5). A lightning bolt gives a

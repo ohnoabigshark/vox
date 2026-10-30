@@ -18,6 +18,9 @@
  * jukes the right way 91% of the time, about a quarter second after the
  * arrow shows.
  *
+ * BALANCE_SCENARIO='{"name": "Hard", "hard": true, "perks": true}' plays
+ * hard mode (until the run is lost) and reports how many drives runs win.
+ *
  * BOT='{"predict": false}' reads the field off the screen instead (lit,
  * green, deep), BOT='{"predict": false, "read": false}' throws at the first
  * catchable moment, and BOT='{"passOnly": false}' calls handoffs too: the
@@ -84,6 +87,8 @@ interface Scenario {
   readonly roleTraining?: Partial<Record<Role, Partial<Stats>>>;
   /** Take one of TRICK OR TREAT!'s two new players (at random) after each won drive, or skip. */
   readonly perks?: boolean;
+  /** Hard mode: the zones go round until the run is lost (reported as drives won per run). */
+  readonly hard?: boolean;
 }
 
 /** BALANCE_SCENARIO='{"name": "...", ...}' runs just that one scenario instead. */
@@ -108,6 +113,8 @@ const SCENARIOS: readonly Scenario[] = custom
 interface Tally {
   runs: number;
   drivesWon: number;
+  /** Each run's drives won, for hard mode's spread. */
+  perRun: number[];
   fullWins: number;
   attempts: Map<string, number>;
   wins: Map<string, number>;
@@ -346,7 +353,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     };
     return { ...p, kind, stats: plus(plus(p.stats, FORM_STATS[kind]), extra) };
   });
-  let state = createRun(seed, roster);
+  let state = createRun(seed, roster, 0, { hard: scenario.hard ?? false });
   const plan: Plan = {
     tackleAt: -1,
     tapAt: 1,
@@ -395,6 +402,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
   }
   t.runs++;
   t.drivesWon += state.drivesWon;
+  t.perRun.push(state.drivesWon);
   if (state.phase === 'won') t.fullWins++;
 }
 
@@ -420,6 +428,14 @@ function report(scenario: Scenario, t: Tally): void {
     `  drives won ${(t.drivesWon / t.runs).toFixed(1)} of 12 · beat the game ${pct(t.fullWins, t.runs)} · ` +
       `yards/down ${(t.yards / t.downs).toFixed(1)} · down length ${(t.downTime / t.downs).toFixed(1)}s`,
   );
+  if (scenario.hard) {
+    const sorted = [...t.perRun].sort((a, b) => a - b);
+    const at = (q: number): number =>
+      sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+    console.log(
+      `  hard mode: drives won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (${DRIVE_KINDS.length} drives a zone)`,
+    );
+  }
   const results = [...t.results.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([k, n]) => `${k} ${pct(n, t.downs)}`)
@@ -471,6 +487,7 @@ for (const scenario of SCENARIOS) {
   const t: Tally = {
     runs: 0,
     drivesWon: 0,
+    perRun: [],
     fullWins: 0,
     attempts: new Map(),
     wins: new Map(),

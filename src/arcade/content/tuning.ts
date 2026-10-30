@@ -124,6 +124,18 @@ export const arcadeTuning = {
       { sweet: 0.075, mashPerTap: 0.088, jukeWindow: 0.48 },
       { sweet: 0.06, mashPerTap: 0.078, jukeWindow: 0.42 },
     ],
+    /**
+     * Past the last of those (hard mode's zones 4 on), each zone tightens it
+     * this much more, but never past the floor, where a GREAT still breaks
+     * free (docs/DIFFICULTY.md, d3).
+     */
+    perAreaPast: { sweet: -0.01, mashPerTap: -0.004, jukeWindow: -0.02 },
+    /**
+     * A fast player can still get a GREAT at the floor (with one tackler):
+     * the bar's sweet spot 3.5% of it, a full mash at about 10 taps a second
+     * on screen, a juke tapped within about 0.225 s on screen.
+     */
+    floor: { sweet: 0.035, mashPerTap: 0.068, jukeWindow: 0.36 },
     /** At most this many a down: the grab after that is a tackle. */
     perDown: 2,
     /** Every extra tackler on it makes it this many times harder. */
@@ -155,8 +167,15 @@ export const arcadeTuning = {
   },
   /** Hard mode (?hard=1): the endless run. */
   hard: {
-    /** Every zone after the first lines up this many more defenders than the one before. */
-    extraDefendersPerZone: 2,
+    /**
+     * Every zone after the first lines up this many more defenders than the
+     * one before, never past this many on the field: harder, not busier
+     * (docs/DIFFICULTY.md)…
+     */
+    extraDefendersPerZone: 1,
+    maxDefenders: 12,
+    /** …and every defender's stats grow this much a zone (defense.perArea in normal mode). */
+    statsPerZone: 20,
     /** A recruit's stats add up to this in the first zone, and this much more every zone after. */
     recruitTotal: 200,
     recruitPerZone: 30,

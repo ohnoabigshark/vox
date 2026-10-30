@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { breakHardness } from '../../src/arcade/sim/breakit';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { lobLanding, sweepSpeed } from '../../src/arcade/sim/ball';
 import {
   DRIVE_KINDS,
   createRun,
   dispatch,
+  defenseBoost,
   driveDefense,
   endDown,
   nextDown,
@@ -39,13 +41,35 @@ describe('hard mode', () => {
     expect(easy.phase).toBe('won');
   });
 
-  it('lines up two more defenders every zone', () => {
+  it('lines up one more defender every zone, never more than 12 on the field (docs/DIFFICULTY.md)', () => {
     const hard = createRun(3, undefined, 0, { hard: true });
     const easy = createRun(3);
-    for (const area of [0, 1, 4]) {
+    for (const area of [0, 1, 2]) {
       const extra =
         driveDefense(hard, area, 1).defenders.length - driveDefense(easy, area, 1).defenders.length;
-      expect(extra).toBe(2 * area);
+      expect(extra, `zone ${area + 1}`).toBe(area);
+    }
+    // The busiest drive of each zone (its Boss), zones 1 to 8.
+    const busiest = [0, 1, 2, 3, 4, 5, 6, 7].map(
+      (area) => driveDefense(hard, area, 3).defenders.length,
+    );
+    expect(busiest).toEqual([8, 10, 11, 11, 12, 12, 12, 12]);
+    // Normal mode's own line-ups, the busiest drive of each area, are as they were.
+    expect([0, 1, 2].map((area) => driveDefense(easy, area, 3).defenders.length)).toEqual([
+      8, 9, 9,
+    ]);
+  });
+
+  it('defenders gain 20 a zone in hard mode, 10 otherwise', () => {
+    const hard = createRun(3, undefined, 0, { hard: true });
+    const easy = createRun(3);
+    for (const area of [0, 1, 2, 5]) {
+      const spec = driveDefense(easy, area, 1);
+      expect(defenseBoost(hard, area, 'challenge', spec) - spec.boost, `zone ${area + 1}`).toBe(
+        20 * area,
+      );
+      if (area < 3)
+        expect(defenseBoost(easy, area, 'challenge', spec) - spec.boost).toBe(10 * area);
     }
   });
 
@@ -137,5 +161,33 @@ describe('two-tap throwing (?aim=2)', () => {
     expect(ofType(r.events, 'caught')[0]?.id).toBe(2);
     // Nobody within the circle: incomplete.
     expect(lobLanding(s, v(0, -4), v(0, 20))?.kind).toBe('incomplete');
+  });
+});
+
+describe('Break it! past the third zone (docs/DIFFICULTY.md, d3)', () => {
+  const { byArea, floor } = arcadeTuning.breakit;
+
+  it('is as before in the first three areas', () => {
+    for (const area of [0, 1, 2]) expect(breakHardness(area)).toEqual(byArea[area]);
+  });
+
+  it('keeps tightening a step a zone after that: sweet spot, mash fill and juke window', () => {
+    for (const area of [3, 4]) {
+      const before = breakHardness(area - 1);
+      const now = breakHardness(area);
+      expect(now.sweet, `zone ${area + 1}`).toBeLessThan(before.sweet);
+      expect(now.mashPerTap, `zone ${area + 1}`).toBeLessThan(before.mashPerTap);
+      expect(now.jukeWindow, `zone ${area + 1}`).toBeLessThan(before.jukeWindow);
+    }
+  });
+
+  it('never tightens past its floor, where a GREAT still breaks free', () => {
+    for (let area = 0; area < 40; area++) {
+      const h = breakHardness(area);
+      expect(h.sweet).toBeGreaterThanOrEqual(floor.sweet);
+      expect(h.mashPerTap).toBeGreaterThanOrEqual(floor.mashPerTap);
+      expect(h.jukeWindow).toBeGreaterThanOrEqual(floor.jukeWindow);
+    }
+    expect(breakHardness(30)).toEqual(floor);
   });
 });

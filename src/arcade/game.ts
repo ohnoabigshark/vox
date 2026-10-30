@@ -102,8 +102,9 @@ export interface ArcadeOptions {
    */
   video?: boolean;
   /**
-   * Hard mode (?hard=1): the zones go round until you lose, two more
-   * defenders each, recruits +30 a zone (Hands slower), the sweep no faster
+   * Hard mode (?hard=1): the zones go round until you lose, one more
+   * defender each (at most 12) with stats +20 a zone, Break it! tighter
+   * past the third, recruits +30 a zone (Hands slower), the sweep no faster
    * after the third, and TRICK OR TREAT! lets you set your lineup.
    */
   hard?: boolean;
