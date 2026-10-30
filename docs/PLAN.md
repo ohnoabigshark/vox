@@ -78,6 +78,13 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   and "level" count (zones or drives won); what a miss costs (an
   incomplete, a batted ball, or later a pick); whether it counts toward
   Break it!'s two a down; the dots' size against a thumb.
+- **A play clock** (difficulty). Today you can wait forever before
+  calling a play and hiking. From some level on, a clock counts down the
+  call and the hike, to force a faster choice. _User, 2026-10-30._ Open for
+  its grilling: from which zone or drive, and how long (shrinking as it
+  goes?); what running out costs (delay of game, 5 yards back, or a random
+  card called and hiked for you); whether practice has one; how it's shown
+  (a countdown in the HUD, the cards flashing).
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
 
