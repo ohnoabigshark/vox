@@ -202,3 +202,33 @@ On `field-events`, one commit each, typecheck and tests after every step:
   the bench's saver and status line.
 - **Shared with the play editor:** the flat field (`src/dev/fieldSvg.ts`)
   and the page helpers (`src/dev/pageKit.ts`).
+
+## After review (2026-10-31)
+
+The code review of `field-events` (standards and spec,
+https://claude.ai/artifact/74x3JQ7ZZk2yy4Gtx5e2RG, the Coach approving
+every recommendation) found Frog Rain playing exactly as on `main`, and
+changed:
+
+- **Bugs:** an event made on the editor names its call (a Call box; a new
+  event starts with TACKLED!), and one with no call tackles quietly, never a
+  blank word (r1); a saved or linked event that would never go off, or
+  catches nobody, is refused saying which part (r2); the sim says which look
+  went off, so the game doesn't read the field for the frogs' hop (r3).
+- **Written once:** where an area sits across the field is the sim's
+  `sideOf`, `rectXs` and `circleX`, which the editor draws through (r4);
+  `sameEvent` (r5); the drive count, `DRIVES` (r7); `Yards`, in
+  `fieldSvg.ts` (r8); a Boss's drive, `bossDrive` (r9); each look's drawing
+  and sounds, one record in the game (r15).
+- **Tidier:** comments on the right code (r10), "Goes off as" for burst
+  and spell (r11), names (r16), the save status told its page by every
+  caller (r17), a drive's event a typed id (r18), and more.
+- **Kept, as built:** a lane or band drags only upfield, its side a chip of
+  four, while a circle drags both ways (s1); an event you made can be
+  deleted, asked on the page first (s2, accepted scope); the gravestones and
+  release-1 notes ride on this branch's plan (s3).
+- **Later:** the run's `practice` flag and `practiceEvent` become one, with
+  the dev setup mode's run options (r14, `PLAN.md`). **Left:** the Bosses
+  listed again in the saved-events check, which may import only types (r6);
+  the render loop's `performance.now()`, animation time as elsewhere (r19);
+  one earlier commit with two concerns, left in the history (r20).
