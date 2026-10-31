@@ -57,7 +57,7 @@ export function startBreakIt(
   const rng = rngFor(state.seed, 'break', state.step);
   const last = state.field.lastBreak;
   const chained = last !== null && state.time - last <= b.chainWindow;
-  const ready = chained ? b.chainReady : b.ready;
+  const ready = chained ? b.chainReady : arcadeTuning.tapTests.ready;
   const base = {
     startedAt: state.time,
     ready,

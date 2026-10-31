@@ -46,16 +46,16 @@ describe('Save', () => {
   });
 
   it('E: the countdown saved on Bar shows saved on Mash and Juke, and Restore on Juke resets it everywhere', () => {
-    const current = { 'breakit.ready': 2 };
-    expect(unsaved({}, current, 'mash')).toEqual(['breakit.ready']);
+    const current = { 'tapTests.ready': 2 };
+    expect(unsaved({}, current, 'mash')).toEqual(['tapTests.ready']);
     const saved = savedAfter({}, current, 'bar');
-    expect(saved).toEqual({ 'breakit.ready': 2 });
+    expect(saved).toEqual({ 'tapTests.ready': 2 });
     for (const t of ['bar', 'mash', 'juke'] as const)
       expect(unsaved(saved, current, t)).toEqual([]);
     const restored = restoredTab(current, 'juke');
     expect(restored).toEqual({});
     for (const t of ['bar', 'mash', 'juke'] as const) {
-      expect(unsaved(saved, restored, t)).toEqual(['breakit.ready']);
+      expect(unsaved(saved, restored, t)).toEqual(['tapTests.ready']);
     }
   });
 });
@@ -77,7 +77,7 @@ describe('what the page says', () => {
     expect(saveLabel(1)).toBe('Save 1 change');
     expect(saveLabel(3)).toBe('Save 3 changes');
     const saved = { 'snag.close': 0.56 };
-    const current = { 'snag.close': 0.56, 'crows.window': 0.7, 'breakit.ready': 2 };
+    const current = { 'snag.close': 0.56, 'crows.window': 0.7, 'tapTests.ready': 2 };
     expect(tabsWithUnsaved(saved, current)).toEqual(['bar', 'mash', 'juke', 'shoo']);
     expect(tabsWithUnsaved(saved, saved)).toEqual([]);
   });

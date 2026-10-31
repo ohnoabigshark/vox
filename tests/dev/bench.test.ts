@@ -91,7 +91,7 @@ describe('the knobs', () => {
 
   it('2: each tab has its own sliders; the three Break it!s share the countdown and the extra tackler', () => {
     const keys = (t: (typeof BENCH_TESTS)[number]): string[] => knobsFor(t).map((k) => k.key);
-    const shared = ['breakit.ready', 'breakit.perExtraTackler'];
+    const shared = ['tapTests.ready', 'breakit.perExtraTackler'];
     expect(keys('bar')).toEqual([
       ...shared,
       'breakit.meterSeconds',

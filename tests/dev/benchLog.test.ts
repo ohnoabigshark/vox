@@ -51,14 +51,14 @@ describe('the log', () => {
   });
 
   it("M: a save line has what the tab saved; the Break it! tabs' shared values with each", () => {
-    const file = { 'snag.close': 0.56, 'breakit.ready': 2, 'crows.window': 0.7 };
+    const file = { 'snag.close': 0.56, 'tapTests.ready': 2, 'crows.window': 0.7 };
     expect(saveLine('snag', file, NOW)).toEqual({
       at: '2026-10-31T15:02:11.000Z',
       kind: 'save',
       test: 'snag',
       saved: { 'snag.close': 0.56 },
     });
-    expect(saveLine('mash', file, NOW)).toMatchObject({ saved: { 'breakit.ready': 2 } });
+    expect(saveLine('mash', file, NOW)).toMatchObject({ saved: { 'tapTests.ready': 2 } });
     // Saving the defaults is a line too: nothing saved for that tab.
     expect(saveLine('juke', {}, NOW)).toMatchObject({ kind: 'save', saved: {} });
   });

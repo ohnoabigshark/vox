@@ -49,7 +49,7 @@ const snagMore = (key: string, label: string, unit: KnobUnit): Knob => ({
 });
 
 export const KNOBS: readonly Knob[] = [
-  k('breakit.ready', 'Get ready countdown', 'seconds', BREAKS),
+  k('tapTests.ready', 'Get ready countdown', 'seconds', BREAKS),
   k('breakit.perExtraTackler', 'Each extra tackler leaves', 'share', BREAKS),
   k('breakit.meterSeconds', 'Marker crosses in', 'seconds', ['bar']),
   k('breakit.earliest', 'Sweet spot no earlier than', 'share', ['bar']),

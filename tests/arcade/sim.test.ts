@@ -357,7 +357,7 @@ describe('the carrier, and Break it! (the bar)', () => {
 
   it('a Break it! hard on the heels of another has a short countdown', () => {
     const g = grabbed().state;
-    expect(g.tackle?.ready).toBe(arcadeTuning.breakit.ready);
+    expect(g.tackle?.ready).toBe(arcadeTuning.tapTests.ready);
     const s = carry(
       playState([{ role: 'runner', pos: v(0, 2) }], [{ kind: 'cover', pos: v(0, 4) }]),
       2,
@@ -369,7 +369,7 @@ describe('the carrier, and Break it! (the bar)', () => {
 
   it('it opens with a countdown, when taps don\u2019t count; then the marker runs', () => {
     const g = grabbed().state;
-    const ready = arcadeTuning.breakit.ready;
+    const ready = arcadeTuning.tapTests.ready;
     const during = run(g, ready / 2, { breakTap: true }).state;
     expect(during.phase).toBe('breakit');
     expect(countdown(during)).toBeGreaterThan(0.4);
@@ -606,7 +606,7 @@ describe('Break it!: the mash and the juke', () => {
     const t = g.tackle!;
     if (t.kind !== 'juke') throw new Error('not a juke');
     const wrong = t.side === 1 ? -1 : 1;
-    const during = run(g, arcadeTuning.breakit.ready / 2, { juke: wrong }).state;
+    const during = run(g, arcadeTuning.tapTests.ready / 2, { juke: wrong }).state;
     expect(during.phase).toBe('breakit');
   });
 

@@ -107,14 +107,17 @@ export const tuningDefaults = {
      */
     scans: 4.5,
   },
-  breakit: {
+  /** The quick tap tests that freeze the play: Break it!'s three and SNAG IT! (docs/SNAG.md, cd-c8). */
+  tapTests: {
     /**
-     * Every test opens with a countdown ("Get ready to mash…") this long in
+     * Each opens with a countdown ("GET READY TO MASH! 2…") this long in
      * sim time (2 seconds on screen, at the game's 0.8 time scale); taps
      * during it don't count.
      */
     ready: 1.6,
-    /** …but only this long when it starts within `chainWindow` of the last one ending (no dead time in a pile-up). */
+  },
+  breakit: {
+    /** Break it!'s countdown is `tapTests.ready`, but only this long when it starts within `chainWindow` of the last one ending (no dead time in a pile-up). */
     chainReady: 0.5,
     chainWindow: 2,
     /** The marker crosses the meter once, in this long… */

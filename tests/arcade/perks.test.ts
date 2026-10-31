@@ -282,6 +282,6 @@ describe('the perks in play', () => {
     forceBreakKind(undefined);
     expect(ofType(r.events, 'breakResult')[0]?.outcome).toBe('drag');
     expect(r.state.perks.secondWindUsed).toBe(true);
-    expect(arcadeTuning.breakit.ready).toBeGreaterThan(0);
+    expect(arcadeTuning.tapTests.ready).toBeGreaterThan(0);
   });
 });
