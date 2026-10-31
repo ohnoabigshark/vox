@@ -6,6 +6,8 @@
  */
 import { DT, TIME_SCALE } from '../../arcade/content/tuning';
 import type { ArcadeEvent, StepInput } from '../../arcade/sim/types';
+import type { SnagView } from '../../arcade/ui/controls';
+import { snagView } from '../../arcade/ui/testViews';
 import type { BenchTest } from './knobs';
 import { startRep, stepRep, type Rep, type RepResult, type Situation } from './reps';
 
@@ -43,6 +45,18 @@ export class Bench {
     this.pending = {};
     this.wait = null;
     this.touched = false;
+  }
+
+  /**
+   * What the SNAG IT! box shows for the rep on now, or null. The game tells
+   * one SNAG IT! from the next by when it started, but every rep is a fresh
+   * run whose SNAG IT! starts at the same moment, so the box kept the last
+   * rep's dots (B4). Here each rep is its own: its number is the view's id.
+   */
+  snagView(): SnagView | null {
+    const state = this.rep && !this.rep.result ? this.rep.state : null;
+    const view = state ? snagView(state) : null;
+    return view ? { ...view, id: this.reps } : null;
   }
 
   /** A tap, for the next step. */

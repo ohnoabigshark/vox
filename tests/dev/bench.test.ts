@@ -192,6 +192,34 @@ describe('the knobs', () => {
   });
 });
 
+describe('B4: each rep starts its SNAG IT! box clean', () => {
+  it('a new rep has a new box, so a rep with more dots than the last gets a dot for each', () => {
+    const bench = new Bench({
+      test: 'snag',
+      situation: { drive: 1, tacklers: 1, crowd: 3, handsGap: 20 },
+      again: false,
+    });
+    bench.go();
+    const first = bench.snagView();
+    expect(first?.dots).toHaveLength(3);
+    // Every rep is a fresh run, so each SNAG IT! starts at the same moment:
+    // the box can't tell them apart by that, and kept the last rep's dots.
+    bench.options.situation = { drive: 1, tacklers: 1, crowd: 3, handsGap: -25 };
+    bench.go();
+    const second = bench.snagView();
+    expect(second?.dots).toHaveLength(5);
+    expect(second?.id).not.toBe(first?.id);
+  });
+
+  it('there is no box between reps, or on another tab', () => {
+    const bench = new Bench({ test: 'snag', situation: at(5), again: false });
+    expect(bench.snagView()).toBeNull();
+    bench.options.test = 'shoo';
+    bench.go();
+    expect(bench.snagView()).toBeNull();
+  });
+});
+
 describe('the situation', () => {
   it('7: the dot count follows the drive, the crowd and the Hands gap, and the summary says so', () => {
     const dots = (s: Situation): number => startRep('snag', s, 1).state.snag!.dots.length;

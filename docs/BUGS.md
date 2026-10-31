@@ -39,7 +39,7 @@ which doesn't change play. Options: count taps as a whole number and compare
 - 2026-10-31: fix it on a small branch of its own after `test-bench`
   (decision n2 on the bench rework map), since it changes play.
 
-## B4. SNAG IT! on the test bench sometimes shows only its first two dots
+## B4. SNAG IT! on the test bench sometimes shows only its first two dots (fixed)
 
 Seen once by the Coach on Android Chrome, 2026-10-31 03:37–03:38 UTC, on
 the hot-reload bench: drive 10, three tacklers, 3 defenders reaching,
@@ -55,3 +55,14 @@ fell inside the stage, at phone and laptop sizes.
 
 - 2026-10-31: logged, not fixed. If it comes back, a screenshot or screen
   recording while dots 3–5 should be up, and the time, to match the log.
+- 2026-10-31, fixed: the Coach reproduced it (drive 1, 3 reaching, Hands
+  gap −25: 3 dots shown of 5) after a rep with fewer dots. The box tells one
+  SNAG IT! from the next by when it started (`SnagView.id`), and every bench
+  rep is a fresh run whose SNAG IT! starts at the same moment, so the box
+  kept the last rep's dots: a rep with more dots than the one before had no
+  element for the extra ones. Headless runs that opened straight into the
+  five-dot situation never had a smaller rep before, so never saw it. The
+  bench now gives each rep's box the rep's number as its id
+  (`Bench.snagView`); the game, where each SNAG IT! starts at its own
+  moment, was never affected. A test fails with the old id; a headless run
+  of a 3-dot rep then a 5-dot one shows all five.

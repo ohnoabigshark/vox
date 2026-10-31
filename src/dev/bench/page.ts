@@ -15,7 +15,7 @@ import { RENDER_RATE } from '../../audio/music';
 import { SfxPlayer, prepareSfx, type SfxId } from '../../audio/sfx';
 import type { ArcadeEvent } from '../../arcade/sim/types';
 import { ArcadeControls } from '../../arcade/ui/controls';
-import { breakView, shooShowing, snagView } from '../../arcade/ui/testViews';
+import { breakView, shooShowing } from '../../arcade/ui/testViews';
 import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
 import { browserStorage } from '../playEditor/sketches';
@@ -470,7 +470,7 @@ async function main(): Promise<void> {
     const rep = bench.rep;
     const state = rep && !rep.result ? rep.state : null;
     controls.setBreak(state ? breakView(state) : null);
-    controls.setSnag(state ? snagView(state) : null);
+    controls.setSnag(bench.snagView());
     controls.setShoo(state ? shooShowing(state) : false);
     idle.hidden = state !== null || (rep?.result != null && kept.toggles.again);
     const grade: Grade | null = rep?.result?.grade ?? null;
