@@ -266,6 +266,35 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   - **Later:** a drafted note for esrauch with each release (r3); taking the
     dev tools out of the release again (`build:release` stays for that).
 
+- **Results, stats and achievements.** Record a result after every play
+  and every tap test, so the game can keep stats and award achievements.
+  _User, 2026-10-31: "result recording. we need to do this after each play,
+  each quick time event. the reason being I want to add achievements and
+  stats."_ It threads through much of the game, so it's its own branch, or
+  several.
+  - **Stats**, the user's examples: the longest pass play, the longest run
+    (the note says "longest pass play" twice; the second read as the
+    longest run, to confirm), runs against passes in a run. Shown on a
+    **Game Over stats screen** for the run just played, and in a **stats
+    section** with totals over every game played.
+  - **Achievements**, the user's examples: win with a team of all
+    blockers, all catchers or all runners (the note says "boulders", read
+    as blockers, to confirm); play the stock team from beginning to end
+    (never taking a TRICK OR TREAT! player); a pass of over 20 air yards;
+    GREAT on every tap test (in a run, or a drive, to decide).
+  - **Where it can start:** the sim already reports most of what happened
+    as events (`downEnded` with its result and yards, `thrown`, `caught`,
+    `breakResult`, `snagResult`, `tipResult`, the crows), so a run's record
+    could be built from that stream without the sim knowing about stats.
+  - **Open for its grilling:** what a result holds (a play's call, its
+    yards, air yards, who carried; a tap test's grade and timing); where the
+    totals are kept (this phone, behind an async store, as the rules ask)
+    and whether they ever leave it; which runs count (hard mode and normal
+    apart; practice, the bench and dev link options like `?snag=1` left
+    out); air yards measured from the line to the catch; how an achievement
+    is shown when it's earned, and where the list of them lives; the stats
+    screen's design, with mockups.
+
 ## Later (not yet in order)
 
 - **Tackles for a loss, explored.** They already happen: a tackled carrier
