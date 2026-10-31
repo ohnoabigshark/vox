@@ -184,6 +184,8 @@ export const arcadeTuning = {
     closeFloor: 0.4,
     /** A tap this close to the ring closing, either side, is a hit (0.15 s on screen). */
     window: 0.12,
+    /** The box stays this long after the grade, so the last dot's pop or crack is seen (0.3 s on screen). */
+    linger: 0.24,
     /** 2 dots on drives 5-8, one more a zone (of `perZone` drives), never under 2 or over 5. */
     minDots: 2,
     maxDots: 5,

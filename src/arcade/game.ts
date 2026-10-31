@@ -493,8 +493,12 @@ export class ArcadeGame {
   /** What the SNAG IT! box shows right now, or null. */
   private snagView(): SnagView | null {
     const { state } = this;
-    const t = state.snag;
-    if (!t || state.phase !== 'snag') return null;
+    const live = state.phase === 'snag' ? state.snag : null;
+    // Just finished: the box stays a moment, so the last dot's pop or crack is seen.
+    const done = state.snagDone;
+    const t =
+      live ?? (done && state.time - done.endedAt < arcadeTuning.snag.linger ? done.snag : null);
+    if (!t) return null;
     return {
       id: t.startedAt,
       calling: state.time < (t.dots[0]?.appearsAt ?? 0),

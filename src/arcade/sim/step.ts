@@ -266,6 +266,7 @@ function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
   const grade = judgeSnag(state, input, events);
   if (!grade || !t) return;
   events.push({ type: 'snagResult', grade });
+  state.snagDone = { snag: t, endedAt: state.time };
   state.snag = null;
   state.phase = 'play';
   const receiver = state.field.players.find((p) => p.id === t.receiver);

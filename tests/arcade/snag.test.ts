@@ -302,3 +302,19 @@ describe('SNAG IT! and Break it! (c5)', () => {
     expect(r.state.field.breaks).toBe(0);
   });
 });
+
+describe('SNAG IT!: the last dot is seen (review a1)', () => {
+  it('the finished SNAG IT!, every dot graded, is kept for the box to show a moment longer', () => {
+    const s = bulletContest(5);
+    const startedAt = s.snag?.startedAt;
+    const r = snag(s, ['hit', 'hit']);
+    expect(r.state.snag).toBeNull();
+    const done = r.state.snagDone;
+    expect(done?.snag.startedAt).toBe(startedAt);
+    expect(done?.snag.dots.map((d) => d.result)).toEqual(['hit', 'hit']);
+    // Graded on the step the last dot was tapped (a few steps of play follow in the helper).
+    expect(done?.endedAt).toBeLessThanOrEqual(r.state.time);
+    // 0.3 s on screen, at the game's 0.8 time scale.
+    expect(sn.linger / 0.8).toBeCloseTo(0.3, 9);
+  });
+});

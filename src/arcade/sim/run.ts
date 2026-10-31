@@ -127,6 +127,7 @@ export function createRun(
     play: { index: 0, flipped: false },
     tackle: null,
     snag: null,
+    snagDone: null,
     roster,
     bench: [],
     perks: noPerks(),

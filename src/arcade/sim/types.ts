@@ -383,6 +383,12 @@ export interface RunState {
   tackle: Tackle | null;
   /** SNAG IT!, while it's on. */
   snag: Snag | null;
+  /**
+   * The SNAG IT! that just finished, every dot graded, and when: kept so the
+   * box can show the last dot's pop before it closes (`snag.linger`). For the
+   * screen only; nothing in the sim reads it.
+   */
+  snagDone: { readonly snag: Snag; readonly endedAt: number } | null;
   /** The seven on the field, in slot order (the slot decides the position played)… */
   roster: RosterPlayer[];
   /** …and the bench: kept, but not playing, newest first (it has no limit). */
