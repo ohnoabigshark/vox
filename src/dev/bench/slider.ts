@@ -3,6 +3,7 @@
  * is the only thing that moves it. The rules (grabbing, snapping, what a row
  * shows) are in row.ts; this draws them and takes the pointer and keys.
  */
+import './slider.css';
 import { Grab, snap, type Range, type RowView } from './row';
 
 /** What a slider row shows; the tuning rows add the rest of `RowView`. */

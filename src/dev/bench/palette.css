@@ -1,0 +1,12 @@
+/* The test bench's colours, shared with the event editor (its sliders are the bench's). */
+:root {
+  --b-night: #14101f;
+  --b-panel: #1f1930;
+  --b-line: #3b3352;
+  --b-text: #f1ead8;
+  --b-dim: #a79fbb;
+  --b-on: #f0a14a;
+  --b-good: #6fcf6a;
+  --b-ok: #e7c14a;
+  --b-bad: #e5534b;
+}
