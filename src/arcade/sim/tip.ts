@@ -10,14 +10,19 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import type { Contest } from './ball';
-import { catchCount, freezeContested, paceShare } from './catchTests';
-import { driveNumber } from './run';
+import {
+  catchCount,
+  contestSituation,
+  freezeContested,
+  paceShare,
+  type CatchSituation,
+} from './catchTests';
 import type { ArcadeEvent, Grade, RunState, StepInput, TipDrill, TipResult, Vec } from './types';
 
 const tp = arcadeTuning.tip;
 
 /** How many pops: SNAG IT!'s count in the same spot, and `morePops` more (g3). */
-export function tipPops(c: { drive: number; crowd: number; handsGap: number }): number {
+export function tipPops(c: CatchSituation): number {
   return catchCount(c, tp.morePops);
 }
 
@@ -39,14 +44,13 @@ export function startTip(
   events: ArcadeEvent[],
 ): void {
   const { receiver, defenders } = contest;
-  const drive = driveNumber(state.drive);
-  const best = Math.max(...defenders.map((d) => d.stats.hands));
-  const count = tipPops({ drive, crowd: defenders.length, handsGap: receiver.stats.hands - best });
+  const situation = contestSituation(state, contest);
+  const count = tipPops(situation);
   state.tip = {
     startedAt: state.time,
     receiver: receiver.id,
     defenders: defenders.map((d) => d.id),
-    pops: tipTimes(drive, count),
+    pops: tipTimes(situation.drive, count),
     poppedAt: state.time + arcadeTuning.countdown.ready,
     results: [],
   };
@@ -55,9 +59,14 @@ export function startTip(
   events.push({ type: 'tipStarted', receiver: receiver.id, pops: count });
 }
 
+/** How long the pop being played is in the air (sim seconds), or undefined once every pop is played. */
+export function popInAir(t: TipDrill): number | undefined {
+  return t.pops[t.results.length];
+}
+
 /** When the pop being played lands back on the hands (sim time), or null once every pop is played. */
 export function tipLanding(t: TipDrill): number | null {
-  const air = t.pops[t.results.length];
+  const air = popInAir(t);
   return air === undefined ? null : t.poppedAt + air;
 }
 

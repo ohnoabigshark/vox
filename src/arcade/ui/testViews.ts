@@ -6,7 +6,7 @@
 import { arcadeTuning, TIME_SCALE } from '../content/tuning';
 import { breakMarker, countdownLeft, jukeGrade, jukeShowing, mashLeft } from '../sim/breakit';
 import { ringClosed, snagCountdownLeft } from '../sim/snag';
-import { tipCountdownLeft } from '../sim/tip';
+import { popInAir, tipCountdownLeft } from '../sim/tip';
 import type { RunState, TipDrill } from '../sim/types';
 import type { BreakView, SnagView, TipView } from './controls';
 
@@ -40,13 +40,30 @@ export function breakView(state: RunState): BreakView | null {
   }
 }
 
+/**
+ * A catch test's box shows the test on now, or the one just finished for a
+ * moment (`catchTests.linger`), so its last dot's or pop's result is seen.
+ */
+function onOrLingering<T>(
+  state: RunState,
+  live: T | null,
+  done: T | undefined,
+  endedAt: number | undefined,
+): T | null {
+  if (live) return live;
+  const lingers = endedAt !== undefined && state.time - endedAt < arcadeTuning.catchTests.linger;
+  return lingers && done !== undefined ? done : null;
+}
+
 /** What the SNAG IT! box shows right now, or null. */
 export function snagView(state: RunState): SnagView | null {
-  const live = state.phase === 'snag' ? state.snag : null;
-  // Just finished: the box stays a moment, so the last dot's pop or crack is seen.
   const done = state.snagDone;
-  const t =
-    live ?? (done && state.time - done.endedAt < arcadeTuning.catchTests.linger ? done.snag : null);
+  const t = onOrLingering(
+    state,
+    state.phase === 'snag' ? state.snag : null,
+    done?.snag,
+    done?.endedAt,
+  );
   if (!t) return null;
   return {
     id: t.startedAt,
@@ -63,10 +80,8 @@ const DROPPED = -0.35;
 /** What the tip drill's box shows right now, or null (docs/TIP.md). */
 export function tipView(state: RunState): TipView | null {
   const live = state.phase === 'tip' ? state.tip : null;
-  // Just finished: the box stays a moment, so the last pop's result is seen.
   const done = state.tipDone;
-  const t =
-    live ?? (done && state.time - done.endedAt < arcadeTuning.catchTests.linger ? done.tip : null);
+  const t = onOrLingering(state, live, done?.tip, done?.endedAt);
   if (!t) return null;
   const last = t.results[t.results.length - 1] ?? null;
   const ball = last === 'drop' ? DROPPED : live ? ballHeight(t, state.time) : 0;
@@ -87,7 +102,7 @@ export function tipView(state: RunState): TipView | null {
  * it leaves them, and under them if it's late.
  */
 function ballHeight(t: TipDrill, time: number): number {
-  const air = t.pops[t.results.length];
+  const air = popInAir(t);
   const first = t.pops[0];
   if (air === undefined || first === undefined || time <= t.poppedAt) return 0;
   const s = (time - t.poppedAt) / air;

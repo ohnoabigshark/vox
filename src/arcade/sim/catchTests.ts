@@ -7,12 +7,11 @@
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { driveNumber } from './run';
+import type { Contest } from './ball';
 import type { Player, RunState, Vec } from './types';
-import { add, len, norm, scale, sub } from './vec';
+import { add, clamp, len, norm, scale, sub } from './vec';
 
 const ct = arcadeTuning.catchTests;
-
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
 /** Whether a contested ball goes to a catch test on this drive. */
 export function catchTestsOn(state: RunState): boolean {
@@ -38,6 +37,24 @@ export function freezeContested(state: RunState, receiver: Player, from: Vec): v
   };
 }
 
+/** What sets a catch test's count: the drive, the defenders reaching for the ball, and the Hands gap. */
+export interface CatchSituation {
+  readonly drive: number;
+  readonly crowd: number;
+  /** The receiver's Hands less the best of theirs. */
+  readonly handsGap: number;
+}
+
+/** The situation a contested ball is played in, on this drive. */
+export function contestSituation(state: RunState, contest: Contest): CatchSituation {
+  const best = Math.max(...contest.defenders.map((d) => d.stats.hands));
+  return {
+    drive: driveNumber(state.drive),
+    crowd: contest.defenders.length,
+    handsGap: contest.receiver.stats.hands - best,
+  };
+}
+
 /**
  * How many dots (or pops): `minCount` from drive 5, one more every
  * `moreEvery` drives; one more for each defender after the first reaching
@@ -45,10 +62,7 @@ export function freezeContested(state: RunState, receiver: Player, from: Vec): v
  * by `handsGap`, one more the other way; and `more` (the tip drill's extra
  * pop). Held to `minCount`–`maxCount`.
  */
-export function catchCount(
-  c: { drive: number; crowd: number; handsGap: number },
-  more = 0,
-): number {
+export function catchCount(c: CatchSituation, more = 0): number {
   // The level (docs/SNAG.md) is the drive's number in the run.
   const byLevel = ct.minCount + Math.floor(Math.max(0, c.drive - ct.fromDrive) / ct.moreEvery);
   const hands = c.handsGap >= ct.handsGap ? -1 : c.handsGap <= -ct.handsGap ? 1 : 0;

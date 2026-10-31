@@ -11,15 +11,12 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import type { Contest } from './ball';
-import { catchCount, freezeContested, paceShare } from './catchTests';
+import { catchCount, contestSituation, freezeContested, paceShare } from './catchTests';
 import { rngFor } from './random';
-import { driveNumber } from './run';
 import type { ArcadeEvent, Grade, RunState, SnagDot, StepInput, Vec } from './types';
-import { dist } from './vec';
+import { clamp, dist } from './vec';
 
 const sn = arcadeTuning.snag;
-
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
 /** How fast on this drive: how long a ring takes to close, and the gap between dots (sim seconds). */
 export function snagPace(drive: number): { close: number; gap: number } {
@@ -71,14 +68,9 @@ export function startSnag(
   events: ArcadeEvent[],
 ): void {
   const { receiver, defenders } = contest;
-  const drive = driveNumber(state.drive);
-  const best = Math.max(...defenders.map((d) => d.stats.hands));
-  const count = catchCount({
-    drive,
-    crowd: defenders.length,
-    handsGap: receiver.stats.hands - best,
-  });
-  const { close, gap } = snagPace(drive);
+  const situation = contestSituation(state, contest);
+  const count = catchCount(situation);
+  const { close, gap } = snagPace(situation.drive);
   // The tap tests' countdown first (docs/SNAG.md, cd-c7): the first dot comes as it ends.
   const first = state.time + arcadeTuning.countdown.ready;
   const dots: SnagDot[] = placeDots(state, count).map((p, i) => ({
