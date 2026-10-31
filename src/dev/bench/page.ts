@@ -28,15 +28,14 @@ import {
   knobsFor,
   pathOf,
   reachOf,
-  round,
   defaultValue,
-  showValue,
   toScreen,
   withValue,
   type BenchTest,
   type Settings,
 } from './knobs';
 import { httpLog, repLine, settingsLine, type LogLine } from './log';
+import { Grab, fractionOf, rowView, snap, type Range, type RowView } from './row';
 import {
   httpSaver,
   restoredTab,
@@ -310,26 +309,28 @@ async function main(): Promise<void> {
   });
   const renderSituation = (): void => {
     situationEl.innerHTML = '';
-    for (const s of SITUATION.filter((x) => x.tests.includes(test()))) {
-      const row = slider(
-        s.label,
-        String(kept.situation[s.key]),
-        s.min,
-        s.max,
-        s.step,
-        kept.situation[s.key],
-      );
-      row.input.addEventListener('input', () => {
-        const situation = { ...kept.situation, [s.key]: Number(row.input.value) };
-        kept = { ...kept, situation };
-        bench.options.situation = situation;
-        row.output.textContent = row.input.value;
-        // A by-area slider edits the new drive's area.
-        if (s.key === 'drive') renderKnobs();
-        showSummary();
-        keep();
+    for (const sit of SITUATION.filter((x) => x.tests.includes(test()))) {
+      const range = { min: sit.min, max: sit.max, step: sit.step };
+      const row = slider(sit.label, range, {
+        onMove: (v) => {
+          const situation = { ...kept.situation, [sit.key]: v };
+          kept = { ...kept, situation };
+          bench.options.situation = situation;
+          show();
+          // A by-area slider edits the new drive's area.
+          if (sit.key === 'drive') renderKnobs();
+          showSummary();
+          keep();
+        },
       });
-      situationEl.append(row.label);
+      const show = (): void =>
+        row.show({
+          value: kept.situation[sit.key],
+          shown: String(kept.situation[sit.key]),
+          at: fractionOf(kept.situation[sit.key], range),
+        });
+      show();
+      situationEl.append(row.el);
     }
   };
   const renderKnobs = (): void => {
@@ -337,41 +338,36 @@ async function main(): Promise<void> {
     const drive = kept.situation.drive;
     for (const knob of knobsFor(test())) {
       const path = pathOf(knob, drive);
-      const byDefault = defaultValue(path);
       const reach = reachOf(knob, path);
-      const step = knob.unit === 'seconds' ? 0.01 : reach.step;
-      const value = (): number => settings[path] ?? byDefault;
-      const row = slider(
-        knob.label,
-        showValue(knob, value()),
-        toScreen(knob, reach.min),
-        toScreen(knob, reach.max),
-        step,
-        toScreen(knob, value()),
-      );
-      const tick = document.createElement('span');
-      tick.className = 'b-tick';
-      tick.style.left = `${((byDefault - reach.min) / (reach.max - reach.min)) * 100}%`;
-      row.track.append(tick);
-      const note = document.createElement('small');
-      const showNote = (): void => {
-        note.textContent = `${path} ${round(value())} · default ${round(byDefault)}`;
-        row.label.classList.toggle('changed', value() !== byDefault);
+      const range = {
+        min: toScreen(knob, reach.min),
+        max: toScreen(knob, reach.max),
+        step: knob.unit === 'seconds' ? 0.01 : reach.step,
       };
-      showNote();
-      row.label.append(note);
-      row.input.addEventListener('input', () => {
-        settings = withValue(settings, path, fromScreen(knob, Number(row.input.value)));
+      const set = (v: number): void => {
+        settings = withValue(settings, path, v);
         applySettings(settings);
-        row.output.textContent = showValue(knob, value());
-        showNote();
+        show();
         showSummary();
         renderSave();
+      };
+      const row = slider(knob.label, range, {
+        onMove: (v) => set(fromScreen(knob, v)),
+        onLetGo: () => record(settingsLine(test(), kept.situation, settings, path, now())),
+        onReset: () => {
+          set(defaultValue(path));
+          record(settingsLine(test(), kept.situation, settings, path, now()));
+        },
       });
-      row.input.addEventListener('change', () =>
-        record(settingsLine(test(), kept.situation, settings, path, now())),
-      );
-      knobsEl.append(row.label);
+      const show = (): void => {
+        const view = rowView(knob, path, saved, settings);
+        row.show({
+          value: toScreen(knob, settings[path] ?? defaultValue(path)),
+          ...view,
+        });
+      };
+      show();
+      knobsEl.append(row.el);
     }
   };
   const showTab = (): void => {
@@ -437,7 +433,13 @@ async function main(): Promise<void> {
   window.addEventListener('pointerdown', wakeSound, { capture: true });
   window.addEventListener('keydown', (e) => {
     wakeSound();
-    if (e.repeat || e.target instanceof HTMLInputElement) return;
+    if (
+      e.repeat ||
+      e.target instanceof HTMLInputElement ||
+      (e.target instanceof Element && e.target.closest('[role="slider"]'))
+    ) {
+      return;
+    }
     if (e.code === 'Enter') bench.go();
     else if (e.code === 'Space') {
       e.preventDefault();
@@ -489,37 +491,107 @@ async function main(): Promise<void> {
   requestAnimationFrame(frame);
 }
 
-/** A labelled slider: its label (the row), the value shown, the input, and the track (for the tick). */
+/** What a slider row shows; the tuning rows add the rest of `RowView`. */
+type Shown = Pick<RowView, 'shown' | 'at'> & Partial<RowView> & { readonly value: number };
+
+/**
+ * A slider row that moves only when its knob is dragged (r-u1): a touch on
+ * the track does nothing and a swipe from there scrolls the page. The knob
+ * also takes the arrow keys. With `onReset`, the row has a ↺ (r-u3).
+ */
 function slider(
   name: string,
-  shown: string,
-  min: number,
-  max: number,
-  step: number,
-  value: number,
-): {
-  label: HTMLLabelElement;
-  output: HTMLOutputElement;
-  input: HTMLInputElement;
-  track: HTMLElement;
-} {
-  const label = document.createElement('label');
-  label.className = 'b-slider';
-  const title = document.createElement('span');
+  range: Range,
+  on: { onMove(v: number): void; onLetGo?(): void; onReset?(): void },
+): { el: HTMLElement; show(view: Shown): void } {
+  const el = document.createElement('div');
+  el.className = 'b-slider';
+  el.innerHTML = `
+    <span class="b-name"></span><output></output>
+    <div class="b-track"><span class="b-fill"></span><span class="b-tick" hidden></span>
+      <span class="b-knob" role="slider" tabindex="0"></span></div>
+    <small hidden></small>`;
+  const q = <T extends HTMLElement>(sel: string): T => {
+    const found = el.querySelector<T>(sel);
+    if (!found) throw new Error(`slider missing ${sel}`);
+    return found;
+  };
+  const title = q('.b-name');
   title.textContent = name;
-  const output = document.createElement('output');
-  output.textContent = shown;
-  const track = document.createElement('span');
-  track.className = 'b-track';
-  const input = document.createElement('input');
-  input.type = 'range';
-  input.min = String(min);
-  input.max = String(max);
-  input.step = String(step);
-  input.value = String(value);
-  track.append(input);
-  label.append(title, output, track);
-  return { label, output, input, track };
+  const mark = document.createElement('em');
+  mark.textContent = 'UNSAVED';
+  const output = q<HTMLOutputElement>('output');
+  const track = q('.b-track');
+  const fill = q('.b-fill');
+  const tick = q('.b-tick');
+  const knob = q('.b-knob');
+  const note = q('small');
+  knob.setAttribute('aria-label', name);
+  knob.setAttribute('aria-valuemin', String(range.min));
+  knob.setAttribute('aria-valuemax', String(range.max));
+  let reset: HTMLButtonElement | null = null;
+  if (on.onReset) {
+    reset = document.createElement('button');
+    reset.className = 'b-one';
+    reset.textContent = '↺';
+    reset.setAttribute('aria-label', `${name}: back to its default`);
+    reset.addEventListener('click', () => on.onReset?.());
+    output.after(reset);
+  }
+  let value = range.min;
+  const grab = new Grab(range, () => track.getBoundingClientRect().width);
+  const moveTo = (v: number): void => {
+    if (v !== value) on.onMove(v);
+  };
+  track.addEventListener('pointerdown', (e) => {
+    const onKnob = e.target instanceof Element && e.target.closest('.b-knob') !== null;
+    if (!grab.down(onKnob ? 'knob' : 'track', e.clientX, value)) return;
+    e.preventDefault();
+    knob.setPointerCapture(e.pointerId);
+    knob.focus();
+    el.classList.add('grabbed');
+  });
+  knob.addEventListener('pointermove', (e) => {
+    const v = grab.move(e.clientX);
+    if (v !== null) moveTo(v);
+  });
+  const letGo = (): void => {
+    if (!grab.dragging) return;
+    grab.up();
+    el.classList.remove('grabbed');
+    on.onLetGo?.();
+  };
+  knob.addEventListener('pointerup', letGo);
+  knob.addEventListener('pointercancel', letGo);
+  knob.addEventListener('keydown', (e) => {
+    const by = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+    if (by === undefined) return;
+    e.preventDefault();
+    moveTo(snap(value + by * range.step, range));
+    on.onLetGo?.();
+  });
+  return {
+    el,
+    show(view) {
+      value = view.value;
+      output.textContent = view.shown;
+      knob.style.left = fill.style.width = `${view.at * 100}%`;
+      knob.setAttribute('aria-valuenow', String(view.value));
+      knob.setAttribute('aria-valuetext', view.shown);
+      if (view.tick !== undefined) {
+        tick.hidden = false;
+        tick.style.left = `${view.tick * 100}%`;
+      }
+      if (view.note !== undefined) {
+        note.hidden = false;
+        note.textContent = view.note;
+      }
+      el.classList.toggle('unsaved', view.unsaved === true);
+      if (view.unsaved) title.append(mark);
+      else mark.remove();
+      if (reset) reset.disabled = view.atDefault === true;
+    },
+  };
 }
 
 void main().catch((e: unknown) => {
