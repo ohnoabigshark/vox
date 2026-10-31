@@ -35,3 +35,6 @@ same. Found 2026-10-31 by the test bench's tests (its summary counts taps as
 the game fills them, so it says 11). Not fixed on the `test-bench` branch,
 which doesn't change play. Options: count taps as a whole number and compare
 `taps * perTap` with a small allowance, or round `fill` as it's added.
+
+- 2026-10-31: fix it on a small branch of its own after `test-bench`
+  (decision n2 on the bench rework map), since it changes play.

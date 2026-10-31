@@ -84,6 +84,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   `tuning.ts` values (`docs/BENCH.md`). One go is a **rep**, as in
   practice. Its **situation** is the drive, tacklers, crowd and Hands gap a
   rep is played in.
+- **Default:** a value as `tuning.ts` has it, always kept behind whatever
+  is saved. The bench said "shipped" before its rework.
+- **Saved settings:** the values the Coach saved on the test bench, off
+  their defaults, in `saved-tuning.json`; the game plays the defaults with
+  these on top. **Unsaved:** a slider moved since its tab last saved.
 
 ## The field
 
