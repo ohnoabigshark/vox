@@ -7,6 +7,11 @@ its ring closes. Planned by grilling on the decision map
 approved; the item numbers below are the map's. It replaces the parked
 "Break it! test on catches" in `PLAN.md`.
 
+**The countdown** came after, on a second map
+(https://claude.ai/artifact/1i9hg9Dsw59gbsAj4aeTYR), 2026-10-31, two
+rounds, all approved: its items are cd-c1 to cd-c10 below (the second
+map's c1 to c10), where they would clash with the first map's.
+
 Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 `tuning.ts` holds each one times 0.8.
 
@@ -34,8 +39,14 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 ## The test (c1, s2, s3, s5, s6)
 
 - **The freeze:** the play stops with Jack hanging a yard short of the
-  receiver's hands, and **SNAG IT!** is called for half a second. There is
-  no "get ready" countdown: the first ring is the warning.
+  receiver's hands, and a **countdown** opens it, as it does Break it!:
+  "GET READY TO SNAG IT! 2… 1…" in the box, two seconds, the same
+  countdown and the same setting as the bar's, the mash's and the juke's
+  (cd-c1, cd-c3, cd-c8). As it ends, the first dot comes, with SNAG IT!
+  as the box's title (cd-c7). A tap during it does nothing. _Replaced:_
+  "SNAG IT! is called for half a second. There is no 'get ready'
+  countdown: the first ring is the warning." On the test bench the Coach
+  read the first ring wrong, as a countdown of the time left.
 - **The dots:** then the dots come, one after another, each 0.5 s after the
   last. Each dot's ring starts at twice the dot's size and closes onto it in
   0.8 s.
@@ -117,3 +128,31 @@ something playable"), so they are recorded here instead.
    ball.
 6. **The count of Break it!s:** a down with SNAG IT! still has its two
    Break it!s.
+
+## The countdown: tests, written first (cd-c10)
+
+1. After the freeze, SNAG IT!'s first dot appears when the countdown ends:
+   1.6 in sim seconds, 2.0 s on screen; every later dot moves back by the
+   same amount.
+2. During the countdown the view says "GET READY TO SNAG IT!" with whole
+   seconds left (2, then 1), and shows no dot; as it ends, the title is
+   SNAG IT! and dot 1 is up.
+3. A tap during the countdown hits nothing and costs nothing.
+4. One setting, `tapTests.ready`, sets both: moved, it moves the mash's
+   countdown and SNAG IT!'s first dot alike. The bench shows its slider on
+   the bar, mash, juke and SNAG IT! tabs, first in each (cd-c4), and saving
+   it on one tab saves it for all four. `breakit.ready` and `snag.call`
+   are gone.
+5. The balance bot still plays SNAG IT! and Break it! and grades them
+   (their existing tests, unchanged).
+
+The look is checked in a phone-sized screenshot.
+
+- **Not SHOO CROWS!** (cd-c9): it's a reaction to the crows landing in
+  live play, and a countdown would say when they land.
+- **Break it!'s chain countdown** (half a second for a grab hard on another,
+  `breakit.chainReady`) stays Break it!'s own: SNAG IT! can't chain.
+- **Order of work** (cd-c5): on `snag-countdown`, from `test-bench`, one
+  commit each: this plan; the countdown moved into `tapTests` (no change in
+  play); SNAG IT!'s countdown in the sim, the view and the box, with the
+  call removed and the bench's slider; the docs reconciled.
