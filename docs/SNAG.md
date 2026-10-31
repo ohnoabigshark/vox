@@ -92,6 +92,14 @@ dot in ten (as it gets a Break it! BAD about one time in ten), and report how
 often a contested ball is caught, so a run with SNAG IT! can be compared with
 one without. The numbers get tuned from those and from the Coach's play.
 
+- **The bot throws into contested balls** now (review a3, from commit
+  8b03608): it counts a SNAG IT! as a catch when it looks ahead at a throw
+  (`predictsCatch`), as a Coach who can win SNAG IT! would. So a run with
+  SNAG IT! and one without differ in the throws the bot picks, not only in
+  how contested balls end; compare them knowing that.
+- **The box stays 0.3 s after the grade** (`snag.linger`, review a1), so the
+  last dot's pop or crack is seen; the play goes on meanwhile.
+
 ## Tests, written first
 
 The map's u2 put the test scenarios to the Coach before the tests; the Coach
