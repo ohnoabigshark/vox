@@ -8,7 +8,7 @@
  * left), y upfield. Each drive starts its line of scrimmage at y = 0 and its
  * first-down line at y = 10. Times are seconds.
  */
-import type { FieldEvent } from '../content/fieldEvents';
+import type { EventLook, FieldEvent } from '../content/fieldEvents';
 import type { Play } from '../content/plays';
 
 export interface Vec {
@@ -541,7 +541,12 @@ export type ArcadeEvent =
       readonly replaced: string | null;
     }
   /** A field event went off (the frogs came down): `hit` are the bodies in it that it caught… */
-  | { readonly type: 'fieldEventWentOff'; readonly event: string; readonly hit: readonly number[] }
+  | {
+      readonly type: 'fieldEventWentOff';
+      readonly event: string;
+      readonly look: EventLook;
+      readonly hit: readonly number[];
+    }
   /** …and the carrier was one: tackled there, with the event's call (FROGGED!), or none. */
   | { readonly type: 'eventTackled'; readonly id: number; readonly call: string | null }
   /** One of your players ran through a pickup and took it (docs/PICKUPS.md). */

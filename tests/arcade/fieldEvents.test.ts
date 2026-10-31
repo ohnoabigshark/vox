@@ -202,3 +202,17 @@ describe('the call (x3, review r1)', () => {
     expect(tackled(null)).toEqual({ type: 'eventTackled', id: 2, call: null });
   });
 });
+
+describe('what went off (review r3)', () => {
+  it('the sim says which event went off and its look, so the game needn’t read the field', () => {
+    const s = playState([{ pos: v(4, 6), job: stand(v(4, 6)) }]);
+    s.field.fieldEvent = {
+      event: FROG_RAIN,
+      area: { shape: 'rect', x0: 1.9, x1: 9.1, y0: -1, y1: 16 },
+      left: DT * 2,
+    };
+    expect(ofType(run(s, 0.1).events, 'fieldEventWentOff')).toEqual([
+      { type: 'fieldEventWentOff', event: 'frogRain', look: 'frogRain', hit: [2] },
+    ]);
+  });
+});

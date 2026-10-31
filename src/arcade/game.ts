@@ -26,7 +26,7 @@ import { ArcadeFieldProps } from './render/fieldProps';
 import { ArcadeFrogRain } from './render/frogRain';
 import { ArcadePlainEvent } from './render/plainEvent';
 import { eventEditorLink, type EventPractice } from './content/eventLink';
-import { savedEventWarnings, type FieldEvent } from './content/fieldEvents';
+import { savedEventWarnings, type EventLook, type FieldEvent } from './content/fieldEvents';
 import { ArcadePickups } from './render/pickups';
 import { ArcadeIntro } from './render/intro';
 import { ArcadeOutro } from './render/outro';
@@ -198,8 +198,20 @@ export class ArcadeGame {
   private readonly sweep: ArcadeSweep;
   private readonly lines: ArcadeLines;
   private readonly routes: ArcadeRoutes;
-  private readonly frogRain: ArcadeFrogRain;
-  private readonly plainEvent: ArcadePlainEvent;
+  /**
+   * Each field event look's drawing and the sounds it goes off with: one
+   * entry a look, so a new look won't compile until it has both (review r15).
+   * Each drawing shows only events of its own look.
+   */
+  private readonly eventLooks: Readonly<
+    Record<
+      EventLook,
+      {
+        readonly draw: { update(state: RunState, origin: number, now: number): void };
+        readonly sounds: readonly SfxId[];
+      }
+    >
+  >;
   private readonly royalCrows: ArcadeRoyalCrows;
   private readonly queenCrown: ArcadeQueenCrown;
   private readonly fieldProps: ArcadeFieldProps;
@@ -272,8 +284,10 @@ export class ArcadeGame {
     this.view.hemi.intensity = SKY_FILL;
     this.lines = new ArcadeLines(scene);
     this.routes = new ArcadeRoutes(scene);
-    this.frogRain = new ArcadeFrogRain(scene);
-    this.plainEvent = new ArcadePlainEvent(scene);
+    this.eventLooks = {
+      frogRain: { draw: new ArcadeFrogRain(scene), sounds: ['burst', 'hop'] },
+      plain: { draw: new ArcadePlainEvent(scene), sounds: ['burst'] },
+    };
     this.royalCrows = new ArcadeRoyalCrows(scene);
     this.queenCrown = new ArcadeQueenCrown(scene);
     this.fieldProps = new ArcadeFieldProps(scene);
@@ -460,8 +474,9 @@ export class ArcadeGame {
     this.bodies.update(state, this.origin, dt, litPlayers(state));
     this.ball.update(state, this.origin, this.bodies, dt, performance.now() / 1000);
     this.sweep.update(state, this.origin);
-    this.frogRain.update(state, this.origin);
-    this.plainEvent.update(state, this.origin, performance.now() / 1000);
+    for (const look of Object.values(this.eventLooks)) {
+      look.draw.update(state, this.origin, performance.now() / 1000);
+    }
     this.royalCrows.update(state, this.origin);
     this.queenCrown.update(state, this.origin, performance.now() / 1000);
     this.controls.setShoo(shooShowing(state));
@@ -602,8 +617,7 @@ export class ArcadeGame {
           break;
         }
         case 'fieldEventWentOff':
-          play('burst');
-          if (this.state.field.fieldEvent?.event.look === 'frogRain') play('hop');
+          for (const id of this.eventLooks[e.look].sounds) play(id);
           break;
         case 'eventTackled':
           // An event with no call tackles quietly: never a blank word.

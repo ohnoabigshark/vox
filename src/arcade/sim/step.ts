@@ -344,7 +344,12 @@ function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
     b.vel = v(0, 0);
     if (b.side === 'defense') b.latch = null;
   }
-  events.push({ type: 'fieldEventWentOff', event: on.event.id, hit: caught.map((b) => b.id) });
+  events.push({
+    type: 'fieldEventWentOff',
+    event: on.event.id,
+    look: on.event.look,
+    hit: caught.map((b) => b.id),
+  });
   const carrier = carrierOf(state);
   if (carrier && caught.includes(carrier)) {
     events.push({ type: 'eventTackled', id: carrier.id, call: on.event.call });
