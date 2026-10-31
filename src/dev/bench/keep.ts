@@ -1,11 +1,12 @@
 /**
- * The test bench's settings, kept in this browser's storage between visits
- * (docs/BENCH.md, k4): the open tab, the situation, the sliders moved off
- * their defaults, and the toggles. What's kept is checked on the way back in: a
- * slider that's gone is dropped and a value out of reach is pulled inside
- * it; storage that can't be read starts from the defaults and says so.
+ * What the test bench keeps in this browser's storage between visits
+ * (docs/BENCH.md, k4 and r-s5): the open tab, the situation and the
+ * toggles. Not the sliders: the bench opens at what the game plays, its
+ * saved settings. What's kept is checked on the way back in: a situation
+ * out of range is pulled inside it, sliders kept before the rework are
+ * ignored, and storage that can't be read starts afresh and says so.
  */
-import { BENCH_TESTS, knobOf, reachOf, type BenchTest, type Settings } from './knobs';
+import { BENCH_TESTS, type BenchTest } from './knobs';
 import { FIRST_SITUATION, type Situation } from './reps';
 
 export interface Toggles {
@@ -18,14 +19,12 @@ export interface Toggles {
 export interface Kept {
   readonly test: BenchTest;
   readonly situation: Situation;
-  readonly settings: Settings;
   readonly toggles: Toggles;
 }
 
 export const FIRST_KEPT: Kept = {
   test: 'snag',
   situation: FIRST_SITUATION,
-  settings: {},
   toggles: { again: true, sound: true, buzz: true, timing: true },
 };
 
@@ -93,20 +92,12 @@ function readKept(saved: Record<string, unknown>): Kept {
       return [k, typeof v === 'number' ? Math.round(clamp(v, lo, hi)) : FIRST_SITUATION[k]];
     }),
   ) as unknown as Situation;
-  const settings: Record<string, number> = {};
-  for (const [path, v] of Object.entries(isRecord(saved.settings) ? saved.settings : {})) {
-    const knob = knobOf(path);
-    if (!knob || typeof v !== 'number') continue;
-    const { min, max } = reachOf(knob, path);
-    settings[path] = clamp(v, min, max);
-  }
   const t = isRecord(saved.toggles) ? saved.toggles : {};
   const toggle = (k: keyof Toggles): boolean =>
     typeof t[k] === 'boolean' ? (t[k] as boolean) : FIRST_KEPT.toggles[k];
   return {
     test,
     situation,
-    settings,
     toggles: {
       again: toggle('again'),
       sound: toggle('sound'),

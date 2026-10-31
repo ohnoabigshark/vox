@@ -9,15 +9,19 @@
 import { appendFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { Plugin } from 'vite';
-import { isLogLine } from '../src/dev/bench/log';
 
 export const BENCH_LOG_PATH = '__bench-log';
 
-/** Answer one request: GET is a probe, POST a line to append. */
+/**
+ * Answer one request: GET is a probe, POST a line to append. `isLine` is
+ * log.ts's `isLogLine`, loaded per request through Vite rather than by the
+ * config, since it reaches the saved settings file (tools/benchSave.ts).
+ */
 export async function handleBenchLog(
   method: string,
   body: string,
   append: (line: string) => Promise<void>,
+  isLine: (x: unknown) => Promise<boolean>,
 ): Promise<{ status: number; body: string }> {
   if (method === 'GET') return { status: 200, body: '{"recording":true}' };
   if (method !== 'POST') return { status: 405, body: 'GET or POST' };
@@ -27,7 +31,7 @@ export async function handleBenchLog(
   } catch {
     return { status: 400, body: 'not JSON' };
   }
-  if (!isLogLine(line)) return { status: 400, body: 'not a test bench log line' };
+  if (!(await isLine(line))) return { status: 400, body: 'not a test bench log line' };
   try {
     await append(`${JSON.stringify(line)}\n`);
   } catch (e) {
@@ -64,7 +68,13 @@ export function benchLogPlugin(file: string): Plugin {
         req.setEncoding('utf8');
         req.on('data', (chunk: string) => (body += chunk));
         req.on('end', () => {
-          void handleBenchLog(req.method ?? '', body, append).then((r) => {
+          void handleBenchLog(req.method ?? '', body, append, async (x) =>
+            (
+              (await server.ssrLoadModule(
+                '/src/dev/bench/log.ts',
+              )) as typeof import('../src/dev/bench/log')
+            ).isLogLine(x),
+          ).then((r) => {
             res.statusCode = r.status;
             res.end(r.body);
           });

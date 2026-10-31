@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { benchLogPlugin } from './tools/benchLog';
+import { benchSavePlugin } from './tools/benchSave';
 
 // Where the dev and preview servers listen. Loopback unless DEV_BIND says
 // otherwise: our droplet has a public address, so `--host`'s every-interface
@@ -21,7 +22,11 @@ const hmrPort = Number(process.env.DEV_HMR_PORT || '') || 443;
 const benchLog = process.env.BENCH_LOG || '';
 
 export default defineConfig({
-  plugins: [benchLogPlugin(benchLog)],
+  // The test bench's Save writes here (docs/BENCH.md, Saving); only the dev server has it.
+  plugins: [
+    benchLogPlugin(benchLog),
+    benchSavePlugin(resolve(import.meta.dirname, 'src/arcade/content/saved-tuning.json')),
+  ],
   server: {
     host,
     ...(proxiedHost

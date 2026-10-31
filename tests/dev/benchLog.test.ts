@@ -3,9 +3,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { copyText, knobsFor, pathOf } from '../../src/dev/bench/knobs';
-import { httpLog, repLine, settingsLine } from '../../src/dev/bench/log';
+import { httpLog, isLogLine, repLine, settingsLine } from '../../src/dev/bench/log';
 import type { RepResult, Situation } from '../../src/dev/bench/reps';
 import { fileAppender, handleBenchLog } from '../../tools/benchLog';
+
+const isLine = async (x: unknown): Promise<boolean> => isLogLine(x);
 
 /** docs/BENCH.md, tests 12-14. */
 
@@ -62,7 +64,7 @@ describe('the log', () => {
     const lines: string[] = [];
     const append = async (s: string): Promise<void> => void lines.push(s);
     const line = settingsLine('shoo', situation, {}, 'crows.window', NOW);
-    expect(await handleBenchLog('POST', JSON.stringify(line), append)).toMatchObject({
+    expect(await handleBenchLog('POST', JSON.stringify(line), append, isLine)).toMatchObject({
       status: 204,
     });
     expect(lines).toEqual([`${JSON.stringify(line)}\n`]);
@@ -72,15 +74,15 @@ describe('the log', () => {
       '[]',
       JSON.stringify({ ...line, kind: 'x' }),
     ]) {
-      expect((await handleBenchLog('POST', bad, append)).status, bad).toBe(400);
+      expect((await handleBenchLog('POST', bad, append, isLine)).status, bad).toBe(400);
     }
     expect(lines).toHaveLength(1);
-    expect(await handleBenchLog('GET', '', append)).toMatchObject({ status: 200 });
-    expect((await handleBenchLog('PUT', '', append)).status).toBe(405);
+    expect(await handleBenchLog('GET', '', append, isLine)).toMatchObject({ status: 200 });
+    expect((await handleBenchLog('PUT', '', append, isLine)).status).toBe(405);
     const broken = async (): Promise<void> => {
       throw new Error('disk full');
     };
-    expect(await handleBenchLog('POST', JSON.stringify(line), broken)).toEqual({
+    expect(await handleBenchLog('POST', JSON.stringify(line), broken, isLine)).toEqual({
       status: 500,
       body: 'disk full',
     });

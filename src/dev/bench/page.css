@@ -79,6 +79,28 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* A tab with changes not saved yet (r-s8). */
+.b-tabs .unsaved::after {
+  content: ' ●';
+  color: var(--b-on);
+}
+
+.b-tabs [aria-selected='true'].unsaved::after {
+  color: var(--b-night);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.b-save:not(:disabled) {
+  background: var(--b-on);
+  border-color: var(--b-on);
+  color: var(--b-night);
+  font-weight: 700;
+}
+
 .b-tabs [aria-selected='true'] {
   background: var(--b-on);
   border-color: var(--b-on);
@@ -86,7 +108,8 @@ input:focus-visible {
   font-weight: 700;
 }
 
-.b-status {
+.b-status,
+.b-saved {
   margin: 0;
   padding: 4px 8px;
   font-size: 0.85rem;
@@ -94,7 +117,8 @@ input:focus-visible {
   background: color-mix(in srgb, var(--b-good) 12%, transparent);
 }
 
-.b-status.off {
+.b-status.off,
+.b-saved.off {
   border-color: var(--b-bad);
   background: color-mix(in srgb, var(--b-bad) 14%, transparent);
 }

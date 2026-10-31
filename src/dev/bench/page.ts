@@ -5,6 +5,9 @@
  * is logged (log.ts); the status line says whether that's being recorded.
  */
 import './page.css';
+import savedFile from '../../arcade/content/saved-tuning.json' with { type: 'json' };
+import { checkSaved } from '../../arcade/content/savedTuning';
+import { savedTuningWarnings, tuningDefaults } from '../../arcade/content/tuning';
 import { unlockAudio } from '../../audio/context';
 import { getMixer } from '../../audio/mixer';
 import { RENDER_RATE } from '../../audio/music';
@@ -24,18 +27,26 @@ import {
   fromScreen,
   knobsFor,
   pathOf,
-  pathsOf,
   reachOf,
   round,
   defaultValue,
   showValue,
   toScreen,
   withValue,
-  withoutPaths,
   type BenchTest,
   type Settings,
 } from './knobs';
 import { httpLog, repLine, settingsLine, type LogLine } from './log';
+import {
+  httpSaver,
+  restoredTab,
+  saveLabel,
+  saveStatus,
+  savedAfter,
+  tabsWithUnsaved,
+  unsaved,
+  type SaveState,
+} from './save';
 import { summary, timingText, type Grade, type RepResult, type Situation } from './reps';
 
 const TAB: Readonly<Record<BenchTest, string>> = {
@@ -98,12 +109,14 @@ async function main(): Promise<void> {
       (t) => `<button role="tab" data-test="${t}">${TAB[t]}</button>`,
     ).join('')}</nav>
     <p class="b-status" role="status">Checking the log…</p>
+    <p class="b-saved" role="status"></p>
     <div class="b-stage"><div class="b-word" hidden></div><p class="b-idle">Tap GO</p></div>
     <p class="b-timing"></p>
     <p class="b-summary"></p>
     <div class="b-row">
       <button class="b-go">GO</button>
-      <button class="b-reset">Reset to defaults</button>
+      <button class="b-save">Saved</button>
+      <button class="b-reset">Restore defaults</button>
       <button class="b-copy">Copy settings</button>
     </div>
     <textarea class="b-copied" readonly hidden rows="8"></textarea>
@@ -127,12 +140,18 @@ async function main(): Promise<void> {
   const knobsEl = q('.b-knobs');
   const copied = q<HTMLTextAreaElement>('.b-copied');
   const copyButton = q('.b-copy');
+  const saveButton = q<HTMLButtonElement>('.b-save');
+  const savedEl = q('.b-saved');
 
   const store = benchStore(browserStorage());
   const loaded = await store.load();
   let kept: Kept = loaded.kept;
-  let problem = loaded.problem;
-  let settings: Settings = kept.settings;
+  let problem =
+    [loaded.problem, ...savedTuningWarnings].filter((x) => x !== null).join(' · ') || null;
+  // What the game plays (r-s5): the bench opens at it, and Save writes it.
+  let saved: Settings = checkSaved(savedFile, tuningDefaults).settings;
+  // What the sliders are at now.
+  let settings: Settings = saved;
   applySettings(settings);
 
   // ── The log: whether it's being recorded is always on show (never fail silently). ──
@@ -159,8 +178,8 @@ async function main(): Promise<void> {
     recording = ok;
     showStatus();
   });
-  const save = (): void => {
-    kept = { ...kept, settings };
+  // The tab, the situation and the toggles, kept on the phone (k4).
+  const keep = (): void => {
     store.save(kept).then(
       () => {
         if (problem === null) return;
@@ -238,10 +257,57 @@ async function main(): Promise<void> {
     summaryEl.textContent = summary(test(), kept.situation);
   };
   const renderTabs = (): void => {
+    const marked = tabsWithUnsaved(saved, settings);
     for (const b of app.querySelectorAll<HTMLButtonElement>('[data-test]')) {
       b.setAttribute('aria-selected', String(b.dataset.test === test()));
+      b.classList.toggle('unsaved', marked.includes(b.dataset.test as BenchTest));
     }
   };
+
+  // ── Save (docs/BENCH.md, Saving): each tab's own, through the hot-reload server. ──
+  const saver = httpSaver(`${import.meta.env.BASE_URL}__bench-save`);
+  let saveState: SaveState = { server: 'checking', inServedGame: true, error: null };
+  let saving = false;
+  const renderSave = (): void => {
+    const changes = unsaved(saved, settings, test()).length;
+    saveButton.textContent = saveLabel(changes);
+    saveButton.disabled = saveState.server !== 'up' || changes === 0 || saving;
+    const { text, bad } = saveStatus(saveState);
+    savedEl.textContent = text;
+    savedEl.classList.toggle('off', bad);
+    renderTabs();
+  };
+  void saver.probe().then((r) => {
+    saveState = r
+      ? { ...saveState, server: 'up', inServedGame: r.inServedGame }
+      : { ...saveState, server: 'none' };
+    renderSave();
+  });
+  saveButton.addEventListener('click', () => {
+    const next = savedAfter(saved, settings, test());
+    saving = true;
+    renderSave();
+    saver
+      .save(next)
+      .then(
+        (r) => {
+          saved = next;
+          saveState = { server: 'up', inServedGame: r.inServedGame, error: null };
+        },
+        (e: unknown) => {
+          saveState = { ...saveState, error: e instanceof Error ? e.message : String(e) };
+        },
+      )
+      .finally(() => {
+        saving = false;
+        renderKnobs();
+        renderSave();
+      });
+  });
+  // Moves not saved are gone on leaving (r-s5): ask first, where the browser lets us.
+  window.addEventListener('beforeunload', (e) => {
+    if (tabsWithUnsaved(saved, settings).length > 0) e.preventDefault();
+  });
   const renderSituation = (): void => {
     situationEl.innerHTML = '';
     for (const s of SITUATION.filter((x) => x.tests.includes(test()))) {
@@ -261,7 +327,7 @@ async function main(): Promise<void> {
         // A by-area slider edits the new drive's area.
         if (s.key === 'drive') renderKnobs();
         showSummary();
-        save();
+        keep();
       });
       situationEl.append(row.label);
     }
@@ -300,7 +366,7 @@ async function main(): Promise<void> {
         row.output.textContent = showValue(knob, value());
         showNote();
         showSummary();
-        save();
+        renderSave();
       });
       row.input.addEventListener('change', () =>
         record(settingsLine(test(), kept.situation, settings, path, now())),
@@ -309,7 +375,7 @@ async function main(): Promise<void> {
     }
   };
   const showTab = (): void => {
-    renderTabs();
+    renderSave();
     renderSituation();
     renderKnobs();
     showSummary();
@@ -322,7 +388,7 @@ async function main(): Promise<void> {
       bench.options.test = t;
       bench.rep = null;
       kept = { ...kept, test: t };
-      save();
+      keep();
       showTab();
     });
   }
@@ -332,15 +398,15 @@ async function main(): Promise<void> {
     box.addEventListener('change', () => {
       kept = { ...kept, toggles: { ...kept.toggles, [key]: box.checked } };
       bench.options.again = kept.toggles.again;
-      save();
+      keep();
     });
   }
   q('.b-go').addEventListener('click', () => bench.go());
   q('.b-reset').addEventListener('click', () => {
-    settings = withoutPaths(settings, knobsFor(test()).flatMap(pathsOf));
+    settings = restoredTab(settings, test());
     applySettings(settings);
-    save();
     renderKnobs();
+    renderSave();
     showSummary();
     record(
       settingsLine(

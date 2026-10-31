@@ -29,27 +29,47 @@ function resetNumbers(to: Tree, from: Tree): void {
 }
 
 /**
- * Set `live` to `defaults` with `saved` on top: each saved path replaces
- * just that default. Returns a warning for each saved entry left out (no
- * such setting, or not a number), so nothing saved is dropped silently.
+ * What of `saved` can be played over `defaults`: each entry naming a number
+ * in tuning.ts, with a number. Everything else is left out with a warning
+ * naming it, so nothing saved is dropped silently. The server checks a save
+ * with this before writing it, and the game as it loads it.
  */
-export function layerSaved(live: object, defaults: object, saved: unknown): string[] {
-  resetNumbers(live as Tree, defaults as Tree);
+export function checkSaved(
+  saved: unknown,
+  defaults: object,
+): { settings: Record<string, number>; warnings: string[] } {
   if (typeof saved !== 'object' || saved === null || Array.isArray(saved)) {
-    return ['saved-tuning.json is not an object of settings, so nothing saved was played'];
+    return {
+      settings: {},
+      warnings: ['saved-tuning.json is not an object of settings, so nothing saved was played'],
+    };
   }
+  const settings: Record<string, number> = {};
   const warnings: string[] = [];
   for (const [path, v] of Object.entries(saved)) {
-    const at = numberAt(live, path);
-    if (!at) {
+    if (!numberAt(defaults, path)) {
       warnings.push(`saved-tuning.json: ${path} is not a setting in tuning.ts, so it was left out`);
     } else if (typeof v !== 'number' || !Number.isFinite(v)) {
       warnings.push(
         `saved-tuning.json: ${path} is not a number (${JSON.stringify(v)}), so it was left out`,
       );
     } else {
-      at.parent[at.key] = v;
+      settings[path] = v;
     }
+  }
+  return { settings, warnings };
+}
+
+/**
+ * Set `live` to `defaults` with `saved` on top: each saved path replaces
+ * just that default. Returns the warnings for what was left out.
+ */
+export function layerSaved(live: object, defaults: object, saved: unknown): string[] {
+  resetNumbers(live as Tree, defaults as Tree);
+  const { settings, warnings } = checkSaved(saved, defaults);
+  for (const [path, v] of Object.entries(settings)) {
+    const at = numberAt(live, path);
+    if (at) at.parent[at.key] = v;
   }
   return warnings;
 }
