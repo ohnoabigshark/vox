@@ -136,7 +136,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   option touching about ten places (`main.ts`, `game.ts`'s option, field
   and two `createRun` calls, `run.ts`, `types.ts`): the setup mode is the
   time to gather them into one run-options object, so a new switch is one
-  edit.
+  edit. Hard mode and two-tap throwing already travel as a pair (`Modes`
+  from `readModes`, the game's options, `createRun`'s, `RunState`), and the
+  game and `createRun` default both to off while a link defaults both to
+  on: one type with one set of defaults (release mode's review, v6).
 - **More events like Frog Rain, starting with an event editor** (dev, then
   difficulty). _User, 2026-10-31: "more events like frog rain. along with
   that should be an event editor, like the tap event editor, that lets us

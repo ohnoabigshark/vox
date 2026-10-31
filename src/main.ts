@@ -27,7 +27,7 @@ const seed = Number(params.get('seed')) || Math.floor(Math.random() * 1e9);
 const practice = readPractice(location.search);
 // Hard mode (endless zones) and two-tap throwing (aim, then distance) are on unless
 // ?hard=0 or ?aim=1 turns them off (readModes).
-const modes = readModes(location.search);
+const modes = readModes(params);
 // ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area.
 // ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first drive, not drive 5.
 // ?win=1 goes straight from PLAY to the win cutscene (with ?video=1, frame by frame for

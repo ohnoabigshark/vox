@@ -106,7 +106,7 @@ describe('hard mode', () => {
   });
 });
 
-describe('two-tap throwing (?aim=2)', () => {
+describe('two-tap throwing', () => {
   const twoTap = (s: RunState): RunState => Object.assign(s, { twoTapAim: true });
 
   it('the first tap stops the line; the second lobs it to the marker', () => {

@@ -10,11 +10,11 @@ export interface Modes {
 }
 
 /**
- * A page's query read for its modes. Both are on unless the link turns one
- * off: `?hard=0` for the run that ends in a win, `?aim=1` for the one-tap
- * sweep. Any other value leaves the default (release mode's map, b2).
+ * A page's query, already parsed, read for its modes. Both are on unless the
+ * link turns one off: `?hard=0` for the run that ends in a win, `?aim=1` for
+ * the one-tap sweep. Any other value leaves the default (release mode's map,
+ * b2).
  */
-export function readModes(search: string): Modes {
-  const params = new URLSearchParams(search);
+export function readModes(params: URLSearchParams): Modes {
   return { hard: params.get('hard') !== '0', twoTapAim: params.get('aim') !== '1' };
 }

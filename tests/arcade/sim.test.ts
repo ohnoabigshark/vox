@@ -89,6 +89,27 @@ describe('a run', () => {
     expect(dispatch(s, { type: 'call', hand: 5 }).state.called).toBeNull();
   });
 
+  it('Flip draws every play in the pool as its mirror picture, routes and line-up', () => {
+    // Ours too, whose own line-ups mirror with them (review v11, 2026-10-31).
+    const across = (st: RunState) =>
+      st.field.players.filter((q) => q.slot >= 0).map((q) => q.pos.x);
+    const ends = (st: RunState) =>
+      st.field.players.flatMap((q) => (q.job.kind === 'route' ? [q.job.to.at(-1)!.x] : []));
+    const sorted = (xs: number[]) => [...xs].sort((a, b) => a - b);
+    for (const p of PLAY_POOL) {
+      const called = dispatch(createRun(4, undefined, 0, { playbook: [p] }), {
+        type: 'call',
+        hand: 0,
+      }).state;
+      const flipped = dispatch(called, { type: 'flip' }).state;
+      const mirrored = (xs: number[]) => sorted(xs.map((x) => -x));
+      expect(sorted(ends(flipped)), p.id).toEqual(mirrored(ends(called)));
+      sorted(across(flipped)).forEach((x, i) =>
+        expect(x, p.id).toBeCloseTo(mirrored(across(called))[i]!),
+      );
+    }
+  });
+
   it('Flip mirrors the called play where it stands', () => {
     // esrauch's plays, which all use the standard line-up: a play with its own
     // line-up mirrors that too (playbook.test.ts, flipped line-ups).
@@ -216,7 +237,7 @@ describe('the sideline', () => {
     );
     s.play = { index: s.playbook.findIndex((p) => p.handoff !== undefined), flipped: false };
     moveBodies(s);
-    expect(s.field.defenders[0]!.pos.x).toBeLessThanOrEqual(edge);
+    expect(s.field.defenders[0]!.pos.x).toBe(edge);
   });
 });
 

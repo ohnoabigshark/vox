@@ -108,8 +108,8 @@ describe('the practice link (Try it)', () => {
   // Two-tap throwing is the game's default (readModes), so Try with: Two-tap
   // off has to say so in the link (release mode's map, b2).
   it('plays the throw Try with: Two-tap chose, on or off', () => {
-    expect(readModes(`?${practiceQuery(mine, 'd1', true)}`).twoTapAim).toBe(true);
-    expect(readModes(`?${practiceQuery(mine, 'd1', false)}`).twoTapAim).toBe(false);
+    expect(readModes(new URLSearchParams(practiceQuery(mine, 'd1', true))).twoTapAim).toBe(true);
+    expect(readModes(new URLSearchParams(practiceQuery(mine, 'd1', false))).twoTapAim).toBe(false);
   });
 
   it('a broken play still says why, and still knows its sketch', () => {
