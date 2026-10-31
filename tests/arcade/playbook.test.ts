@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Assignment, Play } from '../../src/arcade/content/plays';
+import { PLAYS, type Assignment, type Play } from '../../src/arcade/content/plays';
 import { playSlot } from '../../src/arcade/content/team';
 import { createRun, dispatch, endDown, nextDown } from '../../src/arcade/sim/run';
 import { step } from '../../src/arcade/sim/step';
@@ -36,15 +36,17 @@ const firstHands = (s: RunState): (string | undefined)[][] => {
 };
 
 describe("a run's playbook", () => {
-  it('with the play pool, a seeded run deals exactly what it did before playbooks', () => {
-    // Recorded from the game before runs carried a playbook (2026-10-29).
-    expect(firstHands(createRun(1))).toEqual([
+  it("with esrauch's plays, a seeded run deals exactly what it did before playbooks", () => {
+    // Recorded from the game before runs carried a playbook (2026-10-29), when
+    // the pool was his five plays; ours joined it on 2026-10-31.
+    const his = { playbook: PLAYS };
+    expect(firstHands(createRun(1, undefined, 0, his))).toEqual([
       ['slants', 'deepShot', 'sweep'],
       ['deepShot', 'sweep', 'curlFlat'],
       ['deepShot', 'slants', 'sweep'],
       ['slants', 'dive', 'sweep'],
     ]);
-    expect(firstHands(createRun(7))).toEqual([
+    expect(firstHands(createRun(7, undefined, 0, his))).toEqual([
       ['curlFlat', 'dive', 'sweep'],
       ['curlFlat', 'dive', 'sweep'],
       ['curlFlat', 'sweep', 'dive'],

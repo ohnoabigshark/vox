@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { PLAYS } from '../../src/arcade/content/plays';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { aimContact, pocketTime, sweepAngle, sweepSpeed } from '../../src/arcade/sim/ball';
@@ -62,8 +63,8 @@ describe('a run', () => {
   it('deals different hands, with handoff cards among them', () => {
     const seen = new Set<number>();
     for (let seed = 1; seed <= 40; seed++) createRun(seed).hand.forEach((i) => seen.add(i));
-    expect(seen.size).toBe(PLAYS.length);
-    expect(PLAYS.some((p) => p.handoff !== undefined)).toBe(true);
+    expect(seen.size).toBe(PLAY_POOL.length);
+    expect(PLAY_POOL.some((p) => p.handoff !== undefined)).toBe(true);
   });
 
   it('nobody but the Bats moves before the call', () => {
@@ -89,7 +90,9 @@ describe('a run', () => {
   });
 
   it('Flip mirrors the called play where it stands', () => {
-    const s = createRun(4);
+    // esrauch's plays, which all use the standard line-up: a play with its own
+    // line-up mirrors that too (playbook.test.ts, flipped line-ups).
+    const s = createRun(4, undefined, 0, { playbook: PLAYS });
     const called = dispatch(s, { type: 'call', hand: 1 }).state;
     const flipped = dispatch(called, { type: 'flip' }).state;
     expect(flipped.play.flipped).toBe(true);
