@@ -1,0 +1,251 @@
+/* The test bench (dev/bench.html): phone first, the stage on top, the knobs below. */
+:root {
+  /* What the game's base.css gives its controls (base.css itself locks the page for play). */
+  --edge: 4px;
+  --scanlines: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.05) 0 2px, transparent 2px 4px);
+  --b-night: #14101f;
+  --b-panel: #1f1930;
+  --b-line: #3b3352;
+  --b-text: #f1ead8;
+  --b-dim: #a79fbb;
+  --b-on: #f0a14a;
+  --b-good: #6fcf6a;
+  --b-ok: #e7c14a;
+  --b-bad: #e5534b;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--b-night);
+  color: var(--b-text);
+  font:
+    15px/1.4 system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+main {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 10px max(12px, env(safe-area-inset-right)) 40px max(12px, env(safe-area-inset-left));
+  display: grid;
+  gap: 10px;
+}
+
+.b-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.b-head h1 {
+  margin: 0;
+  font:
+    400 1.6rem/1 'Creepster',
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--b-on);
+}
+
+.b-head a {
+  color: var(--b-dim);
+}
+
+.b-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+button {
+  font: inherit;
+  color: var(--b-text);
+  background: var(--b-panel);
+  border: 2px solid var(--b-line);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--b-on);
+  outline-offset: 2px;
+}
+
+.b-tabs [aria-selected='true'] {
+  background: var(--b-on);
+  border-color: var(--b-on);
+  color: var(--b-night);
+  font-weight: 700;
+}
+
+.b-status {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  border-left: 4px solid var(--b-good);
+  background: color-mix(in srgb, var(--b-good) 12%, transparent);
+}
+
+.b-status.off {
+  border-color: var(--b-bad);
+  background: color-mix(in srgb, var(--b-bad) 14%, transparent);
+}
+
+/* The stage: the game's own test screen draws in here (ArcadeControls fills it). */
+.b-stage {
+  position: relative;
+  height: min(54vh, 520px);
+  min-height: 340px;
+  overflow: hidden;
+  border: 2px solid var(--b-line);
+  background: radial-gradient(ellipse at 50% 30%, #3b2a55, #1a1328 70%);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: 'Creepster', system-ui, sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.b-idle {
+  position: absolute;
+  inset: auto 0 12px;
+  margin: 0;
+  text-align: center;
+  color: var(--b-dim);
+  pointer-events: none;
+}
+
+.b-word {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 78%;
+  text-align: center;
+  font-size: 2.6rem;
+  pointer-events: none;
+  text-shadow: 3px 3px 0 #000;
+  z-index: 2;
+}
+
+.b-word.great {
+  color: var(--b-good);
+}
+.b-word.ok {
+  color: var(--b-ok);
+}
+.b-word.bad {
+  color: var(--b-bad);
+}
+
+.b-timing,
+.b-summary {
+  margin: 0;
+  font:
+    0.9rem/1.35 ui-monospace,
+    monospace;
+  min-height: 1.35em;
+}
+
+.b-summary {
+  color: var(--b-dim);
+}
+
+.b-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.b-go {
+  background: var(--b-on);
+  border-color: var(--b-on);
+  color: var(--b-night);
+  font-weight: 700;
+  padding-inline: 22px;
+}
+
+.b-toggles label {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding-right: 6px;
+}
+
+.b-copied {
+  width: 100%;
+  font:
+    0.8rem ui-monospace,
+    monospace;
+  background: var(--b-panel);
+  color: var(--b-text);
+  border: 2px solid var(--b-line);
+}
+
+.b-situation,
+.b-knobs {
+  display: grid;
+  gap: 6px;
+}
+
+.b-situation {
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--b-line);
+}
+
+.b-slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 4px 6px;
+}
+
+.b-slider.changed {
+  background: color-mix(in srgb, var(--b-on) 14%, transparent);
+}
+
+.b-slider output {
+  font:
+    600 0.9rem ui-monospace,
+    monospace;
+}
+
+.b-slider small {
+  grid-column: 1 / -1;
+  color: var(--b-dim);
+  font:
+    0.72rem ui-monospace,
+    monospace;
+}
+
+.b-track {
+  grid-column: 1 / -1;
+  position: relative;
+  display: block;
+}
+
+.b-track input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--b-on);
+}
+
+/* The shipped value, under the track. */
+.b-tick {
+  position: absolute;
+  bottom: -3px;
+  width: 2px;
+  height: 7px;
+  margin-left: -1px;
+  background: var(--b-text);
+  opacity: 0.55;
+  pointer-events: none;
+}

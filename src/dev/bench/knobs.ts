@@ -204,3 +204,19 @@ export function copyText(test: BenchTest, drive: number, settings: Settings): st
 export function round(v: number): number {
   return +v.toFixed(4);
 }
+
+/** The knob that edits a path, or null if none does (a slider that's gone). */
+export function knobOf(path: string): Knob | null {
+  return KNOBS.find((x) => pathsOf(x).includes(path)) ?? null;
+}
+
+/** The settings with `path` at `v`: kept only while it's off shipped. */
+export function withValue(settings: Settings, path: string, v: number): Settings {
+  const rest = withoutPaths(settings, [path]);
+  return round(v) === round(shippedValue(path)) ? rest : { ...rest, [path]: round(v) };
+}
+
+/** The settings with these paths back as shipped. */
+export function withoutPaths(settings: Settings, paths: readonly string[]): Settings {
+  return Object.fromEntries(Object.entries(settings).filter(([p]) => !paths.includes(p)));
+}

@@ -17,6 +17,8 @@ import {
   shippedValue,
   toScreen,
   tuningValue,
+  withValue,
+  withoutPaths,
   type Knob,
 } from '../../src/dev/bench/knobs';
 import {
@@ -127,6 +129,15 @@ describe('the knobs', () => {
     expect(back.closesAt - back.appearsAt).toBe(0.64);
   });
 
+  it('3: a slider moved back to shipped drops out of the settings, and Reset drops the tab', () => {
+    const close = withValue({}, 'snag.close', 0.56);
+    expect(close).toEqual({ 'snag.close': 0.56 });
+    expect(withValue(close, 'snag.close', 0.64)).toEqual({});
+    expect(withoutPaths({ ...close, 'crows.window': 0.7 }, ['snag.close'])).toEqual({
+      'crows.window': 0.7,
+    });
+  });
+
   it("4: a by-area slider edits the picked drive's area", () => {
     const sweet = knob('breakit.byArea.{area}.sweet');
     expect(pathOf(sweet, 7)).toBe('breakit.byArea.1.sweet');
@@ -198,6 +209,8 @@ describe('the reps', () => {
     expect(first?.off).toBeLessThan(0.05 + DT / TIME_SCALE);
     expect(second).toEqual({ off: null, hit: false });
     expect(timingText(result.timing)).toMatch(/^\+0\.0[56] hit · none$/);
+    // Before a dot is played, it's still to come.
+    expect(timingText(startRep('snag', at(5), 3).timing)).toBe('… · …');
   });
 
   it('10: the bar times the tap from the middle of the sweet spot', () => {
@@ -267,9 +280,10 @@ describe('the reps', () => {
   it('11: with Again on the next rep starts a second after the grade; off, it waits for GO', () => {
     const bench = new Bench({ test: 'shoo', situation: at(5), again: true });
     bench.go();
+    bench.press({ shoo: true });
     let finished: RepResult | null = null;
-    for (let i = 0; i < 200 && !finished; i++) finished = bench.tick(1 / 60).finished;
-    expect(finished?.grade).toBe('bad');
+    for (let i = 0; i < 10 && !finished; i++) finished = bench.tick(1 / 60).finished;
+    expect(finished?.grade).toBe('great');
     expect(bench.reps).toBe(1);
     bench.tick(0.9);
     expect(bench.reps).toBe(1);
@@ -279,10 +293,19 @@ describe('the reps', () => {
 
     const waits = new Bench({ test: 'shoo', situation: at(5), again: false });
     waits.go();
+    waits.press({ shoo: true });
     for (let i = 0; i < 300; i++) waits.tick(1 / 60);
     expect(waits.reps).toBe(1);
-    expect(waits.rep?.result?.grade).toBe('bad');
+    expect(waits.rep?.result?.grade).toBe('great');
     waits.go();
     expect(waits.reps).toBe(2);
+  });
+
+  it('11: Again stops after a rep nobody tapped in', () => {
+    const bench = new Bench({ test: 'shoo', situation: at(5), again: true });
+    bench.go();
+    for (let i = 0; i < 300; i++) bench.tick(1 / 60);
+    expect(bench.reps).toBe(1);
+    expect(bench.rep?.result?.grade).toBe('bad');
   });
 });

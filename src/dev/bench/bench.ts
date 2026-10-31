@@ -1,7 +1,8 @@
 /**
  * The test bench's loop (docs/BENCH.md, k3): the rep on now, stepped at the
  * sim's fixed rate from screen time, with the Coach's taps; and Again, which
- * starts the next rep a second after the grade.
+ * starts the next rep a second after the grade, if the Coach tapped in this
+ * one (so a bench left alone stops, rather than logging reps nobody played).
  */
 import { DT, TIME_SCALE } from '../../arcade/content/tuning';
 import type { ArcadeEvent, StepInput } from '../../arcade/sim/types';
@@ -28,6 +29,8 @@ export class Bench {
   private pending: StepInput = {};
   /** Screen seconds until Again starts the next rep, once there's a grade. */
   private wait: number | null = null;
+  /** Whether the Coach has tapped in this rep. */
+  private touched = false;
 
   constructor(readonly options: BenchOptions) {}
 
@@ -39,11 +42,13 @@ export class Bench {
     this.accumulator = 0;
     this.pending = {};
     this.wait = null;
+    this.touched = false;
   }
 
   /** A tap, for the next step. */
   press(input: StepInput): void {
     this.pending = { ...this.pending, ...input };
+    if (this.rep && !this.rep.result) this.touched = true;
   }
 
   /** Run `screen` seconds: the events they bring, and the result if the rep ended in them. */
@@ -54,7 +59,7 @@ export class Bench {
     if (rep.result) {
       if (this.wait !== null) {
         this.wait -= screen;
-        if (this.wait <= 0 && this.options.again) this.go();
+        if (this.wait <= 0 && this.options.again && this.touched) this.go();
       }
       return { events, finished: null };
     }

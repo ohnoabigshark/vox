@@ -53,6 +53,7 @@ export default defineConfig({
               devAudio: resolve(import.meta.dirname, 'dev/audio.html'),
               devLyrics: resolve(import.meta.dirname, 'dev/lyrics.html'),
               devPlays: resolve(import.meta.dirname, 'dev/plays.html'),
+              devBench: resolve(import.meta.dirname, 'dev/bench.html'),
             }),
       },
     },

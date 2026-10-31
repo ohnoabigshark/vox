@@ -35,14 +35,15 @@ export type LogLine =
       readonly timing: Timing;
     };
 
-/** The line for a slider let go at `path`, with the test's whole settings. */
+/** The line for a slider let go at `path` (or a Reset of several), with the test's whole settings. */
 export function settingsLine(
   test: BenchTest,
   situation: Situation,
   settings: Settings,
-  path: string,
+  path: string | readonly string[],
   now: number,
 ): LogLine {
+  const paths = typeof path === 'string' ? [path] : path;
   const value = (p: string): number => round(settings[p] ?? shippedValue(p));
   const all = Object.fromEntries(
     knobsFor(test).map((k) => [pathOf(k, situation.drive), value(pathOf(k, situation.drive))]),
@@ -51,7 +52,7 @@ export function settingsLine(
     at: new Date(now).toISOString(),
     kind: 'settings',
     test,
-    changed: { [path]: value(path) },
+    changed: Object.fromEntries(paths.map((p) => [p, value(p)])),
     situation,
     settings: all,
   };

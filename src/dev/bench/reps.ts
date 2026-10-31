@@ -50,10 +50,13 @@ export type Timing =
       readonly window: number;
       readonly side: 'right' | 'wrong' | null;
     }
-  /** Each dot, early (−) or late of its ring closing, or null if it wasn't tapped. */
+  /**
+   * Each dot, early (−) or late of its ring closing (off null if it wasn't
+   * tapped); null while it's still to play.
+   */
   | {
       readonly test: 'snag';
-      readonly dots: readonly { readonly off: number | null; readonly hit: boolean }[];
+      readonly dots: readonly ({ readonly off: number | null; readonly hit: boolean } | null)[];
     }
   /** The reaction to the landing, out of the window. */
   | { readonly test: 'shoo'; readonly reaction: number | null; readonly window: number };
@@ -131,7 +134,7 @@ export function startRep(test: BenchTest, situation: Situation, seed: number): R
         return reaching;
       });
       startSnag(state, { receiver, defenders: crowd }, qb.pos, events);
-      const dots = state.snag?.dots.map(() => ({ off: null, hit: false })) ?? [];
+      const dots = state.snag?.dots.map(() => null) ?? [];
       timing = { test, dots };
       break;
     }
@@ -253,9 +256,11 @@ export function timingText(timing: Timing): string {
     case 'snag':
       return timing.dots
         .map((d) =>
-          d.off === null
-            ? 'none'
-            : `${signed(d.off)} ${d.hit ? 'hit' : d.off < 0 ? 'early' : 'late'}`,
+          d === null
+            ? '…'
+            : d.off === null
+              ? 'none'
+              : `${signed(d.off)} ${d.hit ? 'hit' : d.off < 0 ? 'early' : 'late'}`,
         )
         .join(' · ');
     case 'shoo':
