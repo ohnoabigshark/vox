@@ -114,7 +114,7 @@ export interface ArcadeOptions {
   /** Two-tap throwing (?aim=2): the first tap stops the line, the second picks how far. */
   twoTapAim?: boolean;
   /** SNAG IT! from the first drive (?snag=1), not only from drive 5 (docs/SNAG.md). */
-  snag?: boolean;
+  snagAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
   /**
@@ -187,7 +187,7 @@ export class ArcadeGame {
   private readonly video: boolean;
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
-  private readonly snag: boolean;
+  private readonly snagAlways: boolean;
   /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
   private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
   /** Reads the play editor's sketches in the game; none without it. */
@@ -244,7 +244,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    this.snag = options.snag ?? false;
+    this.snagAlways = options.snagAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
@@ -783,13 +783,13 @@ export class ArcadeGame {
     if (this.practice)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
-        snag: this.snag,
+        snagAlways: this.snagAlways,
         practice: this.practice.play,
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
-      snag: this.snag,
+      snagAlways: this.snagAlways,
       playbook: [...PLAY_POOL, ...sketches],
     });
   }

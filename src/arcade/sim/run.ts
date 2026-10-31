@@ -110,7 +110,7 @@ export function createRun(
     readonly hard?: boolean;
     readonly twoTapAim?: boolean;
     /** ?snag=1: SNAG IT! from the first drive. */
-    readonly snag?: boolean;
+    readonly snagAlways?: boolean;
     /** The plays it deals from; the whole play pool if not given. */
     readonly playbook?: readonly Play[];
     /**
@@ -127,7 +127,7 @@ export function createRun(
     taken: [],
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
-    snagAlways: options.snag ?? false,
+    snagAlways: options.snagAlways ?? false,
     step: 0,
     time: 0,
     phase: 'setup',

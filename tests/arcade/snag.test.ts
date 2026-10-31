@@ -195,7 +195,7 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
   });
 
   it('?snag=1 turns it on from drive 1', () => {
-    const base = createRun(1, undefined, 0, { snag: true });
+    const base = createRun(1, undefined, 0, { snagAlways: true });
     expect(base.snagAlways).toBe(true);
     const s = playState(
       [{ pos: v(4.464, 5.814), stats: { hands: 60 }, job: stand(v(4.464, 5.814)) }],
