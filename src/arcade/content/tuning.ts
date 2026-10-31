@@ -56,8 +56,11 @@ export const arcadeTuning = {
      * (within the range: a lighter blocker can only hold it).
      */
     drive: { base: 0.8, perHeft: 0.9, min: 0, max: 4 },
-    /** A tackler shaken off in Break it! lies there this long. */
+    /** A tackler shaken off in Break it! (or knocked off a SNAG IT! GREAT) lies there this long… */
     brokenTime: 1.0,
+    /** …sent flying this fast (yards a second); a pancake or a scatter goes at `knockSpeed`. */
+    brokenSpeed: 5,
+    knockSpeed: 4,
     /** Bodies this close (beyond touching) count as contact for a tackle or a sack. */
     slop: 0.1,
     /**
@@ -164,6 +167,39 @@ export const arcadeTuning = {
     dragPerHeft: 0.5,
     minDrag: 0.5,
     maxDrag: 4,
+  },
+  /**
+   * SNAG IT! (docs/SNAG.md): a contested ball, from drive `fromDrive`, is a
+   * test of dots in a box, each tapped as its ring closes. Times are sim
+   * seconds (the screen's times 0.8); positions are shares of the box.
+   */
+  snag: {
+    fromDrive: 5,
+    /** "SNAG IT!" is called this long before the first dot (half a second on screen). */
+    call: 0.4,
+    /** A ring closes onto its dot this long after the dot shows (0.8 s on screen)… */
+    close: 0.64,
+    /** …and the next dot shows this share of that later (0.5 s on screen). */
+    gapShare: 0.625,
+    /** Past this drive, the ring closes this much sooner each drive, down to the floor (0.5 s on screen). */
+    fasterAfter: 10,
+    perDrive: 0.032,
+    closeFloor: 0.4,
+    /** A tap this close to the ring closing, either side, is a hit (0.15 s on screen). */
+    window: 0.12,
+    /** The box stays this long after the grade, so the last dot's pop or crack is seen (0.3 s on screen). */
+    linger: 0.24,
+    /** 2 dots on drives 5-8, then one more every `moreEvery` drives (an area's four), never under 2 or over 5. */
+    minDots: 2,
+    maxDots: 5,
+    moreEvery: 4,
+    /** One fewer dot when the receiver's Hands beat the best defender's by this much; one more the other way. */
+    handsGap: 20,
+    /** Each dot's middle stays this far in from the box's edges… */
+    margin: 0.14,
+    /** …at least this far from the two dots before it, and at most this far from the last. */
+    minApart: 0.33,
+    maxApart: 0.5,
   },
   /** Hard mode (?hard=1): the endless run. */
   hard: {

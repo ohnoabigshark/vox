@@ -95,6 +95,10 @@ export class ArcadeBall {
         this.ball.position.copy(toWorld(lerp(ball.from, ball.target, u), origin, 1 + arc));
         break;
       }
+      case 'contested':
+        // SNAG IT!: it hangs a yard short of the receiver's hands, trembling, while the Coach taps.
+        this.ball.position.copy(toWorld(ball.pos, origin, 1.1 + 0.04 * Math.sin(clock * 40)));
+        break;
       case 'carried': {
         const head = bodies.headOf(ball.by);
         const runner = state.field.players.find((p) => p.id === ball.by);

@@ -16,7 +16,9 @@
  * ten at an even match: on the bar it aims for the middle of the sweet
  * spot with a timing error, it mashes at about 7½ taps a second, and it
  * jukes the right way 91% of the time, about a quarter second after the
- * arrow shows.
+ * arrow shows. In SNAG IT! (docs/SNAG.md) it taps each dot as its ring
+ * closes, missing about one dot in ten, and it throws into a contested ball
+ * as it would to a catch (SNAG IT! makes it the Coach's to win).
  *
  * BALANCE_SCENARIO='{"name": "Hard", "hard": true, "perks": true}' plays
  * hard mode (until the run is lost) and reports how many drives runs win.
@@ -32,6 +34,8 @@ import { FORM_STATS } from '../src/arcade/content/team';
 import { rngFor } from '../src/arcade/sim/random';
 import { plus } from '../src/arcade/sim/stats';
 import { breakMarker, jukeShowing } from '../src/arcade/sim/breakit';
+import { DT } from '../src/arcade/content/tuning';
+import { dotOpen } from '../src/arcade/sim/snag';
 import { canThrow, step } from '../src/arcade/sim/step';
 import type { ArcadeEvent, Form, Role, RunState, Stats, StepInput } from '../src/arcade/sim/types';
 import { dist } from '../src/arcade/sim/vec';
@@ -74,6 +78,8 @@ const BOT = {
   jukeReaction: 0.26,
   jukeSpread: 0.07,
   jukeRight: 0.91,
+  /** SNAG IT!: the share of dots it misses (it taps the rest right as the ring closes). */
+  snagMiss: 0.1,
   ...(JSON.parse(process.env.BOT ?? '{}') as object),
 };
 
@@ -140,6 +146,8 @@ interface Tally {
   runGrabbers: Map<string, number>;
   /** Break it! results by kind: "bar tackle" → count. */
   breakResults: Map<string, number>;
+  /** SNAG IT! grades: "great" → count. */
+  snagResults: Map<string, number>;
 }
 
 const bump = (m: Map<string, number>, k: string, by = 1): void => {
@@ -157,6 +165,9 @@ interface Plan {
   /** SHOO!: when it saw the crows land, and how long it'll take to tap. */
   shooSaw: number | null;
   shooReaction: number;
+  /** SNAG IT!: which one (its start), and the dots it'll miss. */
+  snagAt: number | null;
+  snagSkips: boolean[];
 }
 
 /** A standard normal draw (Box-Muller). */
@@ -199,8 +210,9 @@ function predictsCatch(state: RunState, left: number): boolean {
     const r = step(s, i === 0 ? { throw: true } : {});
     s = r.state;
     for (const e of r.events) {
-      if (e.type === 'caught') {
-        const by = s.field.players.find((p) => p.id === e.id);
+      if (e.type === 'caught' || e.type === 'snagStarted') {
+        const id = e.type === 'caught' ? e.id : e.receiver;
+        const by = s.field.players.find((p) => p.id === id);
         return (by?.pos.y ?? -Infinity) >= wantedDepth(state, left);
       }
       if (e.type === 'batted' || e.type === 'incomplete' || e.type === 'downEnded') return false;
@@ -210,6 +222,19 @@ function predictsCatch(state: RunState, left: number): boolean {
 }
 
 function botInput(state: RunState, rng: Rng, plan: Plan): StepInput {
+  if (state.phase === 'snag' && state.snag) {
+    const t = state.snag;
+    if (plan.snagAt !== t.startedAt) {
+      plan.snagAt = t.startedAt;
+      plan.snagSkips = t.dots.map(() => rng.next() < BOT.snagMiss);
+    }
+    // The step this input lands on: tap the dot whose ring closes then.
+    const next = state.time + DT;
+    const i = t.dots.findIndex(
+      (d, k) => dotOpen(d, next) && !plan.snagSkips[k] && Math.abs(next - d.closesAt) <= DT / 2,
+    );
+    return i >= 0 ? { snag: i } : {};
+  }
   if (state.phase === 'breakit' && state.tackle) {
     const t = state.tackle;
     const fresh = plan.tackleAt !== t.startedAt;
@@ -303,6 +328,9 @@ function count(
       case 'breakResult':
         bump(t.breakResults, `${state.tackle?.kind ?? '?'} ${e.outcome}`);
         break;
+      case 'snagResult':
+        bump(t.snagResults, e.grade);
+        break;
       case 'brokeTackle':
         t.breaks++;
         break;
@@ -362,6 +390,8 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     reaction: 0.3,
     shooSaw: null,
     shooReaction: 0.3,
+    snagAt: null,
+    snagSkips: [],
   };
   const ran = { now: false, grabbed: false };
   let driveKey = '';
@@ -465,6 +495,15 @@ function report(scenario: Scenario, t: Tally): void {
     const all = [...t.breakResults.values()].reduce((a, n) => a + n, 0);
     console.log(`  Break it! BAD ${pct(bad, all)} · ${kinds.join(' · ')}`);
   }
+  {
+    const n = (g: string): number => t.snagResults.get(g) ?? 0;
+    const all = n('great') + n('ok') + n('bad');
+    if (all > 0) {
+      console.log(
+        `  SNAG IT! ${all} · GREAT ${pct(n('great'), all)} OK ${pct(n('ok'), all)} BAD ${pct(n('bad'), all)}`,
+      );
+    }
+  }
   if (t.runGrabs.length > 0) {
     const g = [...t.runGrabs].sort((a, b) => a - b);
     const q = (f: number): string => (g[Math.floor(f * (g.length - 1))] ?? 0).toFixed(1);
@@ -509,6 +548,7 @@ for (const scenario of SCENARIOS) {
     runGrabs: [],
     runGrabbers: new Map(),
     breakResults: new Map(),
+    snagResults: new Map(),
   };
   for (let seed = 1; seed <= RUNS; seed++) playRun(seed, scenario, t);
   report(scenario, t);

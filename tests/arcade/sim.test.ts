@@ -7,7 +7,9 @@ import {
   createRun,
   dispatch,
   downAndDistance,
+  downOn,
   endDown,
+  frozenForTest,
   nextDown,
   setUpDrive,
   startingRoster,
@@ -17,7 +19,7 @@ import { canThrow, forceBreakKind, step } from '../../src/arcade/sim/step';
 import { pathXAt } from '../../src/arcade/sim/ai';
 import { propsForDrive } from '../../src/arcade/sim/props';
 import { DT } from '../../src/arcade/content/tuning';
-import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
+import type { ArcadeEvent, Phase, RunState } from '../../src/arcade/sim/types';
 import { dist, v } from '../../src/arcade/sim/vec';
 import {
   body,
@@ -1182,5 +1184,22 @@ describe('a handoff runs its play', () => {
     const r = run(s, 2.5);
     const carrier = r.state.field.players.find((p) => p.slot === 2)!;
     expect(carrier.pos.x).toBeLessThan(-3.5);
+  });
+});
+
+describe('which phases a down is on in (review a10)', () => {
+  it('a down is on from the line-up to the end of the play, through a frozen test; a test freezes it', () => {
+    const phases: Phase[] = [
+      'setup',
+      'play',
+      'breakit',
+      'snag',
+      'downOver',
+      'draft',
+      'over',
+      'won',
+    ];
+    expect(phases.filter(downOn)).toEqual(['setup', 'play', 'breakit', 'snag']);
+    expect(phases.filter(frozenForTest)).toEqual(['breakit', 'snag']);
   });
 });

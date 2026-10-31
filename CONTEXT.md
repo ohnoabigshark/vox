@@ -31,6 +31,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   Queendom, Frederick's Farm). Upstream's code and hard mode also say
   **zone** for the same thing.
 - **Drive:** four downs to gain 10 yards. **Down:** one play.
+- **Level** _(ours)_: a drive's number in the run, counting from 1 (the
+  Candy Queendom's first drive is 5), as `driveNumber` gives it; SNAG IT!
+  grows with it (`docs/SNAG.md`).
 - **Line of scrimmage** and **first-down line:** where the down starts, and
   10 yards past where the drive started.
 - **Boss:** the area's last drive, with its own gimmick (Frog Rain, the
@@ -91,3 +94,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   and reach.
 - **Break it!:** the tap test when a defender grabs the carrier: a break, a
   drag or a tackle.
+- **SNAG IT!** _(ours)_: the tap test on a **contested** ball, one a
+  receiver and a defender could both get to: dots pop up one after
+  another, each tapped as its ring closes. GREAT, OK or BAD: caught and
+  free, caught and tackled, or batted (`docs/SNAG.md`). In code, the
+  `snag` phase. It isn't a Break it! and doesn't count toward their two a
+  down. _Avoid:_ "catch Break it!".

@@ -66,18 +66,20 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   on the `harder-not-busier` branch. _User, 2026-10-30: "increasing
   difficulty right now really just adds more players and makes the screen
   really busy."_
-- **Next, after harder-not-busier: a Break it! test on catches.** Once the
-  run is far enough along, a catch can be contested by a new kind of Break
-  it!: a box on screen, placed like the other tests but a little bigger,
-  holds X dots, and the Coach taps every one within Y seconds. X runs from 2
-  to 5, set by the level, how many defenders' catch reach is near the ball,
-  and the receiver's Hands (the formula is open). Y starts at about 5
-  seconds and drops half a second each level past 10. _User, 2026-10-30:
-  "let's park this for doing right after we finish the general difficulty
-  improvements."_ Open for its grilling: what "a certain number of floors"
-  and "level" count (zones or drives won); what a miss costs (an
-  incomplete, a batted ball, or later a pick); whether it counts toward
-  Break it!'s two a down; the dots' size against a thumb.
+- **SNAG IT!**, a Break it!-style test on contested catches: dots pop up
+  one after another, and the Coach taps each as a ring closes on it. From
+  drive 5, every contested ball goes to it. Grilled 2026-10-30 (c1–c6,
+  s1–s8, u1–u2, all approved); the design is `docs/SNAG.md`. Built on the
+  `snag-it` branch. It was parked here as "a Break it! test on catches" (a
+  box of dots to tap in Y seconds), which the grilling turned into rings.
+- **The tip drill, a second catch test.** The ball pops up off the
+  defender's hands and the Coach taps as it drops onto a bar, three times,
+  juggling it until it's held: one spot, pure timing. It was option C on
+  the SNAG IT! map. _User, 2026-10-30: "I like the tip drill idea too, and
+  we should park that as another catch challenge."_ Open for its grilling:
+  whether a contested catch picks SNAG IT! or the tip drill at random (as
+  Break it! picks its three), or each fits a kind of catch (a lob, a
+  bullet); how many pops, and how fast; what it grades on.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in

@@ -91,6 +91,8 @@ export type Ball =
       readonly lob?: boolean;
     }
   | { readonly at: 'carried'; readonly by: number }
+  /** SNAG IT! (docs/SNAG.md): it hangs just short of the receiver's hands while the test is on. */
+  | { readonly at: 'contested'; readonly pos: Vec }
   | { readonly at: 'dead'; readonly pos: Vec; readonly how: DeadBall };
 
 export type DeadBall = 'batted' | 'incomplete' | 'sacked' | 'tackled';
@@ -228,6 +230,34 @@ export type Tackle = {
 
 export type BreakKind = Tackle['kind'];
 
+/**
+ * SNAG IT! (docs/SNAG.md): a contested ball, the play frozen while the Coach
+ * taps each dot as its ring closes. Dots are placed in a square box, as
+ * shares of its sides (0 to 1, x left to right, y top to bottom).
+ */
+export interface Snag {
+  readonly startedAt: number;
+  /** Who'd catch it, and the defenders reaching for it too (the first is the one that'd bat it). */
+  readonly receiver: number;
+  readonly defenders: readonly number[];
+  readonly dots: SnagDot[];
+}
+
+export interface SnagDot {
+  readonly x: number;
+  readonly y: number;
+  /** When it shows, and when its ring closes onto it (sim time). */
+  readonly appearsAt: number;
+  readonly closesAt: number;
+  /** Hit or missed, or null while it's still to play. */
+  result: SnagDotResult;
+}
+
+/** How a SNAG IT! dot went: hit, missed, or null while it's still to play. */
+export type SnagDotResult = 'hit' | 'miss' | null;
+
+export type SnagGrade = 'great' | 'ok' | 'bad';
+
 export type DriveKind = 'intro' | 'challenge' | 'gimmick' | 'boss';
 
 export interface Drive {
@@ -309,6 +339,8 @@ export type Phase =
   | 'play'
   /** Break it!: the play is frozen while you time the tap. */
   | 'breakit'
+  /** SNAG IT!: the play is frozen while you tap the dots. */
+  | 'snag'
   | 'downOver'
   | 'draft'
   | 'over'
@@ -323,6 +355,8 @@ export interface RunState {
   readonly hard: boolean;
   /** Two-tap throwing (?aim=2): the first THROW stops the line, the second lobs it as far as the marker. */
   readonly twoTapAim: boolean;
+  /** ?snag=1: SNAG IT! from the first drive, not only from drive 5 (docs/SNAG.md). */
+  readonly snagAlways: boolean;
   /** Fixed steps since the run began, and the time they add up to. */
   step: number;
   time: number;
@@ -350,6 +384,14 @@ export interface RunState {
   play: { readonly index: number; readonly flipped: boolean };
   /** Break it!, while it's on. */
   tackle: Tackle | null;
+  /** SNAG IT!, while it's on. */
+  snag: Snag | null;
+  /**
+   * The SNAG IT! that just finished, every dot graded, and when: kept so the
+   * box can show the last dot's pop before it closes (`snag.linger`). For the
+   * screen only; nothing in the sim reads it.
+   */
+  snagDone: { readonly snag: Snag; readonly endedAt: number } | null;
   /** The seven on the field, in slot order (the slot decides the position played)… */
   roster: RosterPlayer[];
   /** …and the bench: kept, but not playing, newest first (it has no limit). */
@@ -380,6 +422,8 @@ export interface StepInput {
   readonly juke?: -1 | 1;
   /** SHOO!: drive the King's crows off whoever they've landed on. */
   readonly shoo?: boolean;
+  /** SNAG IT!: a tap on this dot. */
+  readonly snag?: number;
 }
 
 export type Action =
@@ -412,6 +456,12 @@ export type ArcadeEvent =
   | { readonly type: 'grabbed'; readonly id: number; readonly by: readonly number[] }
   /** How a Break it! went: a break, a drag, or a tackle. */
   | { readonly type: 'breakResult'; readonly outcome: 'break' | 'drag' | 'tackle' }
+  /** A contested ball: SNAG IT! starts. */
+  | { readonly type: 'snagStarted'; readonly receiver: number; readonly dots: number }
+  /** A dot hit or missed in SNAG IT!… */
+  | { readonly type: 'snagDot'; readonly index: number; readonly hit: boolean }
+  /** …and how it went. */
+  | { readonly type: 'snagResult'; readonly grade: SnagGrade }
   /** A tap in the sweet spot: this tackler goes flying, the carrier keeps going. */
   | { readonly type: 'brokeTackle'; readonly id: number; readonly defender: number }
   /** A close tap: the carrier drags its tacklers this far before it goes down. */

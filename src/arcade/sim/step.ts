@@ -18,7 +18,8 @@
  *   7. The bullet in the air (ball.ts).
  *   8. The carrier over the first-down line wins the drive; over the
  *      sideline, it's down there.
- * In Break it! the play is frozen until it's decided (sim/breakit.ts).
+ * In Break it! the play is frozen until it's decided (sim/breakit.ts), and
+ * so it is in SNAG IT!, on a contested ball (sim/snag.ts).
  * Before the snap and between drives only the Bats move.
  */
 import { assertNever } from '../../assertNever';
@@ -29,6 +30,7 @@ import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
+import { judgeSnag, snagOn, startSnag } from './snag';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -37,6 +39,7 @@ import type {
   Player,
   RunState,
   StepInput,
+  Vec,
 } from './types';
 import { add, dist, len, norm, scale, sub, v } from './vec';
 
@@ -65,6 +68,10 @@ export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
   }
   if (state.phase === 'breakit') {
     breakIt(state, input, events);
+    return { state, events };
+  }
+  if (state.phase === 'snag') {
+    snag(state, input, events);
     return { state, events };
   }
   if (state.phase !== 'play') {
@@ -136,6 +143,12 @@ function throwBullet(state: RunState, events: ArcadeEvent[]): void {
 }
 
 /** Someone has the ball now: it runs, and picks its lane. */
+/** Knock a player down for `down` seconds, sent away from `from` at `speed` (yards a second). */
+function knockFlying(d: Body, from: Vec, down: number, speed: number): void {
+  d.down = down;
+  d.vel = scale(norm(sub(d.pos, from)), speed);
+}
+
 export function giveBall(state: RunState, p: Player): void {
   p.job = { kind: 'carry' };
   state.field.ball = { at: 'carried', by: p.id };
@@ -160,8 +173,7 @@ function resolveContact(state: RunState, events: ArcadeEvent[]): boolean {
       if (d.planted || d.down > 0 || !touching(p, d)) continue;
       const ratio = handedOff(state) ? contact.runPancakeRatio : contact.pancakeRatio;
       if (p.mass < ratio * d.mass) continue;
-      d.down = contact.pancakeTime;
-      d.vel = scale(norm(sub(d.pos, p.pos)), 4);
+      knockFlying(d, p.pos, contact.pancakeTime, contact.knockSpeed);
       events.push({ type: 'pancake', blocker: p.id, defender: d.id });
     }
   }
@@ -222,8 +234,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
   if (outcome === 'break') {
     // BREAK: they go flying, and the carrier keeps going.
     for (const d of tacklers) {
-      d.down = contact.brokenTime;
-      d.vel = scale(norm(sub(d.pos, carrier.pos)), 5);
+      knockFlying(d, carrier.pos, contact.brokenTime, contact.brokenSpeed);
       events.push({ type: 'brokeTackle', id: carrier.id, defender: d.id });
     }
     // The rest of the pile is knocked back too, and nobody can grab it for a moment: it breaks free.
@@ -231,8 +242,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
     for (const d of state.field.defenders) {
       if (tacklers.includes(d) || d.planted || d.down > 0) continue;
       if (dist(d.pos, carrier.pos) > carrier.radius + d.radius + b.scatter) continue;
-      d.down = b.scatterDown;
-      d.vel = scale(norm(sub(d.pos, carrier.pos)), 4);
+      knockFlying(d, carrier.pos, b.scatterDown, contact.knockSpeed);
     }
     state.field.breakaway = b.breakaway;
     return;
@@ -247,6 +257,41 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
     return;
   }
   tackle(state, carrier, t.tacklers[0] ?? -1, events);
+}
+
+/**
+ * SNAG IT! (sim/snag.ts): judge the taps, and once every dot is played carry
+ * out the grade. GREAT: caught, and the defenders reaching for it go flying,
+ * so the receiver runs free. OK: caught, and tackled on the spot. BAD:
+ * batted down by the first of them.
+ */
+function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
+  const t = state.snag;
+  const grade = judgeSnag(state, input, events);
+  if (!grade || !t) return;
+  events.push({ type: 'snagResult', grade });
+  state.snagDone = { snag: t, endedAt: state.time };
+  state.snag = null;
+  state.phase = 'play';
+  const receiver = state.field.players.find((p) => p.id === t.receiver);
+  const defenders = state.field.defenders.filter((d) => t.defenders.includes(d.id));
+  const first = defenders[0];
+  if (grade === 'bad' || !receiver) {
+    const at = first?.pos ?? receiver?.pos ?? v(0, state.drive.los);
+    events.push({ type: 'batted', by: first?.id ?? -1, at, contested: true });
+    state.field.ball = { at: 'dead', pos: at, how: 'batted' };
+    endDown(state, 'batted', state.drive.los, events);
+    return;
+  }
+  giveBall(state, receiver);
+  events.push({ type: 'caught', id: receiver.id, contested: true });
+  if (grade === 'ok') {
+    tackle(state, receiver, first?.id ?? -1, events);
+    return;
+  }
+  for (const d of defenders) knockFlying(d, receiver.pos, contact.brokenTime, contact.brokenSpeed);
+  state.field.breakaway = arcadeTuning.breakit.breakaway;
+  checkCarrier(state, events);
 }
 
 /**
@@ -434,13 +479,24 @@ function royalCrows(state: RunState, input: StepInput, events: ArcadeEvent[]): b
 function flight(state: RunState, events: ArcadeEvent[]): boolean {
   const outcome = resolveFlight(state);
   if (!outcome) return false;
+  // SNAG IT!: a contested ball, from drive 5, is the Coach's to win (docs/SNAG.md).
+  const ball = state.field.ball;
+  if (outcome.kind !== 'incomplete' && outcome.contest && ball.at === 'flight' && snagOn(state)) {
+    startSnag(state, outcome.contest, ball.from, events);
+    return true;
+  }
   if (outcome.kind === 'caught') {
     giveBall(state, outcome.by);
-    events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contested });
+    events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contest !== undefined });
     return checkCarrier(state, events);
   }
   if (outcome.kind === 'batted') {
-    events.push({ type: 'batted', by: outcome.by, at: outcome.at, contested: outcome.contested });
+    events.push({
+      type: 'batted',
+      by: outcome.by,
+      at: outcome.at,
+      contested: outcome.contest !== undefined,
+    });
     state.field.ball = { at: 'dead', pos: outcome.at, how: 'batted' };
     endDown(state, 'batted', state.drive.los, events);
     return true;

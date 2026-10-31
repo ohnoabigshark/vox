@@ -65,6 +65,7 @@ Items marked **▲ Decision** are recommendations that are still open to change.
 | `setup` | Before the snap: three cards dealt, a card called (its routes drawn), Flip, HIKE!. |
 | `play` | The down is live: the sweep, THROW, the ball in the air, the carrier running. |
 | `breakit` | The carrier is grabbed: the play is frozen for a Break it! test. |
+| `snag` | A contested ball, from drive 5: the play is frozen for SNAG IT! (`sim/snag.ts`, docs/SNAG.md). |
 | `downOver` | A short pause showing what happened, then the next down (or drive). |
 | `draft` | TRICK OR TREAT! between drives: the offer, the roster and the bench. |
 | `over` / `won` | Game over, or all three areas cleared. |
@@ -143,7 +144,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 **Plain DOM and CSS, layered over the WebGL canvas.** The canvas fills the screen and a DOM root sits over it; the overlay doesn't block taps by default (`pointer-events: none`), and only real controls accept them.
 
 - **`src/ui/hud.ts`** (`Hud`): the drive banner and down and distance at the top; the prompt and the context button (PLAY, HIKE!, RESUME, AGAIN); the hand of three play cards and Flip; `pop()` for results and `big()` for Break it!'s GREAT / OK / BAD; and the **TRICK OR TREAT!** overlay: the two New Player! cards (each a player card), and the roster with the field down the left by position and the bench (no limit, newest first) down the right, each player a photo box, stat bars and a note.
-- **`src/arcade/ui/controls.ts`**: THROW, SHOO!, and the Break it! panel (the countdown, the bar, the mash meter, the juke buttons).
+- **`src/arcade/ui/controls.ts`**: THROW, SHOO!, the Break it! panel (the countdown, the bar, the mash meter, the juke buttons), and SNAG IT!'s box (its dots, each a button with its ring closing onto it; it stays `snag.linger` after the grade so the last dot's pop shows). The phases a down is on in, and those frozen for a test, are `downOn` and `frozenForTest` in `sim/run.ts`.
 - **`src/arcade/ui/trickOrTreat.ts`**: turns the run state into what the overlay shows (the two New Player! cards as player cards, the roster rows, the ★ on a preferred position). **`kindIcons.ts`**: each kind's 12×12 pixel portrait as inline SVG.
 - **The look is retro pixel:** square corners, hard ink outlines, flat offset shadows, outlined text, segmented bars, scanlines on dark panels; the tokens are at the top of `src/ui/base.css` (`--edge`, `--text-edge`, `--scanlines`). Animations stay smooth.
 - **Font:** Creepster (OFL, self-hosted in `assets/fonts`), loaded before the game is built so no text ever shows in a fallback font.
@@ -154,8 +155,8 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 
 ## 7. Input and Haptics
 
-- **Every input is a tap on a DOM control:** a card, Flip, HIKE!, THROW, the Break it! panel (anywhere on it; the juke's ◀ and ▶), the offer, the roster.
-- **Keys for a desktop:** 1–3 call a card, F flips, Space hikes (then throws, and taps the bar and the mash), ← and → juke, S shoos the King's crows.
+- **Every input is a tap on a DOM control:** a card, Flip, HIKE!, THROW, the Break it! panel (anywhere on it; the juke's ◀ and ▶), SNAG IT!'s dots (each its own button), the offer, the roster.
+- **Keys for a desktop:** 1–3 call a card, F flips, Space hikes (then throws, taps the bar and the mash, and taps SNAG IT!'s next dot, `nextDot` in `sim/snag.ts`), ← and → juke, S shoos the King's crows.
 - **Stopping browser gestures:** `touch-action: none` on the game surface, and no double-tap zoom, pull-to-refresh, text selection or long-press menu.
 - **Haptics** (`navigator.vibrate`) are planned for the snap, throws, catches and hits. iOS Safari doesn't support vibration, so nothing may depend on it.
 
@@ -178,7 +179,7 @@ All game content is **typed data**, kept apart from the engine code.
 
 ```
 src/arcade/content/
-  tuning.ts    // arcadeTuning: every number the sim uses (field, body, contact, throw, sweep, breakit, carrier, defense, drive, run)
+  tuning.ts    // arcadeTuning: every number the sim uses (field, body, contact, throw, sweep, breakit, snag, carrier, defense, drive, run)
   team.ts      // roster roles, the standard line-up and lineUpSpot (a play's own, or standard), BASE_STATS, FORM_STATS (each kind's trade), POSITION_STAT, BENCH_SIZE, radii
   plays.ts     // PLAYS: each card's assignments (block, or a route of waypoints); handoff cards name the Runner
   ourPlays.ts  // OUR_PLAYS: plays kept from the play editor, apart from esrauch's (fork)
@@ -326,7 +327,7 @@ slice 0
 │  │  ├─ content/          // tuning, team, plays, defense, perks
 │  │  ├─ sim/              // the pure rules (§4)
 │  │  ├─ render/           // three.js views of the sim (§5)
-│  │  └─ ui/               // THROW and Break it!, TRICK OR TREAT!'s view, kind portraits
+│  │  └─ ui/               // THROW, Break it! and SNAG IT!, TRICK OR TREAT!'s view, kind portraits
 │  ├─ render/              // View (renderer, lights) and ForestScenery
 │  ├─ ui/                  // the HUD, base styles, fonts, palette CSS variables
 │  ├─ game/conductor.ts    // music and SFX
@@ -366,7 +367,7 @@ Everything a future session (human or Claude) needs to carry on without the orig
 - **Node 24 LTS** (`.nvmrc`). Vite 8, Vitest 5, ESLint 10, TypeScript 5 strict.
 - **System Chrome** (`/usr/bin/google-chrome`) is driven by `playwright-core` (`channel: 'chrome'`) for every headless tool; WebGL runs headless via `--use-angle=swiftshader --enable-unsafe-swiftshader`.
 - **Dev server:** `npm run dev` (`vite --host`, port 5173). On a phone on the same Wi-Fi: `http://<this machine>:5173/` and `/dev/`. `.claude/launch.json` has a `dev` config for the Claude desktop Browser pane.
-- **URL options:** `?seed=N` fixes the run's seed; `?monsters=1` starts with Golem Blockers, Werewolf Runners and Ghost Catchers; `?area=2` or `?area=3` starts the run at that area's first drive (as if the areas before were won; the team is still the starting seven). `?win=1` goes straight from PLAY to the win cutscene (eleven recruits on the bench). `?hard=1` is hard mode (`RunState.hard`: endless zones, `driveDefense`'s extra defenders, `tuning.hard` recruits with `slowHands`, the sweep capped at the last area, `setsLineup`; the field wraps every three zones, `originOf` in game.ts). `?aim=2` is two-tap throwing (`RunState.twoTapAim`, `field.aim`, `aimDistance` / `lobTarget` in sim/ball.ts, a `lob` flight resolved only where it lands; `tuning.twoTap`). `?farmSong=2` plays the second Frederick's Farm song candidate (Spooky Cow, `FARM_SONGS`) instead of Harvest Moon Hoedown. `?try=…&sketch=…` is practice, from the play editor's Try it (`readPractice` in `content/playCode.ts`, `RunState.practice`): no PLAY screen or intro, that one play called rep after rep from the same spot on the Forest's first drive, sound from the first tap, and ‹ Sketch back to the editor between reps; a link it can't read opens the ordinary game with a notice until tapped. They combine, e.g. `?area=2&monsters=1`, except that practice ignores `?area=` and `?hard=`. In dev builds the game is `window.game`.
+- **URL options:** `?seed=N` fixes the run's seed; `?monsters=1` starts with Golem Blockers, Werewolf Runners and Ghost Catchers; `?area=2` or `?area=3` starts the run at that area's first drive (as if the areas before were won; the team is still the starting seven). `?win=1` goes straight from PLAY to the win cutscene (eleven recruits on the bench). `?hard=1` is hard mode (`RunState.hard`: endless zones, `driveDefense`'s extra defenders, `tuning.hard` recruits with `slowHands`, the sweep capped at the last area, `setsLineup`; the field wraps every three zones, `originOf` in game.ts). `?aim=2` is two-tap throwing (`RunState.twoTapAim`, `field.aim`, `aimDistance` / `lobTarget` in sim/ball.ts, a `lob` flight resolved only where it lands; `tuning.twoTap`). `?snag=1` turns on SNAG IT! (the contested-catch test, `docs/SNAG.md`; `RunState.snagAlways`, `sim/snag.ts`) from the first drive instead of drive 5. `?farmSong=2` plays the second Frederick's Farm song candidate (Spooky Cow, `FARM_SONGS`) instead of Harvest Moon Hoedown. `?try=…&sketch=…` is practice, from the play editor's Try it (`readPractice` in `content/playCode.ts`, `RunState.practice`): no PLAY screen or intro, that one play called rep after rep from the same spot on the Forest's first drive, sound from the first tap, and ‹ Sketch back to the editor between reps; a link it can't read opens the ordinary game with a notice until tapped. They combine, e.g. `?area=2&monsters=1`, except that practice ignores `?area=` and `?hard=`. In dev builds the game is `window.game`.
 - **Git:** commit messages end with the `Co-Authored-By` line from the session instructions. Commit after a verified step; never push.
 
 ### Commands
