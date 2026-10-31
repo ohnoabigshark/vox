@@ -211,7 +211,9 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   design confirmed, with the editor offering only what the game can play
   (x1), Try it carrying the unsaved event (x2), and Frog Rain's rules (who's
   spared, the call, the carrier steering clear) made every event's (x3). The
-  design is `docs/FIELD_EVENTS.md`.
+  design is `docs/FIELD_EVENTS.md`. The first of the three branches, field
+  events and the editor, built on `field-events`; then the Coach tunes Frog
+  Rain with Save, and the taffy flood is next.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in

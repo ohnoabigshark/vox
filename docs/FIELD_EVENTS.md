@@ -180,3 +180,25 @@ On `field-events`, one commit each, typecheck and tests after every step:
 6. Try it: event practice.
 7. The docs reconciled; then the review, the PR and the merge. Then the
    Coach tunes Frog Rain with Save.
+
+## As built (2026-10-31, branch `field-events`)
+
+- **Frog Rain** is `FROG_RAIN` in `content/fieldEvents.ts`, its numbers moved
+  from `tuning.ts`'s old `frogRain` block, placed from the seed's same stream
+  so a seeded run puts its lane where it always did. The sim carries the
+  event on the field (`field.fieldEvent`) and reports `fieldEventWentOff`
+  and `eventTackled` (with the call).
+- **The editor's page scrolls:** its parts don't fit under a field the play
+  editor's size, so the field keeps 60% of the screen's height (about 14 px
+  a yard on a phone) and the parts follow below it.
+- **Try it** plays at a drive picked on the editor (Mister Frog's 4 for
+  Frog Rain, 2 for an event of your own), with Two-tap remembered. It
+  ignores hard mode, as the play editor's practice does. The event tried is
+  kept in the browser's session, so ‹ Events reopens it as it was tried,
+  unsaved changes and all.
+- **Saving** shares the bench's server code: `tools/savedFile.ts` handles a
+  saved file for any dev page, with the bench's check and the events' check
+  on top (`tools/benchSave.ts`, `tools/eventsSave.ts`), and the page shares
+  the bench's saver and status line.
+- **Shared with the play editor:** the flat field (`src/dev/fieldSvg.ts`)
+  and the page helpers (`src/dev/pageKit.ts`).
