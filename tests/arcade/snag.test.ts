@@ -318,3 +318,11 @@ describe('SNAG IT!: the last dot is seen (review a1)', () => {
     expect(sn.linger / 0.8).toBeCloseTo(0.3, 9);
   });
 });
+
+describe('SNAG IT!: never fail silently (review a8)', () => {
+  it('a step in the SNAG IT! phase with no test running throws, rather than leaving the play stuck', () => {
+    const s = bulletContest(5);
+    s.snag = null;
+    expect(() => step(s, {})).toThrow('SNAG IT! phase with no SNAG IT! running');
+  });
+});

@@ -133,7 +133,8 @@ export function judgeSnag(
   events: ArcadeEvent[],
 ): SnagGrade | null {
   const t = state.snag;
-  if (!t) return 'bad';
+  // The phase and the test are set and cleared together; one without the other is a bug.
+  if (!t) throw new Error('SNAG IT! phase with no SNAG IT! running');
   const now = state.time;
   const tapped = input.snag === undefined ? undefined : t.dots[input.snag];
   if (tapped && tapped.result === null && now >= tapped.appearsAt) {
