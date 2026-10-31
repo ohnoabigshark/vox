@@ -83,8 +83,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 A **TIP DRILL!** tab with five sliders, in order: the countdown, the first
 pop's time in the air, each pop's share of the last, the clean window and
 the bobble window. Its situation sliders are SNAG IT!'s (the drive, the
-defenders in reach, the Hands gap), which set the pops. Behind More: the
-box's linger and when the catch tests start. The count and pace rules stay
+defenders in reach, the Hands gap), which set the pops. Behind More: when
+the catch tests start and the box's linger. The count and pace rules stay
 on SNAG IT!'s tab, where they're tuned for both.
 
 ## The balance bot (t5)

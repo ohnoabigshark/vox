@@ -49,10 +49,6 @@ export interface SnagView {
   }[];
 }
 
-/**
- * What the Break it! panel shows. `ready` is the countdown's seconds left
- * (null once it's over). Bar positions are measured along the marker's trip.
- */
 /** The tip drill's box (docs/TIP.md): the ball over the hands, and each pop's result. */
 export interface TipView {
   /** Which drill (when it started): a new one gets fresh pips. */
@@ -69,6 +65,10 @@ export interface TipView {
   readonly flash: TipResult | null;
 }
 
+/**
+ * What the Break it! panel shows. `ready` is the countdown's seconds left
+ * (null once it's over). Bar positions are measured along the marker's trip.
+ */
 export type BreakView = { readonly ready: number | null } & (
   | {
       readonly kind: 'bar';

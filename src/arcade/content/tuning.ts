@@ -179,16 +179,11 @@ export const tuningDefaults = {
     maxDrag: 4,
   },
   /**
-   * SNAG IT! (docs/SNAG.md): a contested ball, from drive `fromDrive`, is a
-   * test of dots in a box, each tapped as its ring closes. Times are sim
-   * seconds (the screen's times 0.8); positions are shares of the box.
-   */
-  /**
    * What SNAG IT! and the tip drill share (docs/TIP.md, g3): when they start,
    * how many dots or pops, and how much quicker they get.
    */
   catchTests: {
-    /** A contested ball goes to a catch test from this drive (or the first, with ?snag=1). */
+    /** A contested ball goes to a catch test from this drive (or the first, with ?snag=1 or ?tip=1). */
     fromDrive: 5,
     /**
      * The count: this many on drives 5-8, one more every `moreEvery` drives
@@ -225,6 +220,11 @@ export const tuningDefaults = {
     /** One more pop than SNAG IT! would have dots in the same spot (`catchTests` counts them). */
     morePops: 1,
   },
+  /**
+   * SNAG IT! (docs/SNAG.md): a catch test of dots in a box, each tapped as
+   * its ring closes. Times are sim seconds (the screen's times 0.8);
+   * positions are shares of the box.
+   */
   snag: {
     /** A ring closes onto its dot this long after the dot shows (0.8 s on screen; quicker later, by `catchTests`)… */
     close: 0.64,
