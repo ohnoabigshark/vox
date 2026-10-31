@@ -1,9 +1,16 @@
+import saved from './saved-tuning.json' with { type: 'json' };
+import { layerSaved } from './savedTuning';
+
 /**
  * Every number for the arcade game (GAMEPLAY.md, rewritten 2026-10-19), in
  * one place. Distances are yards, times are seconds, speeds yards a second.
  * Starting values: tune by playtesting and the balance runs.
+ *
+ * These are the defaults, and they never change at run time. The game
+ * plays `arcadeTuning` below: these with the test bench's saved settings
+ * on top (docs/BENCH.md, Saving).
  */
-export const arcadeTuning = {
+export const tuningDefaults = {
   /** The simulation's fixed step. */
   stepsPerSecond: 60,
   field: {
@@ -317,6 +324,13 @@ export const arcadeTuning = {
     flatTime: 1.2,
   },
 } as const;
+
+/** What the game plays: the defaults, with `saved-tuning.json` laid over them. */
+export const arcadeTuning = structuredClone(tuningDefaults);
+
+/** Saved settings left out as `arcadeTuning` was made (none, normally). */
+export const savedTuningWarnings = layerSaved(arcadeTuning, tuningDefaults, saved);
+for (const w of savedTuningWarnings) console.warn(w);
 
 /** The fixed step, in seconds. */
 export const DT = 1 / arcadeTuning.stepsPerSecond;

@@ -6,7 +6,8 @@
  * the next rep plays at the new value; `applySettings({})` puts every value
  * back as shipped.
  */
-import { arcadeTuning, TIME_SCALE } from '../../arcade/content/tuning';
+import { numberAt } from '../../arcade/content/savedTuning';
+import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
 import { DRIVE_KINDS } from '../../arcade/sim/run';
 
 /** The five tap tests, one tab each (b1). */
@@ -102,18 +103,11 @@ export function allPaths(): string[] {
   return KNOBS.flatMap(pathsOf);
 }
 
-type Tree = Record<string, unknown>;
-
-/** Where a path's value sits: its parent object and its last key. */
-function locate(root: unknown, path: string): { parent: Tree; key: string } {
-  const keys = path.split('.');
-  const key = keys.pop() ?? '';
-  let parent = root;
-  for (const part of keys) parent = (parent as Tree)[part];
-  if (typeof parent !== 'object' || parent === null || typeof (parent as Tree)[key] !== 'number') {
-    throw new Error(`tuning.ts has no number at ${path}`);
-  }
-  return { parent: parent as Tree, key };
+/** Where a path's number sits in a tuning object. */
+function locate(root: unknown, path: string): NonNullable<ReturnType<typeof numberAt>> {
+  const at = numberAt(root, path);
+  if (!at) throw new Error(`tuning.ts has no number at ${path}`);
+  return at;
 }
 
 /** The value in the live tuning object. */
@@ -122,7 +116,12 @@ export function tuningValue(path: string): number {
   return parent[key] as number;
 }
 
-const SHIPPED = new Map(allPaths().map((p) => [p, tuningValue(p)]));
+const SHIPPED = new Map(
+  allPaths().map((p) => {
+    const { parent, key } = locate(tuningDefaults, p);
+    return [p, parent[key] as number];
+  }),
+);
 
 /** The value as tuning.ts ships it. */
 export function shippedValue(path: string): number {

@@ -63,5 +63,7 @@ export default defineConfig({
     testTimeout: 20_000,
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
+    // Every test plays tuning.ts's defaults, not the bench's saved settings.
+    setupFiles: ['tests/setup.ts'],
   },
 });
