@@ -19,7 +19,8 @@
  *   8. The carrier over the first-down line wins the drive; over the
  *      sideline, it's down there.
  * In Break it! the play is frozen until it's decided (sim/breakit.ts), and
- * so it is in SNAG IT!, on a contested ball (sim/snag.ts).
+ * so it is in the catch tests on a contested ball, SNAG IT! (sim/snag.ts)
+ * and the tip drill (sim/tip.ts).
  * Before the snap and between drives only the Bats move.
  */
 import { assertNever } from '../../assertNever';
@@ -30,13 +31,15 @@ import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
-import { catchTestsOn } from './catchTests';
+import { catchTestsOn, whichCatchTest } from './catchTests';
 import { judgeSnag, startSnag } from './snag';
+import { judgeTip, startTip } from './tip';
 import type {
   ArcadeEvent,
   ArcadeResult,
   Body,
   BreakKind,
+  Grade,
   Player,
   RunState,
   StepInput,
@@ -73,6 +76,10 @@ export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
   }
   if (state.phase === 'snag') {
     snag(state, input, events);
+    return { state, events };
+  }
+  if (state.phase === 'tip') {
+    tipDrill(state, input, events);
     return { state, events };
   }
   if (state.phase !== 'play') {
@@ -260,12 +267,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
   tackle(state, carrier, t.tacklers[0] ?? -1, events);
 }
 
-/**
- * SNAG IT! (sim/snag.ts): judge the taps, and once every dot is played carry
- * out the grade. GREAT: caught, and the defenders reaching for it go flying,
- * so the receiver runs free. OK: caught, and tackled on the spot. BAD:
- * batted down by the first of them.
- */
+/** SNAG IT! (sim/snag.ts): judge the taps, and once every dot is played carry out the grade. */
 function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
   const t = state.snag;
   const grade = judgeSnag(state, input, events);
@@ -273,6 +275,31 @@ function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
   events.push({ type: 'snagResult', grade });
   state.snagDone = { snag: t, endedAt: state.time };
   state.snag = null;
+  catchGraded(state, grade, t, events);
+}
+
+/** The tip drill (sim/tip.ts): judge the taps, and once it's over carry out the grade. */
+function tipDrill(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
+  const t = state.tip;
+  const grade = judgeTip(state, input, events);
+  if (!grade || !t) return;
+  events.push({ type: 'tipResult', grade });
+  state.tipDone = { tip: t, endedAt: state.time };
+  state.tip = null;
+  catchGraded(state, grade, t, events);
+}
+
+/**
+ * A catch test's grade, the same for both (docs/TIP.md, t4). GREAT: caught,
+ * and the defenders reaching for it go flying, so the receiver runs free.
+ * OK: caught, and tackled on the spot. BAD: batted down by the first of them.
+ */
+function catchGraded(
+  state: RunState,
+  grade: Grade,
+  t: { readonly receiver: number; readonly defenders: readonly number[] },
+  events: ArcadeEvent[],
+): void {
   state.phase = 'play';
   const receiver = state.field.players.find((p) => p.id === t.receiver);
   const defenders = state.field.defenders.filter((d) => t.defenders.includes(d.id));
@@ -480,7 +507,7 @@ function royalCrows(state: RunState, input: StepInput, events: ArcadeEvent[]): b
 function flight(state: RunState, events: ArcadeEvent[]): boolean {
   const outcome = resolveFlight(state);
   if (!outcome) return false;
-  // SNAG IT!: a contested ball, from drive 5, is the Coach's to win (docs/SNAG.md).
+  // A catch test: a contested ball, from drive 5, is the Coach's to win (docs/SNAG.md, docs/TIP.md).
   const ball = state.field.ball;
   if (
     outcome.kind !== 'incomplete' &&
@@ -488,7 +515,8 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
     ball.at === 'flight' &&
     catchTestsOn(state)
   ) {
-    startSnag(state, outcome.contest, ball.from, events);
+    const start = whichCatchTest(state) === 'snag' ? startSnag : startTip;
+    start(state, outcome.contest, ball.from, events);
     return true;
   }
   if (outcome.kind === 'caught') {

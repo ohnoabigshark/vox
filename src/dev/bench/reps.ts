@@ -15,7 +15,8 @@ import { snagPace, startSnag } from '../../arcade/sim/snag';
 import { step } from '../../arcade/sim/step';
 import { startingRoster } from '../../arcade/sim/team';
 import type { ArcadeEvent, Player, RunState, StepInput } from '../../arcade/sim/types';
-import { breakGrade, type Grade } from '../../arcade/ui/tapTestCalls';
+import { breakGrade } from '../../arcade/ui/tapTestCalls';
+import type { Grade } from '../../arcade/sim/types';
 import type { BenchTest } from './knobs';
 
 /** Where a rep is played (k2): the drive, and who's in on it. */
@@ -61,7 +62,7 @@ export const SITUATION_SLIDERS: readonly {
   },
 ];
 
-export type { Grade } from '../../arcade/ui/tapTestCalls';
+export type { Grade } from '../../arcade/sim/types';
 
 /** How the taps went (t1), in screen seconds. */
 export type Timing =

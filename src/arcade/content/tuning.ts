@@ -212,6 +212,19 @@ export const tuningDefaults = {
     /** The box stays this long after the grade, so the last tap's result is seen (0.3 s on screen). */
     linger: 0.24,
   },
+  /** The tip drill (docs/TIP.md): the ball popping up off the receiver's hands, tapped as it lands. */
+  tip: {
+    /** The first pop is in the air this long (1.0 s on screen; quicker later, by `catchTests`)… */
+    firstPop: 0.8,
+    /** …and each later one this share of the one before (so about two-thirds as high). */
+    shrink: 0.8,
+    /** A tap this close to a landing, either side, is clean (0.07 s on screen)… */
+    clean: 0.056,
+    /** …this close, a bobble (0.14 s on screen); any other tap, or none by then, a drop. */
+    bobble: 0.112,
+    /** One more pop than SNAG IT! would have dots in the same spot (`catchTests` counts them). */
+    morePops: 1,
+  },
   snag: {
     /** A ring closes onto its dot this long after the dot shows (0.8 s on screen; quicker later, by `catchTests`)… */
     close: 0.64,

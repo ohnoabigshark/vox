@@ -11,11 +11,11 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import type { Contest } from './ball';
-import { catchCount, paceShare } from './catchTests';
+import { catchCount, freezeContested, paceShare } from './catchTests';
 import { rngFor } from './random';
 import { driveNumber } from './run';
-import type { ArcadeEvent, RunState, SnagDot, SnagGrade, StepInput, Vec } from './types';
-import { add, dist, len, norm, scale, sub } from './vec';
+import type { ArcadeEvent, Grade, RunState, SnagDot, StepInput, Vec } from './types';
+import { dist } from './vec';
 
 const sn = arcadeTuning.snag;
 
@@ -94,11 +94,7 @@ export function startSnag(
     defenders: defenders.map((d) => d.id),
     dots,
   };
-  const toward = sub(from, receiver.pos);
-  state.field.ball = {
-    at: 'contested',
-    pos: add(receiver.pos, scale(norm(toward), Math.min(1, len(toward)))),
-  };
+  freezeContested(state, receiver, from);
   state.phase = 'snag';
   events.push({ type: 'snagStarted', receiver: receiver.id, dots: count });
 }
@@ -108,11 +104,7 @@ export function startSnag(
  * window of closing, and misses it if it's early; a dot nobody tapped by the
  * end of its window is missed. Returns the grade once every dot is played.
  */
-export function judgeSnag(
-  state: RunState,
-  input: StepInput,
-  events: ArcadeEvent[],
-): SnagGrade | null {
+export function judgeSnag(state: RunState, input: StepInput, events: ArcadeEvent[]): Grade | null {
   const t = state.snag;
   // The phase and the test are set and cleared together; one without the other is a bug.
   if (!t) throw new Error('SNAG IT! phase with no SNAG IT! running');

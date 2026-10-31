@@ -5,10 +5,7 @@
  */
 import type { SfxId } from '../../audio/sfx';
 import type { BreakOutcome } from '../sim/breakit';
-import type { ArcadeEvent, SnagGrade } from '../sim/types';
-
-/** A tap test's grade, as Break it! and SNAG IT! both grade. */
-export type Grade = SnagGrade;
+import type { ArcadeEvent, Grade } from '../sim/types';
 
 /** A Break it! outcome as a grade: a break is GREAT, a drag OK, a tackle BAD. */
 export function breakGrade(outcome: BreakOutcome): Grade {
