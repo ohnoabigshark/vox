@@ -10,9 +10,13 @@
  * Buttons fire on press, not release: in a timing game every frame counts.
  */
 import './controls.css';
-import type { SnagDotResult } from '../sim/types';
+import type { SnagDotResult, TipResult } from '../sim/types';
 import { ringScale, snagBoxStyle } from './snagLook';
-import { countdownText } from './tapTestCalls';
+import { countdownText, testCall } from './tapTestCalls';
+
+/** The tip drill's box: the hands this far down it (percent), and the first pop's top this far above them. */
+const TIP_HANDS = 76;
+const TIP_RISE = 58;
 
 export interface ControlHandlers {
   onThrow(): void;
@@ -24,6 +28,8 @@ export interface ControlHandlers {
   onShoo(): void;
   /** SNAG IT!: a tap on this dot. */
   onSnag(dot: number): void;
+  /** The tip drill: a tap anywhere in its box. */
+  onTip(): void;
 }
 
 /**
@@ -47,6 +53,22 @@ export interface SnagView {
  * What the Break it! panel shows. `ready` is the countdown's seconds left
  * (null once it's over). Bar positions are measured along the marker's trip.
  */
+/** The tip drill's box (docs/TIP.md): the ball over the hands, and each pop's result. */
+export interface TipView {
+  /** Which drill (when it started): a new one gets fresh pips. */
+  readonly id: number;
+  /** Seconds left in the countdown (on screen), or null once the first pop is up. */
+  readonly ready: number | null;
+  /** The ball's height above the hands, as a share of the first pop's top: 0 on them, under 0 below. */
+  readonly ball: number;
+  /** Its shadow on the hands: 0 faint (the ball high), 1 full (on them). */
+  readonly shadow: number;
+  /** Each pop's result, null until played. */
+  readonly pips: readonly (TipResult | null)[];
+  /** The last pop's result, for a moment after it's played; otherwise null. */
+  readonly flash: TipResult | null;
+}
+
 export type BreakView = { readonly ready: number | null } & (
   | {
       readonly kind: 'bar';
@@ -85,6 +107,14 @@ export class ArcadeControls {
   private snagDots: HTMLElement[] = [];
   private snagId: number | null = null;
   private readonly onSnag: (dot: number) => void;
+  private readonly tipBox: HTMLElement;
+  private readonly tipTitle: HTMLElement;
+  private readonly tipCount: HTMLElement;
+  private readonly tipHands: HTMLElement;
+  private readonly tipShadow: HTMLElement;
+  private readonly tipBall: HTMLElement;
+  private readonly tipPips: HTMLElement;
+  private tipId: number | null = null;
   private breaking = false;
   private juking = false;
 
@@ -112,6 +142,14 @@ export class ArcadeControls {
       </div>
       <div class="arc-snag interactive" hidden>
         <div class="arc-snag-title">SNAG IT!</div>
+        <div class="arc-snag-count" hidden></div>
+      </div>
+      <div class="arc-snag arc-tip interactive" hidden>
+        <div class="arc-snag-title">TIP DRILL!</div>
+        <div class="arc-tip-hands"></div>
+        <div class="arc-tip-shadow"></div>
+        <div class="arc-tip-ball"></div>
+        <div class="arc-tip-pips"></div>
         <div class="arc-snag-count" hidden></div>
       </div>`;
     parent.append(this.root);
@@ -146,6 +184,18 @@ export class ArcadeControls {
     this.snagTitle = q('.arc-snag-title');
     this.snagCount = q('.arc-snag-count');
     this.onSnag = (dot) => handlers.onSnag(dot);
+    this.tipBox = q('.arc-tip');
+    this.tipTitle = q('.arc-tip .arc-snag-title');
+    this.tipCount = q('.arc-tip .arc-snag-count');
+    this.tipHands = q('.arc-tip-hands');
+    this.tipShadow = q('.arc-tip-shadow');
+    this.tipBall = q('.arc-tip-ball');
+    this.tipPips = q('.arc-tip-pips');
+    // The tip drill: a tap anywhere in its box counts (docs/TIP.md, t1).
+    this.tipBox.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handlers.onTip();
+    });
     // For the bar and the mash, a tap anywhere on the screen counts.
     window.addEventListener('pointerdown', () => {
       if (this.breaking && !this.juking) handlers.onBreakTap();
@@ -176,8 +226,8 @@ export class ArcadeControls {
       });
     }
     // The countdown, as Break it!'s: what's coming, and how long until it does.
-    const text = view.ready === null ? null : countdownText('SNAG IT!', view.ready);
-    this.snagTitle.textContent = text ? text.title : 'SNAG IT!';
+    const text = view.ready === null ? null : countdownText('snag', view.ready);
+    this.snagTitle.textContent = text ? text.title : testCall('snag');
     this.snagTitle.classList.toggle('ready', text !== null);
     this.snagCount.hidden = text === null;
     if (text) this.snagCount.textContent = text.count;
@@ -191,6 +241,35 @@ export class ArcadeControls {
       const ring = el.firstElementChild;
       // From `ringFrom` times the dot's size as it shows, down onto it as it closes.
       if (ring instanceof HTMLElement) ring.style.scale = String(ringScale(d.ring));
+    });
+  }
+
+  /** Show the tip drill's box (null hides it). */
+  setTip(view: TipView | null): void {
+    this.tipBox.hidden = !view;
+    if (!view) return;
+    // A new drill: the box sized as SNAG IT!'s, and one pip a pop.
+    if (view.id !== this.tipId) {
+      this.tipId = view.id;
+      for (const [name, value] of Object.entries(snagBoxStyle())) {
+        this.tipBox.style.setProperty(name, value);
+      }
+      this.tipPips.replaceChildren(...view.pips.map(() => document.createElement('i')));
+    }
+    const text = view.ready === null ? null : countdownText('tip', view.ready);
+    this.tipTitle.textContent = text ? text.title : testCall('tip');
+    this.tipTitle.classList.toggle('ready', text !== null);
+    this.tipCount.hidden = text === null;
+    if (text) this.tipCount.textContent = text.count;
+    // The ball over the hands (TIP_HANDS down the box, its top TIP_RISE above them), its shadow on them.
+    this.tipBall.style.top = `${TIP_HANDS - view.ball * TIP_RISE}%`;
+    this.tipBall.classList.toggle('bobble', view.flash === 'bobble');
+    this.tipShadow.style.scale = String(0.4 + 0.6 * view.shadow);
+    this.tipShadow.style.opacity = String(0.25 + 0.6 * view.shadow);
+    this.tipHands.className = `arc-tip-hands${view.flash ? ` ${view.flash}` : ''}`;
+    view.pips.forEach((r, i) => {
+      const pip = this.tipPips.children[i];
+      if (pip) pip.className = r ?? '';
     });
   }
 
@@ -219,10 +298,10 @@ export class ArcadeControls {
     this.marker.hidden = !isBar;
     this.fill.hidden = view.kind !== 'mash';
     this.jukeButtons.hidden = view.kind !== 'juke';
-    const call = { bar: 'BREAK IT!', mash: 'MASH!', juke: 'JUKE!' }[view.kind];
+    const call = testCall(view.kind);
     if (view.ready !== null) {
       // The countdown: what's coming, and how long until it does.
-      const text = countdownText(call, view.ready);
+      const text = countdownText(view.kind, view.ready);
       this.title.textContent = text.title;
       this.hint.textContent = text.count;
     } else {

@@ -203,6 +203,7 @@ async function main(): Promise<void> {
     onJuke: (side) => bench.press({ juke: side }),
     onShoo: () => bench.press({ shoo: true }),
     onSnag: (dot) => bench.press({ snag: dot }),
+    onTip: () => bench.press({ tip: true }),
   });
   let bigTimer = 0;
   const showWord = (r: RepResult): void => {

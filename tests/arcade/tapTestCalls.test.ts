@@ -4,6 +4,7 @@ import {
   countdownText,
   gradeCall,
   tapTestSound,
+  testCall,
 } from '../../src/arcade/ui/tapTestCalls';
 
 /** Review b8: what the game and the test bench both call a tap test's result, and its sounds. */
@@ -19,6 +20,7 @@ describe("a tap test's calls", () => {
     expect(gradeCall('bar', 'great')).toEqual({ word: 'GREAT!', tone: 'good' });
     expect(gradeCall('snag', 'ok')).toEqual({ word: 'OK', tone: 'ok' });
     expect(gradeCall('juke', 'bad')).toEqual({ word: 'BAD', tone: 'bad' });
+    expect(gradeCall('tip', 'great')).toEqual({ word: 'GREAT!', tone: 'good' });
     expect(gradeCall('shoo', 'great')).toEqual({ word: 'SHOOED!', tone: 'good' });
     expect(gradeCall('shoo', 'bad')).toEqual({ word: 'CROWS!', tone: 'bad' });
   });
@@ -33,14 +35,31 @@ describe("a tap test's calls", () => {
     expect(tapTestSound({ type: 'crowsLanded', on: 1 })).toBe('hop');
     expect(tapTestSound({ type: 'grabbed', id: 1, by: [100] })).toBe('burst');
     expect(tapTestSound({ type: 'snagResult', grade: 'great' })).toBeNull();
+    // The tip drill (docs/TIP.md, t5): the catch sound for a clean tap or a bobble, the fumble for a drop.
+    expect(tapTestSound({ type: 'tipPop', index: 0, result: 'clean' })).toBe('catch');
+    expect(tapTestSound({ type: 'tipPop', index: 0, result: 'bobble' })).toBe('catch');
+    expect(tapTestSound({ type: 'tipPop', index: 0, result: 'drop' })).toBe('fumble');
+    expect(tapTestSound({ type: 'tipResult', grade: 'bad' })).toBeNull();
   });
 });
 
 describe('the countdown, as both boxes show it (review c2)', () => {
   it("what's coming, and the whole seconds left: never 0 while it runs", () => {
-    expect(countdownText('SNAG IT!', 2)).toEqual({ title: 'GET READY TO SNAG IT!', count: '2…' });
-    expect(countdownText('SNAG IT!', 1.2)).toEqual({ title: 'GET READY TO SNAG IT!', count: '2…' });
-    expect(countdownText('MASH!', 0.3)).toEqual({ title: 'GET READY TO MASH!', count: '1…' });
-    expect(countdownText('MASH!', 0)).toEqual({ title: 'GET READY TO MASH!', count: '1…' });
+    expect(countdownText('snag', 2)).toEqual({ title: 'GET READY TO SNAG IT!', count: '2…' });
+    expect(countdownText('snag', 1.2)).toEqual({ title: 'GET READY TO SNAG IT!', count: '2…' });
+    expect(countdownText('mash', 0.3)).toEqual({ title: 'GET READY TO MASH!', count: '1…' });
+    expect(countdownText('mash', 0)).toEqual({ title: 'GET READY TO MASH!', count: '1…' });
+  });
+
+  it('each test’s call; the tip drill, a noun, gets ready FOR its call (docs/TIP.md, w1)', () => {
+    expect(['bar', 'mash', 'juke', 'snag', 'tip'].map((t) => testCall(t as never))).toEqual([
+      'BREAK IT!',
+      'MASH!',
+      'JUKE!',
+      'SNAG IT!',
+      'TIP DRILL!',
+    ]);
+    expect(countdownText('tip', 2)).toEqual({ title: 'GET READY FOR THE TIP DRILL!', count: '2…' });
+    expect(countdownText('bar', 1)).toEqual({ title: 'GET READY TO BREAK IT!', count: '1…' });
   });
 });

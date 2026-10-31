@@ -7,6 +7,7 @@ import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { bulletContest, forced, onDrive, type Force } from './contests';
 import { ofType, playState, run, stand } from './helpers';
+import { tipView } from '../../src/arcade/ui/testViews';
 
 /** docs/TIP.md: the tests it lists (u2), in its order. */
 
@@ -263,6 +264,98 @@ describe('7. outside Break it!’s two a down (t5)', () => {
     let t = s;
     for (let i = 0; i < 30 && t.phase === 'play'; i++) t = step(t).state;
     expect(t.phase).toBe('breakit');
+  });
+});
+
+describe('8. the view (u1, w1)', () => {
+  /** Step a drill until `at` (sim time), tapping clean on each landing before then. */
+  function until(state: RunState, at: number, taps = true): RunState {
+    let s = state;
+    while (s.time + DT <= at + 1e-9 && s.phase === 'tip') {
+      const t = s.tip!;
+      const landing = tipLanding(t);
+      const now = s.time + DT;
+      const tap = taps && landing !== null && Math.abs(now - landing) < DT / 2 + 1e-9;
+      s = step(s, tap ? { tip: true } : {}).state;
+    }
+    return s;
+  }
+
+  it('no drill, no box', () => {
+    expect(tipView(createRun(1))).toBeNull();
+  });
+
+  it('the countdown: the seconds left on screen, the ball resting on the hands, no pips played', () => {
+    const s = bulletContest(5, 60, undefined, 'tip');
+    const view = tipView(s)!;
+    expect(view.id).toBe(s.tip!.startedAt);
+    expect(view.ready).toBeCloseTo(arcadeTuning.countdown.ready / TIME_SCALE, 9);
+    expect(view.ball).toBe(0);
+    expect(view.pips).toEqual([null, null, null]);
+    expect(view.flash).toBeNull();
+  });
+
+  it('the ball: up to the top at the first pop’s middle, back on the hands at its landing; lower on the next', () => {
+    const s = bulletContest(5, 60, undefined, 'tip');
+    const t = s.tip!;
+    const [first, second] = t.pops as [number, number];
+    const mid = until(s, t.poppedAt + first / 2);
+    expect(tipView(mid)!.ready).toBeNull();
+    expect(tipView(mid)!.ball).toBeCloseTo(1, 1);
+    // Just before the landing, low and falling; the shadow nearly full.
+    const low = until(s, t.poppedAt + first - 2 * DT);
+    expect(tipView(low)!.ball).toBeGreaterThan(0);
+    expect(tipView(low)!.ball).toBeLessThan(0.2);
+    expect(tipView(low)!.shadow).toBeGreaterThan(0.8);
+    // Tapped clean on the landing: the next pop, 0.8 as long, peaks about 0.64 as high.
+    const tapped = until(s, t.poppedAt + first);
+    const t2 = tapped.tip!;
+    expect(t2.results).toEqual(['clean']);
+    const mid2 = until(tapped, t2.poppedAt + second / 2);
+    expect(tipView(mid2)!.ball).toBeCloseTo(0.64, 1);
+  });
+
+  it('a late ball falls below the hands, and stays on the turf once dropped', () => {
+    const s = bulletContest(5, 60, undefined, 'tip');
+    const t = s.tip!;
+    const late = until(s, t.poppedAt + t.pops[0]! + 3 * DT, false);
+    expect(tipView(late)!.ball).toBeLessThan(0);
+    const dropped = until(s, t.poppedAt + t.pops[0]! + tip.bobble + 2 * DT, false);
+    expect(dropped.phase).not.toBe('tip');
+    const view = tipView(dropped)!;
+    expect(view.pips).toEqual(['drop', null, null]);
+    expect(view.ball).toBeLessThan(0);
+    expect(view.flash).toBe('drop');
+  });
+
+  it('the pips and the flash: each pop’s result, the last one flashing a moment', () => {
+    const s = bulletContest(5, 60, undefined, 'tip');
+    const t = s.tip!;
+    const one = until(s, t.poppedAt + t.pops[0]!);
+    expect(tipView(one)!.pips).toEqual(['clean', null, null]);
+    expect(tipView(one)!.flash).toBe('clean');
+    const later = until(one, one.time + 0.3);
+    expect(tipView(later)!.flash).toBeNull();
+  });
+
+  it('the box stays for the linger after the grade, then goes', () => {
+    const s = bulletContest(5, 60, undefined, 'tip');
+    let t = s;
+    for (let i = 0; i < 900 && t.phase === 'tip'; i++) {
+      const d = t.tip!;
+      const landing = tipLanding(d);
+      const tap = landing !== null && Math.abs(t.time + DT - landing) < DT / 2 + 1e-9;
+      t = step(t, tap ? { tip: true } : {}).state;
+    }
+    expect(t.tipDone).not.toBeNull();
+    const ended = t.tipDone!.endedAt;
+    expect(tipView(t)!.pips).toEqual(['clean', 'clean', 'clean']);
+    const linger = arcadeTuning.catchTests.linger;
+    let u = t;
+    while (u.time + DT < ended + linger - 1e-9) u = step(u).state;
+    expect(tipView(u)).not.toBeNull();
+    u = step(step(u).state).state;
+    expect(tipView(u)).toBeNull();
   });
 });
 
