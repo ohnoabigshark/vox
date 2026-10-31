@@ -38,3 +38,20 @@ which doesn't change play. Options: count taps as a whole number and compare
 
 - 2026-10-31: fix it on a small branch of its own after `test-bench`
   (decision n2 on the bench rework map), since it changes play.
+
+## B4. SNAG IT! on the test bench sometimes shows only its first two dots
+
+Seen once by the Coach on Android Chrome, 2026-10-31 03:37–03:38 UTC, on
+the hot-reload bench: drive 10, three tacklers, 3 defenders reaching,
+Hands gap −25 (five dots), all settings at their defaults. In four reps in
+a row the log has dots 1 and 2 tapped (hit, or a late miss) and dots 3–5
+never tapped; the Coach saw the readout say more dots were coming while
+none showed. On opening the bench again it worked, so it's intermittent.
+
+Not reproduced in headless Chromium with that exact situation: untapped,
+tapped early, tapped on the ring, and with touch on an emulated phone,
+scrolled or not, dots 3–5 showed and graded; all 30 dot positions measured
+fell inside the stage, at phone and laptop sizes.
+
+- 2026-10-31: logged, not fixed. If it comes back, a screenshot or screen
+  recording while dots 3–5 should be up, and the time, to match the log.
