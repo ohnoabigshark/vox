@@ -25,14 +25,16 @@ export function snagOn(state: RunState): boolean {
 }
 
 /**
- * How many dots: 2 from drive 5, one more a zone; one more for each defender
+ * How many dots: 2 from drive 5, one more every `moreEvery` drives (an area's
+ * four); one more for each defender
  * after the first reaching for the ball; one fewer when the receiver's Hands
  * beat the best defender's by `handsGap`, one more the other way. 2 to 5.
  */
 export function snagCount(c: { drive: number; crowd: number; handsGap: number }): number {
-  const level = sn.minDots + Math.floor(Math.max(0, c.drive - sn.fromDrive) / sn.perZone);
+  // The level (docs/SNAG.md) is the drive's number in the run.
+  const byLevel = sn.minDots + Math.floor(Math.max(0, c.drive - sn.fromDrive) / sn.moreEvery);
   const hands = c.handsGap >= sn.handsGap ? -1 : c.handsGap <= -sn.handsGap ? 1 : 0;
-  return clamp(level + Math.max(0, c.crowd - 1) + hands, sn.minDots, sn.maxDots);
+  return clamp(byLevel + Math.max(0, c.crowd - 1) + hands, sn.minDots, sn.maxDots);
 }
 
 /** How fast on this drive: how long a ring takes to close, and the gap between dots (sim seconds). */

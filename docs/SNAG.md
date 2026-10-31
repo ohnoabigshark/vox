@@ -55,7 +55,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## How many dots (s1)
 
-- **The level:** 2 on drives 5–8, then one more each zone (4 drives): 3 on
+- **The level:** 2 on drives 5–8, then one more every four drives (an area; `moreEvery`): 3 on
   9–12, 4 on 13–16, 5 from 17.
 - **The crowd:** one more for each defender after the first whose reach
   covers the ball.
