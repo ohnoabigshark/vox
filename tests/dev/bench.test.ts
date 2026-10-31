@@ -156,7 +156,7 @@ describe('the knobs', () => {
     for (const t of ['bar', 'mash', 'juke', 'shoo'] as const) expect(more(t)).toEqual([]);
   });
 
-  it('3: a moved slider changes the next rep, and Reset to defaults puts it back', () => {
+  it('3: a moved slider changes the next rep, and back at its default it plays the default', () => {
     applySettings({ 'snag.close': fromScreen(knob('snag.close'), 1) });
     const dot = startRep('snag', at(5), 1).state.snag!.dots[0]!;
     expect((dot.closesAt - dot.appearsAt) / TIME_SCALE).toBeCloseTo(1, 6);
