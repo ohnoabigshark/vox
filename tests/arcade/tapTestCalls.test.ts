@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { breakGrade, gradeCall, tapTestSound } from '../../src/arcade/ui/tapTestCalls';
+import {
+  breakGrade,
+  countdownText,
+  gradeCall,
+  tapTestSound,
+} from '../../src/arcade/ui/tapTestCalls';
 
 /** Review b8: what the game and the test bench both call a tap test's result, and its sounds. */
 
@@ -28,5 +33,14 @@ describe("a tap test's calls", () => {
     expect(tapTestSound({ type: 'crowsLanded', on: 1 })).toBe('hop');
     expect(tapTestSound({ type: 'grabbed', id: 1, by: [100] })).toBe('burst');
     expect(tapTestSound({ type: 'snagResult', grade: 'great' })).toBeNull();
+  });
+});
+
+describe('the countdown, as both boxes show it (review c2)', () => {
+  it("what's coming, and the whole seconds left: never 0 while it runs", () => {
+    expect(countdownText('SNAG IT!', 2)).toEqual({ title: 'GET READY TO SNAG IT!', count: '2…' });
+    expect(countdownText('SNAG IT!', 1.2)).toEqual({ title: 'GET READY TO SNAG IT!', count: '2…' });
+    expect(countdownText('MASH!', 0.3)).toEqual({ title: 'GET READY TO MASH!', count: '1…' });
+    expect(countdownText('MASH!', 0)).toEqual({ title: 'GET READY TO MASH!', count: '1…' });
   });
 });

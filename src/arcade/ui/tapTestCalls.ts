@@ -48,3 +48,8 @@ export function tapTestSound(e: ArcadeEvent): SfxId | null {
       return null;
   }
 }
+
+/** A countdown as a box shows it: what's coming, and the whole seconds left ("2…", never "0…"). */
+export function countdownText(call: string, secondsLeft: number): { title: string; count: string } {
+  return { title: `GET READY TO ${call}`, count: `${Math.max(1, Math.ceil(secondsLeft))}…` };
+}
