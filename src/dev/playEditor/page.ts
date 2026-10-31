@@ -8,17 +8,12 @@
  */
 import { practiceQuery, playToSource } from '../../arcade/content/playCode';
 import { PLAY_POOL } from '../../arcade/content/playPool';
-import {
-  DEEPEST,
-  FARTHEST_BACK,
-  playProblems,
-  runsRoutes,
-  takesHandoff,
-} from '../../arcade/content/playRules';
+import { playProblems, runsRoutes, takesHandoff } from '../../arcade/content/playRules';
 import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES, lineUpSpot } from '../../arcade/content/team';
-import { arcadeTuning } from '../../arcade/content/tuning';
 import { now } from '../../clock';
+import { fieldBase, fieldSvg, yardsAt } from '../fieldSvg';
+import { el, required, statusLine } from '../pageKit';
 import {
   browserStorage,
   inGameOf,
@@ -45,40 +40,11 @@ import {
   type Yards,
 } from './editor';
 
-function required(selector: string): HTMLElement {
-  const found = document.querySelector<HTMLElement>(selector);
-  if (!found) throw new Error(`plays.html is missing ${selector}`);
-  return found;
-}
-const app = required('#app');
-const statusEl = required('#status');
+const app = required('plays.html', '#app');
+const { say, attempt } = statusLine(required('plays.html', '#status'));
 
 const storage = browserStorage();
 const store = sketchStore(storage, now);
-
-// ── Status line ─────────────────────────────────────────────────────────────
-
-let statusTimer = 0;
-function say(text: string, bad = false): void {
-  statusEl.textContent = text;
-  statusEl.classList.toggle('bad', bad);
-  statusEl.hidden = false;
-  window.clearTimeout(statusTimer);
-  // A problem stays until tapped; good news goes by itself.
-  if (!bad) statusTimer = window.setTimeout(() => (statusEl.hidden = true), 2600);
-}
-statusEl.addEventListener('click', () => (statusEl.hidden = true));
-
-/** Run a store call; a failure is shown, never swallowed. */
-async function attempt(work: () => Promise<void>): Promise<boolean> {
-  try {
-    await work();
-    return true;
-  } catch (e) {
-    say(e instanceof Error ? e.message : String(e), true);
-    return false;
-  }
-}
 
 // ── Try with: the game's settings for Try it ────────────────────────────────
 
@@ -110,21 +76,6 @@ function saveTryWith(): void {
   } catch {
     say("This browser isn't keeping settings; they'll reset next time.", true);
   }
-}
-
-// ── Small DOM helpers ───────────────────────────────────────────────────────
-
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  props: { className?: string; text?: string; onClick?: () => void } = {},
-  ...children: (Node | string)[]
-): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  if (props.className) e.className = props.className;
-  if (props.text !== undefined) e.textContent = props.text;
-  if (props.onClick) e.addEventListener('click', props.onClick);
-  e.append(...children);
-  return e;
 }
 
 function ago(edited: number): string {
@@ -282,16 +233,6 @@ function copyOf(p: Play): Play {
 
 // ── The editor ──────────────────────────────────────────────────────────────
 
-const SVG = 'http://www.w3.org/2000/svg';
-const HALF = arcadeTuning.field.halfWidth;
-/** The field shown: a little past each sideline, from just behind the deepest line-up spot to just past a throw's reach. */
-const VIEW = {
-  left: -HALF - 0.7,
-  right: HALF + 0.7,
-  back: -FARTHEST_BACK - 0.6,
-  deep: DEEPEST + 1.4,
-};
-
 /** What a drag moves: a waypoint of the picked route, or where a player lines up. */
 type Dragged = { kind: 'point'; index: number } | { kind: 'spot'; slot: number };
 
@@ -333,15 +274,7 @@ function openSketch(d: Sketch): void {
   name.value = d.play.name;
   name.setAttribute('aria-label', 'Play name');
   const flip = el('button', { className: 'tog', text: 'Flip' });
-  const field = document.createElementNS(SVG, 'svg');
-  field.classList.add('field');
-  field.setAttribute(
-    'viewBox',
-    `${VIEW.left} ${-VIEW.deep} ${VIEW.right - VIEW.left} ${VIEW.deep - VIEW.back}`,
-  );
-  field.setAttribute('role', 'img');
-  field.setAttribute(
-    'aria-label',
+  const field = fieldSvg(
     'The field: tap a player, then tap to add waypoints; drag a player to move it',
   );
   const code = el('textarea', { className: 'code' });
@@ -397,14 +330,6 @@ function change(next: EditorState): void {
   e.ed = next;
   draw();
   if (changed) void attempt(() => store.save(e.key, next.play));
-}
-
-/** A tap's place on the field, in yards from the line of scrimmage. */
-function yardsAt(field: SVGSVGElement, ev: PointerEvent): Yards {
-  const m = field.getScreenCTM();
-  if (!m) return { x: 0, y: 0 };
-  const p = new DOMPoint(ev.clientX, ev.clientY).matrixTransform(m.inverse());
-  return { x: p.x, y: -p.y };
 }
 
 function onDown(ev: PointerEvent): void {
@@ -556,22 +481,7 @@ function draw(): void {
 }
 
 function drawField(f: SVGSVGElement, ed: EditorState): void {
-  const parts: string[] = [];
-  const line = (y: number, cls: string): string =>
-    `<line class="${cls}" x1="${-HALF}" x2="${HALF}" y1="${-y}" y2="${-y}"/>`;
-  parts.push(
-    `<rect class="f-out" x="${VIEW.left}" y="${-VIEW.deep}" width="${VIEW.right - VIEW.left}" height="${VIEW.deep - VIEW.back}"/>`,
-    `<rect class="f-turf" x="${-HALF}" y="${-VIEW.deep}" width="${2 * HALF}" height="${VIEW.deep - VIEW.back}"/>`,
-  );
-  for (let y = -5; y < VIEW.deep; y += 5) if (y !== 0 && y !== 10) parts.push(line(y, 'f-yard'));
-  parts.push(line(0, 'f-los'), line(10, 'f-first'), line(DEEPEST, 'f-reach'));
-  const label = (y: number, text: string, cls = ''): string =>
-    `<text class="f-text ${cls}" x="${-HALF + 0.12}" y="${-y - 0.3}">${text}</text>`;
-  parts.push(
-    label(0, 'LINE'),
-    label(10, '+10', 'gold'),
-    label(DEEPEST, `THROW REACH ${DEEPEST}`, 'bad'),
-  );
+  const parts = fieldBase({ reach: true });
 
   const view = fieldView(ed);
   const editSlot = ed.flipped ? null : ed.selected;
