@@ -348,3 +348,82 @@ describe('SNAG IT!: the dot to tap, defined once (review a5)', () => {
     expect(nextDot(shown)).toBe(1);
   });
 });
+
+describe('SNAG IT!: what the plan’s tests promised, checked in full (review a4)', () => {
+  it('every dot hit: every defender contesting it is knocked down, and the receiver runs free', () => {
+    const r = snag(bulletContest(5, 60, [{ hands: 60 }, { hands: 100, along: 1 }]), [
+      'hit',
+      'hit',
+      'hit',
+      'hit',
+    ]);
+    expect(ofType(r.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'great' }]);
+    const contesting = r.state.snagDone?.snag.defenders ?? [];
+    expect(contesting).toHaveLength(2);
+    for (const id of contesting) {
+      expect(r.state.field.defenders.find((d) => d.id === id)?.down).toBeGreaterThan(0);
+    }
+    expect(r.state.field.breakaway).toBeGreaterThan(0);
+  });
+
+  it('one miss: tackled on the spot, no yards after the catch', () => {
+    const s = bulletContest(5);
+    const r = snag(s, ['hit', 'none']);
+    const caughtAt = r.state.snagDone?.snag;
+    expect(caughtAt).toBeDefined();
+    const ended = ofType(r.events, 'downEnded')[0];
+    expect(ended?.result).toBe('tackled');
+    // The ball hangs a yard short of the receiver's hands at (4, 6), and it's caught there.
+    expect(ended?.gained).toBeCloseTo(6 - s.drive.los, 0);
+  });
+
+  it('a Break it! still follows a SNAG IT! in the same down, both of them', () => {
+    const r = snag(bulletContest(5), ['hit', 'hit']);
+    expect(r.state.field.breaks).toBe(0);
+    expect(arcadeTuning.breakit.perDown).toBe(2);
+    // A Cover back on its feet grabs the receiver: Break it! starts as usual.
+    const s = r.state;
+    const cover = s.field.defenders[0]!;
+    const receiver = s.field.players.find((p) => p.id === 2)!;
+    cover.down = 0;
+    cover.pos = v(receiver.pos.x + 0.3, receiver.pos.y + 0.3);
+    s.field.breakaway = 0;
+    let t = s;
+    for (let i = 0; i < 30 && t.phase === 'play'; i++) t = step(t).state;
+    expect(t.phase).toBe('breakit');
+  });
+
+  it('before drive 5 a contested lob is settled as today; from drive 5, whichever way it would go', () => {
+    // A lob onto (0.4, 10): the Catcher at x 2.2, a Cover at x `cover` (they move as it falls).
+    const lob = (drive: number, cover: number): RunState => {
+      const s = playState(
+        [{ pos: v(2.2, 10), job: stand(v(2.2, 10)) }],
+        [{ kind: 'cover', pos: v(cover, 10) }],
+      );
+      onDrive(s, drive);
+      s.field.ball = {
+        at: 'flight',
+        from: v(0, -4),
+        target: v(0.4, 10),
+        thrownAt: s.time,
+        landsAt: s.time + 0.5,
+        lob: true,
+      };
+      return run(s, 1).state;
+    };
+    // Today's rule, before drive 5: one caught, one batted, no SNAG IT!.
+    expect(lob(4, -0.2).field.ball).toEqual({ at: 'carried', by: 2 });
+    expect(lob(4, 0.3).field.ball).toMatchObject({ at: 'dead', how: 'batted' });
+    // From drive 5, both are SNAG IT!.
+    expect(lob(5, -0.2).phase).toBe('snag');
+    expect(lob(5, 0.3).phase).toBe('snag');
+  });
+
+  it('the floor: 0.5 s to close and about 0.3 s apart, from drive 18', () => {
+    const { close, gap } = snagPace(18);
+    expect(close / 0.8).toBeCloseTo(0.5, 9);
+    expect(gap / 0.8).toBeCloseTo(0.3125, 9);
+    expect(snagPace(30)).toEqual(snagPace(18));
+    expect(snagPace(17).close).toBeGreaterThan(close);
+  });
+});
