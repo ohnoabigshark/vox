@@ -487,11 +487,16 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
   }
   if (outcome.kind === 'caught') {
     giveBall(state, outcome.by);
-    events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contested });
+    events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contest !== undefined });
     return checkCarrier(state, events);
   }
   if (outcome.kind === 'batted') {
-    events.push({ type: 'batted', by: outcome.by, at: outcome.at, contested: outcome.contested });
+    events.push({
+      type: 'batted',
+      by: outcome.by,
+      at: outcome.at,
+      contested: outcome.contest !== undefined,
+    });
     state.field.ball = { at: 'dead', pos: outcome.at, how: 'batted' };
     endDown(state, 'batted', state.drive.los, events);
     return true;
