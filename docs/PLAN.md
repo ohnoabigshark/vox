@@ -177,6 +177,35 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     the player semi transparent when in it and defenders run through
     them."_ **Taffy flood** (f7): a band across where everyone moves at
     half speed. Grasping hands: rejected (f8).
+
+  Round 2, decided the same day (k1, p1–p5, n1–n2, w1, t1, o1–o2; all
+  approved):
+  - **Saving** (k1): events in code (`content/fieldEvents.ts`) are the
+    defaults; the editor's Save writes changes and new events to
+    `saved-events.json` over them, as the bench's Save does; Restore
+    defaults.
+  - **The parts:** a lane, a band or a circle, in yards from the line, on
+    the left, middle, right or either side each down (p1); going off a set
+    time after the snap, as a burst (who's in it then) or a spell (who's in
+    it while it lasts) (p2); shown before the snap, then the event's own
+    build-up art (p3; _user: "Some events can be a surprise but we won't
+    implement that yet, let's just plan for that to be possible."_); flatten,
+    slow or ethereal, on your players, the defenders or everyone (p4).
+  - **Blessing, hex or mischief** (p5): only helps you, only hurts you, or
+    both. _User: "Mischief is a great third word love it."_
+  - **In a run** (n1, n2): from drive 2, about one ordinary drive in three
+    gets a generic event, from the seed; wisps and taffy are generic, Frog
+    Rain Mister Frog's.
+  - **Wisps** (w1): a circle about 4 yards across, 12 ahead on either side,
+    from 1 s after the snap for 3 s; your players in it are ethereal.
+    **Taffy** (t1): a band across, 6 to 9 yards ahead, from 1 s for 2 s;
+    everyone in it at half speed.
+  - **Order** (o1, o2): three branches, each reviewed and merged before the
+    next: field events and the editor (Frog Rain as data, no change in
+    play), the taffy flood, the wisps. Gravestones are not part of it
+    (_user: "I just want that in the plan (including my choices for it). I
+    don't want to do that work as part of the event blessing curse mischief
+    work"_).
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in
@@ -246,8 +275,13 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   down a moment, and a carrier is tackled there (today **SLIPPED!**,
   `docs/PICKUPS.md` k6). _User, 2026-10-31: "change oil slicks to
   gravestones. same effect as it currently has."_ Open: its call on screen
-  and its name in `CONTEXT.md`; its model and sound. On the field events
-  map, round 2.
+  and its name in `CONTEXT.md`; its model and sound. **Decided** on the
+  field events map (v1, 2026-10-31), for when it's built, on its own:
+  the same effect and numbers; the call **TRIPPED!**; a stumble and a thud
+  for the sound; "gravestone" everywhere (`CONTEXT.md`, the docs,
+  `PickupKind` `'gravestone'`), nothing left saying slick; and _"Can we
+  make the trigger area a little larger as part of this work."_ (how much
+  larger, its radius against the slick's today, decided then).
 - **The tip drill's drift:** each pop carries the ball left or right, its
   shadow marking where along the hands it comes down, and the Coach taps
   that spot as it lands. Option B on the tip drill's map (t1), parked until
