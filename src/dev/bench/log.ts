@@ -1,31 +1,14 @@
 /**
- * The test bench's log (docs/BENCH.md, l1 and l2): a settings line on each
- * change and a rep line on each grade, sent to the hot-reload server, which
- * appends them to a file Claude reads (tools/benchLog.ts). Where nothing
- * takes them (the served build), the log says so rather than pretending.
+ * The test bench's log (docs/BENCH.md, l1 and r-l3): a rep line on each
+ * grade, with the settings it was played at, and a save line on each Save,
+ * sent to the hot-reload server, which appends them to a file Claude reads
+ * (tools/benchLog.ts). A slider move writes nothing. Where nothing takes
+ * the lines (the served build), the page says so rather than pretending.
  */
-import {
-  BENCH_TESTS,
-  knobsFor,
-  pathOf,
-  round,
-  defaultValue,
-  type BenchTest,
-  type Settings,
-} from './knobs';
+import { BENCH_TESTS, round, tabOffDefault, type BenchTest, type Settings } from './knobs';
 import type { RepResult, Situation, Timing } from './reps';
 
 export type LogLine =
-  | {
-      readonly at: string;
-      readonly kind: 'settings';
-      readonly test: BenchTest;
-      /** The value just changed, by its tuning.ts path. */
-      readonly changed: Readonly<Record<string, number>>;
-      readonly situation: Situation;
-      /** Every value the test's sliders set, at the situation's drive, as tuning.ts numbers. */
-      readonly settings: Readonly<Record<string, number>>;
-    }
   | {
       readonly at: string;
       readonly kind: 'rep';
@@ -33,33 +16,19 @@ export type LogLine =
       readonly situation: Situation;
       readonly grade: RepResult['grade'];
       readonly timing: Timing;
+      /** The tab's settings off their defaults when it was played, as tuning.ts numbers. */
+      readonly settings: Settings;
+    }
+  | {
+      readonly at: string;
+      readonly kind: 'save';
+      readonly test: BenchTest;
+      /** The tab's values off default that it saved, as tuning.ts numbers. */
+      readonly saved: Settings;
     };
 
-/** The line for a slider let go at `path` (or a Reset of several), with the test's whole settings. */
-export function settingsLine(
-  test: BenchTest,
-  situation: Situation,
-  settings: Settings,
-  path: string | readonly string[],
-  now: number,
-): LogLine {
-  const paths = typeof path === 'string' ? [path] : path;
-  const value = (p: string): number => round(settings[p] ?? defaultValue(p));
-  const all = Object.fromEntries(
-    knobsFor(test).map((k) => [pathOf(k, situation.drive), value(pathOf(k, situation.drive))]),
-  );
-  return {
-    at: new Date(now).toISOString(),
-    kind: 'settings',
-    test,
-    changed: Object.fromEntries(paths.map((p) => [p, value(p)])),
-    situation,
-    settings: all,
-  };
-}
-
 /** The line for a rep's grade, its timing rounded as tuning.ts numbers are. */
-export function repLine(result: RepResult, now: number): LogLine {
+export function repLine(result: RepResult, settings: Settings, now: number): LogLine {
   return {
     at: new Date(now).toISOString(),
     kind: 'rep',
@@ -67,6 +36,17 @@ export function repLine(result: RepResult, now: number): LogLine {
     situation: result.situation,
     grade: result.grade,
     timing: roundAll(result.timing),
+    settings: tabOffDefault(settings, result.test),
+  };
+}
+
+/** The line for a Save on `test`, given the saved file as it now is. */
+export function saveLine(test: BenchTest, savedFile: Settings, now: number): LogLine {
+  return {
+    at: new Date(now).toISOString(),
+    kind: 'save',
+    test,
+    saved: tabOffDefault(savedFile, test),
   };
 }
 
@@ -88,22 +68,20 @@ const numbers = (x: unknown): boolean =>
 export function isLogLine(x: unknown): x is LogLine {
   if (!isRecord(x) || typeof x.at !== 'string') return false;
   if (!BENCH_TESTS.includes(x.test as BenchTest)) return false;
-  const s = x.situation;
-  if (
-    !isRecord(s) ||
-    !['drive', 'tacklers', 'crowd', 'handsGap'].every((k) => typeof s[k] === 'number')
-  ) {
-    return false;
-  }
   switch (x.kind) {
-    case 'settings':
-      return numbers(x.changed) && numbers(x.settings);
-    case 'rep':
+    case 'rep': {
+      const s = x.situation;
       return (
+        isRecord(s) &&
+        ['drive', 'tacklers', 'crowd', 'handsGap'].every((k) => typeof s[k] === 'number') &&
         ['great', 'ok', 'bad'].includes(x.grade as string) &&
         isRecord(x.timing) &&
-        x.timing.test === x.test
+        x.timing.test === x.test &&
+        numbers(x.settings)
       );
+    }
+    case 'save':
+      return numbers(x.saved);
     default:
       return false;
   }

@@ -1,8 +1,9 @@
 /**
  * The test bench page (dev/bench.html, docs/BENCH.md): a tab per tap test,
  * the game's own test screen over a plain stage, and below it the
- * situation, the sliders and the toggles. Every slider let go and every rep
- * is logged (log.ts); the status line says whether that's being recorded.
+ * situation, the sliders and the toggles. Each tab saves its own sliders
+ * into the game (save.ts). Every rep and every save is logged (log.ts); the
+ * status line says whether that's being recorded.
  */
 import './page.css';
 import savedFile from '../../arcade/content/saved-tuning.json' with { type: 'json' };
@@ -23,7 +24,6 @@ import { benchStore, type Kept, type Toggles } from './keep';
 import {
   BENCH_TESTS,
   applySettings,
-  copyText,
   fromScreen,
   knobsFor,
   pathOf,
@@ -34,7 +34,7 @@ import {
   type BenchTest,
   type Settings,
 } from './knobs';
-import { httpLog, repLine, settingsLine, type LogLine } from './log';
+import { httpLog, repLine, saveLine, type LogLine } from './log';
 import { Grab, fractionOf, rowView, snap, type Range, type RowView } from './row';
 import {
   httpSaver,
@@ -116,9 +116,7 @@ async function main(): Promise<void> {
       <button class="b-go">GO</button>
       <button class="b-save">Saved</button>
       <button class="b-reset">Restore defaults</button>
-      <button class="b-copy">Copy settings</button>
     </div>
-    <textarea class="b-copied" readonly hidden rows="8"></textarea>
     <div class="b-row b-toggles">${TOGGLES.map(
       (t) => `<label><input type="checkbox" data-toggle="${t.key}" /> ${t.label}</label>`,
     ).join('')}</div>
@@ -137,8 +135,6 @@ async function main(): Promise<void> {
   const summaryEl = q('.b-summary');
   const situationEl = q('.b-situation');
   const knobsEl = q('.b-knobs');
-  const copied = q<HTMLTextAreaElement>('.b-copied');
-  const copyButton = q('.b-copy');
   const saveButton = q<HTMLButtonElement>('.b-save');
   const savedEl = q('.b-saved');
 
@@ -162,7 +158,7 @@ async function main(): Promise<void> {
         ? 'Checking the log…'
         : recording
           ? '● Recording to the log'
-          : 'Not recording: the log works on the hot-reload server (/vox-dev/dev/bench.html). Copy settings still works.';
+          : 'Not recording: the log works on the hot-reload server (/vox-dev/dev/bench.html).';
     status.textContent = problem ? `${rec} · ${problem}` : rec;
     status.classList.toggle('off', recording === false || problem !== null);
   };
@@ -292,6 +288,7 @@ async function main(): Promise<void> {
         (r) => {
           saved = next;
           saveState = { server: 'up', inServedGame: r.inServedGame, error: null };
+          record(saveLine(test(), next, now()));
         },
         (e: unknown) => {
           saveState = { ...saveState, error: e instanceof Error ? e.message : String(e) };
@@ -353,11 +350,7 @@ async function main(): Promise<void> {
       };
       const row = slider(knob.label, range, {
         onMove: (v) => set(fromScreen(knob, v)),
-        onLetGo: () => record(settingsLine(test(), kept.situation, settings, path, now())),
-        onReset: () => {
-          set(defaultValue(path));
-          record(settingsLine(test(), kept.situation, settings, path, now()));
-        },
+        onReset: () => set(defaultValue(path)),
       });
       const show = (): void => {
         const view = rowView(knob, path, saved, settings);
@@ -375,7 +368,6 @@ async function main(): Promise<void> {
     renderSituation();
     renderKnobs();
     showSummary();
-    copied.hidden = true;
   };
 
   for (const b of app.querySelectorAll<HTMLButtonElement>('[data-test]')) {
@@ -404,31 +396,6 @@ async function main(): Promise<void> {
     renderKnobs();
     renderSave();
     showSummary();
-    record(
-      settingsLine(
-        test(),
-        kept.situation,
-        settings,
-        knobsFor(test()).map((k) => pathOf(k, kept.situation.drive)),
-        now(),
-      ),
-    );
-  });
-  copyButton.addEventListener('click', () => {
-    const text = copyText(test(), kept.situation.drive, settings);
-    navigator.clipboard.writeText(text).then(
-      () => {
-        copied.hidden = true;
-        copyButton.textContent = 'Copied';
-        window.setTimeout(() => (copyButton.textContent = 'Copy settings'), 1200);
-      },
-      () => {
-        // No clipboard here: show the text to copy by hand.
-        copied.value = text;
-        copied.hidden = false;
-        copied.select();
-      },
-    );
   });
   window.addEventListener('pointerdown', wakeSound, { capture: true });
   window.addEventListener('keydown', (e) => {
@@ -472,7 +439,7 @@ async function main(): Promise<void> {
     for (const e of events) react(e);
     if (finished) {
       showWord(finished);
-      record(repLine(finished, now()));
+      record(repLine(finished, settings, now()));
     }
     const rep = bench.rep;
     const state = rep && !rep.result ? rep.state : null;
@@ -502,7 +469,7 @@ type Shown = Pick<RowView, 'shown' | 'at'> & Partial<RowView> & { readonly value
 function slider(
   name: string,
   range: Range,
-  on: { onMove(v: number): void; onLetGo?(): void; onReset?(): void },
+  on: { onMove(v: number): void; onReset?(): void },
 ): { el: HTMLElement; show(view: Shown): void } {
   const el = document.createElement('div');
   el.className = 'b-slider';
@@ -559,7 +526,6 @@ function slider(
     if (!grab.dragging) return;
     grab.up();
     el.classList.remove('grabbed');
-    on.onLetGo?.();
   };
   knob.addEventListener('pointerup', letGo);
   knob.addEventListener('pointercancel', letGo);
@@ -568,7 +534,6 @@ function slider(
     if (by === undefined) return;
     e.preventDefault();
     moveTo(snap(value + by * range.step, range));
-    on.onLetGo?.();
   });
   return {
     el,

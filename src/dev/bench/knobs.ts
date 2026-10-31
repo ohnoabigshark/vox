@@ -98,6 +98,20 @@ export function pathsOf(knob: Knob): string[] {
   return Array.from({ length: AREAS }, (_, a) => knob.key.replace('{area}', String(a)));
 }
 
+/** Every value a tab's sliders edit, every area's for a by-area slider. */
+export function tabPaths(test: BenchTest): string[] {
+  return knobsFor(test).flatMap(pathsOf);
+}
+
+/** The tab's values in `settings` that are off their defaults. */
+export function tabOffDefault(settings: Settings, test: BenchTest): Settings {
+  return Object.fromEntries(
+    tabPaths(test)
+      .filter((p) => settings[p] !== undefined && round(settings[p]) !== round(defaultValue(p)))
+      .map((p) => [p, round(settings[p] ?? 0)]),
+  );
+}
+
 /** Every value the bench can edit. */
 export function allPaths(): string[] {
   return KNOBS.flatMap(pathsOf);
@@ -181,22 +195,6 @@ export function showValue(knob: Knob, v: number): string {
     case 'number':
       return `×${shown.toFixed(2)}`;
   }
-}
-
-/**
- * Copy settings (k3): the open tab's values as tuning.ts lines, each changed
- * one marked with its default, for when the log isn't recording.
- */
-export function copyText(test: BenchTest, drive: number, settings: Settings): string {
-  const lines = knobsFor(test).map((knob) => {
-    const path = pathOf(knob, drive);
-    const v = settings[path] ?? defaultValue(path);
-    const changed = v !== defaultValue(path) ? `  // was ${defaultValue(path)}` : '';
-    return `${path}: ${round(v)},${changed}`;
-  });
-  return [`// Test bench: ${test}, drive ${drive} (src/arcade/content/tuning.ts)`, ...lines].join(
-    '\n',
-  );
 }
 
 /** A tuning.ts number written plainly: no float noise. */

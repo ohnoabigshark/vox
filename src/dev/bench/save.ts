@@ -5,20 +5,7 @@
  * now. Each tab saves and restores its own sliders; the two the Break it!
  * tabs share are one value each, so they save and restore as one (r-s8).
  */
-import {
-  BENCH_TESTS,
-  defaultValue,
-  knobsFor,
-  pathsOf,
-  round,
-  type BenchTest,
-  type Settings,
-} from './knobs';
-
-/** Every value a tab's sliders edit, every area's for a by-area slider. */
-function tabPaths(test: BenchTest): string[] {
-  return knobsFor(test).flatMap(pathsOf);
-}
+import { BENCH_TESTS, defaultValue, round, tabPaths, type BenchTest, type Settings } from './knobs';
 
 const valueIn = (settings: Settings, path: string): number =>
   round(settings[path] ?? defaultValue(path));

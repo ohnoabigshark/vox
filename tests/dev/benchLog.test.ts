@@ -2,49 +2,38 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { copyText, knobsFor, pathOf } from '../../src/dev/bench/knobs';
-import { httpLog, isLogLine, repLine, settingsLine } from '../../src/dev/bench/log';
+import { httpLog, isLogLine, repLine, saveLine } from '../../src/dev/bench/log';
 import type { RepResult, Situation } from '../../src/dev/bench/reps';
 import { fileAppender, handleBenchLog } from '../../tools/benchLog';
 
 const isLine = async (x: unknown): Promise<boolean> => isLogLine(x);
 
-/** docs/BENCH.md, tests 12-14. */
+/** docs/BENCH.md, tests 12-14 and the rework's test M. */
 
 const situation: Situation = { drive: 7, tacklers: 1, crowd: 1, handsGap: 0 };
 const NOW = Date.UTC(2026, 9, 31, 15, 2, 11);
 
 describe('the log', () => {
-  it("12: a settings line has the change, the test's whole settings as tuning.ts numbers, and the situation", () => {
-    const line = settingsLine('snag', situation, { 'snag.close': 0.56 }, 'snag.close', NOW);
-    if (line.kind !== 'settings') throw new Error('not a settings line');
-    expect(line.at).toBe('2026-10-31T15:02:11.000Z');
-    expect(line.test).toBe('snag');
-    expect(line.changed).toEqual({ 'snag.close': 0.56 });
-    expect(line.situation).toEqual(situation);
-    expect(Object.keys(line.settings)).toEqual(knobsFor('snag').map((k) => pathOf(k, 7)));
-    expect(line.settings['snag.close']).toBe(0.56);
-    expect(line.settings['snag.window']).toBe(0.12);
-    // A by-area value is the picked drive's.
-    const bar = settingsLine('bar', situation, {}, 'breakit.near', NOW);
-    if (bar.kind !== 'settings') throw new Error('not a settings line');
-    expect(bar.settings['breakit.byArea.1.sweet']).toBe(0.075);
-  });
-
-  it('12: a rep line has the test, the situation, the timing and the grade', () => {
-    const result: RepResult = {
+  const result: RepResult = {
+    test: 'snag',
+    situation,
+    grade: 'ok',
+    timing: {
       test: 'snag',
-      situation,
-      grade: 'ok',
-      timing: {
-        test: 'snag',
-        dots: [
-          { off: 0.0312345, hit: true },
-          { off: null, hit: false },
-        ],
-      },
+      dots: [
+        { off: 0.0312345, hit: true },
+        { off: null, hit: false },
+      ],
+    },
+  };
+
+  it("M: a rep line has the test, the situation, the timing, the grade, and the tab's settings off default", () => {
+    const settings = {
+      'snag.close': 0.56,
+      'snag.window': 0.12, // the default: left out
+      'crows.window': 0.7, // another tab's
     };
-    expect(repLine(result, NOW)).toEqual({
+    expect(repLine(result, settings, NOW)).toEqual({
       at: '2026-10-31T15:02:11.000Z',
       kind: 'rep',
       test: 'snag',
@@ -57,20 +46,51 @@ describe('the log', () => {
           { off: null, hit: false },
         ],
       },
+      settings: { 'snag.close': 0.56 },
     });
+  });
+
+  it("M: a save line has what the tab saved; the Break it! tabs' shared values with each", () => {
+    const file = { 'snag.close': 0.56, 'breakit.ready': 2, 'crows.window': 0.7 };
+    expect(saveLine('snag', file, NOW)).toEqual({
+      at: '2026-10-31T15:02:11.000Z',
+      kind: 'save',
+      test: 'snag',
+      saved: { 'snag.close': 0.56 },
+    });
+    expect(saveLine('mash', file, NOW)).toMatchObject({ saved: { 'breakit.ready': 2 } });
+    // Saving the defaults is a line too: nothing saved for that tab.
+    expect(saveLine('juke', {}, NOW)).toMatchObject({ kind: 'save', saved: {} });
+  });
+
+  it('M: a slider move is no line at all: the old settings lines are turned away', () => {
+    expect(isLogLine(repLine(result, {}, NOW))).toBe(true);
+    expect(isLogLine(saveLine('snag', {}, NOW))).toBe(true);
+    expect(
+      isLogLine({
+        at: '2026-10-31T15:02:11.000Z',
+        kind: 'settings',
+        test: 'snag',
+        situation,
+        changed: { 'snag.close': 0.56 },
+        settings: { 'snag.close': 0.56 },
+      }),
+    ).toBe(false);
+    expect(isLogLine({ ...saveLine('snag', {}, NOW), saved: { 'snag.close': 'x' } })).toBe(false);
+    expect(isLogLine({ ...repLine(result, {}, NOW), settings: null })).toBe(false);
   });
 
   it('13: the endpoint appends each log line as one line, and turns away anything else', async () => {
     const lines: string[] = [];
     const append = async (s: string): Promise<void> => void lines.push(s);
-    const line = settingsLine('shoo', situation, {}, 'crows.window', NOW);
+    const line = repLine(result, {}, NOW);
     expect(await handleBenchLog('POST', JSON.stringify(line), append, isLine)).toMatchObject({
       status: 204,
     });
     expect(lines).toEqual([`${JSON.stringify(line)}\n`]);
     for (const bad of [
       'not json',
-      '{"kind":"settings"}',
+      '{"kind":"rep"}',
       '[]',
       JSON.stringify({ ...line, kind: 'x' }),
     ]) {
@@ -102,25 +122,12 @@ describe('the log', () => {
     const down = (async () => {
       throw new TypeError('Failed to fetch');
     }) as typeof fetch;
-    const line = settingsLine('shoo', situation, {}, 'crows.window', NOW);
+    const line = saveLine('shoo', {}, NOW);
     expect(await httpLog('/x', answering(200)).probe()).toBe(true);
     expect(await httpLog('/x', answering(404)).probe()).toBe(false);
     expect(await httpLog('/x', down).probe()).toBe(false);
     expect(await httpLog('/x', answering(204)).record(line)).toBe(true);
     expect(await httpLog('/x', answering(500)).record(line)).toBe(false);
     expect(await httpLog('/x', down).record(line)).toBe(false);
-  });
-
-  it("14: Copy settings gives the open tab's values as tuning.ts lines", () => {
-    expect(copyText('juke', 7, { 'breakit.jukeLinger': 0.5 })).toBe(
-      [
-        '// Test bench: juke, drive 7 (src/arcade/content/tuning.ts)',
-        'breakit.ready: 1.6,',
-        'breakit.perExtraTackler: 0.6,',
-        'breakit.byArea.1.jukeWindow: 0.48,',
-        'breakit.jukeBreakShare: 0.5,',
-        'breakit.jukeLinger: 0.5,  // was 0.4',
-      ].join('\n'),
-    );
   });
 });
