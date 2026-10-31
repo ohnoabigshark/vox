@@ -177,24 +177,127 @@ export function setAcross(s: EditorState, across: EventArea['across']): EditorSt
 /** Times are set as the screen shows them and kept as the sim counts them. */
 const sim = (screen: number): number => screen * TIME_SCALE;
 
-export function setGoesOff(s: EditorState, screen: number): EditorState {
-  return changed(s, { ...s.event, goesOff: sim(screen) });
-}
-
-export function setLasts(s: EditorState, screen: number): EditorState {
-  return changed(s, { ...s.event, lasts: sim(screen) });
-}
-
-export function setBuildUp(s: EditorState, screen: number): EditorState {
-  return changed(s, { ...s.event, warning: { ...s.event.warning, buildUp: sim(screen) } });
-}
-
 export function setOn(s: EditorState, on: Who): EditorState {
   return changed(s, { ...s.event, effect: { ...s.event.effect, on } });
 }
 
 export function setName(s: EditorState, name: string): EditorState {
   return changed(s, { ...s.event, name });
+}
+
+/** A number on the editor that has a slider (round 4, e1, e2): a time on screen, or a place in yards. */
+export type NumberKey =
+  'goesOff' | 'buildUp' | 'lasts' | 'from' | 'to' | 'width' | 'at' | 'out' | 'radius';
+
+export interface EventNumber {
+  readonly key: NumberKey;
+  readonly label: string;
+  /** As shown: seconds on screen, or yards. */
+  readonly value: number;
+  readonly unit: 's' | 'yd';
+  readonly range: { readonly min: number; readonly max: number; readonly step: number };
+}
+
+/** A sim time as the screen shows it, free of float dust. */
+const onScreen = (sim: number): number => Math.round((sim / TIME_SCALE) * 1e6) / 1e6;
+
+/** The sliders an event has: its three times, then its area's numbers (a lane's or band's edges and width, or a circle's place and size). */
+export function eventNumbers(e: FieldEvent): EventNumber[] {
+  const time = (
+    key: NumberKey,
+    label: string,
+    sim: number,
+    min: number,
+    max: number,
+    step = 0.05,
+  ): EventNumber => ({
+    key,
+    label,
+    value: onScreen(sim),
+    unit: 's',
+    range: { min, max, step },
+  });
+  const yards = (
+    key: NumberKey,
+    label: string,
+    value: number,
+    min: number,
+    max: number,
+    step = 0.5,
+  ): EventNumber => ({
+    key,
+    label,
+    value,
+    unit: 'yd',
+    range: { min, max, step },
+  });
+  const times = [
+    time('goesOff', 'Goes off after the snap', e.goesOff, 0.25, 5),
+    time('buildUp', 'Warning before it goes off', e.warning.buildUp, 0, 3, 0.025),
+    time('lasts', 'Its effect lasts', e.lasts, 0.2, 4),
+  ];
+  const a = e.area;
+  if (a.shape === 'circle') {
+    return [
+      ...times,
+      yards('at', 'Ahead of the line', a.at, BEHIND, 30),
+      yards('out', 'Out from the middle', a.out, 0, HW, 0.1),
+      yards('radius', 'Radius', a.radius, LEAST, HW),
+    ];
+  }
+  return [
+    ...times,
+    yards('from', 'Near edge, from the line', a.from, BEHIND, 30),
+    yards('to', 'Far edge, from the line', a.to, BEHIND + LEAST, 30),
+    yards('width', 'Width', a.width, LEAST, 2 * HW, 0.1),
+  ];
+}
+
+/** One number set exactly (a slider moved, or ↺), held to what the game can play. One step for Undo. */
+export function setNumber(s: EditorState, key: NumberKey, value: number): EditorState {
+  const e = s.event;
+  const a = e.area;
+  const area = (next: EventArea): EditorState => changed(s, { ...e, area: next });
+  switch (key) {
+    case 'goesOff':
+      return changed(s, { ...e, goesOff: sim(value) });
+    case 'buildUp':
+      return changed(s, { ...e, warning: { ...e.warning, buildUp: sim(value) } });
+    case 'lasts':
+      return changed(s, { ...e, lasts: sim(value) });
+    case 'from':
+      return a.shape === 'circle' ? s : area({ ...a, from: clamp(value, BEHIND, a.to - LEAST) });
+    case 'to':
+      return a.shape === 'circle' ? s : area({ ...a, to: Math.max(a.from + LEAST, value) });
+    case 'width':
+      return a.shape === 'circle' ? s : area({ ...a, width: clamp(value, LEAST, 2 * HW) });
+    case 'at':
+      return a.shape === 'circle' ? area({ ...a, at: value }) : s;
+    case 'out':
+      return a.shape === 'circle' ? area({ ...a, out: clamp(value, 0, HW) }) : s;
+    case 'radius':
+      return a.shape === 'circle' ? area({ ...a, radius: clamp(value, LEAST, HW) }) : s;
+    default:
+      return assertNever(key);
+  }
+}
+
+/** The whole event replaced (Restore defaults, or Revert to saved): one step for Undo. */
+export function replaceEvent(s: EditorState, event: FieldEvent): EditorState {
+  return sameEvent(s.event, event) ? s : changed(s, event);
+}
+
+/**
+ * The event's down as a timeline, in seconds on screen from the snap (e4):
+ * the warning starts its length before it goes off (never before the
+ * snap), and its effect ends `lasts` after.
+ */
+export function eventTimeline(e: FieldEvent): { warning: number; goesOff: number; ends: number } {
+  return {
+    warning: Math.max(0, onScreen(e.goesOff - e.warning.buildUp)),
+    goesOff: onScreen(e.goesOff),
+    ends: onScreen(e.goesOff + e.lasts),
+  };
 }
 
 /** A new event: generic, with the plain look, its id from its name and never one already taken. */

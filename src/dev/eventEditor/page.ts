@@ -18,15 +18,22 @@ import { bossDrive } from '../../arcade/sim/run';
 import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
-import { TIME_SCALE } from '../../arcade/content/tuning';
 import type { BossName } from '../../arcade/sim/types';
 import { now } from '../../clock';
+import { fractionOf } from '../bench/row';
 import { httpSaver, saveStatus, type SaveServer } from '../bench/save';
+import { slider, type Shown } from '../bench/slider';
 import { fieldBase, fieldSvg, yardsAt, type Yards } from '../fieldSvg';
 import { el, required, statusLine } from '../pageKit';
 import {
   areaReadout,
   circleAcross,
+  eventNumbers,
+  eventTimeline,
+  replaceEvent,
+  setNumber,
+  type EventNumber,
+  type NumberKey,
   handlesOf,
   moveArea,
   newEvent,
@@ -35,10 +42,7 @@ import {
   sameEvent,
   savedWithout,
   setAcross,
-  setBuildUp,
   setCall,
-  setGoesOff,
-  setLasts,
   setName,
   setOn,
   setShape,
@@ -238,7 +242,22 @@ interface Editing {
   name: HTMLInputElement;
   kind: HTMLElement;
   readout: HTMLElement;
+  /** The shape and side chips, above the sliders. */
+  top: HTMLElement;
+  /** The sliders and the timeline: kept between draws, so a drag keeps its grip. */
+  numbers: HTMLElement;
+  timeline: HTMLElement;
+  sliders: Map<NumberKey, SliderRow>;
+  sliderKeys: string;
+  sliding: { key: NumberKey; base: EditorState; last: EditorState } | null;
+  /** The rest, drawn again each change… */
   parts: HTMLElement;
+  /** …Try it, kept (its drive slider keeps its grip)… */
+  tryBox: HTMLElement;
+  /** …and the buttons and the save status, drawn again. */
+  actions: HTMLElement;
+  /** The event as it was opened: ↺'s mark for one of yours never saved. */
+  opened: FieldEvent;
 }
 
 let editing: Editing | null = null;
@@ -257,8 +276,19 @@ function open(event: FieldEvent): void {
     name,
     kind: el('span', { className: 'kind' }),
     readout: el('div', { className: 'note-bar' }),
+    top: el('div', { className: 'controls' }),
+    numbers: el('div', { className: 'numbers' }),
+    timeline: el('div', { className: 'timeline' }),
+    sliders: new Map(),
+    sliderKeys: '',
+    sliding: null,
     parts: el('div', { className: 'controls' }),
+    tryBox: el('div'),
+    actions: el('div', { className: 'controls' }),
+    opened: event,
   };
+  e.tryBox = tryRow(e);
+  e.timeline.setAttribute('role', 'img');
   editing = e;
   name.addEventListener('change', () =>
     change(setName(e.ed, name.value.trim() || e.ed.event.name)),
@@ -278,7 +308,11 @@ function open(event: FieldEvent): void {
     ),
     el('div', { className: 'field-box' }, field),
     e.readout,
+    e.top,
+    e.numbers,
     e.parts,
+    e.tryBox,
+    e.actions,
   );
   draw();
 }
@@ -296,7 +330,10 @@ function draw(): void {
   e.kind.textContent = eventKind(ev);
   drawField(e.field, ev.area);
   e.readout.textContent = areaReadout(ev.area);
+  e.top.replaceChildren(...topOf(e));
+  syncSliders(e);
   e.parts.replaceChildren(...partsOf(e));
+  e.actions.replaceChildren(...actionsOf(e));
 }
 
 /** Where the area is drawn: a box (a lane or band) or a circle, "either" on the right. */
@@ -393,41 +430,113 @@ function chips<T extends string>(
   );
 }
 
-/** A slider in seconds on screen; the change is kept when the finger lifts (one step for Undo). */
-function seconds(
-  label: string,
-  sim: number,
-  range: { min: number; max: number },
-  set: (screen: number) => void,
-): HTMLElement {
-  const value = el('span', { className: 'value' });
-  const input = el('input');
-  input.type = 'range';
-  input.min = String(range.min);
-  input.max = String(range.max);
-  // Fine enough to show and keep Frog Rain's 0.875 s.
-  input.step = '0.025';
-  input.value = String(sim / TIME_SCALE);
-  input.setAttribute('aria-label', label);
-  const show = (): void => {
-    value.textContent = `${Number(input.value).toFixed(3).replace(/0$/, '')} s`;
-  };
-  show();
-  input.addEventListener('input', show);
-  input.addEventListener('change', () => set(Number(input.value)));
-  return el(
-    'div',
-    { className: 'part' },
-    el('span', { className: 'label' }, `${label} `, value),
-    input,
-  );
+// ── The sliders: the bench's own (round 4, e1, e2) ──────────────────────────
+
+/** A slider row, and how to show it. */
+interface SliderRow {
+  readonly el: HTMLElement;
+  show(view: Shown): void;
 }
 
-function partsOf(e: Editing): HTMLElement[] {
+/** What ↺ and the tick on the track go back to: a built-in event's code, or your event as saved (or as opened). */
+function baselineOf(e: Editing): FieldEvent {
+  const id = e.ed.event.id;
+  return fieldEventDefaults.find((d) => d.id === id) ?? saved[id] ?? e.opened;
+}
+
+/** A number as its slider shows it: "2.00 s", "+16 yd", "7.3 yd". */
+function shown(n: EventNumber): string {
+  if (n.unit === 's') return `${n.value.toFixed(n.range.step < 0.05 ? 3 : 2)} s`;
+  const yd = Math.round(n.value * 10) / 10;
+  return n.key === 'from' || n.key === 'to' || n.key === 'at'
+    ? `${yd < 0 ? '−' : '+'}${Math.abs(yd)} yd`
+    : `${yd} yd`;
+}
+
+/** The sliders for this event's numbers: built when the numbers change shape, otherwise shown again in place, so a drag keeps its grip. */
+function syncSliders(e: Editing): void {
+  const numbers = eventNumbers(e.ed.event);
+  const keys = numbers.map((n) => n.key).join();
+  if (keys !== e.sliderKeys) {
+    e.sliderKeys = keys;
+    e.sliders = new Map(
+      numbers.map((n) => [
+        n.key,
+        slider(n.label, n.range, {
+          onMove: (v) => slide(e, n.key, v),
+          onReset: () => {
+            const back = eventNumbers(baselineOf(e)).find((b) => b.key === n.key);
+            if (back) change(setNumber(e.ed, n.key, back.value));
+          },
+        }),
+      ]),
+    );
+    const times = numbers.filter((n) => n.unit === 's').map((n) => e.sliders.get(n.key)?.el);
+    const places = numbers.filter((n) => n.unit === 'yd').map((n) => e.sliders.get(n.key)?.el);
+    e.numbers.replaceChildren(
+      ...times.filter((x) => x !== undefined),
+      e.timeline,
+      ...places.filter((x) => x !== undefined),
+    );
+  }
+  const base = eventNumbers(baselineOf(e));
+  const kept = events().find((x) => x.id === e.ed.event.id);
+  const keptNumbers = kept ? eventNumbers(kept) : null;
+  for (const n of numbers) {
+    const b = base.find((x) => x.key === n.key);
+    const k = keptNumbers?.find((x) => x.key === n.key);
+    e.sliders.get(n.key)?.show({
+      value: n.value,
+      shown: shown(n),
+      at: fractionOf(n.value, n.range),
+      ...(b ? { tick: fractionOf(b.value, n.range), note: `default ${shown(b)}` } : {}),
+      atDefault: b !== undefined && Math.abs(b.value - n.value) < 1e-9,
+      unsaved: k === undefined || Math.abs(k.value - n.value) > 1e-9,
+    });
+  }
+  drawTimeline(e.timeline, eventTimeline(e.ed.event));
+}
+
+/** A slider moved: one drag of one slider is one step for Undo, as a drag of the area is. */
+function slide(e: Editing, key: NumberKey, value: number): void {
+  const s = e.sliding;
+  const base = s && s.key === key && s.last === e.ed ? s.base : e.ed;
+  const next = setNumber(base, key, value);
+  e.sliding = { key, base, last: next };
+  change(next);
+}
+
+/** The event's down as one line (e4): the outline from the snap, its warning, the moment it goes off, and how long its effect lasts. */
+function drawTimeline(
+  box: HTMLElement,
+  t: { warning: number; goesOff: number; ends: number },
+): void {
+  const span = Math.max(t.ends, 1);
+  const pct = (s: number): string => `${(s / span) * 100}%`;
+  box.innerHTML =
+    `<span class="tl-seg faint" style="left:0;width:${pct(t.warning)}"></span>` +
+    `<span class="tl-seg warn" style="left:${pct(t.warning)};width:${pct(t.goesOff - t.warning)}"></span>` +
+    `<span class="tl-seg hit" style="left:${pct(t.goesOff)};width:${pct(t.ends - t.goesOff)}"></span>` +
+    `<span class="tl-mark" style="left:${pct(t.goesOff)}"></span>`;
+  box.setAttribute(
+    'aria-label',
+    `The snap; its warning from ${t.warning.toFixed(2)} s; it goes off at ${t.goesOff.toFixed(2)} s; its effect ends at ${t.ends.toFixed(2)} s`,
+  );
+  box.title = box.getAttribute('aria-label') ?? '';
+  const words = el(
+    'div',
+    { className: 'tl-words' },
+    el('span', { text: 'snap' }),
+    el('span', { text: `warning ${t.warning.toFixed(2)} s` }),
+    el('span', { text: `goes off ${t.goesOff.toFixed(2)} s` }),
+    el('span', { text: `ends ${t.ends.toFixed(2)} s` }),
+  );
+  box.append(words);
+}
+
+/** The area's shape and side, as chips. */
+function topOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
-  const current = events().find((x) => x.id === ev.id);
-  const unsaved = !current || !sameEvent(current, ev);
-  const status = saveStatus({ server, error: saveError }, { page: 'events.html', what: 'events' });
   return [
     chips(
       'Area',
@@ -450,9 +559,13 @@ function partsOf(e: Editing): HTMLElement[] {
       ev.area.across,
       (across) => change(setAcross(e.ed, across)),
     ),
-    seconds('Goes off after the snap', ev.goesOff, { min: 0.25, max: 5 }, (s) =>
-      change(setGoesOff(e.ed, s)),
-    ),
+  ];
+}
+
+/** How it goes off, its effect, who it hits, and its call. */
+function partsOf(e: Editing): HTMLElement[] {
+  const ev = e.ed.event;
+  return [
     chips(
       'Goes off as',
       [
@@ -461,10 +574,6 @@ function partsOf(e: Editing): HTMLElement[] {
       ],
       'burst',
       () => undefined,
-    ),
-    seconds('Its effect lasts', ev.lasts, { min: 0.2, max: 4 }, (s) => change(setLasts(e.ed, s))),
-    seconds('Build-up before it goes off', ev.warning.buildUp, { min: 0, max: 3 }, (s) =>
-      change(setBuildUp(e.ed, s)),
     ),
     chips(
       'Effect',
@@ -487,7 +596,16 @@ function partsOf(e: Editing): HTMLElement[] {
       (on) => change(setOn(e.ed, on)),
     ),
     callRow(e),
-    tryRow(ev),
+  ];
+}
+
+/** Undo, Save, Restore defaults (or Revert to saved), and how saving stands. */
+function actionsOf(e: Editing): HTMLElement[] {
+  const ev = e.ed.event;
+  const current = events().find((x) => x.id === ev.id);
+  const unsaved = !current || !sameEvent(current, ev);
+  const status = saveStatus({ server, error: saveError }, { page: 'events.html', what: 'events' });
+  return [
     el(
       'div',
       { className: 'controls' },
@@ -497,15 +615,7 @@ function partsOf(e: Editing): HTMLElement[] {
         onClick: () => change(undo(e.ed)),
       }),
       saveButton(ev, unsaved),
-      ...(isDefault(ev.id) && saved[ev.id]
-        ? [
-            el('button', {
-              className: 'btn plain',
-              text: 'Restore defaults',
-              onClick: () => void restore(ev.id),
-            }),
-          ]
-        : []),
+      backButton(e),
     ),
     el('p', { className: `note${status.bad ? ' bad' : ''}`, text: status.text }),
   ];
@@ -528,20 +638,37 @@ function callRow(e: Editing): HTMLElement {
 }
 
 /** Try it, at a drive (its defense) with or without two-tap throwing. */
-function tryRow(ev: FieldEvent): HTMLElement {
-  const drive = tryDrives.get(ev.id) ?? driveFor(ev);
-  const value = el('span', { className: 'value', text: String(drive) });
-  const input = el('input');
-  input.type = 'range';
-  input.min = '1';
-  input.max = String(DRIVES);
-  input.step = '1';
-  input.value = String(drive);
-  input.setAttribute('aria-label', 'Try at drive');
-  input.addEventListener('input', () => {
-    value.textContent = input.value;
-    tryDrives.set(ev.id, Number(input.value));
+/**
+ * Try it: the drive to try at, the bench's slider (↺ back to the event's own
+ * drive), and the throwing. Built once per event, so the drive's drag keeps
+ * its grip; Try it takes the event as it is when tapped.
+ */
+function tryRow(e: Editing): HTMLElement {
+  const id = e.ed.event.id;
+  const range = { min: 1, max: DRIVES, step: 1 };
+  const own = driveFor(e.ed.event);
+  const drive = slider('Try at drive', range, {
+    onMove: (v) => {
+      tryDrives.set(id, v);
+      showDrive();
+    },
+    onReset: () => {
+      tryDrives.delete(id);
+      showDrive();
+    },
   });
+  const showDrive = (): void => {
+    const v = tryDrives.get(id) ?? own;
+    drive.show({
+      value: v,
+      shown: String(v),
+      at: fractionOf(v, range),
+      tick: fractionOf(own, range),
+      note: e.ed.event.boss ? `its Boss's drive is ${own}` : `default ${own}`,
+      atDefault: v === own,
+    });
+  };
+  showDrive();
   const tap = el('button', { className: `tog${twoTap ? ' on' : ''}`, text: 'Two-tap' });
   tap.addEventListener('click', () => {
     twoTap = !twoTap;
@@ -554,13 +681,12 @@ function tryRow(ev: FieldEvent): HTMLElement {
   });
   return el(
     'div',
-    { className: 'part' },
-    el('span', { className: 'label' }, 'Try at drive ', value),
-    input,
+    { className: 'numbers' },
+    drive.el,
     el(
       'div',
       { className: 'chips' },
-      el('button', { className: 'btn go', text: 'Try it', onClick: () => tryIt(ev) }),
+      el('button', { className: 'btn go', text: 'Try it', onClick: () => tryIt(e.ed.event) }),
       tap,
     ),
   );
@@ -580,13 +706,23 @@ function saveButton(ev: FieldEvent, unsaved: boolean): HTMLElement {
   return b;
 }
 
-async function restore(id: string): Promise<void> {
-  const ok = await attempt(() => write(savedWithout(saved, id)));
-  const back = fieldEventDefaults.find((d) => d.id === id);
-  if (ok && back && editing) {
-    say(`${back.name} is back to its default.`);
-    change(startEditing(back));
-  } else draw();
+/**
+ * Restore defaults (a built-in event: every setting back to the code's), or
+ * Revert to saved (one of yours). As on the bench, it changes the editor;
+ * Save makes it so (round 4, e3).
+ */
+function backButton(e: Editing): HTMLElement {
+  const builtIn = isDefault(e.ed.event.id);
+  const to = builtIn ? baselineOf(e) : saved[e.ed.event.id];
+  const b = el('button', {
+    className: 'btn plain',
+    text: builtIn ? 'Restore defaults' : 'Revert to saved',
+    onClick: () => {
+      if (to) change(replaceEvent(e.ed, to));
+    },
+  });
+  b.disabled = !to || sameEvent(to, e.ed.event);
+  return b;
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────

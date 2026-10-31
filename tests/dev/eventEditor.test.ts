@@ -3,13 +3,16 @@ import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents
 import { arcadeTuning, TIME_SCALE } from '../../src/arcade/content/tuning';
 import {
   areaReadout,
+  eventNumbers,
+  eventTimeline,
   handlesOf,
   moveArea,
   newEvent,
+  replaceEvent,
   savedWith,
   savedWithout,
   setCall,
-  setGoesOff,
+  setNumber,
   setOn,
   setShape,
   sizeArea,
@@ -102,7 +105,7 @@ describe('the editor (test 7)', () => {
   });
 
   it('each change is a step for Undo; times are set on screen and kept as sim time', () => {
-    const s = setOn(setGoesOff(startEditing(lane), 1.0), 'theirs');
+    const s = setOn(setNumber(startEditing(lane), 'goesOff', 1.0), 'theirs');
     expect(s.event.goesOff).toBeCloseTo(1.0 * TIME_SCALE, 9);
     expect(s.event.effect.on).toBe('theirs');
     expect(undo(s).event.effect.on).toBe('everyone');
@@ -129,5 +132,56 @@ describe('the editor (test 7)', () => {
     const made = newEvent('Fog', ['frogRain']);
     expect(savedWith({}, made)).toEqual({ fog: made });
     expect(savedWithout({ frogRain: tuned, fog: made }, 'frogRain')).toEqual({ fog: made });
+  });
+});
+
+describe('the editor, bench style (round 4: e1–e4)', () => {
+  it('e1, e2: each event shows its times and its area’s numbers as sliders, on screen and in yards', () => {
+    expect(eventNumbers(FROG_RAIN).map((n) => [n.key, n.value])).toEqual([
+      ['goesOff', 2],
+      ['buildUp', 0.875],
+      ['lasts', 1.5],
+      ['from', -1],
+      ['to', 16],
+      ['width', FROG_RAIN.area.shape === 'lane' ? FROG_RAIN.area.width : 0],
+    ]);
+    const circle = {
+      ...lane,
+      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+    } as const;
+    expect(eventNumbers(circle).map((n) => n.key)).toEqual([
+      'goesOff',
+      'buildUp',
+      'lasts',
+      'at',
+      'out',
+      'radius',
+    ]);
+  });
+
+  it('e1, e2: setting one exactly is one step for Undo, held to what the game can play', () => {
+    const s = setNumber(startEditing(lane), 'goesOff', 1);
+    expect(s.event.goesOff).toBeCloseTo(0.8, 9);
+    expect(undo(s).event).toEqual(lane);
+    expect(setNumber(startEditing(lane), 'to', 10).event.area).toEqual({ ...lane.area, to: 10 });
+    // Never inside out: the far edge stops half a yard past the near one.
+    expect(setNumber(startEditing(lane), 'to', -5).event.area).toEqual({ ...lane.area, to: -0.5 });
+    expect(setNumber(startEditing(lane), 'width', 40).event.area).toEqual({
+      ...lane.area,
+      width: 2 * hw,
+    });
+  });
+
+  it('e3: Restore defaults (or Revert to saved) puts every setting back, as one step for Undo', () => {
+    const changed = setNumber(setOn(startEditing(FROG_RAIN), 'theirs'), 'goesOff', 1);
+    const back = replaceEvent(changed, FROG_RAIN);
+    expect(back.event).toEqual(FROG_RAIN);
+    expect(undo(back).event).toEqual(changed.event);
+  });
+
+  it('e4: the timeline: the warning starts goes-off minus its length after the snap, never before it', () => {
+    expect(eventTimeline(FROG_RAIN)).toEqual({ warning: 1.125, goesOff: 2, ends: 3.5 });
+    const early = { ...FROG_RAIN, warning: { buildUp: 4 * TIME_SCALE } };
+    expect(eventTimeline(early).warning).toBe(0);
   });
 });
