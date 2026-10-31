@@ -60,8 +60,8 @@ something, the old text is marked _replaced_.
   fields as it goes, so the bench sets the field and the next rep uses it.
   The game plays `tuning.ts` with the saved settings on top (Saving, below).
 - **Screen seconds:** a slider in seconds shows screen time (`tuning.ts`
-  times 1/0.8); the log and Copy settings write the `tuning.ts` number.
-- **Reach (k5):** half the shipped value to double it. Counts move in whole
+  times 1/0.8); the log and the saved file write the `tuning.ts` number.
+- **Reach (k5):** half the default to double it. Counts move in whole
   numbers; shares never pass 1.
 - **The situation (k2):** the drive (1 to 20), the tacklers (1 to 3, Break
   it!), the crowd (1 to 3 defenders reaching) and the Hands gap (−40 to
@@ -160,17 +160,17 @@ on and written in the rep's log line:
 
 The knobs
 
-1. Every slider names a real value in `tuning.ts`, starts at the shipped
-   value, and its reach holds it.
+1. Every slider names a real value in `tuning.ts`, starts at its default,
+   and its reach holds it.
 2. Each tab has its own sliders; the three Break it! tabs share the
    countdown and the extra tackler.
 3. Moving a slider changes the next rep: the ring at 1.00 s on screen
-   closes 1.00 s after its dot shows. Reset to shipped puts it back.
+   closes 1.00 s after its dot shows. Back at its default, it drops out.
 4. A by-area slider edits the picked drive's area: drive 7 the Candy
    Queendom's sweet spot, drive 2 the Forest's.
 5. Seconds show screen time: `snag.close` 0.64 shows 0.80 s; 1.00 s stores
    0.8.
-6. SNAG IT!'s sizes, now in `tuning.ts`: at the shipped values the box draws
+6. SNAG IT!'s sizes, now in `tuning.ts`: at the defaults the box draws
    as before (dot 72 px, ring from twice the dot, the same box); a changed
    value draws at it.
 
@@ -193,23 +193,23 @@ The reps
 
 The log
 
-12. A settings line and a rep line carry what's above.
+12. A rep line carries what's above (with its settings since M).
 13. The endpoint appends each line to `bench.jsonl` as one line, and turns
     away anything that isn't a log line without writing.
 14. With no endpoint, or a failing one, the status says it isn't recording.
-    Copy settings gives the open tab's values as `tuning.ts` lines.
+    (Its Copy settings half went with Copy settings, r-l2.)
 
 Keeping them
 
 15. _Replaced by G below._ Settings come back after a reload; a saved
     value for a slider that's gone is dropped, one outside its reach is
     pulled inside it, and storage that can't be read starts from the
-    shipped values.
+    defaults.
 
 ## Tests for the rework, written first (r-w2)
 
-Tests 1–13 stay, with "shipped" read as "default" (3's Reset is now ↺);
-14 loses its Copy settings half.
+Tests 1–14 stay, reworded above for the defaults, the rep line's settings
+and Copy settings gone.
 
 Saved settings in the game
 
@@ -274,3 +274,21 @@ The rework (r-w1), on `test-bench` before its review, one commit each:
 this plan; saved settings in the game (A–C); Save and Restore on the bench
 (D–I); the sliders (J–L); the log's new lines and Copy settings gone (M);
 SNAG IT!'s cut (N); the docs reconciled.
+
+As built, 2026-10-31: those, plus a commit before Save that renamed
+"shipped" to "default" in the bench's code. Found on the way:
+
+- **Tests play the defaults** whatever is saved: `tests/setup.ts` lays an
+  empty save before every test file. With a saved ring close and no setup,
+  six SNAG IT! and bench tests failed.
+- **The server must not load `tuning.ts` when its config loads.** Vite
+  restarts the dev server when a file the config loaded changes, and the
+  config reached `saved-tuning.json` through both plugins, so every save
+  reloaded the page and lost the other tabs' unsaved moves. Both plugins
+  now load the game's modules per request (`ssrLoadModule`); a test reads
+  Vite's own list of the config's files and fails if either file is on it.
+- **One check for a saved entry** (`checkSaved` in `savedTuning.ts`): the
+  game uses it as it loads, the server before it writes.
+- **The JSON import carries `with { type: 'json' }`.** The Vite config
+  warning about the native config loader was there before, and is still
+  there.
