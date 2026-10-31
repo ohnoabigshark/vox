@@ -1,4 +1,6 @@
 .arc-controls {
+  /* The bar's "close" band and the tip drill's bobble: a near miss. */
+  --close-yellow: #ffd23f;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -100,7 +102,7 @@
 }
 
 .arc-near {
-  background: rgb(255 210 63 / 0.35);
+  background: color-mix(in srgb, var(--close-yellow) 35%, transparent);
 }
 
 .arc-sweet {
@@ -354,14 +356,21 @@
 /*
  * The tip drill (docs/TIP.md): SNAG IT!'s box, with a bar of hands near the
  * bottom and the ball popping up off them. controls.ts sets the ball's
- * height and the shadow's size from the view; the hands flash each pop's
- * result, and the pips keep them.
+ * height (`--ball`: 0 on the hands, 1 at the first pop's top) and the
+ * shadow's size from the view; the hands flash each pop's result, and the
+ * pips keep them.
  */
+.arc-tip {
+  /* The hands this far down the box, and the first pop's top this far above them. */
+  --tip-hands: 76%;
+  --tip-rise: 58%;
+}
+
 .arc-tip-hands {
   position: absolute;
   left: 16%;
   right: 16%;
-  top: 76%;
+  top: var(--tip-hands);
   height: 12px;
   translate: 0 -50%;
   border: var(--edge) solid var(--ink);
@@ -397,7 +406,7 @@
 }
 
 .arc-tip-hands.bobble {
-  background: rgb(255 210 63);
+  background: var(--close-yellow);
 }
 
 .arc-tip-hands.drop {
@@ -407,7 +416,7 @@
 .arc-tip-shadow {
   position: absolute;
   left: 50%;
-  top: 76%;
+  top: var(--tip-hands);
   width: 70px;
   height: 14px;
   translate: -50% -150%;
@@ -420,7 +429,7 @@
 .arc-tip-ball {
   position: absolute;
   left: 50%;
-  top: 76%;
+  top: calc(var(--tip-hands) - var(--ball, 0) * var(--tip-rise));
   width: 56px;
   height: 38px;
   translate: -50% -130%;
@@ -480,7 +489,7 @@
 }
 
 .arc-tip-pips i.bobble {
-  background: rgb(255 210 63);
+  background: var(--close-yellow);
 }
 
 .arc-tip-pips i.drop {

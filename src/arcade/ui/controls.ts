@@ -31,10 +31,6 @@ function showCountdown(
   if (text) count.textContent = text.count;
 }
 
-/** The tip drill's box: the hands this far down it (percent), and the first pop's top this far above them. */
-const TIP_HANDS = 76;
-const TIP_RISE = 58;
-
 export interface ControlHandlers {
   onThrow(): void;
   /** A tap in Break it! (the bar, or a mash). */
@@ -270,8 +266,8 @@ export class ArcadeControls {
       this.tipPips.replaceChildren(...view.pips.map(() => document.createElement('i')));
     }
     showCountdown(this.tipTitle, this.tipCount, 'tip', view.ready);
-    // The ball over the hands (TIP_HANDS down the box, its top TIP_RISE above them), its shadow on them.
-    this.tipBall.style.top = `${TIP_HANDS - view.ball * TIP_RISE}%`;
+    // The ball's height over the hands (controls.css places it), and its shadow on them.
+    this.tipBall.style.setProperty('--ball', String(view.ball));
     this.tipBall.classList.toggle('bobble', view.flash === 'bobble');
     this.tipShadow.style.scale = String(0.4 + 0.6 * view.shadow);
     this.tipShadow.style.opacity = String(0.25 + 0.6 * view.shadow);
