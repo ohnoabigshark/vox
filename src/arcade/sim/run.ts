@@ -13,7 +13,7 @@ import { rngFor } from './random';
 import { assignMarks } from './ai';
 import { pickupsForDrive } from './pickups';
 import { placeEvent } from './fieldEvents';
-import { fieldEventById } from '../content/fieldEvents';
+import { fieldEventById, type FieldEvent } from '../content/fieldEvents';
 import { BOSS_SPOT, drivePropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
@@ -37,6 +37,7 @@ import type {
   RosterPlayer,
   RunState,
   RoyalCrows,
+  FieldEventOn,
 } from './types';
 
 export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
@@ -123,12 +124,19 @@ export function createRun(
      * called at every setup, and every rep lines up the same spot again.
      */
     readonly practice?: Play;
+    /**
+     * Event practice (the event editor's Try it, docs/FIELD_EVENTS.md f3):
+     * this event every rep, at this drive (1-based) against its defense,
+     * with three cards dealt each time.
+     */
+    readonly eventPractice?: { readonly event: FieldEvent; readonly drive: number };
   } = {},
 ): RunState {
   const state: RunState = {
     seed,
     playbook: options.practice ? [options.practice] : (options.playbook ?? PLAY_POOL),
-    practice: options.practice !== undefined,
+    practice: options.practice !== undefined || options.eventPractice !== undefined,
+    practiceEvent: options.eventPractice?.event ?? null,
     taken: [],
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
@@ -175,6 +183,13 @@ export function createRun(
     yards: 0,
     nextId: 1,
   };
+  if (options.eventPractice) {
+    // The chosen drive, as if the ones before it were won.
+    const at = driveAt(options.eventPractice.drive);
+    state.drivesWon = options.eventPractice.drive - 1;
+    setUpDrive(state, at.area, at.index, [], true);
+    return state;
+  }
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
   state.drivesWon = area * DRIVE_KINDS.length;
   setUpDrive(state, area, 0, [], true);
@@ -220,6 +235,12 @@ export function setUpDrive(
   if (!ready) state.phase = 'draft';
 }
 
+/** This down's field event: the one practice tries, or else the drive's own (Frog Rain), placed. */
+function placedEvent(state: RunState, drives: string | undefined): FieldEventOn | null {
+  if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
+  return drives ? placeEvent(state, fieldEventById(drives)) : null;
+}
+
 /** The King's crows, back on his arms for a new down (he stands at BOSS_SPOT). */
 function perchedCrows(): RoyalCrows[] {
   return [0, 1].map(() => ({ phase: 'perched', pos: BOSS_SPOT, left: 0, on: null, goneAt: null }));
@@ -240,8 +261,8 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   while (state.hand.length < Math.min(HAND, state.playbook.length)) {
     state.hand.push(deck.splice(rng.int(0, deck.length - 1), 1)[0] ?? 0);
   }
-  // Practice deals its one play, already called.
-  state.called = state.practice ? 0 : null;
+  // The play editor's practice deals its one play, already called; event practice deals three (f3).
+  state.called = state.practice && !state.practiceEvent ? 0 : null;
   const spec = driveDefense(state, drive.area, drive.index);
   // The Queen's Royal Decree: one card of the three is banned this down.
   state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
@@ -259,7 +280,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
     defenders,
     props: state.field.props,
     pickups: state.field.pickups,
-    fieldEvent: spec.fieldEvent ? placeEvent(state, fieldEventById(spec.fieldEvent)) : null,
+    fieldEvent: placedEvent(state, spec.fieldEvent),
     crows: spec.boss === 'king' ? perchedCrows() : null,
     ball: { at: 'qb' },
     runPath: null,

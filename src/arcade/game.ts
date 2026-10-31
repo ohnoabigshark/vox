@@ -24,7 +24,9 @@ import { ArcadeBodies } from './render/bodies';
 import { ArcadeLines, createArcadeTurf } from './render/field';
 import { ArcadeFieldProps } from './render/fieldProps';
 import { ArcadeFrogRain } from './render/frogRain';
-import { savedEventWarnings } from './content/fieldEvents';
+import { ArcadePlainEvent } from './render/plainEvent';
+import { eventEditorLink, type EventPractice } from './content/eventLink';
+import { savedEventWarnings, type FieldEvent } from './content/fieldEvents';
 import { ArcadePickups } from './render/pickups';
 import { ArcadeIntro } from './render/intro';
 import { ArcadeOutro } from './render/outro';
@@ -122,6 +124,12 @@ export interface ArcadeOptions {
    */
   practice?: Practice;
   /**
+   * An event practice link (?event=, the event editor's Try it): that field
+   * event every rep at the chosen drive, with ‹ Events back to the editor. An
+   * event the link can't give opens the ordinary game, saying why.
+   */
+  eventPractice?: EventPractice;
+  /**
    * The play editor's sketches switched on In the game (map round 6), read
    * when each run starts and dealt alongside the play pool.
    */
@@ -171,8 +179,14 @@ export class ArcadeGame {
   private readonly twoTapAim: boolean;
   private readonly snagAlways: boolean;
   private readonly tipAlways: boolean;
-  /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
-  private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
+  /**
+   * Practice: a sketch's play and its key in the play editor (‹ Sketch), or a
+   * field event and the drive it's tried at (‹ Events); null in an ordinary game.
+   */
+  private readonly practice:
+    | { readonly kind: 'sketch'; readonly play: Play; readonly sketch: string | null }
+    | { readonly kind: 'event'; readonly event: FieldEvent; readonly drive: number }
+    | null;
   /** Reads the play editor's sketches in the game; none without it. */
   private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
   /** Each area's song (the Farm's is one of its candidates). */
@@ -185,6 +199,7 @@ export class ArcadeGame {
   private readonly lines: ArcadeLines;
   private readonly routes: ArcadeRoutes;
   private readonly frogRain: ArcadeFrogRain;
+  private readonly plainEvent: ArcadePlainEvent;
   private readonly royalCrows: ArcadeRoyalCrows;
   private readonly queenCrown: ArcadeQueenCrown;
   private readonly fieldProps: ArcadeFieldProps;
@@ -231,7 +246,12 @@ export class ArcadeGame {
     this.tipAlways = options.tipAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
-    this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
+    const tryEvent = options.eventPractice;
+    this.practice = link?.play.ok
+      ? { kind: 'sketch', play: link.play.play, sketch: link.sketch }
+      : tryEvent?.event.ok
+        ? { kind: 'event', event: tryEvent.event.event, drive: tryEvent.drive }
+        : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
     this.state = this.newRun();
@@ -253,6 +273,7 @@ export class ArcadeGame {
     this.lines = new ArcadeLines(scene);
     this.routes = new ArcadeRoutes(scene);
     this.frogRain = new ArcadeFrogRain(scene);
+    this.plainEvent = new ArcadePlainEvent(scene);
     this.royalCrows = new ArcadeRoyalCrows(scene);
     this.queenCrown = new ArcadeQueenCrown(scene);
     this.fieldProps = new ArcadeFieldProps(scene);
@@ -267,9 +288,12 @@ export class ArcadeGame {
       onDraft: (offer) => this.act({ type: 'pick', offer }),
       onSkip: () => this.act({ type: 'skipDraft' }),
       onRoster: (spot) => this.onRoster(spot),
-      onBack: () => this.backToSketch(),
+      onBack: () => this.backToEditor(),
     });
     if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
+    if (tryEvent && !tryEvent.event.ok)
+      this.hud.notice(`${tryEvent.event.reason} Playing without it.`);
+    if (this.practice?.kind === 'event') this.hud.setBackLabel('‹ Events');
     // Saved events the game couldn't read are left out: say so, never silently (docs/FIELD_EVENTS.md).
     if (savedEventWarnings.length > 0) this.hud.notice(savedEventWarnings.join(' · '));
     this.controls = new ArcadeControls(uiRoot, {
@@ -369,10 +393,15 @@ export class ArcadeGame {
     });
   }
 
-  /** Practice: ‹ Sketch, back to the play editor with the sketch open. */
-  private backToSketch(): void {
+  /** Practice: ‹ Sketch back to the play editor, or ‹ Events back to the event editor, with what was tried open. */
+  private backToEditor(): void {
+    const p = this.practice;
+    if (p?.kind === 'event') {
+      location.assign(eventEditorLink(location.href, p.event.id));
+      return;
+    }
     const editor = new URL('dev/plays.html', location.href);
-    if (this.practice?.sketch) editor.hash = this.practice.sketch;
+    if (p?.sketch) editor.hash = p.sketch;
     location.assign(editor.href);
   }
 
@@ -432,6 +461,7 @@ export class ArcadeGame {
     this.ball.update(state, this.origin, this.bodies, dt, performance.now() / 1000);
     this.sweep.update(state, this.origin);
     this.frogRain.update(state, this.origin);
+    this.plainEvent.update(state, this.origin, performance.now() / 1000);
     this.royalCrows.update(state, this.origin);
     this.queenCrown.update(state, this.origin, performance.now() / 1000);
     this.controls.setShoo(shooShowing(state));
@@ -719,12 +749,20 @@ export class ArcadeGame {
    * Forest's first drive with its one sketch, map item t3).
    */
   private newRun(sketches: readonly Play[] = []): RunState {
-    if (this.practice)
+    const p = this.practice;
+    if (p?.kind === 'sketch')
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
         snagAlways: this.snagAlways,
         tipAlways: this.tipAlways,
-        practice: this.practice.play,
+        practice: p.play,
+      });
+    if (p?.kind === 'event')
+      return createRun(this.seed, firstRoster(this.monsters), 0, {
+        twoTapAim: this.twoTapAim,
+        snagAlways: this.snagAlways,
+        tipAlways: this.tipAlways,
+        eventPractice: { event: p.event, drive: p.drive },
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,

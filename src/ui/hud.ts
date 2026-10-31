@@ -183,6 +183,11 @@ export class Hud {
    * Practice: ‹ Sketch, shown between reps. Hidden mid-play, it keeps its
    * place, so down and distance doesn't jump across the top.
    */
+  /** Practice: what the back button says (‹ Sketch, or ‹ Events for the event editor's Try it). */
+  setBackLabel(text: string): void {
+    this.backButton.textContent = text;
+  }
+
   setBack(show: boolean): void {
     this.backButton.hidden = false;
     this.backButton.classList.toggle('held', !show);

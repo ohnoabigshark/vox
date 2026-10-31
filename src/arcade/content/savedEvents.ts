@@ -27,8 +27,8 @@ const isTree = (x: unknown): x is Tree => typeof x === 'object' && x !== null &&
 const oneOf = <K extends string>(set: Readonly<Record<K, true>>, x: unknown): x is K =>
   typeof x === 'string' && Object.hasOwn(set, x);
 
-/** Why `x` isn't a field event called `id`, or null if it is one. */
-function problem(id: string, x: unknown): string | null {
+/** Why `x` isn't a field event called `id`, or null if it is one (a saved file's, or a Try it link's). */
+export function eventProblem(id: string, x: unknown): string | null {
   if (!isTree(x)) return 'it is not an event';
   if (x.id !== id) return `its id is ${String(x.id)}`;
   if (typeof x.name !== 'string' || x.name === '') return 'it has no name';
@@ -78,7 +78,7 @@ export function checkSavedEvents(saved: unknown): {
   const events: FieldEvent[] = [];
   const warnings: string[] = [];
   for (const [id, x] of Object.entries(saved)) {
-    const why = problem(id, x);
+    const why = eventProblem(id, x);
     if (why) warnings.push(`saved-events.json: ${id} can’t be read (${why}), so it was left out`);
     // Checked field by field above.
     else events.push(x as unknown as FieldEvent);

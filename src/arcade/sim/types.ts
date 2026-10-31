@@ -414,6 +414,8 @@ export interface RunState {
    * one sketch, called at every setup, and every rep lines up the same spot.
    */
   readonly practice: boolean;
+  /** Event practice (the event editor's Try it): the field event set off every rep, or null. */
+  readonly practiceEvent: FieldEvent | null;
   /** The pickups taken this run, by id: they never come back (map item k3). */
   taken: number[];
   /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */

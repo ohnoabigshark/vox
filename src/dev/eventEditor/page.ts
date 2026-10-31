@@ -13,7 +13,8 @@ import {
   type FieldEvent,
   type Who,
 } from '../../arcade/content/fieldEvents';
-import { checkSavedEvents, layerEvents } from '../../arcade/content/savedEvents';
+import { eventPracticeQuery } from '../../arcade/content/eventLink';
+import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
 import { TIME_SCALE } from '../../arcade/content/tuning';
@@ -76,6 +77,50 @@ const whose = (e: FieldEvent): string => (e.boss ? BOSS_NAMES[e.boss] : 'generic
 function stateOf(e: FieldEvent): string {
   if (!isDefault(e.id)) return 'yours';
   return saved[e.id] ? 'saved' : 'default';
+}
+
+// ── Try it ────────────────────────────────────────────────────────────────────
+
+// Kept in the browser, each a convenience that falls back if it can't be read
+// (a private window): Two-tap, and the event tried last (its unsaved changes,
+// so ‹ Events comes back to what was tried, x2).
+const TRY_KEY = 'getJackBack.eventEditor.twoTap';
+const DRAFT_KEY = 'getJackBack.eventEditor.draft';
+
+function loadTwoTap(): boolean {
+  try {
+    return localStorage.getItem(TRY_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+let twoTap = loadTwoTap();
+
+/** The drive Try it plays at: the Boss's own drive for a Boss's event, else the second. */
+const driveFor = (e: FieldEvent): number => (e.boss === 'misterFrog' ? 4 : 2);
+const tryDrives = new Map<string, number>();
+
+function tryIt(event: FieldEvent): void {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(event));
+  } catch {
+    say(
+      "This browser isn't keeping the draft: unsaved changes won't be here when you come back.",
+      true,
+    );
+  }
+  const drive = tryDrives.get(event.id) ?? driveFor(event);
+  location.href = `${new URL('../', location.href).href}?${eventPracticeQuery(event, drive, twoTap)}`;
+}
+
+/** The event tried last, if it's this one and can still be read. */
+function draftOf(id: string): FieldEvent | null {
+  try {
+    const draft: unknown = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null');
+    return eventProblem(id, draft) === null ? (draft as FieldEvent) : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── The list ──────────────────────────────────────────────────────────────────
@@ -438,6 +483,7 @@ function partsOf(e: Editing): HTMLElement[] {
       ev.effect.on,
       (on) => change(setOn(e.ed, on)),
     ),
+    tryRow(ev),
     el(
       'div',
       { className: 'controls' },
@@ -459,6 +505,45 @@ function partsOf(e: Editing): HTMLElement[] {
     ),
     el('p', { className: `note${status.bad ? ' bad' : ''}`, text: status.text }),
   ];
+}
+
+/** Try it, at a drive (its defense) with or without two-tap throwing. */
+function tryRow(ev: FieldEvent): HTMLElement {
+  const drive = tryDrives.get(ev.id) ?? driveFor(ev);
+  const value = el('span', { className: 'value', text: String(drive) });
+  const input = el('input');
+  input.type = 'range';
+  input.min = '1';
+  input.max = '12';
+  input.step = '1';
+  input.value = String(drive);
+  input.setAttribute('aria-label', 'Try at drive');
+  input.addEventListener('input', () => {
+    value.textContent = input.value;
+    tryDrives.set(ev.id, Number(input.value));
+  });
+  const tap = el('button', { className: `tog${twoTap ? ' on' : ''}`, text: 'Two-tap' });
+  tap.addEventListener('click', () => {
+    twoTap = !twoTap;
+    tap.classList.toggle('on', twoTap);
+    try {
+      localStorage.setItem(TRY_KEY, String(twoTap));
+    } catch {
+      say("This browser isn't keeping settings; they'll reset next time.", true);
+    }
+  });
+  return el(
+    'div',
+    { className: 'part' },
+    el('span', { className: 'label' }, 'Try at drive ', value),
+    input,
+    el(
+      'div',
+      { className: 'chips' },
+      el('button', { className: 'btn go', text: 'Try it', onClick: () => tryIt(ev) }),
+      tap,
+    ),
+  );
 }
 
 function saveButton(ev: FieldEvent, unsaved: boolean): HTMLElement {
@@ -486,6 +571,10 @@ async function restore(id: string): Promise<void> {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-const fromHash = events().find((e) => `#${e.id}` === location.hash);
-if (fromHash) open(fromHash);
+// Back from Try it (or a link): the event in the hash, as it was tried if that's still here.
+const fromHash = location.hash.slice(1);
+const known = events().find((e) => e.id === fromHash);
+const draft = fromHash ? draftOf(fromHash) : null;
+if (draft) open(draft);
+else if (known) open(known);
 else showList();
