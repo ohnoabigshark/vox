@@ -17,7 +17,7 @@ export type Shown = Pick<RowView, 'shown' | 'at'> & Partial<RowView> & { readonl
 export function slider(
   name: string,
   range: Range,
-  on: { onMove(v: number): void; onReset?(): void },
+  on: { onMove(v: number): void; onReset?(): void; onLetGo?(): void },
 ): { el: HTMLElement; show(view: Shown): void } {
   const el = document.createElement('div');
   el.className = 'b-slider';
@@ -74,6 +74,7 @@ export function slider(
     if (!grab.dragging) return;
     grab.up();
     el.classList.remove('grabbed');
+    on.onLetGo?.();
   };
   knob.addEventListener('pointerup', letGo);
   knob.addEventListener('pointercancel', letGo);
@@ -82,6 +83,8 @@ export function slider(
     if (by === undefined) return;
     e.preventDefault();
     moveTo(snap(value + by * range.step, range));
+    // Each key press is a move of its own (a drag that lets go at once).
+    on.onLetGo?.();
   });
   return {
     el,

@@ -282,6 +282,27 @@ export function setNumber(s: EditorState, key: NumberKey, value: number): Editor
   }
 }
 
+/** A slider being dragged: which, and the editor as it was when the knob was grabbed. */
+export interface SliderDrag {
+  readonly key: NumberKey;
+  readonly from: EditorState;
+}
+
+/**
+ * A slider moved (review b1): within one drag (until the knob is let go,
+ * when the page drops `drag`), each move replaces the last, so the drag is
+ * one step for Undo; a move of another slider starts its own.
+ */
+export function dragNumber(
+  s: EditorState,
+  drag: SliderDrag | null,
+  key: NumberKey,
+  value: number,
+): { state: EditorState; drag: SliderDrag } {
+  const d = drag?.key === key ? drag : { key, from: s };
+  return { state: setNumber(d.from, key, value), drag: d };
+}
+
 /** The whole event replaced (Restore defaults, or Revert to saved): one step for Undo. */
 export function replaceEvent(s: EditorState, event: FieldEvent): EditorState {
   return sameEvent(s.event, event) ? s : changed(s, event);

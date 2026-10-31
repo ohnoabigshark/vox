@@ -3,6 +3,7 @@ import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents
 import { arcadeTuning, TIME_SCALE } from '../../src/arcade/content/tuning';
 import {
   areaReadout,
+  dragNumber,
   eventNumbers,
   eventTimeline,
   handlesOf,
@@ -18,6 +19,7 @@ import {
   sizeArea,
   startEditing,
   undo,
+  type SliderDrag,
 } from '../../src/dev/eventEditor/editor';
 
 /** docs/FIELD_EVENTS.md, test 7: the event editor's rules (f2, p1). */
@@ -183,5 +185,22 @@ describe('the editor, bench style (round 4: e1–e4)', () => {
     expect(eventTimeline(FROG_RAIN)).toEqual({ warning: 1.125, goesOff: 2, ends: 3.5 });
     const early = { ...FROG_RAIN, warning: { buildUp: 4 * TIME_SCALE } };
     expect(eventTimeline(early).warning).toBe(0);
+  });
+});
+
+describe('review of the bench-style editor', () => {
+  it('b1: one drag of a slider is one step for Undo; a second drag, after letting go, is another', () => {
+    let s = startEditing(lane);
+    let drag: SliderDrag | null = null;
+    for (const v of [1.2, 1.4, 1.6]) ({ state: s, drag } = dragNumber(s, drag, 'goesOff', v));
+    drag = null; // let go
+    for (const v of [2.2, 2.4]) ({ state: s, drag } = dragNumber(s, drag, 'goesOff', v));
+    expect(s.event.goesOff).toBeCloseTo(2.4 * TIME_SCALE, 9);
+    expect(undo(s).event.goesOff).toBeCloseTo(1.6 * TIME_SCALE, 9);
+    expect(undo(undo(s)).event).toEqual(lane);
+    // Moving another slider mid-drag starts that slider's own step.
+    ({ state: s, drag } = dragNumber(startEditing(lane), null, 'goesOff', 1));
+    s = dragNumber(s, drag, 'lasts', 1).state;
+    expect(undo(s).event.goesOff).toBeCloseTo(0.8, 9);
   });
 });

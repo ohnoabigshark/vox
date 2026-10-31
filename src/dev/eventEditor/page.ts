@@ -28,12 +28,14 @@ import { el, required, statusLine } from '../pageKit';
 import {
   areaReadout,
   circleAcross,
+  dragNumber,
   eventNumbers,
   eventTimeline,
   replaceEvent,
   setNumber,
   type EventNumber,
   type NumberKey,
+  type SliderDrag,
   handlesOf,
   moveArea,
   newEvent,
@@ -249,7 +251,8 @@ interface Editing {
   timeline: HTMLElement;
   sliders: Map<NumberKey, SliderRow>;
   sliderKeys: string;
-  sliding: { key: NumberKey; base: EditorState; last: EditorState } | null;
+  /** The slider being dragged, until its knob is let go. */
+  sliding: SliderDrag | null;
   /** The rest, drawn again each change… */
   parts: HTMLElement;
   /** …Try it, kept (its drive slider keeps its grip)… */
@@ -464,6 +467,9 @@ function syncSliders(e: Editing): void {
         n.key,
         slider(n.label, n.range, {
           onMove: (v) => slide(e, n.key, v),
+          onLetGo: () => {
+            e.sliding = null;
+          },
           onReset: () => {
             const back = eventNumbers(baselineOf(e)).find((b) => b.key === n.key);
             if (back) change(setNumber(e.ed, n.key, back.value));
@@ -497,13 +503,11 @@ function syncSliders(e: Editing): void {
   drawTimeline(e.timeline, eventTimeline(e.ed.event));
 }
 
-/** A slider moved: one drag of one slider is one step for Undo, as a drag of the area is. */
+/** A slider moved: one drag of one slider is one step for Undo, as a drag of the area is (editor.ts, dragNumber). */
 function slide(e: Editing, key: NumberKey, value: number): void {
-  const s = e.sliding;
-  const base = s && s.key === key && s.last === e.ed ? s.base : e.ed;
-  const next = setNumber(base, key, value);
-  e.sliding = { key, base, last: next };
-  change(next);
+  const { state, drag } = dragNumber(e.ed, e.sliding, key, value);
+  e.sliding = drag;
+  change(state);
 }
 
 /** The event's down as one line (e4): the outline from the snap, its warning, the moment it goes off, and how long its effect lasts. */
