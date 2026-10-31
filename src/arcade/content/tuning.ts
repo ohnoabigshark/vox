@@ -195,6 +195,12 @@ export const arcadeTuning = {
     /** …at least this far from the two dots before it, and at most this far from the last. */
     minApart: 0.33,
     maxApart: 0.5,
+    /** On screen: each dot is this wide (pixels)… */
+    dotSize: 72,
+    /** …its ring starts at this many times the dot and closes onto it… */
+    ringFrom: 2,
+    /** …and the box is at most this wide (pixels), and never over 92% of the screen's width or 60% of its height. */
+    box: 460,
   },
   /** Hard mode (?hard=1): the endless run. */
   hard: {

@@ -51,7 +51,9 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   screen's height, so it fits a phone held sideways or a laptop), centred
   at the same height. The dots are 72 pixels across. Each new dot is at least about a
   dot and a half from the two before it, and at most half the box from the
-  last, so the thumb's next move is short and readable.
+  last, so the thumb's next move is short and readable. The three sizes (the dot,
+  the ring's start, the box's 460 pixels) are in `tuning.ts`, so the test
+  bench (`BENCH.md`) can set them.
 
 ## How many dots (s1)
 
