@@ -11,6 +11,7 @@
  */
 import './controls.css';
 import type { SnagDotResult } from '../sim/types';
+import { ringScale, snagBoxStyle } from './snagLook';
 
 export interface ControlHandlers {
   onThrow(): void;
@@ -154,6 +155,9 @@ export class ArcadeControls {
     // A new SNAG IT!: fresh dots, one button each.
     if (view.id !== this.snagId) {
       this.snagId = view.id;
+      for (const [name, value] of Object.entries(snagBoxStyle())) {
+        this.snagBox.style.setProperty(name, value);
+      }
       for (const el of this.snagDots) el.remove();
       this.snagDots = view.dots.map((_, i) => {
         const el = document.createElement('button');
@@ -176,8 +180,8 @@ export class ArcadeControls {
       el.style.top = `${d.y * 100}%`;
       el.className = `arc-snag-dot${d.result ? ` ${d.result}` : ''}`;
       const ring = el.firstElementChild;
-      // From twice the dot's size as it shows, down onto it as it closes.
-      if (ring instanceof HTMLElement) ring.style.scale = String(2 - (d.ring ?? 0));
+      // From `ringFrom` times the dot's size as it shows, down onto it as it closes.
+      if (ring instanceof HTMLElement) ring.style.scale = String(ringScale(d.ring));
     });
   }
 

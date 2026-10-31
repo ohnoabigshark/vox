@@ -18,7 +18,7 @@ import { Conductor } from '../game/conductor';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
-import { arcadeTuning, DT } from './content/tuning';
+import { arcadeTuning, DT, TIME_SCALE } from './content/tuning';
 import { ArcadeBall } from './render/ball';
 import { ArcadeBodies } from './render/bodies';
 import { ArcadeLines, createArcadeTurf } from './render/field';
@@ -52,15 +52,7 @@ import {
 import { rollOffer } from './sim/team';
 import { FORM_STATS } from './content/team';
 import { plus } from './sim/stats';
-import {
-  breakMarker,
-  countdown,
-  jukeGrade,
-  jukeShowing,
-  mashLeft,
-  type BreakOutcome,
-} from './sim/breakit';
-import { nextDot, ringClosed } from './sim/snag';
+import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import type {
   Action,
@@ -69,12 +61,13 @@ import type {
   Player,
   RosterPlayer,
   RunState,
-  SnagGrade,
   StepInput,
   PickupKind,
 } from './sim/types';
 import { v } from './sim/vec';
-import { ArcadeControls, type BreakView, type SnagView } from './ui/controls';
+import { ArcadeControls } from './ui/controls';
+import { breakGrade, gradeCall, tapTestSound } from './ui/tapTestCalls';
+import { breakView, shooShowing, snagView } from './ui/testViews';
 import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
 import type { Play } from './content/plays';
@@ -150,12 +143,6 @@ function firstRoster(monsters: boolean): RosterPlayer[] {
  * the row it follows, whatever the screen's shape.
  */
 const CAMERA_PITCH = 32;
-/**
- * How fast sim time runs against real time: the whole game a little slower
- * than the sim's own numbers, everything together (so balance runs, which
- * count sim time, are unchanged).
- */
-const TIME_SCALE = 0.8;
 /** The intro's crossfade into the first drive (seconds). */
 const INTRO_FADE = 1;
 /** With the pumpkin ball as the light, the moon and the sky are only a dim fill, so the field stays readable. */
@@ -167,16 +154,6 @@ const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
 /** If the redirect hasn't taken the page away by now, it was blocked: show the button. */
 const SONG_LINK_DELAY_MS = 3000;
 const WIDTH_MARGIN = 1.06;
-
-/** How a Break it! went, in one big word. */
-const BREAK_WORD: Readonly<Record<BreakOutcome, string>> = {
-  break: 'GREAT!',
-  drag: 'OK',
-  tackle: 'BAD',
-};
-
-/** How a SNAG IT! went, in one big word (as Break it!'s). */
-const SNAG_WORD: Readonly<Record<SnagGrade, string>> = { great: 'GREAT!', ok: 'OK', bad: 'BAD' };
 
 export class ArcadeGame {
   private state: RunState;
@@ -449,64 +426,16 @@ export class ArcadeGame {
     this.frogRain.update(state, this.origin);
     this.royalCrows.update(state, this.origin);
     this.queenCrown.update(state, this.origin, performance.now() / 1000);
-    this.controls.setShoo(
-      state.phase === 'play' && !!state.field.crows?.some((f) => f.phase === 'shoo'),
-    );
+    this.controls.setShoo(shooShowing(state));
     this.fieldProps.update(state, this.origin);
     this.fieldProps.animate(performance.now() / 1000);
     this.pickups.update(state, this.origin);
     this.pickups.animate(performance.now() / 1000);
     this.controls.setButtons(canThrow(state) && !this.paused);
-    this.controls.setBreak(this.breakView());
-    this.controls.setSnag(this.snagView());
+    this.controls.setBreak(breakView(state));
+    this.controls.setSnag(snagView(state));
     this.follow(dt);
     this.view.render();
-  }
-
-  /** What the Break it! panel shows right now, or null. */
-  private breakView(): BreakView | null {
-    const { state } = this;
-    const t = state.tackle;
-    if (!t || state.phase !== 'breakit') return null;
-    // The countdown's seconds left, on screen (sim time runs slower than real time).
-    const cd = countdown(state);
-    const ready = cd === null ? null : ((1 - cd) * t.ready) / TIME_SCALE;
-    switch (t.kind) {
-      case 'bar':
-        return {
-          kind: 'bar',
-          ready,
-          sweet: t.sweet,
-          near: t.near,
-          marker: breakMarker(state) ?? 0,
-          dir: t.dir,
-        };
-      case 'mash':
-        return { kind: 'mash', ready, fill: t.fill, left: mashLeft(state) ?? 0 };
-      case 'juke':
-        return {
-          kind: 'juke',
-          ready,
-          side: jukeShowing(state) ? t.side : null,
-          grade: jukeGrade(state),
-        };
-    }
-  }
-
-  /** What the SNAG IT! box shows right now, or null. */
-  private snagView(): SnagView | null {
-    const { state } = this;
-    const live = state.phase === 'snag' ? state.snag : null;
-    // Just finished: the box stays a moment, so the last dot's pop or crack is seen.
-    const done = state.snagDone;
-    const t =
-      live ?? (done && state.time - done.endedAt < arcadeTuning.snag.linger ? done.snag : null);
-    if (!t) return null;
-    return {
-      id: t.startedAt,
-      calling: state.time < (t.dots[0]?.appearsAt ?? 0),
-      dots: t.dots.map((d) => ({ x: d.x, y: d.y, ring: ringClosed(state, d), result: d.result })),
-    };
   }
 
   /** Before the hike, the called play's players (their routes are drawn), or null. */
@@ -562,6 +491,9 @@ export class ArcadeGame {
   private react(events: readonly ArcadeEvent[], prev: RunState): void {
     const play = (id: Parameters<Conductor['play']>[0]): void => this.conductor.play(id);
     for (const e of events) {
+      // A tap test's sounds, as the test bench plays them (ui/tapTestCalls.ts).
+      const sound = tapTestSound(e);
+      if (sound) play(sound);
       switch (e.type) {
         case 'banned':
           play('fumble');
@@ -605,35 +537,25 @@ export class ArcadeGame {
         case 'pancake':
           play('burst');
           break;
-        case 'breakResult':
-          this.hud.big(
-            BREAK_WORD[e.outcome],
-            e.outcome === 'break' ? 'good' : e.outcome === 'drag' ? 'ok' : 'bad',
-          );
+        case 'breakResult': {
+          const call = gradeCall('bar', breakGrade(e.outcome));
+          this.hud.big(call.word, call.tone);
           break;
+        }
         case 'snagDot':
-          play(e.hit ? 'catch' : 'fumble');
           if (e.hit) navigator.vibrate?.(12);
           break;
-        case 'snagResult':
-          this.hud.big(SNAG_WORD[e.grade], e.grade === 'great' ? 'good' : e.grade);
+        case 'snagResult': {
+          const call = gradeCall('snag', e.grade);
+          this.hud.big(call.word, call.tone);
           break;
-        case 'grabbed':
-        case 'brokeTackle':
-        case 'dragged':
-          play('burst');
-          break;
-        case 'crowsLanded':
-          play('hop');
-          break;
+        }
         case 'crowsShooed':
-          play('burst');
-          this.hud.big('SHOOED!', 'good');
+        case 'crowsStruck': {
+          const call = gradeCall('shoo', e.type === 'crowsShooed' ? 'great' : 'bad');
+          this.hud.big(call.word, call.tone);
           break;
-        case 'crowsStruck':
-          play('burst');
-          this.hud.big('CROWS!', 'bad');
-          break;
+        }
         case 'frogRain':
           play('burst');
           play('hop');

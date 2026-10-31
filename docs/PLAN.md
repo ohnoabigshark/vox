@@ -80,6 +80,28 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   whether a contested catch picks SNAG IT! or the tip drill at random (as
   Break it! picks its three), or each fits a kind of catch (a lob, a
   bullet); how many pops, and how fast; what it grades on.
+- **The test bench** (dev): a page to play each quick tap test on its own,
+  with sliders for its `tuning.ts` values and a Save that puts the
+  settings that feel right into the game (a log of every change and rep
+  at first, until the rework below). Grilled
+  2026-10-31 (b1–b3, k1–k5, l1–l3, t1, u1–u2, w1; all approved, k5 the
+  other way); the design is `docs/BENCH.md`. Built on the `test-bench`
+  branch. _User, 2026-10-31: "it should actually serve as a dev test page
+  for all of the quick action games we have."_ Reworked after the Coach
+  played it, grilled the same day on a second map (s1–s8, u1–u4, l1–l3,
+  p1–p4, n1–n2, w1–w2): a Save per tab into a saved-settings file over the
+  `tuning.ts` defaults, sliders that move only by their knob, a log of reps
+  and saves, and seven SNAG IT! sliders with the rest behind More.
+- **Teach SNAG IT!'s closing ring.** On the bench the Coach read the ring
+  as a countdown of the time left to tap, not as when to tap, and pressed
+  too soon until working it out: every early miss came in the first few
+  reps. Nothing in the game says what the ring is for. _User, 2026-10-31:
+  "I initially thought the outer ring was a counter of how much time I had
+  left to tap, not that it was indicating when to tap."_ Its own branch
+  after `test-bench` (bench rework map p3, p4). Ideas to grill, none
+  decided: a line under the first "SNAG IT!" of a run ("Tap as the ring
+  hits the dot"); an outline on the dot that the ring closes onto; a flash
+  on the dot at the moment to tap.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in
@@ -140,6 +162,25 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   player. The run then has its own playbook, which grows. esrauch's
   `MILESTONES.md` B4 already lists "New plays for the random pool as
   unlocks". _User, 2026-10-28._
+  - **Draw up a play** (a reward): instead of the three play cards dealt,
+    the Coach sees what the defense is lining up in and draws the play to
+    beat it. The play editor opens, and the play drawn is the one called
+    for that down. _User, 2026-10-31: "you get to see what the defense is
+    using and then can draw up the perfect play."_ Open for its grilling:
+    how it's earned and how often (once a run, once a drive, a TRICK OR
+    TREAT! pick); what the Coach sees of the defense (the line-up, their
+    assignments, coverage); whether the editor opens in the game or as the
+    dev page, and what it allows (every slot, or routes only); whether the
+    play rules still apply; whether the play is kept afterwards (in the
+    run's playbook, as a sketch) or gone after the down.
+  - **Select any play** (a reward, alongside Draw up a play): instead of
+    the three play cards dealt, the Coach picks any play for that down.
+    _User, 2026-10-31._ Open for its grilling, with Draw up a play: which
+    plays it offers (the whole playbook, only those unlocked so far, the
+    Coach's sketches too); whether the Coach sees the defense's line-up
+    before picking, as with Draw up a play; how it's earned and how
+    often, and whether the two are offered side by side as one reward
+    pick.
 - **Defense against a computer offense.** The Coach plays defense while the
   computer runs the offense. The sim's AI only drives defenders and carriers
   today, so the offense needs play calling and throw timing of its own, and

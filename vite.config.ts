@@ -1,5 +1,7 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+import { benchLogPlugin } from './tools/benchLog';
+import { benchSavePlugin } from './tools/benchSave';
 
 // Where the dev and preview servers listen. Loopback unless DEV_BIND says
 // otherwise: our droplet has a public address, so `--host`'s every-interface
@@ -14,7 +16,17 @@ const host = process.env.DEV_BIND || '127.0.0.1';
 const proxiedHost = process.env.DEV_HOST || '';
 const hmrPort = Number(process.env.DEV_HMR_PORT || '') || 443;
 
+// The test bench's log (docs/BENCH.md, l1): where the hot-reload server
+// appends its lines. vox-dev.sh sets it; blank, the bench says it isn't
+// recording.
+const benchLog = process.env.BENCH_LOG || '';
+
 export default defineConfig({
+  // The test bench's Save writes here (docs/BENCH.md, Saving); only the dev server has it.
+  plugins: [
+    benchLogPlugin(benchLog),
+    benchSavePlugin(resolve(import.meta.dirname, 'src/arcade/content/saved-tuning.json')),
+  ],
   server: {
     host,
     ...(proxiedHost
@@ -46,6 +58,7 @@ export default defineConfig({
               devAudio: resolve(import.meta.dirname, 'dev/audio.html'),
               devLyrics: resolve(import.meta.dirname, 'dev/lyrics.html'),
               devPlays: resolve(import.meta.dirname, 'dev/plays.html'),
+              devBench: resolve(import.meta.dirname, 'dev/bench.html'),
             }),
       },
     },
@@ -55,5 +68,7 @@ export default defineConfig({
     testTimeout: 20_000,
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     environment: 'node',
+    // Every test plays tuning.ts's defaults, not the bench's saved settings.
+    setupFiles: ['tests/setup.ts'],
   },
 });

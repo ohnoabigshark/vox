@@ -223,13 +223,15 @@
 
 /*
  * SNAG IT! (docs/SNAG.md): a square box where the Break it! panel sits, a
- * little bigger; dots pop up in it, each with a ring closing onto it.
+ * little bigger; dots pop up in it, each with a ring closing onto it. The box's
+ * and the dots' widths are set from tuning.ts (snagLook.ts); the fallbacks here
+ * are the shipped values.
  */
 .arc-snag {
   position: absolute;
   left: 50%;
   top: 42%;
-  width: min(92vw, 460px, 60vh);
+  width: var(--snag-box, min(92vw, 460px, 60vh));
   aspect-ratio: 1;
   translate: -50% -50%;
   border: var(--edge) solid var(--bone);
@@ -266,8 +268,8 @@
 
 .arc-snag-dot {
   position: absolute;
-  width: 72px;
-  height: 72px;
+  width: var(--snag-dot, 72px);
+  height: var(--snag-dot, 72px);
   translate: -50% -50%;
   padding: 0;
   border: var(--edge) solid var(--ink);
@@ -281,7 +283,7 @@
   touch-action: none;
 }
 
-/* The ring: from twice the dot's size down onto its edge. */
+/* The ring: from `snag.ringFrom` times the dot's size down onto its edge (snagLook.ts). */
 .arc-snag-ring {
   position: absolute;
   inset: -4px;
