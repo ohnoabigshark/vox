@@ -139,7 +139,15 @@ export interface PlacedRect {
   readonly y1: number;
 }
 
-export type PlacedArea = PlacedRect;
+/** A field event's circle as placed this down, in field yards. */
+export interface PlacedCircle {
+  readonly shape: 'circle';
+  readonly x: number;
+  readonly y: number;
+  readonly r: number;
+}
+
+export type PlacedArea = PlacedRect | PlacedCircle;
 
 /** A field event on the field this down (docs/FIELD_EVENTS.md): which, where, and when it goes off. */
 export interface FieldEventOn {

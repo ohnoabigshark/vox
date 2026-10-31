@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { arcadeTuning, TIME_SCALE } from '../../src/arcade/content/tuning';
-import { FROG_RAIN, fieldEventDefaults } from '../../src/arcade/content/fieldEvents';
+import { arcadeTuning, DT, TIME_SCALE } from '../../src/arcade/content/tuning';
+import {
+  FROG_RAIN,
+  eventKind,
+  fieldEventDefaults,
+  type EventArea,
+  type FieldEvent,
+  type Who,
+} from '../../src/arcade/content/fieldEvents';
+import { inArea, placeArea } from '../../src/arcade/sim/fieldEvents';
 import { createRun, dispatch, setUpDrive } from '../../src/arcade/sim/run';
+import type { PlacedArea } from '../../src/arcade/sim/types';
+import { v } from '../../src/arcade/sim/vec';
+import { ofType, playState, run, stand } from './helpers';
 
 /** docs/FIELD_EVENTS.md, test 1: Frog Rain as the first field event, playing exactly as before. */
 
@@ -62,5 +73,114 @@ describe('Frog Rain is the first field event (test 1)', () => {
     setUpDrive(s, 0, 3, [], true);
     const st = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
     expect(st.field.fieldEvent?.left).toBe(FROG_RAIN.goesOff);
+  });
+});
+
+/** An event like Frog Rain with these parts changed. */
+const ev = (over: Partial<FieldEvent>): FieldEvent => ({ ...FROG_RAIN, ...over });
+
+/** A body of this side at this spot (enough of one for `inArea`). */
+const at = (x: number, y: number, radius = 0.4): Parameters<typeof inArea>[1] =>
+  ({ pos: v(x, y), radius }) as Parameters<typeof inArea>[1];
+
+describe('areas (test 2)', () => {
+  /** The area placed on a down at the line 20, with this seed. */
+  const placed = (area: EventArea, seed = 1): PlacedArea => {
+    const s = createRun(seed);
+    s.drive = { ...s.drive, los: 20 };
+    return placeArea(s, area);
+  };
+
+  it('a lane runs down the field from the line, against the side it names', () => {
+    const lane: EventArea = { shape: 'lane', across: 'left', width: 4, from: -1, to: 10 };
+    expect(placed(lane)).toEqual({ shape: 'rect', x0: -hw, x1: -hw + 4, y0: 19, y1: 30 });
+    expect(placed({ ...lane, across: 'right' })).toEqual({
+      shape: 'rect',
+      x0: hw - 4,
+      x1: hw,
+      y0: 19,
+      y1: 30,
+    });
+    expect(placed({ ...lane, across: 'middle' })).toEqual({
+      shape: 'rect',
+      x0: -2,
+      x1: 2,
+      y0: 19,
+      y1: 30,
+    });
+  });
+
+  it('a band runs across the field, from and to yards past the line', () => {
+    const band: EventArea = { shape: 'band', across: 'middle', width: 2 * hw, from: 6, to: 9 };
+    const p = placed(band);
+    expect(p).toEqual({ shape: 'rect', x0: -hw, x1: hw, y0: 26, y1: 29 });
+    expect(inArea(p, at(0, 27))).toBe(true);
+    expect(inArea(p, at(-8, 28.5))).toBe(true);
+    expect(inArea(p, at(0, 24))).toBe(false);
+    expect(inArea(p, at(0, 31))).toBe(false);
+  });
+
+  it('a circle sits a set way out from the middle and upfield, and takes in what reaches into it', () => {
+    const circle: EventArea = { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 };
+    const p = placed(circle);
+    expect(p).toEqual({ shape: 'circle', x: 4, y: 32, r: 2 });
+    expect(placed({ ...circle, across: 'left' })).toEqual({ shape: 'circle', x: -4, y: 32, r: 2 });
+    expect(placed({ ...circle, across: 'middle' })).toEqual({ shape: 'circle', x: 0, y: 32, r: 2 });
+    expect(inArea(p, at(4, 32))).toBe(true);
+    // Its edge reaches 2 yards out; a body counts if any of it is inside.
+    expect(inArea(p, at(4, 34.3))).toBe(true);
+    expect(inArea(p, at(4, 34.5))).toBe(false);
+    // Corners of its square are outside.
+    expect(inArea(p, at(5.8, 33.8))).toBe(false);
+  });
+
+  it('either side is picked from the seed each down: both come up, the same for the same seed', () => {
+    const circle: EventArea = { shape: 'circle', across: 'either', out: 4, at: 12, radius: 2 };
+    const xs = new Set<number>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const p = placed(circle, seed);
+      if (p.shape !== 'circle') throw new Error('a circle');
+      xs.add(p.x);
+      expect(placed(circle, seed)).toEqual(p);
+    }
+    expect([...xs].sort()).toEqual([-4, 4]);
+  });
+});
+
+describe('a burst (test 3)', () => {
+  /** A down on the line 0 with a Catcher and a Cover both inside the area, and a Catcher outside, as it goes off. */
+  const burst = (event: FieldEvent) => {
+    const s = playState(
+      [
+        { pos: v(4, 6), job: stand(v(4, 6)) },
+        { pos: v(-6, 6), job: stand(v(-6, 6)) },
+      ],
+      [{ kind: 'cover', pos: v(5, 7) }],
+    );
+    s.field.fieldEvent = { event, area: placeArea(s, event.area), left: DT * 2 };
+    const r = run(s, 0.1);
+    return ofType(r.events, 'fieldEventWentOff')[0]?.hit.slice().sort();
+  };
+  const circle: EventArea = { shape: 'circle', across: 'right', out: 4.5, at: 6.5, radius: 2 };
+
+  it('of any shape, flattens whoever is in it as it goes off, and nobody else', () => {
+    expect(burst(ev({ area: circle }))).toEqual([100, 2]);
+    const band: EventArea = { shape: 'band', across: 'right', width: 8, from: 5, to: 8 };
+    expect(burst(ev({ area: band }))).toEqual([100, 2]);
+  });
+
+  it('on your players, or on the defenders, it catches only that side', () => {
+    expect(burst(ev({ area: circle, effect: { kind: 'flatten', on: 'yours' } }))).toEqual([2]);
+    expect(burst(ev({ area: circle, effect: { kind: 'flatten', on: 'theirs' } }))).toEqual([100]);
+  });
+});
+
+describe('blessing, hex or mischief (test 4)', () => {
+  it('worked out from the effect and who it hits', () => {
+    const flatten = (on: Who): FieldEvent => ev({ effect: { kind: 'flatten', on } });
+    expect(eventKind(FROG_RAIN)).toBe('mischief');
+    expect(eventKind(flatten('everyone'))).toBe('mischief');
+    expect(eventKind(flatten('yours'))).toBe('hex');
+    expect(eventKind(flatten('theirs'))).toBe('blessing');
   });
 });

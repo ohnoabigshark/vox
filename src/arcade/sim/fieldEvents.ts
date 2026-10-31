@@ -4,9 +4,11 @@
  * burst: whoever is in the area then has the effect.
  */
 import { arcadeTuning, DT } from '../content/tuning';
-import type { EventArea, FieldEvent } from '../content/fieldEvents';
+import { assertNever } from '../../assertNever';
+import type { Across, EventArea, FieldEvent, Who } from '../content/fieldEvents';
 import { rngFor } from './random';
 import type { Body, FieldEventOn, PlacedArea, RunState } from './types';
+import { dist, v } from './vec';
 
 /**
  * Where the event's area lies this down, in field yards. "Either" side is
@@ -16,20 +18,32 @@ import type { Body, FieldEventOn, PlacedArea, RunState } from './types';
 export function placeArea(state: RunState, area: EventArea): PlacedArea {
   const hw = arcadeTuning.field.halfWidth;
   const { los } = state.drive;
-  const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
+  const side = sideOf(state, area.across);
+  if (area.shape === 'circle') {
+    return { shape: 'circle', x: side * area.out, y: los + area.at, r: area.radius };
+  }
+  // A lane or band on a side runs in from that sideline.
   const half = area.width / 2;
-  const side =
-    area.across === 'left'
-      ? -1
-      : area.across === 'right'
-        ? 1
-        : area.across === 'middle'
-          ? 0
-          : rng.next() < 0.5
-            ? -1
-            : 1;
   const x = side * (hw - half);
   return { shape: 'rect', x0: x - half, x1: x + half, y0: los + area.from, y1: los + area.to };
+}
+
+/** Which side an area sits on this down: −1 left, 0 the middle, 1 right; either from the seed. */
+function sideOf(state: RunState, across: Across): -1 | 0 | 1 {
+  switch (across) {
+    case 'left':
+      return -1;
+    case 'middle':
+      return 0;
+    case 'right':
+      return 1;
+    case 'either': {
+      const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
+      return rng.next() < 0.5 ? -1 : 1;
+    }
+    default:
+      return assertNever(across);
+  }
 }
 
 /** The event placed for this down, not yet counting (it starts at the hike). */
@@ -38,7 +52,8 @@ export function placeEvent(state: RunState, event: FieldEvent): FieldEventOn {
 }
 
 /** Whether a body is in the area (any part of it). */
-export function inArea(area: PlacedArea, b: Body): boolean {
+export function inArea(area: PlacedArea, b: Pick<Body, 'pos' | 'radius'>): boolean {
+  if (area.shape === 'circle') return dist(b.pos, v(area.x, area.y)) <= area.r + b.radius;
   return (
     b.pos.x >= area.x0 - b.radius &&
     b.pos.x <= area.x1 + b.radius &&
@@ -47,15 +62,36 @@ export function inArea(area: PlacedArea, b: Body): boolean {
   );
 }
 
+/** The area's box: its left and right edges and its far edge upfield. */
+export function areaBox(area: PlacedArea): { x0: number; x1: number; y1: number } {
+  if (area.shape === 'rect') return area;
+  return { x0: area.x - area.r, x1: area.x + area.r, y1: area.y + area.r };
+}
+
+/** Whether an effect on `who` reaches a body of this side. */
+function hits(who: Who, side: Body['side']): boolean {
+  switch (who) {
+    case 'everyone':
+      return true;
+    case 'yours':
+      return side === 'team';
+    case 'theirs':
+      return side === 'defense';
+    default:
+      return assertNever(who);
+  }
+}
+
 /**
- * Who the event catches as it goes off: everyone in the area on their feet,
- * but never Jack before he runs, nor a defender locked up with one of your
- * players (a Rhino Beetle, planted).
+ * Who the event catches as it goes off: everyone in the area on their feet
+ * and on the side it hits, but never Jack before he runs, nor a defender
+ * locked up with one of your players (a Rhino Beetle, planted).
  */
 export function caughtBy(state: RunState, on: FieldEventOn): Body[] {
   return [...state.field.players, ...state.field.defenders].filter(
     (b) =>
       b.down <= 0 &&
+      hits(on.event.effect.on, b.side) &&
       !(b.side === 'team' && b.role === 'qb') &&
       !(b.side === 'defense' && b.planted) &&
       inArea(on.area, b),
@@ -74,7 +110,7 @@ export function countDown(on: FieldEventOn): boolean {
   return left > 0 && next <= 0;
 }
 
-/** Whether the event is still to go off this down, with its area a danger to the carrier. */
+/** Whether the event is still to go off this down and would catch the carrier (one of yours): one to steer clear of. */
 export function comingFor(on: FieldEventOn | null): on is FieldEventOn {
-  return on !== null && on.left !== null && on.left > 0;
+  return on !== null && on.left !== null && on.left > 0 && hits(on.event.effect.on, 'team');
 }

@@ -7,25 +7,39 @@
  * Times are sim seconds (the screen's times 0.8); distances are yards, from
  * the line of scrimmage upfield.
  */
+import { assertNever } from '../../assertNever';
 import type { BossName } from '../sim/types';
 import { arcadeTuning } from './tuning';
 
 /** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
 export type Across = 'left' | 'middle' | 'right' | 'either';
 
-/** A lane: down the field, `width` yards wide, from `from` to `to` yards past the line. */
-export interface LaneArea {
-  readonly shape: 'lane';
+/**
+ * A lane (down the field) or a band (across it): `width` yards across, from
+ * `from` to `to` yards past the line. Laid out alike; the names say which
+ * way it runs.
+ */
+export interface RectArea {
+  readonly shape: 'lane' | 'band';
   readonly across: Across;
   readonly width: number;
   readonly from: number;
   readonly to: number;
 }
 
-export type EventArea = LaneArea;
+/** A circle: its middle `out` yards from the field's middle (toward its side) and `at` yards past the line. */
+export interface CircleArea {
+  readonly shape: 'circle';
+  readonly across: Across;
+  readonly out: number;
+  readonly at: number;
+  readonly radius: number;
+}
+
+export type EventArea = RectArea | CircleArea;
 
 /** Who an effect hits: your players, the defenders, or everyone. */
-export type Who = 'everyone';
+export type Who = 'yours' | 'theirs' | 'everyone';
 
 /** Flatten: knocked down for the event's `lasts`; a carrier is tackled there. */
 export interface FlattenEffect {
@@ -83,6 +97,23 @@ export const FROG_RAIN: FieldEvent = {
   call: 'FROGGED!',
   look: 'frogRain',
 };
+
+/** Blessing, hex or mischief: an event that can only help you, only hurt you, or do both. */
+export type EventKind = 'blessing' | 'hex' | 'mischief';
+
+/** An event's kind, from its effect and who it hits: flattening yours hurts you, theirs helps you, everyone both. */
+export function eventKind(event: FieldEvent): EventKind {
+  switch (event.effect.on) {
+    case 'yours':
+      return 'hex';
+    case 'theirs':
+      return 'blessing';
+    case 'everyone':
+      return 'mischief';
+    default:
+      return assertNever(event.effect.on);
+  }
+}
 
 /** Every field event as the code has it. */
 export const fieldEventDefaults: readonly FieldEvent[] = [FROG_RAIN];

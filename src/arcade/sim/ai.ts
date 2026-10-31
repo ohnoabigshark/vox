@@ -17,7 +17,7 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import { lobReceivers } from './ball';
-import { comingFor } from './fieldEvents';
+import { areaBox, comingFor } from './fieldEvents';
 import type { Defender, Player, RunState, Vec } from './types';
 import { clearOfProps } from './props';
 import { add, dist, norm, scale, sub, v } from './vec';
@@ -266,11 +266,12 @@ export function chooseLane(state: RunState, carrier: Player): number {
     );
     // A field event still to go off (Frog Rain): keep out of its area, if it's still ahead.
     const coming = state.field.fieldEvent;
+    const box = comingFor(coming) ? areaBox(coming.area) : null;
     const inRain =
-      comingFor(coming) &&
-      carrier.pos.y < coming.area.y1 &&
-      x > coming.area.x0 - carrier.radius &&
-      x < coming.area.x1 + carrier.radius;
+      box !== null &&
+      carrier.pos.y < box.y1 &&
+      x > box.x0 - carrier.radius &&
+      x < box.x1 + carrier.radius;
     // A handoff runs its play: lean toward where the planned route goes, a little way ahead.
     const pull = planned === null ? 0 : carrierTuning.pathPull * Math.abs(x - planned);
     const score = room - 0.15 * Math.abs(x - carrier.pos.x) - pull - (inRain ? 4 : 0);
