@@ -1,0 +1,63 @@
+/* The event editor (docs/FIELD_EVENTS.md): the play editor's look, and the area on the field. */
+@import '../playEditor/page.css';
+
+/* Its parts don't fit under the field on one screen, so the page scrolls and the field keeps its height. */
+main.event-editor {
+  height: auto;
+}
+
+main.event-editor .field-box {
+  flex: none;
+  height: 60dvh;
+}
+
+.kind {
+  font-size: 0.8rem;
+  color: #c9b8ff;
+  white-space: nowrap;
+}
+
+.f-area {
+  fill: rgb(162 89 255 / 0.28);
+  stroke: rgb(162 89 255 / 0.95);
+  stroke-width: 0.18;
+  cursor: grab;
+}
+
+.f-handle {
+  fill: #f7f1e3;
+  stroke: #2b2140;
+  stroke-width: 0.12;
+}
+
+.f-spot {
+  fill: rgb(255 182 39 / 0.55);
+  stroke: #2b2140;
+  stroke-width: 0.08;
+}
+
+.part {
+  display: grid;
+  gap: 6px;
+}
+
+.part .label {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a99bc9;
+}
+
+.part .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.part input[type='range'] {
+  width: 100%;
+}
+
+.part .value {
+  font-variant-numeric: tabular-nums;
+}
