@@ -22,17 +22,19 @@ const TONE: Readonly<Record<Grade, 'good' | 'ok' | 'bad'>> = {
 /** The tap tests that freeze the play, each with its countdown and its call. */
 export type CountdownTest = 'bar' | 'mash' | 'juke' | 'snag' | 'tip';
 
-const CALL: Readonly<Record<CountdownTest, string>> = {
-  bar: 'BREAK IT!',
-  mash: 'MASH!',
-  juke: 'JUKE!',
-  snag: 'SNAG IT!',
-  tip: 'TIP DRILL!',
+/** Each test's call as its countdown ends, and the line its countdown shows. */
+const CALLS: Readonly<Record<CountdownTest, { readonly call: string; readonly ready: string }>> = {
+  bar: { call: 'BREAK IT!', ready: 'GET READY TO BREAK IT!' },
+  mash: { call: 'MASH!', ready: 'GET READY TO MASH!' },
+  juke: { call: 'JUKE!', ready: 'GET READY TO JUKE!' },
+  snag: { call: 'SNAG IT!', ready: 'GET READY TO SNAG IT!' },
+  // The other calls are orders; this one's a noun, so it gets ready FOR it (docs/TIP.md, w1).
+  tip: { call: 'TIP DRILL!', ready: 'GET READY FOR THE TIP DRILL!' },
 };
 
 /** What a test is called on screen, as its countdown ends. */
 export function testCall(test: CountdownTest): string {
-  return CALL[test];
+  return CALLS[test].call;
 }
 
 /** The grade called big in the middle of the screen, and its colour; SHOO CROWS! has its own words. */
@@ -71,15 +73,10 @@ export function tapTestSound(e: ArcadeEvent): SfxId | null {
   }
 }
 
-/**
- * A countdown as a box shows it: what's coming, and the whole seconds left
- * ("2…", never "0…"). The calls are orders ("GET READY TO MASH!"); the tip
- * drill's is a noun, so it gets ready for it (docs/TIP.md, w1).
- */
+/** A countdown as a box shows it: what's coming, and the whole seconds left ("2…", never "0…"). */
 export function countdownText(
   test: CountdownTest,
   secondsLeft: number,
 ): { title: string; count: string } {
-  const title = test === 'tip' ? `GET READY FOR THE ${CALL.tip}` : `GET READY TO ${CALL[test]}`;
-  return { title, count: `${Math.max(1, Math.ceil(secondsLeft))}…` };
+  return { title: CALLS[test].ready, count: `${Math.max(1, Math.ceil(secondsLeft))}…` };
 }

@@ -12,7 +12,24 @@
 import './controls.css';
 import type { SnagDotResult, TipResult } from '../sim/types';
 import { ringScale, snagBoxStyle } from './snagLook';
-import { countdownText, testCall } from './tapTestCalls';
+import { countdownText, testCall, type CountdownTest } from './tapTestCalls';
+
+/**
+ * A catch test's box title through its countdown: the get-ready line, small,
+ * with the seconds left big in the middle; then the call (`ready` null).
+ */
+function showCountdown(
+  title: HTMLElement,
+  count: HTMLElement,
+  test: CountdownTest,
+  ready: number | null,
+): void {
+  const text = ready === null ? null : countdownText(test, ready);
+  title.textContent = text ? text.title : testCall(test);
+  title.classList.toggle('ready', text !== null);
+  count.hidden = text === null;
+  if (text) count.textContent = text.count;
+}
 
 /** The tip drill's box: the hands this far down it (percent), and the first pop's top this far above them. */
 const TIP_HANDS = 76;
@@ -226,11 +243,7 @@ export class ArcadeControls {
       });
     }
     // The countdown, as Break it!'s: what's coming, and how long until it does.
-    const text = view.ready === null ? null : countdownText('snag', view.ready);
-    this.snagTitle.textContent = text ? text.title : testCall('snag');
-    this.snagTitle.classList.toggle('ready', text !== null);
-    this.snagCount.hidden = text === null;
-    if (text) this.snagCount.textContent = text.count;
+    showCountdown(this.snagTitle, this.snagCount, 'snag', view.ready);
     view.dots.forEach((d, i) => {
       const el = this.snagDots[i];
       if (!el) return;
@@ -256,11 +269,7 @@ export class ArcadeControls {
       }
       this.tipPips.replaceChildren(...view.pips.map(() => document.createElement('i')));
     }
-    const text = view.ready === null ? null : countdownText('tip', view.ready);
-    this.tipTitle.textContent = text ? text.title : testCall('tip');
-    this.tipTitle.classList.toggle('ready', text !== null);
-    this.tipCount.hidden = text === null;
-    if (text) this.tipCount.textContent = text.count;
+    showCountdown(this.tipTitle, this.tipCount, 'tip', view.ready);
     // The ball over the hands (TIP_HANDS down the box, its top TIP_RISE above them), its shadow on them.
     this.tipBall.style.top = `${TIP_HANDS - view.ball * TIP_RISE}%`;
     this.tipBall.classList.toggle('bobble', view.flash === 'bobble');
