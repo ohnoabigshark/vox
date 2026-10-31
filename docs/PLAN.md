@@ -147,6 +147,17 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   player. The run then has its own playbook, which grows. esrauch's
   `MILESTONES.md` B4 already lists "New plays for the random pool as
   unlocks". _User, 2026-10-28._
+  - **Draw up a play** (a reward): instead of the three play cards dealt,
+    the Coach sees what the defense is lining up in and draws the play to
+    beat it. The play editor opens, and the play drawn is the one called
+    for that down. _User, 2026-10-31: "you get to see what the defense is
+    using and then can draw up the perfect play."_ Open for its grilling:
+    how it's earned and how often (once a run, once a drive, a TRICK OR
+    TREAT! pick); what the Coach sees of the defense (the line-up, their
+    assignments, coverage); whether the editor opens in the game or as the
+    dev page, and what it allows (every slot, or routes only); whether the
+    play rules still apply; whether the play is kept afterwards (in the
+    run's playbook, as a sketch) or gone after the down.
 - **Defense against a computer offense.** The Coach plays defense while the
   computer runs the offense. The sim's AI only drives defenders and carriers
   today, so the offense needs play calling and throw timing of its own, and
