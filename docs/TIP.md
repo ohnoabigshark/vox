@@ -161,3 +161,28 @@ every step:
 6. The balance bot, with a run before and after.
 7. The docs reconciled: `GAMEPLAY.md`, `TECHNICAL.md`, `BENCH.md`,
    `SNAG.md`.
+
+## After review (2026-10-31)
+
+The code review of `tip-drill` (standards and spec, the Coach approving
+every recommendation) found the spec met and the numbers right, and
+changed:
+
+- **Written once:** the situation a contest is played in
+  (`CatchSituation`, `contestSituation`), the pop in the air (`popInAir`),
+  the box's linger (`onOrLingering` in `ui/testViews.ts`), which taps buzz
+  (`tapTestBuzz`), each test's call and get-ready line (`CALLS` in
+  `ui/tapTestCalls.ts`, the tip drill's "FOR" as data), the boxes'
+  countdown drawing (`showCountdown`), the tip box's geometry
+  (`--tip-hands`, `--tip-rise`, `--ball` in `controls.css`), the near-miss
+  yellow (`--close-yellow`), the balance report's grade line, and `clamp`
+  (in `sim/vec.ts`).
+- **The pick** starts a test through a map with one entry a `CatchTest`,
+  so a third catch test can't be left out.
+- **Doc comments** back on what they describe.
+- **Kept as they are:** `?snag=1` alone making every contested ball
+  SNAG IT!, even from drive 5 (test 1, as approved); the buzz on a caught
+  pop (t5: "sounds and buzz" as SNAG IT!'s); `tipPops`, which names the
+  extra pop; the `sn`/`tp`/`ct` tuning aliases, the existing convention.
+- **Deferred:** gathering the link options into one run-options object, to
+  the dev setup mode (`PLAN.md`).
