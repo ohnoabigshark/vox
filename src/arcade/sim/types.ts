@@ -542,8 +542,8 @@ export type ArcadeEvent =
     }
   /** A field event went off (the frogs came down): `hit` are the bodies in it that it caught… */
   | { readonly type: 'fieldEventWentOff'; readonly event: string; readonly hit: readonly number[] }
-  /** …and the carrier was one: tackled there, with the event's call (FROGGED!). */
-  | { readonly type: 'eventTackled'; readonly id: number; readonly call: string }
+  /** …and the carrier was one: tackled there, with the event's call (FROGGED!), or none. */
+  | { readonly type: 'eventTackled'; readonly id: number; readonly call: string | null }
   /** One of your players ran through a pickup and took it (docs/PICKUPS.md). */
   | {
       readonly type: 'pickupTaken';

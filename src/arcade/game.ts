@@ -606,7 +606,8 @@ export class ArcadeGame {
           if (this.state.field.fieldEvent?.event.look === 'frogRain') play('hop');
           break;
         case 'eventTackled':
-          this.hud.big(e.call, 'bad');
+          // An event with no call tackles quietly: never a blank word.
+          if (e.call) this.hud.big(e.call, 'bad');
           break;
         case 'pickupTaken':
           play(PICKUP_SOUND[e.kind]);

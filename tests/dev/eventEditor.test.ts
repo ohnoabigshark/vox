@@ -8,6 +8,7 @@ import {
   newEvent,
   savedWith,
   savedWithout,
+  setCall,
   setGoesOff,
   setOn,
   setShape,
@@ -104,7 +105,11 @@ describe('the editor (test 7)', () => {
     expect(e.id).toBe('graveyardRain2');
     expect(e.boss).toBeNull();
     expect(e.look).toBe('plain');
-    expect(e.call).toBeNull();
+    // A call to show when it tackles a carrier (review r1), changed on the editor.
+    expect(e.call).toBe('TACKLED!');
+    const s = setCall(startEditing(e), 'SPOOKED!');
+    expect(s.event.call).toBe('SPOOKED!');
+    expect(setCall(s, '  ').event.call).toBeNull();
   });
 
   it('Save keeps an event off its default; one back at its default, or Restore, leaves the file', () => {

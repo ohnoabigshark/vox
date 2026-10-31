@@ -33,6 +33,7 @@ import {
   savedWithout,
   setAcross,
   setBuildUp,
+  setCall,
   setGoesOff,
   setLasts,
   setName,
@@ -483,6 +484,7 @@ function partsOf(e: Editing): HTMLElement[] {
       ev.effect.on,
       (on) => change(setOn(e.ed, on)),
     ),
+    callRow(e),
     tryRow(ev),
     el(
       'div',
@@ -505,6 +507,22 @@ function partsOf(e: Editing): HTMLElement[] {
     ),
     el('p', { className: `note${status.bad ? ' bad' : ''}`, text: status.text }),
   ];
+}
+
+/** The call when it tackles a carrier: a word box, kept when it's left. */
+function callRow(e: Editing): HTMLElement {
+  const input = el('input');
+  input.id = 'event-call';
+  input.value = e.ed.event.call ?? '';
+  input.placeholder = 'Nothing';
+  input.setAttribute('aria-label', 'Call when it tackles a carrier');
+  input.addEventListener('change', () => change(setCall(e.ed, input.value)));
+  return el(
+    'div',
+    { className: 'part' },
+    el('span', { className: 'label', text: 'Call when it tackles a carrier' }),
+    input,
+  );
 }
 
 /** Try it, at a drive (its defense) with or without two-tap throwing. */

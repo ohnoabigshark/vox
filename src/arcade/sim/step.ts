@@ -347,7 +347,7 @@ function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
   events.push({ type: 'fieldEventWentOff', event: on.event.id, hit: caught.map((b) => b.id) });
   const carrier = carrierOf(state);
   if (carrier && caught.includes(carrier)) {
-    events.push({ type: 'eventTackled', id: carrier.id, call: on.event.call ?? '' });
+    events.push({ type: 'eventTackled', id: carrier.id, call: on.event.call });
     tackle(state, carrier, -1, events);
     return true;
   }

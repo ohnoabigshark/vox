@@ -210,9 +210,15 @@ export function newEvent(name: string, taken: readonly string[]): FieldEvent {
     lasts: 1.2,
     warning: { buildUp: 0.7 },
     effect: { kind: 'flatten', on: 'everyone' },
-    call: null,
+    call: 'TACKLED!',
     look: 'plain',
   };
+}
+
+/** The word called when it tackles a carrier; a blank one means it says nothing. */
+export function setCall(s: EditorState, call: string): EditorState {
+  const words = call.trim();
+  return changed(s, { ...s.event, call: words === '' ? null : words });
 }
 
 /** Saved events by id, as saved-events.json holds them. */

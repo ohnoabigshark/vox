@@ -184,3 +184,21 @@ describe('blessing, hex or mischief (test 4)', () => {
     expect(eventKind(flatten('theirs'))).toBe('blessing');
   });
 });
+
+describe('the call (x3, review r1)', () => {
+  it('an event that tackles a carrier says its call; one with none says nothing (never a blank word)', () => {
+    const tackled = (call: string | null) => {
+      const s = playState([{ role: 'runner', pos: v(4, 3), job: stand(v(4, 3)) }]);
+      const event = ev({ call });
+      s.field.ball = { at: 'carried', by: 2 };
+      s.field.fieldEvent = {
+        event,
+        area: { shape: 'rect', x0: 1.9, x1: 9.1, y0: -1, y1: 16 },
+        left: DT * 2,
+      };
+      return ofType(run(s, 0.1).events, 'eventTackled')[0];
+    };
+    expect(tackled('FROGGED!')).toEqual({ type: 'eventTackled', id: 2, call: 'FROGGED!' });
+    expect(tackled(null)).toEqual({ type: 'eventTackled', id: 2, call: null });
+  });
+});
