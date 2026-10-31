@@ -3,7 +3,7 @@
  * the SNAG IT! box and SHOO!. The game and the test bench (docs/BENCH.md)
  * both draw from these, so the bench shows exactly what the game does.
  */
-import { TIME_SCALE } from '../content/tuning';
+import { arcadeTuning, TIME_SCALE } from '../content/tuning';
 import { breakMarker, countdown, jukeGrade, jukeShowing, mashLeft } from '../sim/breakit';
 import { ringClosed } from '../sim/snag';
 import type { RunState } from '../sim/types';
@@ -40,8 +40,12 @@ export function breakView(state: RunState): BreakView | null {
 
 /** What the SNAG IT! box shows right now, or null. */
 export function snagView(state: RunState): SnagView | null {
-  const t = state.snag;
-  if (!t || state.phase !== 'snag') return null;
+  const live = state.phase === 'snag' ? state.snag : null;
+  // Just finished: the box stays a moment, so the last dot's pop or crack is seen.
+  const done = state.snagDone;
+  const t =
+    live ?? (done && state.time - done.endedAt < arcadeTuning.snag.linger ? done.snag : null);
+  if (!t) return null;
   return {
     id: t.startedAt,
     calling: state.time < (t.dots[0]?.appearsAt ?? 0),

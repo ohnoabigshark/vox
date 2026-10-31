@@ -7,6 +7,7 @@ import { areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
 import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
+import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
@@ -28,7 +29,9 @@ import type {
   ArcadeEvent,
   ArcadeResult,
   DownResult,
+  Drive,
   DriveKind,
+  Phase,
   RosterPlayer,
   RunState,
   FrogLane,
@@ -36,6 +39,17 @@ import type {
 } from './types';
 
 export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
+
+/** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
+export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
+  return drive.area * DRIVE_KINDS.length + drive.index + 1;
+}
+
+/** The area and index (both from 0) of a drive's number in the run: `driveNumber` backwards. */
+export function driveAt(n: number): Pick<Drive, 'area' | 'index'> {
+  const i = Math.max(0, Math.floor(n) - 1);
+  return { area: Math.floor(i / DRIVE_KINDS.length), index: i % DRIVE_KINDS.length };
+}
 
 /** Seven plain humans (sim/team.ts). */
 export { startingRoster };
@@ -98,7 +112,7 @@ export function createRun(
     readonly hard?: boolean;
     readonly twoTapAim?: boolean;
     /** ?snag=1: SNAG IT! from the first drive. */
-    readonly snag?: boolean;
+    readonly snagAlways?: boolean;
     /** The plays it deals from; the whole play pool if not given. */
     readonly playbook?: readonly Play[];
     /**
@@ -115,7 +129,7 @@ export function createRun(
     taken: [],
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
-    snagAlways: options.snag ?? false,
+    snagAlways: options.snagAlways ?? false,
     step: 0,
     time: 0,
     phase: 'setup',
@@ -127,6 +141,7 @@ export function createRun(
     play: { index: 0, flipped: false },
     tackle: null,
     snag: null,
+    snagDone: null,
     roster,
     bench: [],
     perks: noPerks(),
@@ -477,6 +492,29 @@ export function nextDown(state: RunState, events: ArcadeEvent[]): void {
   }
   drive.down++;
   setUpDown(state, events);
+}
+
+/** Whether a down is on: lined up, in play, or frozen for a test (the banner shows down and distance). */
+export function downOn(phase: Phase): boolean {
+  switch (phase) {
+    case 'setup':
+    case 'play':
+    case 'breakit':
+    case 'snag':
+      return true;
+    case 'downOver':
+    case 'draft':
+    case 'over':
+    case 'won':
+      return false;
+    default:
+      return assertNever(phase);
+  }
+}
+
+/** Whether the play is frozen for a tap test (Break it!, SNAG IT!). */
+export function frozenForTest(phase: Phase): boolean {
+  return phase === 'breakit' || phase === 'snag';
 }
 
 /** Down and distance, e.g. "3rd & 4", or "3rd & Goal" on the Boss drive. Yards round up. */

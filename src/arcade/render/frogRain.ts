@@ -8,6 +8,7 @@
 import * as THREE from 'three';
 import { common, hexToNumber } from '../../content/palettes';
 import { arcadeTuning } from '../content/tuning';
+import { downOn } from '../sim/run';
 import type { RunState } from '../sim/types';
 import { v } from '../sim/vec';
 import { getGeometry, voxelMaterial } from '../../voxel/models';
@@ -86,11 +87,7 @@ export class ArcadeFrogRain {
 
   update(state: RunState, origin: number): void {
     const lane = state.field.frogLane;
-    const live =
-      state.phase === 'setup' ||
-      state.phase === 'play' ||
-      state.phase === 'breakit' ||
-      state.phase === 'snag';
+    const live = downOn(state.phase);
     const showLane = lane !== null && live;
     this.lane.visible = showLane;
     for (const e of this.edges) e.visible = showLane;

@@ -43,6 +43,9 @@ import {
   createRun,
   dispatch,
   downAndDistance,
+  downOn,
+  driveNumber,
+  frozenForTest,
   setUpDrive,
   startingRoster,
 } from './sim/run';
@@ -50,6 +53,7 @@ import { rollOffer } from './sim/team';
 import { FORM_STATS } from './content/team';
 import { plus } from './sim/stats';
 import type { BreakOutcome } from './sim/breakit';
+import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import type {
   Action,
@@ -106,7 +110,7 @@ export interface ArcadeOptions {
   /** Two-tap throwing (?aim=2): the first tap stops the line, the second picks how far. */
   twoTapAim?: boolean;
   /** SNAG IT! from the first drive (?snag=1), not only from drive 5 (docs/SNAG.md). */
-  snag?: boolean;
+  snagAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
   /**
@@ -173,7 +177,7 @@ export class ArcadeGame {
   private readonly video: boolean;
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
-  private readonly snag: boolean;
+  private readonly snagAlways: boolean;
   /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
   private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
   /** Reads the play editor's sketches in the game; none without it. */
@@ -230,7 +234,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    this.snag = options.snag ?? false;
+    this.snagAlways = options.snagAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
@@ -464,7 +468,7 @@ export class ArcadeGame {
     // The whole width is always in view, so only follow upfield.
     want = v(0, want.y);
     // In Break it! (and SNAG IT!) the camera eases in a little on the tackle (the catch).
-    const frozen = state.phase === 'breakit' || state.phase === 'snag';
+    const frozen = frozenForTest(state.phase);
     const k = 1 - Math.exp(-dt * (frozen ? 2 : 4));
     this.focus = v(
       this.focus.x + (want.x - this.focus.x) * k,
@@ -633,7 +637,7 @@ export class ArcadeGame {
       phase === 'over' || phase === 'won'
         ? `${drivesWon} ${drivesWon === 1 ? 'drive' : 'drives'} won`
         : '';
-    const live = phase === 'setup' || phase === 'play' || phase === 'breakit' || phase === 'snag';
+    const live = downOn(phase);
     this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
     const ready = this.live && !this.paused;
     // Practice: ‹ Sketch between reps (map item t4), not mid-play.
@@ -721,13 +725,13 @@ export class ArcadeGame {
     if (this.practice)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
-        snag: this.snag,
+        snagAlways: this.snagAlways,
         practice: this.practice.play,
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
-      snag: this.snag,
+      snagAlways: this.snagAlways,
       playbook: [...PLAY_POOL, ...sketches],
     });
   }
@@ -743,7 +747,7 @@ export class ArcadeGame {
    */
   private originOf(drive: Drive): number {
     const area = drive.area % arcadeTuning.run.areas;
-    return (area * DRIVE_KINDS.length + drive.index) * arcadeTuning.drive.distance;
+    return (driveNumber({ area, index: drive.index }) - 1) * arcadeTuning.drive.distance;
   }
 
   /** ?win=1: the run as if just won (on the King's drive, eleven recruits on the bench), and the win cutscene. */
@@ -759,7 +763,7 @@ export class ArcadeGame {
     s.drivesWon = arcadeTuning.run.areas * DRIVE_KINDS.length;
     s.phase = 'won';
     this.state = s;
-    this.origin = (s.drive.area * DRIVE_KINDS.length + s.drive.index) * arcadeTuning.drive.distance;
+    this.origin = this.originOf(s.drive);
     this.bodies.sync(s);
     this.fieldProps.update(s, this.origin);
     this.startOutro();
@@ -826,9 +830,8 @@ export class ArcadeGame {
 
   /** Space in SNAG IT!: a tap on the dot that's showing and closes first. */
   private snagKey(): void {
-    const dots = this.state.snag?.dots ?? [];
-    const i = dots.findIndex((d) => d.result === null && this.state.time >= d.appearsAt);
-    if (i >= 0) this.press({ snag: i });
+    const i = nextDot(this.state);
+    if (i !== null) this.press({ snag: i });
   }
 
   private onKey(e: KeyboardEvent): void {

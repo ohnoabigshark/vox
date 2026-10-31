@@ -79,8 +79,9 @@ export const KNOBS: readonly Knob[] = [
   snagMore('closeFloor', 'Ring close no faster than', 'seconds'),
   snagMore('minDots', 'Fewest dots', 'count'),
   snagMore('maxDots', 'Most dots', 'count'),
-  snagMore('perZone', 'One more dot every … drives', 'count'),
+  snagMore('moreEvery', 'One more dot every … drives', 'count'),
   snagMore('handsGap', 'Hands gap for a dot more or less', 'count'),
+  snagMore('linger', 'Box stays after the grade', 'seconds'),
   k('crows.window', 'Time to shoo', 'seconds', ['shoo']),
 ];
 

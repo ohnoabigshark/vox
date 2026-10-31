@@ -57,7 +57,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## How many dots (s1)
 
-- **The level:** 2 on drives 5–8, then one more each zone (4 drives): 3 on
+- **The level:** 2 on drives 5–8, then one more every four drives (an area; `moreEvery`): 3 on
   9–12, 4 on 13–16, 5 from 17.
 - **The crowd:** one more for each defender after the first whose reach
   covers the ball.
@@ -93,6 +93,14 @@ The numbers above are first guesses. The balance runs
 dot in ten (as it gets a Break it! BAD about one time in ten), and report how
 often a contested ball is caught, so a run with SNAG IT! can be compared with
 one without. The numbers get tuned from those and from the Coach's play.
+
+- **The bot throws into contested balls** now (review a3, from commit
+  8b03608): it counts a SNAG IT! as a catch when it looks ahead at a throw
+  (`predictsCatch`), as a Coach who can win SNAG IT! would. So a run with
+  SNAG IT! and one without differ in the throws the bot picks, not only in
+  how contested balls end; compare them knowing that.
+- **The box stays 0.3 s after the grade** (`snag.linger`, review a1), so the
+  last dot's pop or crack is seen; the play goes on meanwhile.
 
 ## Tests, written first
 

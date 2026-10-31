@@ -38,7 +38,7 @@ const game = new ArcadeGame(canvas, ui, {
   video: params.has('video'),
   hard: params.get('hard') === '1',
   twoTapAim: params.get('aim') === '2',
-  snag: params.get('snag') === '1',
+  snagAlways: params.get('snag') === '1',
   farmSong: Number(params.get('farmSong')) || 1,
   ...(practice ? { practice } : {}),
   // The play editor's sketches in the game join the plays dealt, read at every PLAY and

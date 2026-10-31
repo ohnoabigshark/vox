@@ -63,8 +63,11 @@ export const tuningDefaults = {
      * (within the range: a lighter blocker can only hold it).
      */
     drive: { base: 0.8, perHeft: 0.9, min: 0, max: 4 },
-    /** A tackler shaken off in Break it! lies there this long. */
+    /** A tackler shaken off in Break it! (or knocked off a SNAG IT! GREAT) lies there this long… */
     brokenTime: 1.0,
+    /** …sent flying this fast (yards a second); a pancake or a scatter goes at `knockSpeed`. */
+    brokenSpeed: 5,
+    knockSpeed: 4,
     /** Bodies this close (beyond touching) count as contact for a tackle or a sack. */
     slop: 0.1,
     /**
@@ -191,10 +194,12 @@ export const tuningDefaults = {
     closeFloor: 0.4,
     /** A tap this close to the ring closing, either side, is a hit (0.15 s on screen). */
     window: 0.12,
-    /** 2 dots on drives 5-8, one more a zone (of `perZone` drives), never under 2 or over 5. */
+    /** The box stays this long after the grade, so the last dot's pop or crack is seen (0.3 s on screen). */
+    linger: 0.24,
+    /** 2 dots on drives 5-8, then one more every `moreEvery` drives (an area's four), never under 2 or over 5. */
     minDots: 2,
     maxDots: 5,
-    perZone: 4,
+    moreEvery: 4,
     /** One fewer dot when the receiver's Hands beat the best defender's by this much; one more the other way. */
     handsGap: 20,
     /** Each dot's middle stays this far in from the box's edges… */

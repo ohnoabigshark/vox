@@ -120,7 +120,7 @@ describe('the knobs', () => {
     expect(keys('shoo')).toEqual(['crows.window']);
   });
 
-  it('N: SNAG IT! shows the seven that shape a rep; the eleven that shape a run are behind More', () => {
+  it('N: SNAG IT! shows the seven that shape a rep; the rest, which shape a run, are behind More', () => {
     const shown = (t: (typeof BENCH_TESTS)[number]): string[] =>
       knobsFor(t)
         .filter((k) => !k.more)
@@ -148,8 +148,9 @@ describe('the knobs', () => {
       'snag.closeFloor',
       'snag.minDots',
       'snag.maxDots',
-      'snag.perZone',
+      'snag.moreEvery',
       'snag.handsGap',
+      'snag.linger',
     ]);
     for (const t of ['bar', 'mash', 'juke', 'shoo'] as const) expect(more(t)).toEqual([]);
   });
