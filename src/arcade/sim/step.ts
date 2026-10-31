@@ -123,7 +123,7 @@ export function canThrow(state: RunState): boolean {
 
 /**
  * THROW: a bullet along the line, as far as its range (or the sideline).
- * Two-tap throwing (?aim=2): the first tap stops the line; the second lobs
+ * Two-tap throwing (on by default in a link; ?aim=1 turns it off): the first tap stops the line; the second lobs
  * the ball to where the marker is along it.
  */
 function throwBullet(state: RunState, events: ArcadeEvent[]): void {

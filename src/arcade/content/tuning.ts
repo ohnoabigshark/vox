@@ -85,7 +85,7 @@ export const tuningDefaults = {
     /** Your players closer than this to the QB are skipped (it's going past them). */
     minDistance: 3,
   },
-  /** Two-tap throwing (?aim=2): once the line is stopped, a marker slides out along it and back… */
+  /** Two-tap throwing (on by default in a link; ?aim=1 turns it off): once the line is stopped, a marker slides out along it and back… */
   twoTap: {
     /** …at this speed (yards a second)… */
     markerSpeed: 14,
@@ -244,7 +244,7 @@ export const tuningDefaults = {
     /** …and the box is at most this wide (pixels), and never over 92% of the screen's width or 60% of its height. */
     box: 460,
   },
-  /** Hard mode (?hard=1): the endless run. */
+  /** Hard mode (on by default in a link; ?hard=0 turns it off): the endless run. */
   hard: {
     /**
      * Every zone after the first lines up this many more defenders than the

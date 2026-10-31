@@ -100,13 +100,13 @@ export interface ArcadeOptions {
    */
   video?: boolean;
   /**
-   * Hard mode (?hard=1): the zones go round until you lose, one more
+   * Hard mode (on by default in a link; ?hard=0 turns it off): the zones go round until you lose, one more
    * defender each (at most 12) with stats +20 a zone, Break it! tighter
    * past the third, recruits +30 a zone (Hands slower), the sweep no faster
    * after the third, and TRICK OR TREAT! lets you set your lineup.
    */
   hard?: boolean;
-  /** Two-tap throwing (?aim=2): the first tap stops the line, the second picks how far. */
+  /** Two-tap throwing (on by default in a link; ?aim=1 turns it off): the first tap stops the line, the second picks how far. */
   twoTapAim?: boolean;
   /** SNAG IT! from the first drive (?snag=1), not only from drive 5 (docs/SNAG.md). */
   snagAlways?: boolean;

@@ -1,3 +1,4 @@
+import { readModes } from './arcade/content/modeFlags';
 import { readPractice } from './arcade/content/playCode';
 import { ArcadeGame } from './arcade/game';
 import { now } from './clock';
@@ -24,8 +25,10 @@ const seed = Number(params.get('seed')) || Math.floor(Math.random() * 1e9);
 // ?try=…&sketch=… is practice, from the play editor's Try it (dev/plays.html): that
 // one play on the field, rep after rep, with ‹ Sketch back to the editor.
 const practice = readPractice(location.search);
-// ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area;
-// ?hard=1 is hard mode (endless zones); ?aim=2 throws with two taps (aim, then distance).
+// Hard mode (endless zones) and two-tap throwing (aim, then distance) are on unless
+// ?hard=0 or ?aim=1 turns them off (readModes).
+const modes = readModes(location.search);
+// ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area.
 // ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first drive, not drive 5.
 // ?win=1 goes straight from PLAY to the win cutscene (with ?video=1, frame by frame for
 // the sing-along video's capture, tools/video/render.ts); ?farmSong=2 plays the second
@@ -36,8 +39,7 @@ const game = new ArcadeGame(canvas, ui, {
   area: Number(params.get('area')) || 1,
   win: params.has('win'),
   video: params.has('video'),
-  hard: params.get('hard') === '1',
-  twoTapAim: params.get('aim') === '2',
+  ...modes,
   snagAlways: params.get('snag') === '1',
   tipAlways: params.get('tip') === '1',
   farmSong: Number(params.get('farmSong')) || 1,
