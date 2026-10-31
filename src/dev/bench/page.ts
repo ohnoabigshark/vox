@@ -16,6 +16,7 @@ import { SfxPlayer, prepareSfx, type SfxId } from '../../audio/sfx';
 import type { ArcadeEvent } from '../../arcade/sim/types';
 import { ArcadeControls } from '../../arcade/ui/controls';
 import { nextDot } from '../../arcade/sim/snag';
+import { gradeCall, tapTestSound } from '../../arcade/ui/tapTestCalls';
 import { breakView, shooShowing } from '../../arcade/ui/testViews';
 import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
@@ -62,8 +63,7 @@ const TAB: Readonly<Record<BenchTest, string>> = {
 
 /** The grade in one big word, as the game calls it. */
 function word(r: RepResult): string {
-  if (r.test === 'shoo') return r.grade === 'great' ? 'SHOOED!' : 'CROWS!';
-  return { great: 'GREAT!', ok: 'OK', bad: 'BAD' }[r.grade];
+  return gradeCall(r.test, r.grade).word;
 }
 
 const TOGGLES: readonly { key: keyof Toggles; label: string }[] = [
@@ -185,20 +185,10 @@ async function main(): Promise<void> {
     if (kept.toggles.sound) sfx?.play(id);
   };
   const react = (e: ArcadeEvent): void => {
-    switch (e.type) {
-      case 'snagDot':
-        play(e.hit ? 'catch' : 'fumble');
-        if (e.hit && kept.toggles.buzz) navigator.vibrate?.(12);
-        break;
-      case 'brokeTackle':
-      case 'dragged':
-      case 'crowsShooed':
-      case 'crowsStruck':
-        play('burst');
-        break;
-      default:
-        break;
-    }
+    // The game's sound for each tap test event (ui/tapTestCalls.ts).
+    const sound = tapTestSound(e);
+    if (sound) play(sound);
+    if (e.type === 'snagDot' && e.hit && kept.toggles.buzz) navigator.vibrate?.(12);
   };
 
   // ── The bench and the test screen. ──

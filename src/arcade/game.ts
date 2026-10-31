@@ -52,7 +52,6 @@ import {
 import { rollOffer } from './sim/team';
 import { FORM_STATS } from './content/team';
 import { plus } from './sim/stats';
-import type { BreakOutcome } from './sim/breakit';
 import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import type {
@@ -62,12 +61,12 @@ import type {
   Player,
   RosterPlayer,
   RunState,
-  SnagGrade,
   StepInput,
   PickupKind,
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls } from './ui/controls';
+import { breakGrade, gradeCall, tapTestSound } from './ui/tapTestCalls';
 import { breakView, shooShowing, snagView } from './ui/testViews';
 import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
@@ -155,16 +154,6 @@ const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
 /** If the redirect hasn't taken the page away by now, it was blocked: show the button. */
 const SONG_LINK_DELAY_MS = 3000;
 const WIDTH_MARGIN = 1.06;
-
-/** How a Break it! went, in one big word. */
-const BREAK_WORD: Readonly<Record<BreakOutcome, string>> = {
-  break: 'GREAT!',
-  drag: 'OK',
-  tackle: 'BAD',
-};
-
-/** How a SNAG IT! went, in one big word (as Break it!'s). */
-const SNAG_WORD: Readonly<Record<SnagGrade, string>> = { great: 'GREAT!', ok: 'OK', bad: 'BAD' };
 
 export class ArcadeGame {
   private state: RunState;
@@ -502,6 +491,9 @@ export class ArcadeGame {
   private react(events: readonly ArcadeEvent[], prev: RunState): void {
     const play = (id: Parameters<Conductor['play']>[0]): void => this.conductor.play(id);
     for (const e of events) {
+      // A tap test's sounds, as the test bench plays them (ui/tapTestCalls.ts).
+      const sound = tapTestSound(e);
+      if (sound) play(sound);
       switch (e.type) {
         case 'banned':
           play('fumble');
@@ -545,35 +537,25 @@ export class ArcadeGame {
         case 'pancake':
           play('burst');
           break;
-        case 'breakResult':
-          this.hud.big(
-            BREAK_WORD[e.outcome],
-            e.outcome === 'break' ? 'good' : e.outcome === 'drag' ? 'ok' : 'bad',
-          );
+        case 'breakResult': {
+          const call = gradeCall('bar', breakGrade(e.outcome));
+          this.hud.big(call.word, call.tone);
           break;
+        }
         case 'snagDot':
-          play(e.hit ? 'catch' : 'fumble');
           if (e.hit) navigator.vibrate?.(12);
           break;
-        case 'snagResult':
-          this.hud.big(SNAG_WORD[e.grade], e.grade === 'great' ? 'good' : e.grade);
+        case 'snagResult': {
+          const call = gradeCall('snag', e.grade);
+          this.hud.big(call.word, call.tone);
           break;
-        case 'grabbed':
-        case 'brokeTackle':
-        case 'dragged':
-          play('burst');
-          break;
-        case 'crowsLanded':
-          play('hop');
-          break;
+        }
         case 'crowsShooed':
-          play('burst');
-          this.hud.big('SHOOED!', 'good');
+        case 'crowsStruck': {
+          const call = gradeCall('shoo', e.type === 'crowsShooed' ? 'great' : 'bad');
+          this.hud.big(call.word, call.tone);
           break;
-        case 'crowsStruck':
-          play('burst');
-          this.hud.big('CROWS!', 'bad');
-          break;
+        }
         case 'frogRain':
           play('burst');
           play('hop');

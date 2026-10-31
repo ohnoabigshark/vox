@@ -14,6 +14,7 @@ import { snagCount, snagPace, startSnag } from '../../arcade/sim/snag';
 import { step } from '../../arcade/sim/step';
 import { startingRoster } from '../../arcade/sim/team';
 import type { ArcadeEvent, Player, RunState, StepInput } from '../../arcade/sim/types';
+import { breakGrade, type Grade } from '../../arcade/ui/tapTestCalls';
 import type { BenchTest } from './knobs';
 
 /** Where a rep is played (k2): the drive, and who's in on it. */
@@ -59,7 +60,7 @@ export const SITUATION_SLIDERS: readonly {
   },
 ];
 
-export type Grade = 'great' | 'ok' | 'bad';
+export type { Grade } from '../../arcade/ui/tapTestCalls';
 
 /** How the taps went (t1), in screen seconds. */
 export type Timing =
@@ -247,7 +248,7 @@ function gradeOf(events: readonly ArcadeEvent[]): Grade | null {
   for (const e of events) {
     switch (e.type) {
       case 'breakResult':
-        return e.outcome === 'break' ? 'great' : e.outcome === 'drag' ? 'ok' : 'bad';
+        return breakGrade(e.outcome);
       case 'snagResult':
         return e.grade;
       case 'crowsShooed':
