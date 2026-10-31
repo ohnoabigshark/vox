@@ -229,7 +229,22 @@ export interface EventNumber {
   /** As shown: seconds on screen, or yards. */
   readonly value: number;
   readonly unit: 's' | 'yd';
+  /** A place measured from the line of scrimmage, so read with its sign: "+16 yd", "−1 yd". */
+  readonly fromLine: boolean;
   readonly range: { readonly min: number; readonly max: number; readonly step: number };
+}
+
+/** Seconds as the editor reads them: to the hundredth, or the thousandth when it's needed ("0.875 s"). */
+export function secondsText(s: number): string {
+  return `${s.toFixed(3).replace(/(\.\d\d)0$/, '$1')} s`;
+}
+
+/** A slider's number as it reads (m1): seconds, or yards to a tenth, signed when from the line. */
+export function numberText(n: EventNumber): string {
+  if (n.unit === 's') return secondsText(n.value);
+  const yd = Math.round(n.value * 10) / 10;
+  if (!n.fromLine) return `${yd} yd`;
+  return `${yd < 0 ? '−' : '+'}${Math.abs(yd)} yd`;
 }
 
 /** A sim time as the screen shows it, free of float dust. */
@@ -249,6 +264,7 @@ export function eventNumbers(e: FieldEvent): EventNumber[] {
     label,
     value: onScreen(sim),
     unit: 's',
+    fromLine: false,
     range: { min, max, step },
   });
   const yards = (
@@ -263,6 +279,7 @@ export function eventNumbers(e: FieldEvent): EventNumber[] {
     label,
     value,
     unit: 'yd',
+    fromLine: key === 'from' || key === 'to' || key === 'at',
     range: { min, max, step },
   });
   const times = [
@@ -338,17 +355,34 @@ export function replaceEvent(s: EditorState, event: FieldEvent): EditorState {
   return sameEvent(s.event, event) ? s : changed(s, event);
 }
 
+/** An event's down in seconds on screen from the snap: its warning starting, going off, and its effect ending. */
+export interface EventTimeline {
+  readonly warning: number;
+  readonly goesOff: number;
+  readonly ends: number;
+}
+
 /**
  * The event's down as a timeline, in seconds on screen from the snap (e4):
  * the warning starts its length before it goes off (never before the
  * snap), and its effect ends `lasts` after.
  */
-export function eventTimeline(e: FieldEvent): { warning: number; goesOff: number; ends: number } {
+export function eventTimeline(e: FieldEvent): EventTimeline {
   return {
     warning: Math.max(0, onScreen(e.goesOff - e.warning.buildUp)),
     goesOff: onScreen(e.goesOff),
     ends: onScreen(e.goesOff + e.lasts),
   };
+}
+
+/** The timeline's words, left to right, read as the sliders read (review d2). */
+export function timelineText(t: EventTimeline): string[] {
+  return [
+    'snap',
+    `warning ${secondsText(t.warning)}`,
+    `goes off ${secondsText(t.goesOff)}`,
+    `ends ${secondsText(t.ends)}`,
+  ];
 }
 
 /** A new event: generic, with the plain look, its id from its name and never one already taken. */

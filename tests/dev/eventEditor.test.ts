@@ -7,6 +7,8 @@ import {
   FARTHEST,
   eventNumbers,
   eventTimeline,
+  numberText,
+  timelineText,
   handlesOf,
   moveArea,
   newEvent,
@@ -238,5 +240,22 @@ describe('review of the bench-style editor', () => {
     expect(
       eventNumbers({ ...middle, area: { ...middle.area, across: 'left' } }).map((n) => n.key),
     ).toContain('out');
+  });
+
+  it('m1, d2: how a number reads, from the rules: signed from the line, times to the thousandth only when needed', () => {
+    const text = (e: FieldEvent): string[] => eventNumbers(e).map(numberText);
+    expect(text(FROG_RAIN)).toEqual(['2.00 s', '0.875 s', '1.50 s', '−1 yd', '+16 yd', '7.3 yd']);
+    const c = {
+      ...lane,
+      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+    } as const;
+    expect(text(c).slice(3)).toEqual(['+12 yd', '4 yd', '2 yd']);
+    // The timeline reads as the sliders do: Frog Rain's warning starts at 1.125 s, not "1.13".
+    expect(timelineText(eventTimeline(FROG_RAIN))).toEqual([
+      'snap',
+      'warning 1.125 s',
+      'goes off 2.00 s',
+      'ends 3.50 s',
+    ]);
   });
 });

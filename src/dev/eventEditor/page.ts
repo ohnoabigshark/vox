@@ -31,9 +31,11 @@ import {
   dragNumber,
   eventNumbers,
   eventTimeline,
+  numberText,
+  timelineText,
+  type EventTimeline,
   replaceEvent,
   setNumber,
-  type EventNumber,
   type NumberKey,
   type SliderDrag,
   handlesOf,
@@ -447,15 +449,6 @@ function baselineOf(e: Editing): FieldEvent {
   return fieldEventDefaults.find((d) => d.id === id) ?? saved[id] ?? e.opened;
 }
 
-/** A number as its slider shows it: "2.00 s", "+16 yd", "7.3 yd". */
-function shown(n: EventNumber): string {
-  if (n.unit === 's') return `${n.value.toFixed(n.range.step < 0.05 ? 3 : 2)} s`;
-  const yd = Math.round(n.value * 10) / 10;
-  return n.key === 'from' || n.key === 'to' || n.key === 'at'
-    ? `${yd < 0 ? '−' : '+'}${Math.abs(yd)} yd`
-    : `${yd} yd`;
-}
-
 /** The sliders for this event's numbers: built when the numbers change shape, otherwise shown again in place, so a drag keeps its grip. */
 function syncSliders(e: Editing): void {
   const numbers = eventNumbers(e.ed.event);
@@ -493,9 +486,9 @@ function syncSliders(e: Editing): void {
     const k = keptNumbers?.find((x) => x.key === n.key);
     e.sliders.get(n.key)?.show({
       value: n.value,
-      shown: shown(n),
+      shown: numberText(n),
       at: fractionOf(n.value, n.range),
-      ...(b ? { tick: fractionOf(b.value, n.range), note: `default ${shown(b)}` } : {}),
+      ...(b ? { tick: fractionOf(b.value, n.range), note: `default ${numberText(b)}` } : {}),
       atDefault: b !== undefined && Math.abs(b.value - n.value) < 1e-9,
       unsaved: k === undefined || Math.abs(k.value - n.value) > 1e-9,
     });
@@ -511,10 +504,7 @@ function slide(e: Editing, key: NumberKey, value: number): void {
 }
 
 /** The event's down as one line (e4): the outline from the snap, its warning, the moment it goes off, and how long its effect lasts. */
-function drawTimeline(
-  box: HTMLElement,
-  t: { warning: number; goesOff: number; ends: number },
-): void {
+function drawTimeline(box: HTMLElement, t: EventTimeline): void {
   const span = Math.max(t.ends, 1);
   const pct = (s: number): string => `${(s / span) * 100}%`;
   box.innerHTML =
@@ -522,20 +512,10 @@ function drawTimeline(
     `<span class="tl-seg warn" style="left:${pct(t.warning)};width:${pct(t.goesOff - t.warning)}"></span>` +
     `<span class="tl-seg hit" style="left:${pct(t.goesOff)};width:${pct(t.ends - t.goesOff)}"></span>` +
     `<span class="tl-mark" style="left:${pct(t.goesOff)}"></span>`;
-  box.setAttribute(
-    'aria-label',
-    `The snap; its warning from ${t.warning.toFixed(2)} s; it goes off at ${t.goesOff.toFixed(2)} s; its effect ends at ${t.ends.toFixed(2)} s`,
-  );
-  box.title = box.getAttribute('aria-label') ?? '';
-  const words = el(
-    'div',
-    { className: 'tl-words' },
-    el('span', { text: 'snap' }),
-    el('span', { text: `warning ${t.warning.toFixed(2)} s` }),
-    el('span', { text: `goes off ${t.goesOff.toFixed(2)} s` }),
-    el('span', { text: `ends ${t.ends.toFixed(2)} s` }),
-  );
-  box.append(words);
+  const words = timelineText(t);
+  box.setAttribute('aria-label', words.join(', '));
+  box.title = words.join(', ');
+  box.append(el('div', { className: 'tl-words' }, ...words.map((w) => el('span', { text: w }))));
 }
 
 /** The area's shape and side, as chips. */
