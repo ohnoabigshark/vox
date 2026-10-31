@@ -21,6 +21,7 @@ import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
 import { browserStorage } from '../playEditor/sketches';
 import { Bench } from './bench';
+import { BENCH_LOG_PATH, BENCH_SAVE_PATH } from './endpoints';
 import { benchStore, type Kept, type Toggles } from './keep';
 import {
   BENCH_TESTS,
@@ -47,7 +48,7 @@ import {
   unsaved,
   type SaveState,
 } from './save';
-import { summary, timingText, type Grade, type RepResult, type Situation } from './reps';
+import { SITUATION_SLIDERS, summary, timingText, type Grade, type RepResult } from './reps';
 
 const TAB: Readonly<Record<BenchTest, string>> = {
   bar: 'Bar',
@@ -62,35 +63,6 @@ function word(r: RepResult): string {
   if (r.test === 'shoo') return r.grade === 'great' ? 'SHOOED!' : 'CROWS!';
   return { great: 'GREAT!', ok: 'OK', bad: 'BAD' }[r.grade];
 }
-
-/** The situation's sliders (k2): which tests each is for, and its range. */
-const SITUATION: readonly {
-  key: keyof Situation;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  tests: readonly BenchTest[];
-}[] = [
-  {
-    key: 'drive',
-    label: 'Drive',
-    min: 1,
-    max: 20,
-    step: 1,
-    tests: ['bar', 'mash', 'juke', 'snag'],
-  },
-  { key: 'tacklers', label: 'Tacklers', min: 1, max: 3, step: 1, tests: ['bar', 'mash', 'juke'] },
-  { key: 'crowd', label: 'Defenders reaching', min: 1, max: 3, step: 1, tests: ['snag'] },
-  {
-    key: 'handsGap',
-    label: 'Hands gap (yours − theirs)',
-    min: -40,
-    max: 40,
-    step: 5,
-    tests: ['snag'],
-  },
-];
 
 const TOGGLES: readonly { key: keyof Toggles; label: string }[] = [
   { key: 'again', label: 'Again' },
@@ -151,7 +123,7 @@ async function main(): Promise<void> {
   applySettings(settings);
 
   // ── The log: whether it's being recorded is always on show (never fail silently). ──
-  const log = httpLog(`${import.meta.env.BASE_URL}__bench-log`);
+  const log = httpLog(`${import.meta.env.BASE_URL}${BENCH_LOG_PATH}`);
   let recording: boolean | null = null;
   const showStatus = (): void => {
     const rec =
@@ -261,7 +233,7 @@ async function main(): Promise<void> {
   };
 
   // ── Save (docs/BENCH.md, Saving): each tab's own, through the hot-reload server. ──
-  const saver = httpSaver(`${import.meta.env.BASE_URL}__bench-save`);
+  const saver = httpSaver(`${import.meta.env.BASE_URL}${BENCH_SAVE_PATH}`);
   let saveState: SaveState = { server: 'checking', inServedGame: true, error: null };
   let saving = false;
   const renderSave = (): void => {
@@ -307,7 +279,7 @@ async function main(): Promise<void> {
   });
   const renderSituation = (): void => {
     situationEl.innerHTML = '';
-    for (const sit of SITUATION.filter((x) => x.tests.includes(test()))) {
+    for (const sit of SITUATION_SLIDERS.filter((x) => x.tests.includes(test()))) {
       const range = { min: sit.min, max: sit.max, step: sit.step };
       const row = slider(sit.label, range, {
         onMove: (v) => {

@@ -6,6 +6,7 @@
  * in screen seconds, read off the run at the moment of each tap.
  */
 import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
+import { BASE_STATS } from '../../arcade/content/team';
 import { qbOf } from '../../arcade/sim/ai';
 import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
 import { createRun, driveAt } from '../../arcade/sim/run';
@@ -28,6 +29,35 @@ export interface Situation {
 }
 
 export const FIRST_SITUATION: Situation = { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 };
+
+/** The situation's sliders (k2): which tests each is for, and its range. */
+export const SITUATION_SLIDERS: readonly {
+  key: keyof Situation;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  tests: readonly BenchTest[];
+}[] = [
+  {
+    key: 'drive',
+    label: 'Drive',
+    min: 1,
+    max: 20,
+    step: 1,
+    tests: ['bar', 'mash', 'juke', 'snag'],
+  },
+  { key: 'tacklers', label: 'Tacklers', min: 1, max: 3, step: 1, tests: ['bar', 'mash', 'juke'] },
+  { key: 'crowd', label: 'Defenders reaching', min: 1, max: 3, step: 1, tests: ['snag'] },
+  {
+    key: 'handsGap',
+    label: 'Hands gap (yours − theirs)',
+    min: -40,
+    max: 40,
+    step: 5,
+    tests: ['snag'],
+  },
+];
 
 export type Grade = 'great' | 'ok' | 'bad';
 
@@ -119,11 +149,11 @@ export function startRep(test: BenchTest, situation: Situation, seed: number): R
       if (!catcher) throw new Error('the run has no Catcher');
       const receiver: Player = {
         ...catcher,
-        stats: { ...catcher.stats, hands: 50 + situation.handsGap },
+        stats: { ...catcher.stats, hands: BASE_STATS.hands + situation.handsGap },
       };
       players[i] = receiver;
       const crowd = defenders.slice(0, situation.crowd).map((d, j) => {
-        const reaching = { ...d, stats: { ...d.stats, hands: 50 } };
+        const reaching = { ...d, stats: { ...d.stats, hands: BASE_STATS.hands } };
         defenders[j] = reaching;
         return reaching;
       });

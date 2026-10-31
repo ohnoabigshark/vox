@@ -13,13 +13,12 @@ import { writeFile } from 'node:fs/promises';
 import { basename, dirname } from 'node:path';
 import { promisify } from 'node:util';
 import type { Plugin } from 'vite';
+import { BENCH_SAVE_PATH } from '../src/dev/bench/endpoints';
 // savedTuning imports nothing; tuning.ts (which loads the saved file) is
 // loaded per request through Vite, never by the config: a file the config
 // loads restarts the server when it changes, and a save would then reload
 // every page, losing the other tabs' unsaved moves.
 import { checkSaved } from '../src/arcade/content/savedTuning';
-
-export const BENCH_SAVE_PATH = '__bench-save';
 
 export interface SaveDeps {
   write(text: string): Promise<void>;

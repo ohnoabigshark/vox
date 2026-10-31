@@ -9,8 +9,7 @@
 import { appendFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { Plugin } from 'vite';
-
-export const BENCH_LOG_PATH = '__bench-log';
+import { BENCH_LOG_PATH } from '../src/dev/bench/endpoints';
 
 /**
  * Answer one request: GET is a probe, POST a line to append. `isLine` is

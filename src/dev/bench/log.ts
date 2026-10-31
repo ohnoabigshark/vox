@@ -5,6 +5,7 @@
  * (tools/benchLog.ts). A slider move writes nothing. Where nothing takes
  * the lines (the served build), the page says so rather than pretending.
  */
+import { isRecord } from './checks';
 import { BENCH_TESTS, round, tabOffDefault, type BenchTest, type Settings } from './knobs';
 import type { RepResult, Situation, Timing } from './reps';
 
@@ -59,8 +60,6 @@ function roundAll<T>(x: T): T {
   return x;
 }
 
-const isRecord = (x: unknown): x is Record<string, unknown> =>
-  typeof x === 'object' && x !== null && !Array.isArray(x);
 const numbers = (x: unknown): boolean =>
   isRecord(x) && Object.values(x).every((v) => typeof v === 'number');
 

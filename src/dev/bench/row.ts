@@ -4,6 +4,7 @@
  * change it, and each row shows its default, what's saved, and whether it
  * has moved since. The page draws them; the rules are here.
  */
+import { clamp } from './checks';
 import { defaultValue, reachOf, round, showValue, type Knob, type Settings } from './knobs';
 
 export interface Range {
@@ -13,7 +14,6 @@ export interface Range {
 }
 
 const decimals = (step: number): number => (String(step).split('.')[1] ?? '').length;
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
 /** The nearest step to `v`, inside the range. */
 export function snap(v: number, r: Range): number {
