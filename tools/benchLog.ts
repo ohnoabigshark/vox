@@ -9,6 +9,7 @@
 import { appendFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { Plugin } from 'vite';
+import { endpoint } from './endpoint';
 import { BENCH_LOG_PATH } from '../src/dev/bench/endpoints';
 
 /**
@@ -56,29 +57,18 @@ export function benchLogPlugin(file: string): Plugin {
   return {
     name: 'bench-log',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (!(req.url ?? '').split('?')[0]?.endsWith(`/${BENCH_LOG_PATH}`)) return next();
-        if (!file && req.method === 'GET') {
-          res.statusCode = 503;
-          res.end('BENCH_LOG is not set');
-          return;
-        }
-        let body = '';
-        req.setEncoding('utf8');
-        req.on('data', (chunk: string) => (body += chunk));
-        req.on('end', () => {
-          void handleBenchLog(req.method ?? '', body, append, async (x) =>
+      server.middlewares.use(
+        endpoint(BENCH_LOG_PATH, async (method, body) => {
+          if (!file && method === 'GET') return { status: 503, body: 'BENCH_LOG is not set' };
+          return handleBenchLog(method, body, append, async (x) =>
             (
               (await server.ssrLoadModule(
                 '/src/dev/bench/log.ts',
               )) as typeof import('../src/dev/bench/log')
             ).isLogLine(x),
-          ).then((r) => {
-            res.statusCode = r.status;
-            res.end(r.body);
-          });
-        });
-      });
+          );
+        }),
+      );
     },
   };
 }
