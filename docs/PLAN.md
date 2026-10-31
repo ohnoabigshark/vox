@@ -76,10 +76,19 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   defender's hands and the Coach taps as it drops onto a bar, three times,
   juggling it until it's held: one spot, pure timing. It was option C on
   the SNAG IT! map. _User, 2026-10-30: "I like the tip drill idea too, and
-  we should park that as another catch challenge."_ Open for its grilling:
-  whether a contested catch picks SNAG IT! or the tip drill at random (as
-  Break it! picks its three), or each fits a kind of catch (a lob, a
-  bullet); how many pops, and how fast; what it grades on.
+  we should park that as another catch challenge."_ Being grilled on the
+  map https://claude.ai/artifact/PHeREqJNv3izp9eLinmcz4, on the
+  `tip-drill` branch. Round 1, decided 2026-10-31 (t1–t5, all approved):
+  - **The drop** (t1): the ball pops straight up off the receiver's hands
+    and falls back; tap anywhere in the box as it meets the hands, its
+    shadow on them growing as it falls. _User: "Let's see how the initial
+    concept plays and maybe we add drift later"_ (the drift is under Later).
+  - Each contested ball picks SNAG IT! or the tip drill at random, half and
+    half (t2), from drive 5, one setting saying when both start (t3).
+  - Its grades do what SNAG IT!'s do (t4), and everything else works as
+    SNAG IT! does: the shared countdown, the freeze, the box and its
+    linger, outside Break it!'s two, a bench tab, the balance bot, the
+    existing sounds (t5).
 - **The test bench** (dev): a page to play each quick tap test on its own,
   with sliders for its `tuning.ts` values and a Save that puts the
   settings that feel right into the game (a log of every change and rep
@@ -171,6 +180,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   rather than being shoved yards back. How long, and how far back counts, is
   open. _User, 2026-10-30._
 - **A native Android build** of the game. _User, 2026-10-30._
+- **The tip drill's drift:** each pop carries the ball left or right, its
+  shadow marking where along the hands it comes down, and the Coach taps
+  that spot as it lands. Option B on the tip drill's map (t1), parked until
+  the drop has been played. _User, 2026-10-31._
 
 - **Route timing and speeds,** the rest of e5's advanced play editing. Where
   players line up was built in round 5. _User, 2026-10-29._
