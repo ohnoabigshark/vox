@@ -66,7 +66,7 @@ import type {
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls } from './ui/controls';
-import { breakGrade, gradeCall, tapTestSound } from './ui/tapTestCalls';
+import { breakGrade, gradeCall, tapTestBuzz, tapTestSound } from './ui/tapTestCalls';
 import { breakView, shooShowing, snagView, tipView } from './ui/testViews';
 import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
@@ -549,16 +549,14 @@ export class ArcadeGame {
           break;
         }
         case 'snagDot':
-          if (e.hit) navigator.vibrate?.(12);
+        case 'tipPop':
+          if (tapTestBuzz(e)) navigator.vibrate?.(12);
           break;
         case 'snagResult': {
           const call = gradeCall('snag', e.grade);
           this.hud.big(call.word, call.tone);
           break;
         }
-        case 'tipPop':
-          if (e.result !== 'drop') navigator.vibrate?.(12);
-          break;
         case 'tipResult': {
           const call = gradeCall('tip', e.grade);
           this.hud.big(call.word, call.tone);

@@ -44,6 +44,13 @@ export function gradeCall(
   return { word: WORD[grade], tone: TONE[grade] };
 }
 
+/** Whether a tap test's event buzzes the phone: a catch test's tap that caught it (a dot hit, a pop not dropped). */
+export function tapTestBuzz(e: ArcadeEvent): boolean {
+  if (e.type === 'snagDot') return e.hit;
+  if (e.type === 'tipPop') return e.result !== 'drop';
+  return false;
+}
+
 /** The sound a tap test's event makes, or null for any other event. */
 export function tapTestSound(e: ArcadeEvent): SfxId | null {
   switch (e.type) {

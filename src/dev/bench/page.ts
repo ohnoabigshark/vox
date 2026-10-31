@@ -16,7 +16,7 @@ import { SfxPlayer, prepareSfx, type SfxId } from '../../audio/sfx';
 import type { ArcadeEvent } from '../../arcade/sim/types';
 import { ArcadeControls } from '../../arcade/ui/controls';
 import { nextDot } from '../../arcade/sim/snag';
-import { gradeCall, tapTestSound } from '../../arcade/ui/tapTestCalls';
+import { gradeCall, tapTestBuzz, tapTestSound } from '../../arcade/ui/tapTestCalls';
 import { breakView, shooShowing } from '../../arcade/ui/testViews';
 import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
@@ -61,6 +61,9 @@ const TAB: Readonly<Record<BenchTest, string>> = {
   tip: 'TIP DRILL!',
   shoo: 'SHOO',
 };
+
+/** Whether a tab is a catch test's (SNAG IT!, the tip drill): no cue at its start, and a readout that fills in as it goes. */
+const isCatchTest = (t: BenchTest): boolean => t === 'snag' || t === 'tip';
 
 /** The grade in one big word, as the game calls it. */
 function word(r: RepResult): string {
@@ -189,8 +192,7 @@ async function main(): Promise<void> {
     // The game's sound for each tap test event (ui/tapTestCalls.ts).
     const sound = tapTestSound(e);
     if (sound) play(sound);
-    const caught = (e.type === 'snagDot' && e.hit) || (e.type === 'tipPop' && e.result !== 'drop');
-    if (caught && kept.toggles.buzz) navigator.vibrate?.(12);
+    if (tapTestBuzz(e) && kept.toggles.buzz) navigator.vibrate?.(12);
   };
 
   // ── The bench and the test screen. ──
@@ -439,7 +441,7 @@ async function main(): Promise<void> {
       reps = bench.reps;
       const t = test();
       if (t === 'shoo') play('hop');
-      else if (t !== 'snag' && t !== 'tip') play('burst');
+      else if (!isCatchTest(t)) play('burst');
     }
     for (const e of events) react(e);
     if (finished) {
@@ -455,8 +457,7 @@ async function main(): Promise<void> {
     idle.hidden = state !== null || (rep?.result != null && kept.toggles.again);
     const grade: Grade | null = rep?.result?.grade ?? null;
     // The catch tests' readouts fill in dot by dot (pop by pop); the others' once the grade is in.
-    const live = rep?.test === 'snag' || rep?.test === 'tip';
-    const shown = rep && kept.toggles.timing && (rep.result || live);
+    const shown = rep && kept.toggles.timing && (rep.result || isCatchTest(rep.test));
     timingEl.textContent = shown
       ? `${timingText(rep.timing)}${grade ? ` → ${grade.toUpperCase()}` : ''}`
       : '';

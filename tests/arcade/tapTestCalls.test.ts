@@ -3,6 +3,7 @@ import {
   breakGrade,
   countdownText,
   gradeCall,
+  tapTestBuzz,
   tapTestSound,
   testCall,
 } from '../../src/arcade/ui/tapTestCalls';
@@ -40,6 +41,17 @@ describe("a tap test's calls", () => {
     expect(tapTestSound({ type: 'tipPop', index: 0, result: 'bobble' })).toBe('catch');
     expect(tapTestSound({ type: 'tipPop', index: 0, result: 'drop' })).toBe('fumble');
     expect(tapTestSound({ type: 'tipResult', grade: 'bad' })).toBeNull();
+  });
+});
+
+describe('a catch, buzzed, as the game and the bench both do (tip-drill review)', () => {
+  it('a SNAG IT! dot hit and a tip drill pop not dropped buzz; a miss, a drop and the rest don’t', () => {
+    expect(tapTestBuzz({ type: 'snagDot', index: 0, hit: true })).toBe(true);
+    expect(tapTestBuzz({ type: 'snagDot', index: 0, hit: false })).toBe(false);
+    expect(tapTestBuzz({ type: 'tipPop', index: 0, result: 'clean' })).toBe(true);
+    expect(tapTestBuzz({ type: 'tipPop', index: 0, result: 'bobble' })).toBe(true);
+    expect(tapTestBuzz({ type: 'tipPop', index: 0, result: 'drop' })).toBe(false);
+    expect(tapTestBuzz({ type: 'snagResult', grade: 'great' })).toBe(false);
   });
 });
 
