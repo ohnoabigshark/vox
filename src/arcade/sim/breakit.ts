@@ -108,11 +108,10 @@ export function sinceGo(state: RunState): number | null {
   return t ? state.time - (t.startedAt + t.ready) : null;
 }
 
-/** How far through the countdown it is (0 to 1), or null once it's over (or outside Break it!). */
-export function countdown(state: RunState): number | null {
+/** Sim seconds left in the countdown, or null once it's over (or outside Break it!). */
+export function countdownLeft(state: RunState): number | null {
   const since = sinceGo(state);
-  const t = state.tackle;
-  return since === null || since >= 0 || !t ? null : 1 + since / t.ready;
+  return since === null || since >= 0 ? null : -since;
 }
 
 /** The bar's marker along its trip (0 to 1; 0 through the countdown), or null when it isn't a bar. */

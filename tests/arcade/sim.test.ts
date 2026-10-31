@@ -14,7 +14,7 @@ import {
   setUpDrive,
   startingRoster,
 } from '../../src/arcade/sim/run';
-import { breakMarker, countdown, jukeGrade, jukeShowing } from '../../src/arcade/sim/breakit';
+import { breakMarker, countdownLeft, jukeGrade, jukeShowing } from '../../src/arcade/sim/breakit';
 import { canThrow, forceBreakKind, step } from '../../src/arcade/sim/step';
 import { pathXAt } from '../../src/arcade/sim/ai';
 import { propsForDrive } from '../../src/arcade/sim/props';
@@ -374,10 +374,10 @@ describe('the carrier, and Break it! (the bar)', () => {
     const ready = arcadeTuning.countdown.ready;
     const during = run(g, ready / 2, { breakTap: true }).state;
     expect(during.phase).toBe('breakit');
-    expect(countdown(during)).toBeGreaterThan(0.4);
+    expect(countdownLeft(during)).toBeGreaterThan(0);
     expect(breakMarker(during)).toBe(0);
     const after = run(g, ready + 0.3).state;
-    expect(countdown(after)).toBeNull();
+    expect(countdownLeft(after)).toBeNull();
     expect(breakMarker(after)).toBeGreaterThan(0);
   });
 
@@ -1201,5 +1201,25 @@ describe('which phases a down is on in (review a10)', () => {
     ];
     expect(phases.filter(downOn)).toEqual(['setup', 'play', 'breakit', 'snag']);
     expect(phases.filter(frozenForTest)).toEqual(['breakit', 'snag']);
+  });
+});
+
+describe("Break it!'s countdown left (review c1)", () => {
+  it('the sim seconds left in the countdown, then null; null outside Break it!', () => {
+    // A Runner carrying on (0, 2), a Cover dead ahead on (0, 4), as the Break it! tests set it up.
+    const s = carry(
+      playState(
+        [{ role: 'runner', pos: v(0, 2), stats: { hustle: 60 } }],
+        [{ kind: 'cover', pos: v(0, 4) }],
+      ),
+      2,
+    );
+    s.field.lane = 0;
+    const g = untilGrabbed(s).state;
+    const ready = arcadeTuning.countdown.ready;
+    expect(countdownLeft(g)).toBeCloseTo(ready, 1);
+    expect(countdownLeft(run(g, ready / 2).state)).toBeCloseTo(ready / 2, 1);
+    expect(countdownLeft(run(g, ready + DT).state)).toBeNull();
+    expect(countdownLeft(createRun(1))).toBeNull();
   });
 });

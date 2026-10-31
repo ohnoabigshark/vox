@@ -150,6 +150,12 @@ export function judgeSnag(
   return misses === 0 ? 'great' : misses === 1 ? 'ok' : 'bad';
 }
 
+/** Sim seconds left in SNAG IT!'s countdown, until the first dot shows; null once it has (or with no SNAG IT!). */
+export function snagCountdownLeft(state: RunState): number | null {
+  const first = state.snag?.dots[0]?.appearsAt;
+  return first === undefined || state.time >= first ? null : first - state.time;
+}
+
 /** Whether a dot can be tapped at `time`: it has shown, and isn't graded yet. */
 export function dotOpen(dot: SnagDot, time: number): boolean {
   return dot.result === null && time >= dot.appearsAt;

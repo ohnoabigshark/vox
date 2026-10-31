@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { layerSaved } from '../../src/arcade/content/savedTuning';
 import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
 import { createRun, driveAt, driveNumber } from '../../src/arcade/sim/run';
-import { dotOpen, nextDot, snagCount, snagPace } from '../../src/arcade/sim/snag';
+import {
+  dotOpen,
+  nextDot,
+  snagCount,
+  snagCountdownLeft,
+  snagPace,
+} from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { snagView } from '../../src/arcade/ui/testViews';
@@ -467,5 +473,16 @@ describe('SNAG IT!: what the plan’s tests promised, checked in full (review a4
     expect(gap / 0.8).toBeCloseTo(0.3125, 9);
     expect(snagPace(30)).toEqual(snagPace(18));
     expect(snagPace(17).close).toBeGreaterThan(close);
+  });
+});
+
+describe('SNAG IT!: its countdown worked out in the sim, as Break it!’s (review c1)', () => {
+  it('the sim seconds left until the first dot, then null; null with no SNAG IT!', () => {
+    const s = bulletContest(5);
+    const ready = arcadeTuning.countdown.ready;
+    expect(snagCountdownLeft(s)).toBeCloseTo(ready, 9);
+    expect(snagCountdownLeft(run(s, ready / 2).state)).toBeCloseTo(ready / 2, 1);
+    expect(snagCountdownLeft(run(s, ready + DT).state)).toBeNull();
+    expect(snagCountdownLeft(createRun(1))).toBeNull();
   });
 });
