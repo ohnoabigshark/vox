@@ -51,16 +51,17 @@ describe('the log', () => {
   });
 
   it("M: a save line has what the tab saved; the Break it! tabs' shared values with each", () => {
-    const file = { 'snag.close': 0.56, 'breakit.ready': 2, 'crows.window': 0.7 };
+    const file = { 'snag.close': 0.56, 'countdown.ready': 2, 'crows.window': 0.7 };
     expect(saveLine('snag', file, NOW)).toEqual({
       at: '2026-10-31T15:02:11.000Z',
       kind: 'save',
       test: 'snag',
-      saved: { 'snag.close': 0.56 },
+      // The shared countdown saves with SNAG IT! too (docs/SNAG.md, cd-c8).
+      saved: { 'snag.close': 0.56, 'countdown.ready': 2 },
     });
     const mash = saveLine('mash', file, NOW);
     if (mash.kind !== 'save') throw new Error('not a save line');
-    expect(mash.saved).toEqual({ 'breakit.ready': 2 });
+    expect(mash.saved).toEqual({ 'countdown.ready': 2 });
     // Saving the defaults is a line too: nothing saved for that tab.
     expect(saveLine('juke', {}, NOW)).toEqual({
       at: '2026-10-31T15:02:11.000Z',

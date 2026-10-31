@@ -96,7 +96,8 @@ export function startSnag(
     handsGap: receiver.stats.hands - best,
   });
   const { close, gap } = snagPace(drive);
-  const first = state.time + sn.call;
+  // The tap tests' countdown first (docs/SNAG.md, cd-c7): the first dot comes as it ends.
+  const first = state.time + arcadeTuning.countdown.ready;
   const dots: SnagDot[] = placeDots(state, count).map((p, i) => ({
     x: p.x,
     y: p.y,
@@ -147,6 +148,12 @@ export function judgeSnag(
   if (t.dots.some((d) => d.result === null)) return null;
   const misses = t.dots.filter((d) => d.result === 'miss').length;
   return misses === 0 ? 'great' : misses === 1 ? 'ok' : 'bad';
+}
+
+/** Sim seconds left in SNAG IT!'s countdown, until the first dot shows; null once it has (or with no SNAG IT!). */
+export function snagCountdownLeft(state: RunState): number | null {
+  const first = state.snag?.dots[0]?.appearsAt;
+  return first === undefined || state.time >= first ? null : first - state.time;
 }
 
 /** Whether a dot can be tapped at `time`: it has shown, and isn't graded yet. */

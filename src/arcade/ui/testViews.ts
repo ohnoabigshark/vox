@@ -4,18 +4,19 @@
  * both draw from these, so the bench shows exactly what the game does.
  */
 import { arcadeTuning, TIME_SCALE } from '../content/tuning';
-import { breakMarker, countdown, jukeGrade, jukeShowing, mashLeft } from '../sim/breakit';
-import { ringClosed } from '../sim/snag';
+import { breakMarker, countdownLeft, jukeGrade, jukeShowing, mashLeft } from '../sim/breakit';
+import { ringClosed, snagCountdownLeft } from '../sim/snag';
 import type { RunState } from '../sim/types';
 import type { BreakView, SnagView } from './controls';
+
+/** Sim seconds as seconds on screen (sim time runs slower than real time), for the countdowns. */
+const onScreen = (sim: number | null): number | null => (sim === null ? null : sim / TIME_SCALE);
 
 /** What the Break it! panel shows right now, or null. */
 export function breakView(state: RunState): BreakView | null {
   const t = state.tackle;
   if (!t || state.phase !== 'breakit') return null;
-  // The countdown's seconds left, on screen (sim time runs slower than real time).
-  const cd = countdown(state);
-  const ready = cd === null ? null : ((1 - cd) * t.ready) / TIME_SCALE;
+  const ready = onScreen(countdownLeft(state));
   switch (t.kind) {
     case 'bar':
       return {
@@ -48,7 +49,7 @@ export function snagView(state: RunState): SnagView | null {
   if (!t) return null;
   return {
     id: t.startedAt,
-    calling: state.time < (t.dots[0]?.appearsAt ?? 0),
+    ready: onScreen(snagCountdownLeft(state)),
     dots: t.dots.map((d) => ({ x: d.x, y: d.y, ring: ringClosed(state, d), result: d.result })),
   };
 }
