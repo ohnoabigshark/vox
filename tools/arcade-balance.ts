@@ -18,7 +18,9 @@
  * jukes the right way 91% of the time, about a quarter second after the
  * arrow shows. In SNAG IT! (docs/SNAG.md) it taps each dot as its ring
  * closes, missing about one dot in ten, and it throws into a contested ball
- * as it would to a catch (SNAG IT! makes it the Coach's to win).
+ * as it would to a catch (a catch test makes it the Coach's to win). In the
+ * tip drill (docs/TIP.md) it taps three pops in four clean, bobbles one in
+ * five, and drops one in twenty.
  *
  * BALANCE_SCENARIO='{"name": "Hard", "hard": true, "perks": true}' plays
  * hard mode (until the run is lost) and reports how many drives runs win.
@@ -34,10 +36,19 @@ import { FORM_STATS } from '../src/arcade/content/team';
 import { rngFor } from '../src/arcade/sim/random';
 import { plus } from '../src/arcade/sim/stats';
 import { breakMarker, jukeShowing } from '../src/arcade/sim/breakit';
-import { DT } from '../src/arcade/content/tuning';
+import { arcadeTuning, DT } from '../src/arcade/content/tuning';
 import { dotOpen } from '../src/arcade/sim/snag';
+import { tipLanding } from '../src/arcade/sim/tip';
 import { canThrow, step } from '../src/arcade/sim/step';
-import type { ArcadeEvent, Form, Role, RunState, Stats, StepInput } from '../src/arcade/sim/types';
+import type {
+  ArcadeEvent,
+  Form,
+  Role,
+  RunState,
+  Stats,
+  StepInput,
+  TipResult,
+} from '../src/arcade/sim/types';
 import { dist } from '../src/arcade/sim/vec';
 import { litPlayers } from '../src/arcade/render/sweep';
 import type { Rng } from '../src/sim/rng';
@@ -80,6 +91,9 @@ const BOT = {
   jukeRight: 0.91,
   /** SNAG IT!: the share of dots it misses (it taps the rest right as the ring closes). */
   snagMiss: 0.1,
+  /** The tip drill: the share of pops it taps clean, and bobbles (it drops the rest). */
+  tipClean: 0.75,
+  tipBobble: 0.2,
   ...(JSON.parse(process.env.BOT ?? '{}') as object),
 };
 
@@ -148,6 +162,8 @@ interface Tally {
   breakResults: Map<string, number>;
   /** SNAG IT! grades: "great" → count. */
   snagResults: Map<string, number>;
+  /** Tip drill grades, the same way. */
+  tipResults: Map<string, number>;
 }
 
 const bump = (m: Map<string, number>, k: string, by = 1): void => {
@@ -168,6 +184,9 @@ interface Plan {
   /** SNAG IT!: which one (its start), and the dots it'll miss. */
   snagAt: number | null;
   snagSkips: boolean[];
+  /** The tip drill: which one (its start), and how it'll play each pop. */
+  tipAt: number | null;
+  tipPlan: TipResult[];
 }
 
 /** A standard normal draw (Box-Muller). */
@@ -210,7 +229,7 @@ function predictsCatch(state: RunState, left: number): boolean {
     const r = step(s, i === 0 ? { throw: true } : {});
     s = r.state;
     for (const e of r.events) {
-      if (e.type === 'caught' || e.type === 'snagStarted') {
+      if (e.type === 'caught' || e.type === 'snagStarted' || e.type === 'tipStarted') {
         const id = e.type === 'caught' ? e.id : e.receiver;
         const by = s.field.players.find((p) => p.id === id);
         return (by?.pos.y ?? -Infinity) >= wantedDepth(state, left);
@@ -234,6 +253,22 @@ function botInput(state: RunState, rng: Rng, plan: Plan): StepInput {
       (d, k) => dotOpen(d, next) && !plan.snagSkips[k] && Math.abs(next - d.closesAt) <= DT / 2,
     );
     return i >= 0 ? { snag: i } : {};
+  }
+  if (state.phase === 'tip' && state.tip) {
+    const t = state.tip;
+    if (plan.tipAt !== t.startedAt) {
+      plan.tipAt = t.startedAt;
+      plan.tipPlan = t.pops.map(() => {
+        const r = rng.next();
+        return r < BOT.tipClean ? 'clean' : r < BOT.tipClean + BOT.tipBobble ? 'bobble' : 'drop';
+      });
+    }
+    // The step this input lands on: on the landing for a clean tap, between the windows for a bobble.
+    const landing = tipLanding(t);
+    const how = plan.tipPlan[t.results.length];
+    if (landing === null || how === undefined || how === 'drop') return {};
+    const late = how === 'bobble' ? (arcadeTuning.tip.clean + arcadeTuning.tip.bobble) / 2 : 0;
+    return Math.abs(state.time + DT - (landing + late)) <= DT / 2 ? { tip: true } : {};
   }
   if (state.phase === 'breakit' && state.tackle) {
     const t = state.tackle;
@@ -331,6 +366,9 @@ function count(
       case 'snagResult':
         bump(t.snagResults, e.grade);
         break;
+      case 'tipResult':
+        bump(t.tipResults, e.grade);
+        break;
       case 'brokeTackle':
         t.breaks++;
         break;
@@ -392,6 +430,8 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     shooReaction: 0.3,
     snagAt: null,
     snagSkips: [],
+    tipAt: null,
+    tipPlan: [],
   };
   const ran = { now: false, grabbed: false };
   let driveKey = '';
@@ -504,6 +544,15 @@ function report(scenario: Scenario, t: Tally): void {
       );
     }
   }
+  {
+    const n = (g: string): number => t.tipResults.get(g) ?? 0;
+    const all = n('great') + n('ok') + n('bad');
+    if (all > 0) {
+      console.log(
+        `  tip drill ${all} · GREAT ${pct(n('great'), all)} OK ${pct(n('ok'), all)} BAD ${pct(n('bad'), all)}`,
+      );
+    }
+  }
   if (t.runGrabs.length > 0) {
     const g = [...t.runGrabs].sort((a, b) => a - b);
     const q = (f: number): string => (g[Math.floor(f * (g.length - 1))] ?? 0).toFixed(1);
@@ -549,6 +598,7 @@ for (const scenario of SCENARIOS) {
     runGrabbers: new Map(),
     breakResults: new Map(),
     snagResults: new Map(),
+    tipResults: new Map(),
   };
   for (let seed = 1; seed <= RUNS; seed++) playRun(seed, scenario, t);
   report(scenario, t);
