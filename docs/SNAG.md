@@ -31,7 +31,7 @@ picks SNAG IT!".
 
 - **A contested ball** is one that one of your players and a defender could
   both get to: on a bullet, a receiver's reach and a defender's reach both
-  cover the ball where it is; on a lob (`?aim=2`), a receiver inside the
+  cover the ball where it is; on a lob (two-tap throwing), a receiver inside the
   catch circle and a defender who can reach the landing spot. Today the
   code settles it at once (`contact` and `lobLanding` in `sim/ball.ts`): on a
   bullet the better Hands wins, on a lob the nearer one. With SNAG IT! on,

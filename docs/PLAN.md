@@ -121,7 +121,8 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   run options, rather than typing them into the URL. _User, 2026-10-31: "a
   dev setup mode where we can enable/disable different tap events, toggle
   throw type etc before starting a run."_ Today those options are URL
-  flags read once in `src/main.ts` (`?aim=2` two-tap throwing, `?hard=1`,
+  flags read once in `src/main.ts` (two-tap throwing and hard mode, on unless
+  `?aim=1` or `?hard=0`,
   `?snag=1` SNAG IT! from the first drive, `?area=N`, `?seed=N`,
   `?monsters`, `?win`), and Break it! always deals one of its three
   (`bar`, `mash`, `juke`, `BREAK_KINDS` in `sim/breakit.ts`); nothing turns

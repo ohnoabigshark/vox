@@ -111,7 +111,7 @@ something, the old text is marked _replaced_.
 - **Restore defaults** (r-s4) sets the open tab's sliders to their
   defaults, as unsaved changes; Save then makes the game play them.
 - **Save writes, never commits** (r-s7). The hot-reload game
-  (`…:8443/vox-dev/?hard=1&aim=2`) plays a save on its next load; the
+  (`…:8443/vox-dev/`) plays a save on its next load; the
   served game (`/vox/`) rebuilds from commits, so it gets a save once the
   file is committed, at the Coach's word. While the file differs from the
   last commit the bench says "Saved · not in the served game yet" (the
