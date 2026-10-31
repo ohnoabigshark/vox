@@ -257,3 +257,24 @@ resets, etc. we also need a reset to defaults for all settings."_
   The flip the Coach saw was "either side" landing on the left in play,
   where the editor draws it on the right. _User: "I didn't know either side
   made it flip randomly, that makes sense."_
+
+### After review (2026-10-31)
+
+The review of `event-editor-bench`
+(https://claude.ai/artifact/64vKBpkzo5JbDkmqYTnLYV, the Coach approving
+every recommendation) changed:
+
+- **One drag, one Undo step** (b1): the slider widget says when its knob is
+  let go, and `dragNumber` (tested) keeps one drag one step; two drags in a
+  row are two.
+- **One rule for an area's numbers** (b4): `holdArea` holds them for
+  dragging, the handles and the sliders alike, never past `FARTHEST` (30
+  yards) or 6 behind, never inside out; a circle in the middle has no "out".
+- **↺** is greyed when the default has no such number, saying what shape the
+  default is (b2); on an event of yours never saved it goes to New event's
+  starting values (d3).
+- **The small print** says what's saved, as the bench's does (d1); numbers
+  and the timeline read alike, from the rules (m1, d2): Frog Rain's warning
+  starts at 1.125 s.
+- **The name box** follows Undo, Restore defaults and Revert to saved (b3).
+- **Kept:** Restore defaults greys out when there's nothing to restore (d4).
