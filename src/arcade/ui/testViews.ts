@@ -45,7 +45,7 @@ export function snagView(state: RunState): SnagView | null {
   // Just finished: the box stays a moment, so the last dot's pop or crack is seen.
   const done = state.snagDone;
   const t =
-    live ?? (done && state.time - done.endedAt < arcadeTuning.snag.linger ? done.snag : null);
+    live ?? (done && state.time - done.endedAt < arcadeTuning.catchTests.linger ? done.snag : null);
   if (!t) return null;
   return {
     id: t.startedAt,

@@ -79,7 +79,7 @@ describe('the knobs', () => {
     // Half to double (k5, the Coach's pick).
     expect(reachOf(knob('snag.close'), 'snag.close')).toMatchObject({ min: 0.32, max: 1.28 });
     // Counts in whole numbers; shares never past 1.
-    expect(reachOf(knob('snag.maxDots'), 'snag.maxDots')).toMatchObject({
+    expect(reachOf(knob('catchTests.maxCount'), 'catchTests.maxCount')).toMatchObject({
       min: 3,
       max: 10,
       step: 1,
@@ -112,10 +112,15 @@ describe('the knobs', () => {
       'breakit.jukeBreakShare',
       'breakit.jukeLinger',
     ]);
-    // SNAG IT!: the shared countdown first (cd-c4), then every value in its block.
+    // SNAG IT!: the shared countdown first (cd-c4), then every value in its
+    // block and in what the catch tests share (docs/TIP.md, g3).
     expect(keys('snag')[0]).toBe('countdown.ready');
     expect(keys('snag').sort()).toEqual(
-      ['countdown.ready', ...Object.keys(arcadeTuning.snag).map((k) => `snag.${k}`)].sort(),
+      [
+        'countdown.ready',
+        ...Object.keys(arcadeTuning.snag).map((k) => `snag.${k}`),
+        ...Object.keys(arcadeTuning.catchTests).map((k) => `catchTests.${k}`),
+      ].sort(),
     );
     expect(keys('shoo')).toEqual(['crows.window']);
   });
@@ -142,15 +147,15 @@ describe('the knobs', () => {
       'snag.minApart',
       'snag.margin',
       'snag.box',
-      'snag.fromDrive',
-      'snag.fasterAfter',
-      'snag.perDrive',
-      'snag.closeFloor',
-      'snag.minDots',
-      'snag.maxDots',
-      'snag.moreEvery',
-      'snag.handsGap',
-      'snag.linger',
+      'catchTests.fromDrive',
+      'catchTests.fasterAfter',
+      'catchTests.perDrive',
+      'catchTests.floor',
+      'catchTests.minCount',
+      'catchTests.maxCount',
+      'catchTests.moreEvery',
+      'catchTests.handsGap',
+      'catchTests.linger',
     ]);
     for (const t of ['bar', 'mash', 'juke', 'shoo'] as const) expect(more(t)).toEqual([]);
   });

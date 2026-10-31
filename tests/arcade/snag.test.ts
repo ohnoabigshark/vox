@@ -2,16 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { layerSaved } from '../../src/arcade/content/savedTuning';
 import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
 import { createRun, driveAt, driveNumber } from '../../src/arcade/sim/run';
-import {
-  dotOpen,
-  nextDot,
-  snagCount,
-  snagCountdownLeft,
-  snagPace,
-} from '../../src/arcade/sim/snag';
+import { dotOpen, nextDot, snagCountdownLeft, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { snagView } from '../../src/arcade/ui/testViews';
+import { catchCount } from '../../src/arcade/sim/catchTests';
 import { v } from '../../src/arcade/sim/vec';
 import { startRep } from '../../src/dev/bench/reps';
 import { ofType, playState, run, stand, throwAt } from './helpers';
@@ -107,31 +102,31 @@ function snag(state: RunState, taps: readonly Tap[]): { state: RunState; events:
 
 describe('SNAG IT!: how many dots (s1)', () => {
   it('2 from drive 5, one more a zone, 5 from drive 17', () => {
-    expect(snagCount({ drive: 5, crowd: 1, handsGap: 0 })).toBe(2);
-    expect(snagCount({ drive: 8, crowd: 1, handsGap: 0 })).toBe(2);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: 0 })).toBe(3);
-    expect(snagCount({ drive: 13, crowd: 1, handsGap: 0 })).toBe(4);
-    expect(snagCount({ drive: 17, crowd: 1, handsGap: 0 })).toBe(5);
-    expect(snagCount({ drive: 40, crowd: 1, handsGap: 0 })).toBe(5);
+    expect(catchCount({ drive: 5, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ drive: 8, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: 0 })).toBe(3);
+    expect(catchCount({ drive: 13, crowd: 1, handsGap: 0 })).toBe(4);
+    expect(catchCount({ drive: 17, crowd: 1, handsGap: 0 })).toBe(5);
+    expect(catchCount({ drive: 40, crowd: 1, handsGap: 0 })).toBe(5);
     // Before drive 5 (only with ?snag=1), the level gives 2.
-    expect(snagCount({ drive: 1, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ drive: 1, crowd: 1, handsGap: 0 })).toBe(2);
   });
 
   it('one more for each defender after the first in reach', () => {
-    expect(snagCount({ drive: 5, crowd: 2, handsGap: 0 })).toBe(3);
-    expect(snagCount({ drive: 5, crowd: 3, handsGap: 0 })).toBe(4);
+    expect(catchCount({ drive: 5, crowd: 2, handsGap: 0 })).toBe(3);
+    expect(catchCount({ drive: 5, crowd: 3, handsGap: 0 })).toBe(4);
   });
 
   it('one fewer when the receiver’s Hands beat theirs by 20, one more the other way', () => {
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: 20 })).toBe(2);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: 19 })).toBe(3);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: -20 })).toBe(4);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: -19 })).toBe(3);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: 20 })).toBe(2);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: 19 })).toBe(3);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: -20 })).toBe(4);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: -19 })).toBe(3);
   });
 
   it('never under 2 or over 5', () => {
-    expect(snagCount({ drive: 5, crowd: 1, handsGap: 40 })).toBe(2);
-    expect(snagCount({ drive: 17, crowd: 4, handsGap: -30 })).toBe(5);
+    expect(catchCount({ drive: 5, crowd: 1, handsGap: 40 })).toBe(2);
+    expect(catchCount({ drive: 17, crowd: 4, handsGap: -30 })).toBe(5);
   });
 
   it('a level is the drive’s number in the run', () => {
@@ -159,10 +154,11 @@ describe('SNAG IT!: how fast (s2)', () => {
   });
 
   it('past drive 10, faster each drive, down to the floor', () => {
-    expect(snagPace(11).close).toBeCloseTo(sn.close - sn.perDrive);
-    expect(snagPace(12).close).toBeCloseTo(sn.close - 2 * sn.perDrive);
+    // 0.04 s quicker a drive on screen, to 0.5 s (catchTests: 5% a drive, to 62.5%).
+    expect(snagPace(11).close / 0.8).toBeCloseTo(0.76);
+    expect(snagPace(12).close / 0.8).toBeCloseTo(0.72);
     expect(snagPace(11).gap).toBeCloseTo(snagPace(11).close * sn.gapShare);
-    expect(snagPace(18).close).toBeCloseTo(sn.closeFloor);
+    expect(snagPace(18).close / 0.8).toBeCloseTo(0.5);
     expect(snagPace(40)).toEqual(snagPace(18));
   });
 });
@@ -374,7 +370,7 @@ describe('SNAG IT!: the last dot is seen (review a1)', () => {
     // Graded on the step the last dot was tapped (a few steps of play follow in the helper).
     expect(done?.endedAt).toBeLessThanOrEqual(r.state.time);
     // 0.3 s on screen, at the game's 0.8 time scale.
-    expect(sn.linger / 0.8).toBeCloseTo(0.3, 9);
+    expect(arcadeTuning.catchTests.linger / 0.8).toBeCloseTo(0.3, 9);
   });
 });
 

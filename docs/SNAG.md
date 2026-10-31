@@ -68,7 +68,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## How many dots (s1)
 
-- **The level:** 2 on drives 5–8, then one more every four drives (an area; `moreEvery`): 3 on
+- **The level:** 2 on drives 5–8, then one more every four drives (an area; `catchTests.moreEvery`, shared with the tip drill): 3 on
   9–12, 4 on 13–16, 5 from 17.
 - **The crowd:** one more for each defender after the first whose reach
   covers the ball.
@@ -110,7 +110,7 @@ one without. The numbers get tuned from those and from the Coach's play.
   (`predictsCatch`), as a Coach who can win SNAG IT! would. So a run with
   SNAG IT! and one without differ in the throws the bot picks, not only in
   how contested balls end; compare them knowing that.
-- **The box stays 0.3 s after the grade** (`snag.linger`, review a1), so the
+- **The box stays 0.3 s after the grade** (`catchTests.linger`, review a1), so the
   last dot's pop or crack is seen; the play goes on meanwhile.
 
 ## Tests, written first

@@ -10,7 +10,8 @@ import { BASE_STATS } from '../../arcade/content/team';
 import { qbOf } from '../../arcade/sim/ai';
 import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
 import { createRun, driveAt } from '../../arcade/sim/run';
-import { snagCount, snagPace, startSnag } from '../../arcade/sim/snag';
+import { catchCount } from '../../arcade/sim/catchTests';
+import { snagPace, startSnag } from '../../arcade/sim/snag';
 import { step } from '../../arcade/sim/step';
 import { startingRoster } from '../../arcade/sim/team';
 import type { ArcadeEvent, Player, RunState, StepInput } from '../../arcade/sim/types';
@@ -320,7 +321,7 @@ export function summary(test: BenchTest, situation: Situation): string {
     case 'juke':
       return `drive ${drive} · window ${s(level.jukeWindow * pile)} · ${tacklers}`;
     case 'snag': {
-      const count = snagCount({ drive, crowd: situation.crowd, handsGap: situation.handsGap });
+      const count = catchCount({ drive, crowd: situation.crowd, handsGap: situation.handsGap });
       const pace = snagPace(drive);
       return `drive ${drive} · ${count} dots · ring ${s(pace.close)} · ${s(pace.gap)} apart`;
     }

@@ -262,7 +262,7 @@ The log, and SNAG IT!'s cut
 
 - **M.** A rep line carries the tab's settings off default; a save line what was
   saved; moving a slider writes nothing.
-- **N.** SNAG IT! shows seven sliders and the other eleven behind More, which
+- **N.** SNAG IT! shows seven sliders and the other twelve behind More, which
   opens them.
 
 r-u2's sizes are checked by eye in a phone-sized screenshot, not a test.
@@ -316,8 +316,8 @@ the bench like this:
   server reads "Saving needs the hot-reload server" (b11).
 - **Both endpoints always answer**, through `tools/endpoint.ts` (b1); their
   paths are in `src/dev/bench/endpoints.ts`, which imports nothing (b7).
-- **SNAG IT!'s last dot is seen:** the box stays `snag.linger` after the
-  grade, timed by the bench (a1); `snag.linger` has a slider behind More.
+- **SNAG IT!'s last dot is seen:** the box stays `catchTests.linger` after the
+  grade, timed by the bench (a1); `catchTests.linger` has a slider behind More.
 - **Shared with the game:** the next dot to tap (`nextDot`, a5), a drive's
   area (`driveAt`, a7), and the grade words, a Break it! outcome's grade
   and the tap tests' sounds (`ui/tapTestCalls.ts`, b8).

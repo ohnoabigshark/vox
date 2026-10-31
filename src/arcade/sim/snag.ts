@@ -6,10 +6,12 @@
  * it. Every dot hit is a GREAT (caught, the defenders knocked flying), one
  * miss an OK (caught and tackled there), more a BAD (batted down). How many
  * dots comes from the level, the crowd and the Hands gap; how fast, from the
- * level past drive 10. step.ts carries out the grade.
+ * level past drive 10 (both shared with the tip drill: sim/catchTests.ts).
+ * step.ts carries out the grade.
  */
 import { arcadeTuning } from '../content/tuning';
 import type { Contest } from './ball';
+import { catchCount, paceShare } from './catchTests';
 import { rngFor } from './random';
 import { driveNumber } from './run';
 import type { ArcadeEvent, RunState, SnagDot, SnagGrade, StepInput, Vec } from './types';
@@ -19,28 +21,9 @@ const sn = arcadeTuning.snag;
 
 const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
-/** Whether a contested ball goes to SNAG IT! on this drive. */
-export function snagOn(state: RunState): boolean {
-  return state.snagAlways || driveNumber(state.drive) >= sn.fromDrive;
-}
-
-/**
- * How many dots: 2 from drive 5, one more every `moreEvery` drives (an area's
- * four); one more for each defender
- * after the first reaching for the ball; one fewer when the receiver's Hands
- * beat the best defender's by `handsGap`, one more the other way. 2 to 5.
- */
-export function snagCount(c: { drive: number; crowd: number; handsGap: number }): number {
-  // The level (docs/SNAG.md) is the drive's number in the run.
-  const byLevel = sn.minDots + Math.floor(Math.max(0, c.drive - sn.fromDrive) / sn.moreEvery);
-  const hands = c.handsGap >= sn.handsGap ? -1 : c.handsGap <= -sn.handsGap ? 1 : 0;
-  return clamp(byLevel + Math.max(0, c.crowd - 1) + hands, sn.minDots, sn.maxDots);
-}
-
 /** How fast on this drive: how long a ring takes to close, and the gap between dots (sim seconds). */
 export function snagPace(drive: number): { close: number; gap: number } {
-  const past = Math.max(0, drive - sn.fasterAfter);
-  const close = Math.max(sn.closeFloor, sn.close - sn.perDrive * past);
+  const close = sn.close * paceShare(drive);
   return { close, gap: close * sn.gapShare };
 }
 
@@ -90,7 +73,7 @@ export function startSnag(
   const { receiver, defenders } = contest;
   const drive = driveNumber(state.drive);
   const best = Math.max(...defenders.map((d) => d.stats.hands));
-  const count = snagCount({
+  const count = catchCount({
     drive,
     crowd: defenders.length,
     handsGap: receiver.stats.hands - best,

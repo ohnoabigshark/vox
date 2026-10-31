@@ -30,7 +30,8 @@ import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
-import { judgeSnag, snagOn, startSnag } from './snag';
+import { catchTestsOn } from './catchTests';
+import { judgeSnag, startSnag } from './snag';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -481,7 +482,12 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
   if (!outcome) return false;
   // SNAG IT!: a contested ball, from drive 5, is the Coach's to win (docs/SNAG.md).
   const ball = state.field.ball;
-  if (outcome.kind !== 'incomplete' && outcome.contest && ball.at === 'flight' && snagOn(state)) {
+  if (
+    outcome.kind !== 'incomplete' &&
+    outcome.contest &&
+    ball.at === 'flight' &&
+    catchTestsOn(state)
+  ) {
     startSnag(state, outcome.contest, ball.from, events);
     return true;
   }

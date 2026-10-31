@@ -81,9 +81,9 @@ export class Bench {
     const rep = this.rep;
     if (!rep) return null;
     // After the grade the rep's sim stops, so the bench times the box's linger
-    // (snag.linger, the last dot's pop) itself, from when the grade came in.
+    // (catchTests.linger, the last dot's pop) itself, from when the grade came in.
     const since = this.wait === null ? 0 : AGAIN_AFTER - this.wait;
-    if (rep.result && since >= arcadeTuning.snag.linger / TIME_SCALE) return null;
+    if (rep.result && since >= arcadeTuning.catchTests.linger / TIME_SCALE) return null;
     const view = snagView(rep.state);
     return view ? { ...view, id: this.reps } : null;
   }

@@ -388,7 +388,7 @@ export interface RunState {
   snag: Snag | null;
   /**
    * The SNAG IT! that just finished, every dot graded, and when: kept so the
-   * box can show the last dot's pop before it closes (`snag.linger`). For the
+   * box can show the last dot's pop before it closes (`catchTests.linger`). For the
    * screen only; nothing in the sim reads it.
    */
   snagDone: { readonly snag: Snag; readonly endedAt: number } | null;
