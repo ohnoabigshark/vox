@@ -118,6 +118,28 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   SNAG IT! on, off or always; throw type; hard mode; the starting area; the
   seed; pickups and Frog Rain); whether the phone remembers the last setup;
   and whether practice gets it too.
+- **More events like Frog Rain, starting with an event editor** (dev, then
+  difficulty). _User, 2026-10-31: "more events like frog rain. along with
+  that should be an event editor, like the tap event editor, that lets us
+  tune the options of an event. maybe make the editor first and we can
+  tweak frog rain and then we develop the next event."_ In that order:
+  1. **The event editor:** a page like the test bench where an event plays
+     again and again, with sliders for its values and a Save into the saved
+     settings (`saved-tuning.json`), which already takes any `tuning.ts`
+     value. Frog Rain's are `frogRain` in `tuning.ts`: the lane's width,
+     how far behind and ahead of the line it runs, when the frogs come down,
+     how long their shadows warn, and how long a player stays flattened.
+     Today Frog Rain falls only on Mister Frog's drive (the Forest's Boss,
+     drive 4), so trying a change means playing three drives first.
+  2. **Frog Rain tuned on it** by the Coach.
+  3. **The next event,** designed and then tuned on the editor.
+
+  Open for its grilling: whether the editor is its own page or a tab on
+  the test bench; what plays in it (a practice down with the event forced,
+  played by the Coach or by the bot; which play and which defense); whether
+  SHOO CROWS! and the Royal Decree get tabs too; and, for the events after
+  Frog Rain, whether each stays a Boss's one gimmick (`CONTEXT.md`) or
+  events can come on any drive, and what the glossary calls them.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in
