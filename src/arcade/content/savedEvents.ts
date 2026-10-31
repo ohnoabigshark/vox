@@ -35,10 +35,13 @@ export function eventProblem(id: string, x: unknown): string | null {
   if (x.boss !== null && !oneOf(BOSSES, x.boss)) return 'its boss is not one of the Bosses';
   const area = areaProblem(x.area);
   if (area) return area;
+  // An event that never goes off, or has no effect, would fail without a word (review r2).
   for (const key of ['goesOff', 'lasts'] as const) {
-    if (typeof x[key] !== 'number' || !(x[key] >= 0)) return `${key} is not a number`;
+    if (typeof x[key] !== 'number') return `${key} is not a number`;
+    if (!(x[key] > 0 && Number.isFinite(x[key]))) return `${key} must be more than 0`;
   }
-  if (!isTree(x.warning) || typeof x.warning.buildUp !== 'number' || !(x.warning.buildUp >= 0)) {
+  const buildUp = isTree(x.warning) ? x.warning.buildUp : undefined;
+  if (typeof buildUp !== 'number' || !(buildUp >= 0 && Number.isFinite(buildUp))) {
     return 'its build-up is not a number';
   }
   if (!isTree(x.effect) || x.effect.kind !== 'flatten')
@@ -60,6 +63,12 @@ function areaProblem(a: unknown): string | null {
     if (typeof a[key] !== 'number' || !Number.isFinite(a[key])) {
       return `its area's ${key} is not a number`;
     }
+  }
+  // An area with no size catches nobody.
+  const size = a.shape === 'circle' ? 'radius' : 'width';
+  if (!((a[size] as number) > 0)) return `its area's ${size} must be more than 0`;
+  if (a.shape !== 'circle' && !((a.to as number) > (a.from as number))) {
+    return "its area's far edge must be past its near edge";
   }
   return null;
 }
