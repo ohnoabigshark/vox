@@ -4,7 +4,7 @@
  * starts the next rep a second after the grade, if the Coach tapped in this
  * one (so a bench left alone stops, rather than logging reps nobody played).
  */
-import { DT, TIME_SCALE } from '../../arcade/content/tuning';
+import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
 import type { ArcadeEvent, StepInput } from '../../arcade/sim/types';
 import type { SnagView } from '../../arcade/ui/controls';
 import { snagView } from '../../arcade/ui/testViews';
@@ -54,8 +54,13 @@ export class Bench {
    * rep's dots (B4). Here each rep is its own: its number is the view's id.
    */
   snagView(): SnagView | null {
-    const state = this.rep && !this.rep.result ? this.rep.state : null;
-    const view = state ? snagView(state) : null;
+    const rep = this.rep;
+    if (!rep) return null;
+    // After the grade the rep's sim stops, so the bench times the box's linger
+    // (snag.linger, the last dot's pop) itself, from when the grade came in.
+    const since = this.wait === null ? 0 : AGAIN_AFTER - this.wait;
+    if (rep.result && since >= arcadeTuning.snag.linger / TIME_SCALE) return null;
+    const view = snagView(rep.state);
     return view ? { ...view, id: this.reps } : null;
   }
 

@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { arcadeTuning, DT, TIME_SCALE } from '../../src/arcade/content/tuning';
 import { breakHardness } from '../../src/arcade/sim/breakit';
 import type { StepInput } from '../../src/arcade/sim/types';
-import { shooShowing } from '../../src/arcade/ui/testViews';
+import { shooShowing, snagView } from '../../src/arcade/ui/testViews';
+import { step } from '../../src/arcade/sim/step';
 import { Bench } from '../../src/dev/bench/bench';
 import {
   BENCH_TESTS,
@@ -190,6 +191,38 @@ describe('the knobs', () => {
     expect(fromScreen(close, 1)).toBeCloseTo(0.8, 9);
     const share = knob('snag.gapShare');
     expect(toScreen(share, 0.625)).toBe(0.625);
+  });
+});
+
+describe('a1: the last dot is seen', () => {
+  /** A SNAG IT! rep left untapped, run to its grade. */
+  const graded = (): Bench => {
+    const bench = new Bench({ test: 'snag', situation: at(5), again: false });
+    bench.go();
+    for (let i = 0; i < 2000 && !bench.rep?.result; i++) bench.tick(1 / 60);
+    return bench;
+  };
+
+  it('the shared view keeps the finished box, every dot graded, 0.3 s on screen, then closes', () => {
+    const state = graded().rep!.state;
+    expect(state.phase).not.toBe('snag');
+    expect(snagView(state)?.dots.map((d) => d.result)).toEqual(['miss', 'miss']);
+    const later = (screen: number): typeof state => {
+      let s = state;
+      for (let t = 0; t < screen * TIME_SCALE - 1e-9; t += DT) s = step(s).state;
+      return s;
+    };
+    expect(snagView(later(0.25))).not.toBeNull();
+    expect(snagView(later(0.35))).toBeNull();
+  });
+
+  it('the bench keeps it too, 0.3 s after the grade', () => {
+    const bench = graded();
+    expect(bench.snagView()?.dots.map((d) => d.result)).toEqual(['miss', 'miss']);
+    bench.tick(0.25);
+    expect(bench.snagView()).not.toBeNull();
+    bench.tick(0.1);
+    expect(bench.snagView()).toBeNull();
   });
 });
 
