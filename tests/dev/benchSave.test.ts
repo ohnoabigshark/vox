@@ -94,18 +94,28 @@ describe('what the page says', () => {
       text: 'Saving needs the hot-reload server (/vox-dev/dev/bench.html)',
       bad: true,
     });
-    expect(status({ kind: 'up', inServedGame: true })).toEqual({
+    expect(status({ kind: 'up', inServedGame: true, savedAt: null })).toEqual({
       text: 'Saved settings are in the served game',
       bad: false,
     });
-    expect(status({ kind: 'up', inServedGame: false })).toEqual({
+    expect(status({ kind: 'up', inServedGame: false, savedAt: null })).toEqual({
       text: 'Saved · not in the served game yet',
       bad: false,
     });
-    expect(status({ kind: 'up', inServedGame: false }, 'disk full')).toEqual({
+    expect(status({ kind: 'up', inServedGame: false, savedAt: null }, 'disk full')).toEqual({
       text: "Couldn't save: disk full. Your changes are still here.",
       bad: true,
     });
+  });
+
+  it('b2: once saved this visit, the status says when (the plan: "a saved tab says when it saved")', () => {
+    const at = Date.UTC(2026, 9, 31, 4, 12, 30);
+    expect(
+      saveStatus({ server: { kind: 'up', inServedGame: false, savedAt: at }, error: null }),
+    ).toEqual({ text: 'Saved 04:12 · not in the served game yet', bad: false });
+    expect(
+      saveStatus({ server: { kind: 'up', inServedGame: true, savedAt: at }, error: null }),
+    ).toEqual({ text: 'Saved 04:12 · in the served game', bad: false });
   });
 
   it("b11: a server that answers with an error says so in its words, not 'no server'", () => {
@@ -124,7 +134,11 @@ describe('what the page says', () => {
       throw new TypeError('Failed to fetch');
     }) as typeof fetch;
     const ok = answering(200, '{"inServedGame":false}');
-    expect(await httpSaver('/x', ok).probe()).toEqual({ kind: 'up', inServedGame: false });
+    expect(await httpSaver('/x', ok).probe()).toEqual({
+      kind: 'up',
+      inServedGame: false,
+      savedAt: null,
+    });
     expect(await httpSaver('/x', answering(404, 'Not Found')).probe()).toEqual({ kind: 'none' });
     expect(await httpSaver('/x', down).probe()).toEqual({ kind: 'none' });
     expect(await httpSaver('/x', answering(500, 'git: not a repository')).probe()).toEqual({

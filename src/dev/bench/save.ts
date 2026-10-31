@@ -52,14 +52,21 @@ export type SaveServer =
   | { readonly kind: 'none' }
   /** A server answered, but with an error (git failing, say). */
   | { readonly kind: 'broken'; readonly reason: string }
-  /** It can save; `inServedGame` when saved-tuning.json is as last committed. */
-  | { readonly kind: 'up'; readonly inServedGame: boolean };
+  /**
+   * It can save; `inServedGame` when saved-tuning.json is as last committed,
+   * and `savedAt` when this visit last saved (clock time), or null.
+   */
+  | { readonly kind: 'up'; readonly inServedGame: boolean; readonly savedAt: number | null };
 
 export interface SaveState {
   readonly server: SaveServer;
   /** Why the last save failed, or null. */
   readonly error: string | null;
 }
+
+/** A clock time as the phone's local hours and minutes, 24-hour: "04:12". */
+const hhmm = (at: number): string =>
+  new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(at);
 
 /** The save status line, and whether it's a problem (shown in red). */
 export function saveStatus(s: SaveState): { text: string; bad: boolean } {
@@ -74,10 +81,15 @@ export function saveStatus(s: SaveState): { text: string; bad: boolean } {
       return { text: 'Saving needs the hot-reload server (/vox-dev/dev/bench.html)', bad: true };
     case 'broken':
       return { text: `The save server can't save: ${server.reason}`, bad: true };
-    case 'up':
+    case 'up': {
+      if (server.savedAt !== null) {
+        const where = server.inServedGame ? 'in the served game' : 'not in the served game yet';
+        return { text: `Saved ${hhmm(server.savedAt)} · ${where}`, bad: false };
+      }
       return server.inServedGame
         ? { text: 'Saved settings are in the served game', bad: false }
         : { text: 'Saved · not in the served game yet', bad: false };
+    }
     default:
       return assertNever(server);
   }
@@ -105,7 +117,7 @@ export function httpSaver(url: string, fetchFn: typeof fetch = fetch): BenchSave
       } catch {
         return { kind: 'none' };
       }
-      if (r.ok) return { kind: 'up', ...answer(await r.json()) };
+      if (r.ok) return { kind: 'up', ...answer(await r.json()), savedAt: null };
       // A 404 is a page with no server behind it; anything else is a server with a problem.
       if (r.status === 404) return { kind: 'none' };
       return { kind: 'broken', reason: (await r.text()) || `the server answered ${r.status}` };

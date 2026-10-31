@@ -260,7 +260,10 @@ async function main(): Promise<void> {
       .then(
         (r) => {
           saved = next;
-          saveState = { server: { kind: 'up', inServedGame: r.inServedGame }, error: null };
+          saveState = {
+            server: { kind: 'up', inServedGame: r.inServedGame, savedAt: now() },
+            error: null,
+          };
           record(saveLine(tab, next, now()));
         },
         (e: unknown) => {
