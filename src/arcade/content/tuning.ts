@@ -185,7 +185,6 @@ export const tuningDefaults = {
    */
   snag: {
     fromDrive: 5,
-    // It opens with the tap tests' countdown (countdown.ready); the first dot comes as it ends.
     /** A ring closes onto its dot this long after the dot shows (0.8 s on screen)… */
     close: 0.64,
     /** …and the next dot shows this share of that later (0.5 s on screen). */
