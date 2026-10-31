@@ -320,6 +320,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   `PickupKind` `'gravestone'`), nothing left saying slick; and _"Can we
   make the trigger area a little larger as part of this work."_ (how much
   larger, its radius against the slick's today, decided then).
+- **"Either side" drawn on both sides** of the event editor's field, the
+  right solid and the left dashed, so an event that picks a side each down
+  doesn't read as flipped in play. Field events map round 4, e5, Not now
+  (2026-10-31).
 - **The tip drill's drift:** each pop carries the ball left or right, its
   shadow marking where along the hands it comes down, and the Coach taps
   that spot as it lands. Option B on the tip drill's map (t1), parked until
