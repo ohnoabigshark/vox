@@ -320,3 +320,10 @@ export const arcadeTuning = {
 
 /** The fixed step, in seconds. */
 export const DT = 1 / arcadeTuning.stepsPerSecond;
+
+/**
+ * How fast sim time runs against real time: the whole game a little slower
+ * than the sim's own numbers, everything together (so balance runs, which
+ * count sim time, are unchanged). A time on screen is a sim time over this.
+ */
+export const TIME_SCALE = 0.8;
