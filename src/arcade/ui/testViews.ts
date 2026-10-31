@@ -44,7 +44,11 @@ export function snagView(state: RunState): SnagView | null {
   if (!t || state.phase !== 'snag') return null;
   return {
     id: t.startedAt,
-    calling: state.time < (t.dots[0]?.appearsAt ?? 0),
+    // The countdown's seconds left, on screen, until the first dot.
+    ready:
+      state.time < (t.dots[0]?.appearsAt ?? 0)
+        ? ((t.dots[0]?.appearsAt ?? 0) - state.time) / TIME_SCALE
+        : null,
     dots: t.dots.map((d) => ({ x: d.x, y: d.y, ring: ringClosed(state, d), result: d.result })),
   };
 }

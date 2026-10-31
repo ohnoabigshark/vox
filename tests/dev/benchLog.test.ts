@@ -56,7 +56,8 @@ describe('the log', () => {
       at: '2026-10-31T15:02:11.000Z',
       kind: 'save',
       test: 'snag',
-      saved: { 'snag.close': 0.56 },
+      // The shared countdown saves with SNAG IT! too (docs/SNAG.md, cd-c8).
+      saved: { 'snag.close': 0.56, 'tapTests.ready': 2 },
     });
     expect(saveLine('mash', file, NOW)).toMatchObject({ saved: { 'tapTests.ready': 2 } });
     // Saving the defaults is a line too: nothing saved for that tab.

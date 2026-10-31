@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { arcadeTuning, DT } from '../../src/arcade/content/tuning';
+import { afterEach, describe, expect, it } from 'vitest';
+import { layerSaved } from '../../src/arcade/content/savedTuning';
+import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
 import { createRun } from '../../src/arcade/sim/run';
 import { driveNumber, snagCount, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
+import { snagView } from '../../src/arcade/ui/testViews';
 import { v } from '../../src/arcade/sim/vec';
 import { ofType, playState, run, stand, throwAt } from './helpers';
 
@@ -208,13 +210,13 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
     expect(crowd.snag?.dots).toHaveLength(4);
   });
 
-  it('the dots come 0.5 s apart after a half-second call, inside the box, apart from the last two', () => {
+  it('the dots come 0.5 s apart after the countdown, inside the box, apart from the last two', () => {
     const s = bulletContest(9, 60, [{ hands: 60 }, { hands: 100, along: 1 }]);
     const t = s.snag;
     if (!t) throw new Error('no snag');
     const { close, gap } = snagPace(9);
     t.dots.forEach((d, i) => {
-      expect(d.appearsAt).toBeCloseTo(t.startedAt + sn.call + i * gap);
+      expect(d.appearsAt).toBeCloseTo(t.startedAt + arcadeTuning.tapTests.ready + i * gap);
       expect(d.closesAt).toBeCloseTo(d.appearsAt + close);
       expect(d.result).toBeNull();
       for (const c of [d.x, d.y]) {
@@ -300,5 +302,45 @@ describe('SNAG IT! and Break it! (c5)', () => {
   it('isn’t one of the two Break it!s a down', () => {
     const r = snag(bulletContest(5), ['hit', 'hit']);
     expect(r.state.field.breaks).toBe(0);
+  });
+});
+
+describe('SNAG IT!: the countdown (cd-c10)', () => {
+  afterEach(() => void layerSaved(arcadeTuning, tuningDefaults, {}));
+
+  it('1: the first dot comes as the countdown ends, 2.0 s on screen after the freeze', () => {
+    const t = bulletContest(9, 60, [{ hands: 60 }, { hands: 100, along: 1 }]).snag;
+    if (!t) throw new Error('no snag');
+    expect((t.dots[0]!.appearsAt - t.startedAt) / TIME_SCALE).toBeCloseTo(2, 9);
+    expect('call' in arcadeTuning.snag).toBe(false);
+  });
+
+  it('2: during it the box says get ready, with the seconds left, and no dot; then dot 1 and the title', () => {
+    const s = bulletContest(5);
+    const start = snagView(s);
+    expect(start?.ready).toBeCloseTo(2, 6);
+    expect(start?.dots.every((d) => d.ring === null)).toBe(true);
+    const half = run(s, arcadeTuning.tapTests.ready / 2).state;
+    expect(snagView(half)?.ready).toBeCloseTo(1, 1);
+    expect(snagView(half)?.dots.every((d) => d.ring === null)).toBe(true);
+    const after = run(s, arcadeTuning.tapTests.ready + DT).state;
+    expect(snagView(after)?.ready).toBeNull();
+    expect(snagView(after)?.dots[0]?.ring).not.toBeNull();
+  });
+
+  it('3: a tap during the countdown hits nothing and costs nothing', () => {
+    const s = bulletContest(5);
+    const r = step(s, { snag: 0 });
+    expect(r.state.snag?.dots[0]?.result).toBeNull();
+    expect(ofType(r.events, 'snagDot')).toHaveLength(0);
+    const played = snag(r.state, ['hit', 'hit']);
+    expect(ofType(played.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'great' }]);
+  });
+
+  it("4: one setting, tapTests.ready, moves SNAG IT!'s first dot", () => {
+    layerSaved(arcadeTuning, tuningDefaults, { 'tapTests.ready': 2.4 });
+    const t = bulletContest(5).snag;
+    if (!t) throw new Error('no snag');
+    expect(t.dots[0]!.appearsAt - t.startedAt).toBeCloseTo(2.4, 9);
   });
 });

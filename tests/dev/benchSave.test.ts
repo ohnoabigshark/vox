@@ -60,6 +60,17 @@ describe('Save', () => {
   });
 });
 
+describe('the shared countdown (docs/SNAG.md, cd-c10 test 4)', () => {
+  it('saved on the SNAG IT! tab, it shows saved on the Bar, Mash and Juke tabs too', () => {
+    const current = { 'tapTests.ready': 2 };
+    const saved = savedAfter({}, current, 'snag');
+    expect(saved).toEqual({ 'tapTests.ready': 2 });
+    for (const t of ['bar', 'mash', 'juke', 'snag'] as const) {
+      expect(unsaved(saved, current, t)).toEqual([]);
+    }
+  });
+});
+
 describe('Restore defaults', () => {
   it("I: sets the open tab's sliders to their defaults, as unsaved changes", () => {
     const saved = { 'snag.close': 0.56, 'crows.window': 0.7 };
@@ -78,7 +89,8 @@ describe('what the page says', () => {
     expect(saveLabel(3)).toBe('Save 3 changes');
     const saved = { 'snag.close': 0.56 };
     const current = { 'snag.close': 0.56, 'crows.window': 0.7, 'tapTests.ready': 2 };
-    expect(tabsWithUnsaved(saved, current)).toEqual(['bar', 'mash', 'juke', 'shoo']);
+    // The countdown is SNAG IT!'s too (docs/SNAG.md, cd-c8).
+    expect(tabsWithUnsaved(saved, current)).toEqual(['bar', 'mash', 'juke', 'snag', 'shoo']);
     expect(tabsWithUnsaved(saved, saved)).toEqual([]);
   });
 

@@ -111,11 +111,10 @@ describe('the knobs', () => {
       'breakit.jukeBreakShare',
       'breakit.jukeLinger',
     ]);
-    // SNAG IT!: every value in its block.
+    // SNAG IT!: the shared countdown first (cd-c4), then every value in its block.
+    expect(keys('snag')[0]).toBe('tapTests.ready');
     expect(keys('snag').sort()).toEqual(
-      Object.keys(arcadeTuning.snag)
-        .map((k) => `snag.${k}`)
-        .sort(),
+      ['tapTests.ready', ...Object.keys(arcadeTuning.snag).map((k) => `snag.${k}`)].sort(),
     );
     expect(keys('shoo')).toEqual(['crows.window']);
   });
@@ -130,10 +129,10 @@ describe('the knobs', () => {
         .filter((k) => k.more)
         .map((k) => k.key);
     expect(shown('snag')).toEqual([
+      'Get ready countdown',
       'Ring closes in',
       'Hit window ±',
       'Next dot after (share of the close)',
-      '"SNAG IT!" call',
       'Dot size',
       'Ring starts at (times the dot)',
       'Dots at most apart',
@@ -160,7 +159,7 @@ describe('the knobs', () => {
     expect((dot.closesAt - dot.appearsAt) / TIME_SCALE).toBeCloseTo(1, 6);
     applySettings({});
     const back = startRep('snag', at(5), 1).state.snag!.dots[0]!;
-    expect(back.closesAt - back.appearsAt).toBe(0.64);
+    expect(back.closesAt - back.appearsAt).toBeCloseTo(0.64, 9);
   });
 
   it('3: a slider moved back to its default drops out of the settings, and Reset drops the tab', () => {

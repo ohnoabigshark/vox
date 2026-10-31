@@ -99,7 +99,8 @@ export function startSnag(
     handsGap: receiver.stats.hands - best,
   });
   const { close, gap } = snagPace(drive);
-  const first = state.time + sn.call;
+  // The tap tests' countdown first (docs/SNAG.md, cd-c7): the first dot comes as it ends.
+  const first = state.time + arcadeTuning.tapTests.ready;
   const dots: SnagDot[] = placeDots(state, count).map((p, i) => ({
     x: p.x,
     y: p.y,

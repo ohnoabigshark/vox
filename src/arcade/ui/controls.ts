@@ -25,14 +25,14 @@ export interface ControlHandlers {
 }
 
 /**
- * What the SNAG IT! box shows: whether the call is still on (no dot yet),
- * and each dot, placed as shares of the box, with how far its ring has
+ * What the SNAG IT! box shows: the countdown's seconds left on screen (null
+ * once it's over and the dots come), and each dot, placed as shares of the box, with how far its ring has
  * closed (null before it shows) and how it went.
  */
 export interface SnagView {
   /** Which SNAG IT! this is (its start time), so a new one starts clean. */
   readonly id: number;
-  readonly calling: boolean;
+  readonly ready: number | null;
   readonly dots: readonly {
     readonly x: number;
     readonly y: number;
@@ -79,6 +79,7 @@ export class ArcadeControls {
   private readonly shoo: HTMLElement;
   private readonly snagBox: HTMLElement;
   private readonly snagTitle: HTMLElement;
+  private readonly snagCount: HTMLElement;
   private snagDots: HTMLElement[] = [];
   private snagId: number | null = null;
   private readonly onSnag: (dot: number) => void;
@@ -109,6 +110,7 @@ export class ArcadeControls {
       </div>
       <div class="arc-snag interactive" hidden>
         <div class="arc-snag-title">SNAG IT!</div>
+        <div class="arc-snag-count" hidden></div>
       </div>`;
     parent.append(this.root);
     const q = (sel: string): HTMLElement => {
@@ -140,6 +142,7 @@ export class ArcadeControls {
     press(this.jukeRight, () => handlers.onJuke(1));
     this.snagBox = q('.arc-snag');
     this.snagTitle = q('.arc-snag-title');
+    this.snagCount = q('.arc-snag-count');
     this.onSnag = (dot) => handlers.onSnag(dot);
     // For the bar and the mash, a tap anywhere on the screen counts.
     window.addEventListener('pointerdown', () => {
@@ -170,7 +173,12 @@ export class ArcadeControls {
         return el;
       });
     }
-    this.snagTitle.classList.toggle('calling', view.calling);
+    // The countdown, as Break it!'s: what's coming, and how long until it does.
+    const counting = view.ready !== null;
+    this.snagTitle.textContent = counting ? 'GET READY TO SNAG IT!' : 'SNAG IT!';
+    this.snagTitle.classList.toggle('ready', counting);
+    this.snagCount.hidden = !counting;
+    if (view.ready !== null) this.snagCount.textContent = `${Math.max(1, Math.ceil(view.ready))}…`;
     view.dots.forEach((d, i) => {
       const el = this.snagDots[i];
       if (!el) return;

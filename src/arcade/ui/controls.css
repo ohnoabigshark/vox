@@ -259,11 +259,28 @@
   pointer-events: none;
 }
 
-/* The call: big in the middle until the first dot shows. */
-.arc-snag-title.calling {
+/* The countdown (docs/SNAG.md, cd-c1): "GET READY TO SNAG IT!" smaller, so it fits... */
+.arc-snag-title.ready {
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+}
+
+/* ...and the seconds left, big in the middle. */
+.arc-snag-count {
+  position: absolute;
+  left: 0;
+  right: 0;
   top: 50%;
   translate: 0 -50%;
-  font-size: 3rem;
+  text-align: center;
+  font-size: 4rem;
+  color: var(--bone);
+  text-shadow: 4px 4px 0 var(--ink);
+  pointer-events: none;
+}
+
+.arc-snag-count[hidden] {
+  display: none;
 }
 
 .arc-snag-dot {
