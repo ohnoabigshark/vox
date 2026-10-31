@@ -131,7 +131,11 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   a dev page that builds the link); which switches (each Break it! kind and
   SNAG IT! on, off or always; throw type; hard mode; the starting area; the
   seed; pickups and Frog Rain); whether the phone remembers the last setup;
-  and whether practice gets it too.
+  and whether practice gets it too. The tip drill's review found each link
+  option touching about ten places (`main.ts`, `game.ts`'s option, field
+  and two `createRun` calls, `run.ts`, `types.ts`): the setup mode is the
+  time to gather them into one run-options object, so a new switch is one
+  edit.
 - **More events like Frog Rain, starting with an event editor** (dev, then
   difficulty). _User, 2026-10-31: "more events like frog rain. along with
   that should be an event editor, like the tap event editor, that lets us
