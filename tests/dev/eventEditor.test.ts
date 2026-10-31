@@ -4,6 +4,7 @@ import { arcadeTuning, TIME_SCALE } from '../../src/arcade/content/tuning';
 import {
   areaReadout,
   dragNumber,
+  FARTHEST,
   eventNumbers,
   eventTimeline,
   handlesOf,
@@ -139,14 +140,16 @@ describe('the editor (test 7)', () => {
 
 describe('the editor, bench style (round 4: e1–e4)', () => {
   it('e1, e2: each event shows its times and its area’s numbers as sliders, on screen and in yards', () => {
-    expect(eventNumbers(FROG_RAIN).map((n) => [n.key, n.value])).toEqual([
-      ['goesOff', 2],
-      ['buildUp', 0.875],
-      ['lasts', 1.5],
-      ['from', -1],
-      ['to', 16],
-      ['width', FROG_RAIN.area.shape === 'lane' ? FROG_RAIN.area.width : 0],
-    ]);
+    expect(eventNumbers(FROG_RAIN).map((n) => [n.key, n.value])).toEqual(
+      [
+        ['goesOff', 2],
+        ['buildUp', 0.875],
+        ['lasts', 1.5],
+        ['from', -1],
+        ['to', 16],
+        ['width', 7.28],
+      ].map(([k, v]) => [k, expect.closeTo(v as number, 9)]),
+    );
     const circle = {
       ...lane,
       area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
@@ -202,5 +205,38 @@ describe('review of the bench-style editor', () => {
     ({ state: s, drag } = dragNumber(startEditing(lane), null, 'goesOff', 1));
     s = dragNumber(s, drag, 'lasts', 1).state;
     expect(undo(s).event.goesOff).toBeCloseTo(0.8, 9);
+  });
+
+  it('b4: dragging and the sliders hold a number alike: never past 30 yards upfield', () => {
+    expect(FARTHEST).toBe(30);
+    // A lane dragged far upfield stops with its far edge at 30, keeping its length.
+    expect(moveArea(startEditing(lane), { x: 0, y: 20 }).event.area).toEqual({
+      ...lane.area,
+      from: 13,
+      to: 30,
+    });
+    expect(sizeArea(startEditing(lane), 'far', { x: 0, y: 34 }).event.area).toEqual({
+      ...lane.area,
+      to: 30,
+    });
+    const c = startEditing({
+      ...lane,
+      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+    });
+    expect(moveArea(c, { x: 0, y: 30 }).event.area).toMatchObject({ at: 30 });
+    expect(setNumber(c, 'at', 40).event.area).toEqual({ ...c.event.area, at: 30 });
+  });
+
+  it('b4: a circle in the middle has no way out to set: not offered, and held at 0', () => {
+    const middle = {
+      ...lane,
+      area: { shape: 'circle', across: 'middle', out: 0, at: 12, radius: 2 },
+    } as const;
+    expect(eventNumbers(middle).map((n) => n.key)).not.toContain('out');
+    expect(setNumber(startEditing(middle), 'out', 3).event.area).toEqual(middle.area);
+    // Set on a side, it moves out again.
+    expect(
+      eventNumbers({ ...middle, area: { ...middle.area, across: 'left' } }).map((n) => n.key),
+    ).toContain('out');
   });
 });

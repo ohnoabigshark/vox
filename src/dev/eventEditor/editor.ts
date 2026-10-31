@@ -33,8 +33,44 @@ const HW = arcadeTuning.field.halfWidth;
 const snap = (n: number): number => Math.round(n * 2) / 2;
 /** The least a lane or band runs, and the smallest circle: half a yard. */
 const LEAST = 0.5;
-/** How far behind the line an area may start (Jack's deepest drop). */
+/** How far behind the line an area may start (Jack's deepest drop)… */
 const BEHIND = -6;
+/** …and how far upfield it may reach. */
+export const FARTHEST = 30;
+
+/** An area's number with a slider, and that dragging or a handle sets. */
+type AreaKey = 'from' | 'to' | 'width' | 'at' | 'out' | 'radius';
+
+/**
+ * One area number set, held to what the game can play (review b4): the
+ * one rule for dragging, the handles and the sliders. Never past 30 yards
+ * upfield or 6 behind; a lane or band never inside out; a circle in the
+ * middle stays there.
+ */
+function holdArea(a: EventArea, key: AreaKey, v: number): EventArea {
+  if (a.shape === 'circle') {
+    switch (key) {
+      case 'at':
+        return { ...a, at: clamp(v, BEHIND, FARTHEST) };
+      case 'out':
+        return { ...a, out: drawnSide(a) === 0 ? 0 : clamp(v, 0, HW) };
+      case 'radius':
+        return { ...a, radius: clamp(v, LEAST, HW) };
+      default:
+        return a;
+    }
+  }
+  switch (key) {
+    case 'from':
+      return { ...a, from: clamp(v, BEHIND, a.to - LEAST) };
+    case 'to':
+      return { ...a, to: clamp(v, a.from + LEAST, FARTHEST) };
+    case 'width':
+      return { ...a, width: clamp(v, LEAST, 2 * HW) };
+    default:
+      return a;
+  }
+}
 
 export function startEditing(event: FieldEvent): EditorState {
   return { event, history: [] };
@@ -62,14 +98,15 @@ export function drawnSide(area: EventArea): -1 | 0 | 1 {
  */
 export function moveArea(start: EditorState, by: Yards): EditorState {
   const a = start.event.area;
+  const moved = (area: EventArea): EditorState => changed(start, { ...start.event, area });
   if (a.shape === 'circle') {
-    const sign = drawnSide(a);
-    const out = sign === 0 ? 0 : clamp(snap(a.out + sign * by.x), 0, HW);
-    return changed(start, { ...start.event, area: { ...a, out, at: snap(a.at + by.y) } });
+    const out = holdArea(a, 'out', snap(a.out + drawnSide(a) * by.x));
+    return moved(holdArea(out, 'at', snap(a.at + by.y)));
   }
+  // Both edges move together, the area keeping its length, within the field's reach.
   const length = a.to - a.from;
-  const from = Math.max(BEHIND, snap(a.from + by.y));
-  return changed(start, { ...start.event, area: { ...a, from, to: from + length } });
+  const from = clamp(snap(a.from + by.y), BEHIND, FARTHEST - length);
+  return moved({ ...a, from, to: from + length });
 }
 
 /** Where each of the area's handles is drawn, in field yards. */
@@ -105,20 +142,17 @@ export function circleAcross(area: Extract<EventArea, { out: number }>): number 
 /** The area with `handle` dragged to `to` (field yards), snapped and never inside out. One step for Undo. */
 export function sizeArea(start: EditorState, handle: Handle, to: Yards): EditorState {
   const a = start.event.area;
-  const set = (area: EventArea): EditorState => changed(start, { ...start.event, area });
-  if (a.shape === 'circle') {
-    const r = Math.hypot(to.x - circleAcross(a), to.y - a.at);
-    return set({ ...a, radius: clamp(snap(r), LEAST, HW) });
-  }
+  const set = (key: AreaKey, v: number): EditorState =>
+    changed(start, { ...start.event, area: holdArea(a, key, snap(v)) });
+  if (a.shape === 'circle') return set('radius', Math.hypot(to.x - circleAcross(a), to.y - a.at));
   switch (handle) {
     case 'near':
-      return set({ ...a, from: clamp(snap(to.y), BEHIND, a.to - LEAST) });
+      return set('from', to.y);
     case 'far':
-      return set({ ...a, to: Math.max(a.from + LEAST, snap(to.y)) });
+      return set('to', to.y);
     case 'width': {
       const sign = drawnSide(a);
-      const width = sign === 0 ? 2 * Math.abs(to.x) : sign * (sign * HW - to.x);
-      return set({ ...a, width: clamp(snap(width), LEAST, 2 * HW) });
+      return set('width', sign === 0 ? 2 * Math.abs(to.x) : sign * (sign * HW - to.x));
     }
     case 'edge':
       return start;
@@ -240,15 +274,16 @@ export function eventNumbers(e: FieldEvent): EventNumber[] {
   if (a.shape === 'circle') {
     return [
       ...times,
-      yards('at', 'Ahead of the line', a.at, BEHIND, 30),
-      yards('out', 'Out from the middle', a.out, 0, HW, 0.1),
+      yards('at', 'Ahead of the line', a.at, BEHIND, FARTHEST),
+      // A circle in the middle has no way out to set (review b4).
+      ...(drawnSide(a) === 0 ? [] : [yards('out', 'Out from the middle', a.out, 0, HW, 0.1)]),
       yards('radius', 'Radius', a.radius, LEAST, HW),
     ];
   }
   return [
     ...times,
-    yards('from', 'Near edge, from the line', a.from, BEHIND, 30),
-    yards('to', 'Far edge, from the line', a.to, BEHIND + LEAST, 30),
+    yards('from', 'Near edge, from the line', a.from, BEHIND, FARTHEST - LEAST),
+    yards('to', 'Far edge, from the line', a.to, BEHIND + LEAST, FARTHEST),
     yards('width', 'Width', a.width, LEAST, 2 * HW, 0.1),
   ];
 }
@@ -266,17 +301,12 @@ export function setNumber(s: EditorState, key: NumberKey, value: number): Editor
     case 'lasts':
       return changed(s, { ...e, lasts: sim(value) });
     case 'from':
-      return a.shape === 'circle' ? s : area({ ...a, from: clamp(value, BEHIND, a.to - LEAST) });
     case 'to':
-      return a.shape === 'circle' ? s : area({ ...a, to: Math.max(a.from + LEAST, value) });
     case 'width':
-      return a.shape === 'circle' ? s : area({ ...a, width: clamp(value, LEAST, 2 * HW) });
     case 'at':
-      return a.shape === 'circle' ? area({ ...a, at: value }) : s;
     case 'out':
-      return a.shape === 'circle' ? area({ ...a, out: clamp(value, 0, HW) }) : s;
     case 'radius':
-      return a.shape === 'circle' ? area({ ...a, radius: clamp(value, LEAST, HW) }) : s;
+      return area(holdArea(a, key, value));
     default:
       return assertNever(key);
   }
