@@ -19,8 +19,8 @@ export interface EventPractice {
   readonly drive: number;
 }
 
-/** The drives of a run (12: three areas of four). */
-const DRIVES = arcadeTuning.run.areas * 4;
+/** The drives of a run (12: three areas of four), the most Try it can pick. */
+export const DRIVES = arcadeTuning.run.areas * 4;
 
 /** The query of an event practice link: `event`, `drive`, and `aim=2` or `aim=1` (both written, as two-tap is the default). */
 export function eventPracticeQuery(event: FieldEvent, drive: number, twoTap: boolean): string {

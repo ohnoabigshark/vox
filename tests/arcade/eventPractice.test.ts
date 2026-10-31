@@ -6,7 +6,7 @@ import {
 } from '../../src/arcade/content/eventLink';
 import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
-import { createRun, dispatch, driveAt, nextDown } from '../../src/arcade/sim/run';
+import { bossDrive, createRun, dispatch, driveAt, nextDown } from '../../src/arcade/sim/run';
 import type { RunState } from '../../src/arcade/sim/types';
 
 /** docs/FIELD_EVENTS.md, test 8: Try it, event practice (f3, x2). */
@@ -96,5 +96,13 @@ describe('event practice (test 8)', () => {
     const s = createRun(3, undefined, 0, { practice: PLAY_POOL[0]! });
     expect(s.called).toBe(0);
     expect(s.field.fieldEvent).toBeNull();
+  });
+});
+
+describe('a Boss’s drive (review r9)', () => {
+  it('is worked out from where the Boss is, not written as a number', () => {
+    expect(bossDrive('misterFrog')).toBe(4);
+    expect(bossDrive('queen')).toBe(8);
+    expect(bossDrive('king')).toBe(12);
   });
 });

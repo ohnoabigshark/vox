@@ -13,13 +13,10 @@ import {
   type Who,
 } from '../../arcade/content/fieldEvents';
 import { arcadeTuning, TIME_SCALE } from '../../arcade/content/tuning';
+import { circleX, rectXs, sideOf } from '../../arcade/sim/fieldEvents';
 import { clamp } from '../../arcade/sim/vec';
+import type { Yards } from '../fieldSvg';
 import { idFromName } from '../playEditor/sketches';
-
-export interface Yards {
-  readonly x: number;
-  readonly y: number;
-}
 
 export interface EditorState {
   readonly event: FieldEvent;
@@ -52,9 +49,9 @@ export function undo(s: EditorState): EditorState {
   return before ? { event: before, history: s.history.slice(0, -1) } : s;
 }
 
-/** Which way across the field an area's side lies: −1 left, 0 the middle, 1 right ("either" is drawn right). */
-function sideSign(area: EventArea): -1 | 0 | 1 {
-  return area.across === 'left' ? -1 : area.across === 'middle' ? 0 : 1;
+/** Which side an area is drawn on: where the sim places it, "either" on the right. */
+export function drawnSide(area: EventArea): -1 | 0 | 1 {
+  return sideOf(area.across, () => 1);
 }
 
 /**
@@ -65,7 +62,7 @@ function sideSign(area: EventArea): -1 | 0 | 1 {
 export function moveArea(start: EditorState, by: Yards): EditorState {
   const a = start.event.area;
   if (a.shape === 'circle') {
-    const sign = sideSign(a);
+    const sign = drawnSide(a);
     const out = sign === 0 ? 0 : clamp(snap(a.out + sign * by.x), 0, HW);
     return changed(start, { ...start.event, area: { ...a, out, at: snap(a.at + by.y) } });
   }
@@ -76,10 +73,9 @@ export function moveArea(start: EditorState, by: Yards): EditorState {
 
 /** Where each of the area's handles is drawn, in field yards. */
 export function handlesOf(area: EventArea): { handle: Handle; at: Yards }[] {
-  const sign = sideSign(area);
+  const sign = drawnSide(area);
   if (area.shape === 'circle') {
-    const x = sign * area.out;
-    return [{ handle: 'edge', at: { x: x + area.radius, y: area.at } }];
+    return [{ handle: 'edge', at: { x: circleAcross(area) + area.radius, y: area.at } }];
   }
   const { x0, x1 } = rectAcross(area);
   const mid = (x0 + x1) / 2;
@@ -97,10 +93,12 @@ export function rectAcross(area: Extract<EventArea, { width: number }>): {
   x0: number;
   x1: number;
 } {
-  const sign = sideSign(area);
-  const half = area.width / 2;
-  const x = sign * (HW - half);
-  return { x0: x - half, x1: x + half };
+  return rectXs(area.width, drawnSide(area));
+}
+
+/** A circle's middle across, as the sim places it ("either" on the right). */
+export function circleAcross(area: Extract<EventArea, { out: number }>): number {
+  return circleX(area.out, drawnSide(area));
 }
 
 /** The area with `handle` dragged to `to` (field yards), snapped and never inside out. One step for Undo. */
@@ -108,7 +106,7 @@ export function sizeArea(start: EditorState, handle: Handle, to: Yards): EditorS
   const a = start.event.area;
   const set = (area: EventArea): EditorState => changed(start, { ...start.event, area });
   if (a.shape === 'circle') {
-    const r = Math.hypot(to.x - sideSign(a) * a.out, to.y - a.at);
+    const r = Math.hypot(to.x - circleAcross(a), to.y - a.at);
     return set({ ...a, radius: clamp(snap(r), LEAST, HW) });
   }
   switch (handle) {
@@ -117,7 +115,7 @@ export function sizeArea(start: EditorState, handle: Handle, to: Yards): EditorS
     case 'far':
       return set({ ...a, to: Math.max(a.from + LEAST, snap(to.y)) });
     case 'width': {
-      const sign = sideSign(a);
+      const sign = drawnSide(a);
       const width = sign === 0 ? 2 * Math.abs(to.x) : sign * (sign * HW - to.x);
       return set({ ...a, width: clamp(snap(width), LEAST, 2 * HW) });
     }
@@ -224,12 +222,14 @@ export function setCall(s: EditorState, call: string): EditorState {
 /** Saved events by id, as saved-events.json holds them. */
 export type SavedEvents = Readonly<Record<string, FieldEvent>>;
 
-const same = (a: FieldEvent, b: FieldEvent): boolean => JSON.stringify(a) === JSON.stringify(b);
+/** Whether two events are the same in every part (Save's question, and the Save button's). */
+export const sameEvent = (a: FieldEvent, b: FieldEvent): boolean =>
+  JSON.stringify(a) === JSON.stringify(b);
 
 /** The saved file with this event kept, or dropped if it's back at its default. */
 export function savedWith(saved: SavedEvents, event: FieldEvent): SavedEvents {
   const def = fieldEventDefaults.find((d) => d.id === event.id);
-  if (def && same(def, event)) return savedWithout(saved, event.id);
+  if (def && sameEvent(def, event)) return savedWithout(saved, event.id);
   return { ...saved, [event.id]: event };
 }
 

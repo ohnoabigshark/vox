@@ -3,7 +3,7 @@
  * steps (the snap, moving on after a drive). Steps are advanced by step()
  * in step.ts. See GAMEPLAY.md, The Run, A Drive and A Down.
  */
-import { areaAt, type DefenseSpec } from '../content/defense';
+import { AREAS, areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
 import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
@@ -27,6 +27,7 @@ import {
   startingRoster,
 } from './team';
 import type {
+  BossName,
   Action,
   ArcadeEvent,
   ArcadeResult,
@@ -45,6 +46,13 @@ export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick
 /** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
 export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
   return drive.area * DRIVE_KINDS.length + drive.index + 1;
+}
+
+/** The number of the drive a Boss stands on: the last drive of its area. */
+export function bossDrive(boss: BossName): number {
+  const area = AREAS.findIndex((a) => a.boss.boss === boss);
+  if (area < 0) throw new Error(`no area has ${boss} for its Boss`);
+  return driveNumber({ area, index: DRIVE_KINDS.length - 1 });
 }
 
 /** The area and index (both from 0) of a drive's number in the run: `driveNumber` backwards. */

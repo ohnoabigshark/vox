@@ -13,7 +13,8 @@ import {
   type FieldEvent,
   type Who,
 } from '../../arcade/content/fieldEvents';
-import { eventPracticeQuery } from '../../arcade/content/eventLink';
+import { DRIVES, eventPracticeQuery } from '../../arcade/content/eventLink';
+import { bossDrive } from '../../arcade/sim/run';
 import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
@@ -25,11 +26,13 @@ import { fieldBase, fieldSvg, yardsAt, type Yards } from '../fieldSvg';
 import { el, required, statusLine } from '../pageKit';
 import {
   areaReadout,
+  circleAcross,
   handlesOf,
   moveArea,
   newEvent,
   rectAcross,
   savedWith,
+  sameEvent,
   savedWithout,
   setAcross,
   setBuildUp,
@@ -98,7 +101,7 @@ function loadTwoTap(): boolean {
 let twoTap = loadTwoTap();
 
 /** The drive Try it plays at: the Boss's own drive for a Boss's event, else the second. */
-const driveFor = (e: FieldEvent): number => (e.boss === 'misterFrog' ? 4 : 2);
+const driveFor = (e: FieldEvent): number => (e.boss ? bossDrive(e.boss) : 2);
 const tryDrives = new Map<string, number>();
 
 function tryIt(event: FieldEvent): void {
@@ -303,9 +306,8 @@ function drawField(f: SVGSVGElement, area: EventArea): void {
     parts.push(`<circle class="f-spot" cx="${spot.x}" cy="${-spot.y}" r="0.55"/>`);
   }
   if (area.shape === 'circle') {
-    const sign = area.across === 'left' ? -1 : area.across === 'middle' ? 0 : 1;
     parts.push(
-      `<circle class="f-area" data-area="1" cx="${sign * area.out}" cy="${-area.at}" r="${area.radius}"/>`,
+      `<circle class="f-area" data-area="1" cx="${circleAcross(area)}" cy="${-area.at}" r="${area.radius}"/>`,
     );
   } else {
     const { x0, x1 } = rectAcross(area);
@@ -423,8 +425,8 @@ function seconds(
 
 function partsOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
-  const now = events().find((x) => x.id === ev.id);
-  const unsaved = !now || JSON.stringify(now) !== JSON.stringify(ev);
+  const current = events().find((x) => x.id === ev.id);
+  const unsaved = !current || !sameEvent(current, ev);
   const status = saveStatus({ server, error: saveError }, { page: 'events.html', what: 'events' });
   return [
     chips(
@@ -532,7 +534,7 @@ function tryRow(ev: FieldEvent): HTMLElement {
   const input = el('input');
   input.type = 'range';
   input.min = '1';
-  input.max = '12';
+  input.max = String(DRIVES);
   input.step = '1';
   input.value = String(drive);
   input.setAttribute('aria-label', 'Try at drive');

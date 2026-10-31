@@ -16,20 +16,19 @@ import { dist, v } from './vec';
  * seeded run places it where it always did).
  */
 export function placeArea(state: RunState, area: EventArea): PlacedArea {
-  const hw = arcadeTuning.field.halfWidth;
   const { los } = state.drive;
-  const side = sideOf(state, area.across);
+  const side = sideOf(area.across, () => {
+    const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
+    return rng.next() < 0.5 ? -1 : 1;
+  });
   if (area.shape === 'circle') {
-    return { shape: 'circle', x: side * area.out, y: los + area.at, r: area.radius };
+    return { shape: 'circle', x: circleX(area.out, side), y: los + area.at, r: area.radius };
   }
-  // A lane or band on a side runs in from that sideline.
-  const half = area.width / 2;
-  const x = side * (hw - half);
-  return { shape: 'rect', x0: x - half, x1: x + half, y0: los + area.from, y1: los + area.to };
+  return { shape: 'rect', ...rectXs(area.width, side), y0: los + area.from, y1: los + area.to };
 }
 
-/** Which side an area sits on this down: −1 left, 0 the middle, 1 right; either from the seed. */
-function sideOf(state: RunState, across: Across): -1 | 0 | 1 {
+/** Which side an area sits on: −1 left, 0 the middle, 1 right; "either" as `either` picks it. */
+export function sideOf(across: Across, either: () => -1 | 1): -1 | 0 | 1 {
   switch (across) {
     case 'left':
       return -1;
@@ -37,13 +36,23 @@ function sideOf(state: RunState, across: Across): -1 | 0 | 1 {
       return 0;
     case 'right':
       return 1;
-    case 'either': {
-      const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
-      return rng.next() < 0.5 ? -1 : 1;
-    }
+    case 'either':
+      return either();
     default:
       return assertNever(across);
   }
+}
+
+/** A lane's or band's edges across: on a side it runs in from that sideline; in the middle, centred. */
+export function rectXs(width: number, side: -1 | 0 | 1): { x0: number; x1: number } {
+  const half = width / 2;
+  const x = side * (arcadeTuning.field.halfWidth - half);
+  return { x0: x - half, x1: x + half };
+}
+
+/** A circle's middle across: `out` yards from the field's middle, toward its side. */
+export function circleX(out: number, side: -1 | 0 | 1): number {
+  return side * out;
 }
 
 /** The event placed for this down, not yet counting (it starts at the hike). */

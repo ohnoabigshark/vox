@@ -12,7 +12,7 @@ import { playProblems, runsRoutes, takesHandoff } from '../../arcade/content/pla
 import type { Assignment, Play } from '../../arcade/content/plays';
 import { ROSTER_ROLES, SLOT_NAMES, lineUpSpot } from '../../arcade/content/team';
 import { now } from '../../clock';
-import { fieldBase, fieldSvg, yardsAt } from '../fieldSvg';
+import { fieldBase, fieldSvg, yardsAt, type Yards } from '../fieldSvg';
 import { el, required, statusLine } from '../pageKit';
 import {
   browserStorage,
@@ -37,7 +37,6 @@ import {
   toggleFlip,
   undo,
   type EditorState,
-  type Yards,
 } from './editor';
 
 const app = required('plays.html', '#app');
