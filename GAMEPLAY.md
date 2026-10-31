@@ -123,16 +123,23 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 ### Catching
 
 - **A catch is reach.** The bullet is caught by the first of your players whose reach it passes through, and **Hands is reach**: better Hands catch a bullet that would have gone by.
-- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from drive 5 (the Candy Queendom's first), a contested ball is SNAG IT! instead**, whichever way that rule would go (below).
+- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from drive 5 (the Candy Queendom's first), a contested ball is a catch test instead**, whichever way that rule would go: **SNAG IT! or the tip drill**, picked at random, half and half (below).
 
 ### SNAG IT! *(fork: the contested-catch test, `docs/SNAG.md`)*
 
-**From drive 5, a contested ball freezes the play** with Jack hanging a yard short of the receiver's hands, and opens with **the same two-second countdown as Break it!** ("GET READY TO SNAG IT! 2… 1…"). As it ends, **dots pop up in a box** titled SNAG IT!, where the Break it! panel sits, one every half second, **each with a ring closing onto it** in 0.8 s. **Tap each dot as its ring closes** (within 0.15 s): a tap too early, or none, misses it. **Every dot hit is a GREAT** (caught, and the defenders reaching for it go flying, so the receiver runs free), **one miss an OK** (caught and tackled on the spot), **more a BAD** (batted down).
+**From drive 5, a contested ball that picks SNAG IT! freezes the play** with Jack hanging a yard short of the receiver's hands, and opens with **the same two-second countdown as Break it!** ("GET READY TO SNAG IT! 2… 1…"). As it ends, **dots pop up in a box** titled SNAG IT!, where the Break it! panel sits, one every half second, **each with a ring closing onto it** in 0.8 s. **Tap each dot as its ring closes** (within 0.15 s): a tap too early, or none, misses it. **Every dot hit is a GREAT** (caught, and the defenders reaching for it go flying, so the receiver runs free), **one miss an OK** (caught and tackled on the spot), **more a BAD** (batted down).
 
 - **How many dots:** 2 on drives 5–8, one more each zone after (5 from drive 17), one more for each extra defender reaching for the ball, one fewer when the receiver's Hands beat the best defender's by 20 (one more the other way); always 2 to 5.
 - **Faster later:** past drive 10 the rings close 0.04 s sooner each drive, to a floor of 0.5 s.
 - **It isn't a Break it!:** it doesn't count toward the two a down, and Second Wind doesn't save it.
-- **`?snag=1`** turns it on from the first drive, for trying it.
+- **`?snag=1`** makes every contested ball SNAG IT!, from the first drive, for trying it.
+
+### The tip drill *(fork: the other catch test, `docs/TIP.md`)*
+
+**The other half of contested balls freeze the same way**, with the same countdown ("GET READY FOR THE TIP DRILL! 2… 1…"). In SNAG IT!'s box, **the ball pops straight up off a bar of the receiver's hands** and falls back, its shadow growing on them. **Tap anywhere in the box as it lands** (or press Space): within 0.07 s is **clean**, within 0.14 s a **bobble** (the ball wobbles), and anything else, early or late or no tap, a **drop**. The next pop leaves the hands at your tap, in the air 0.8 times as long as the last (1.0 s, then 0.8, 0.64…), so the rhythm quickens as the ball settles. **Every pop clean is a GREAT, a bobble an OK, a drop a BAD**, ending it at once; each does what SNAG IT!'s does.
+
+- **How many pops:** one more than SNAG IT! would have dots in the same spot (3 at drive 5), always 2 to 5; past drive 10 every pop is shorter by the same share as SNAG IT!'s rings.
+- **It isn't a Break it!** either, and **`?tip=1`** makes every contested ball a tip drill from the first drive; with `?snag=1` too, each picks at random.
 - **It goes past the scrum:** your Blockers never touch the ball (linemen aren't eligible), and a Rhino Beetle locked up with one of your players can't get a hand to it.
 - **Throwing lanes matter:** a bullet passes every defender between the QB and the receiver, and any of them that can reach it bats it down. **A Scarecrow's wide ring blocks a whole lane.** So the timing is: when the line is over an open receiver *and* the lane to it is clear.
 
@@ -148,6 +155,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Pass play** | **THROW** | Fire a bullet along the sweeping line. |
 | **Grabbed** | **Tap** anywhere (a juke: its ◀ or ▶ button) | Break it! |
 | **A contested ball** *(fork, from drive 5)* | **Tap each dot** as its ring closes | SNAG IT! |
+| **A contested ball** *(fork, from drive 5)* | **Tap** anywhere in the box as the ball lands on the hands | The tip drill |
 | **The King's crows land** | **SHOO CROWS!** | Drive them off. |
 | **Between drives** | **Tap a card** | Take one of the two new players. |
 | **Between drives** | **Tap a New Player! card** | Take that player (it goes where it helps most). |

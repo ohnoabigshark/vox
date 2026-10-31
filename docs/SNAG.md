@@ -15,6 +15,18 @@ map's c1 to c10), where they would clash with the first map's.
 Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 `tuning.ts` holds each one times 0.8.
 
+**Since the tip drill** (`docs/TIP.md`, 2026-10-31), SNAG IT! is one of two
+**catch tests**: from drive 5 a contested ball picks SNAG IT! or the tip
+drill at random, half and half, and `?snag=1` makes every contested ball
+SNAG IT! (with `?tip=1` too, either). What the two share moved to
+`catchTests` in `tuning.ts` and `sim/catchTests.ts`, with SNAG IT! playing
+exactly as before: when they start (`fromDrive`), the dot count
+(`minCount`, `maxCount`, `moreEvery`, `handsGap`), the pace past drive 10
+(now a share of the usual: 5% a drive, down to 62.5%, the same 0.04 s a
+drive and 0.5 s floor for the ring) and the box's linger. Where the
+sections below say "every contested ball", read "every contested ball that
+picks SNAG IT!".
+
 ## When (c2, c3, c6)
 
 - **A contested ball** is one that one of your players and a defender could

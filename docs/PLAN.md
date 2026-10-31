@@ -92,7 +92,8 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   - Rounds 2 and 3, decided the same day (g1–g6, u1–u3, w1): clean, bobble
     or drop, a drop ending it; one more pop than SNAG IT! has dots; the
     name stays tip drill (_user's note on g4: "Tip drill"_), tried with
-    `?tip=1`. The design is `docs/TIP.md`.
+    `?tip=1`. The design is `docs/TIP.md`. Built on the `tip-drill`
+    branch.
 - **The test bench** (dev): a page to play each quick tap test on its own,
   with sliders for its `tuning.ts` values and a Save that puts the
   settings that feel right into the game (a log of every change and rep

@@ -19,13 +19,15 @@ something, the old text is marked _replaced_.
 
 ## What's on it (b1–b3)
 
-- **The five tap tests,** one tab each: Break it!'s bar, mash and juke,
-  SNAG IT!, and SHOO CROWS!. The throw's aim line and two-tap marker are
+- **The tap tests,** one tab each: Break it!'s bar, mash and juke,
+  SNAG IT!, the tip drill (added with it, docs/TIP.md g6), and SHOO
+  CROWS!. The throw's aim line and two-tap marker are
   left out: they're aiming on the field.
 - **The real tests on a plain stage,** drawn from the same views as the
   game (`ui/testViews.ts`). Each rep is a run from `createRun`
   with the test started directly (`startBreakIt` with its kind forced,
-  `startSnag` with a contest made up from the situation, or the crows landed
+  `startSnag` or `startTip` with a contest made up from the situation
+  (`contestOf`), or the crows landed
   on the QB), stepped at 60 Hz with the Coach's taps, so hits, misses and
   grades come from the game's own code. The screen is the game's own
   `ArcadeControls`, CSS and sounds, over a plain stage: no field, no 3D.
@@ -37,8 +39,8 @@ something, the old text is marked _replaced_.
 
 - **One slider per value in `tuning.ts`** that the test uses, named in game
   words, with the `tuning.ts` name and number in small print beneath:
-  - all three Break it!s: the countdown (`countdown.ready`, which SNAG IT!
-    shares too, docs/SNAG.md cd-c8), each extra tackler
+  - all three Break it!s: the countdown (`countdown.ready`, which the catch
+    tests share too, docs/SNAG.md cd-c8), each extra tackler
     (`breakit.perExtraTackler`);
   - the bar: the meter's crossing (`meterSeconds`), the earliest sweet spot
     (`earliest`), the sweet spot (`byArea[n].sweet`), "close" (`near`);
@@ -53,9 +55,16 @@ something, the old text is marked _replaced_.
     countdown, the ring's close, the hit window, the next dot's share, the
     dot size, the ring's starting size, dots at most apart) and the rest,
     which shape how SNAG IT! changes over a run (and the box's linger after
-    the grade), behind **More**. _Replaced:_ the call, the fourth shown,
+    the grade, now in `catchTests`, shared with the tip drill), behind
+    **More**. _Replaced:_ the call, the fourth shown,
     which the countdown replaced (cd-c7). The Coach likes
     SNAG IT! as it plays (r-p1); changes to it go on their own branch (r-p3);
+  - the tip drill (docs/TIP.md, g6): the countdown, the first pop's time in
+    the air (`tip.firstPop`), each pop's share of the last (`shrink`), the
+    clean and bobble windows (`clean`, `bobble`); behind More, when the
+    catch tests start and the box's linger (`catchTests.fromDrive`,
+    `linger`, the same sliders as SNAG IT!'s). The count and the pace are
+    tuned on SNAG IT!'s tab, for both;
   - SHOO CROWS!: the time to shoo (`crows.window`).
 - **By-area values** (the sweet spot, fill per tap, juke window) edit the
   entry for the area of the picked drive; past the Farm, the Farm's (hard
@@ -69,8 +78,8 @@ something, the old text is marked _replaced_.
   numbers; shares never pass 1.
 - **The situation (k2):** the drive (1 to 20), the tacklers (1 to 3, Break
   it!), the crowd (1 to 3 defenders reaching) and the Hands gap (−40 to
-  +40, SNAG IT!). A line sums them up, such as "drive 7 · 3 dots · ring
-  0.80 s".
+  +40, SNAG IT! and the tip drill). A line sums them up, such as "drive 7
+  · 3 dots · ring 0.80 s" or "drive 5 · 3 pops · first 1.00 s in the air".
 - **Toggles (k3):** Again (on: the next rep a second after the grade, if
   the Coach tapped in that one, so a bench left alone stops rather than
   logging reps nobody played; found driving the page, 2026-10-31, and
@@ -141,8 +150,10 @@ on and written in the rep's log line:
 - **mash:** taps, taps a second, and how full it got;
 - **juke:** the reaction to the arrow, out of the window, and a wrong side;
 - **SNAG IT!:** each dot, early or late of its ring closing, filling in
-  dot by dot (a dot still to play shows as …); the others show once the
-  grade is in;
+  dot by dot (a dot still to play shows as …);
+- **the tip drill:** each pop, early or late of its landing, and how it
+  went ("+0.02 clean · none drop"), filling in pop by pop; the others show
+  once the grade is in;
 - **SHOO CROWS!:** the reaction to the landing, out of the window.
 
 ## The log (l1, r-l3)

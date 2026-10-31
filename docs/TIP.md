@@ -93,6 +93,27 @@ It plays the tip drill: clean three taps in four, a bobble one in five, a
 drop one in twenty. It has no tests (its script runs as it's imported), so
 it's checked by a balance run, recorded here.
 
+**As run, 2026-10-31** (`main` before the branch, against the branch, the
+same seeds; the runs are slow here, so they're small):
+
+| | Normal, 12 runs, before | after | Hard, 6 runs, before | after |
+| --- | --- | --- | --- | --- |
+| Drives won (normal: of 12; hard: median) | 11.6 | 11.6 | 11 | 9 |
+| Contested balls | 4 | 4 | 9 | 7 |
+| SNAG IT! (GREAT / OK / BAD) | 4: 1 / 3 / 0 | 1: 1 / 0 / 0 | 9: 6 / 3 / 0 | 2: 1 / 1 / 0 |
+| Tip drill (GREAT / OK / BAD) | | 3: 3 / 0 / 0 | | 5: 2 / 2 / 1 |
+
+- **What it shows:** the pick works in a real run (both tests come up), the
+  bot plays the drill to its grade, and nothing in the run breaks. The tip
+  drill's 2 / 2 / 1 is close to what its numbers predicted (about 42%
+  GREAT, 14% BAD).
+- **What it can't show:** whether the tip drill is too hard. Seven tip
+  drills is far too few, and in these runs Break it!'s BAD moved from 16%
+  to 26% (normal) and 18% to 27% (hard) on code the branch didn't change:
+  the throws the runs pick diverge, so 12 runs swing that much by chance.
+  Judge it on the bench and in play; a larger run needs more time than a
+  session here gives it.
+
 ## Tests, written first (u2)
 
 1. **The pick:** from drive 5 a contested ball starts SNAG IT! or the tip
