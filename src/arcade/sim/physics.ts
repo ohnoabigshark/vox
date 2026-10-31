@@ -21,6 +21,15 @@ export function allBodies(state: RunState): Body[] {
   return [...state.field.players, ...state.field.defenders];
 }
 
+/**
+ * Everyone but the carrier stays on the field: the carrier can run out of
+ * bounds, nobody else can walk, slide or be shoved there.
+ */
+function keepInBounds(b: Body, carrierId: number | null): void {
+  if (b.id === carrierId) return;
+  b.pos = v(Math.max(-field.halfWidth, Math.min(field.halfWidth, b.pos.x)), b.pos.y);
+}
+
 /** Everyone moves one step toward their target. */
 export function moveBodies(state: RunState): void {
   const carrierId = state.field.ball.at === 'carried' ? state.field.ball.by : null;
@@ -36,6 +45,7 @@ export function moveBodies(state: RunState): void {
       const slow = Math.max(0, 1 - bodyTuning.friction * DT);
       b.vel = scale(b.vel, slow);
       b.pos = add(b.pos, scale(b.vel, DT));
+      keepInBounds(b, carrierId);
       continue;
     }
     if (b.side === 'defense' && b.planted) {
@@ -63,10 +73,7 @@ export function moveBodies(state: RunState): void {
     }
     b.vel = add(b.vel, clampLen(sub(desired, b.vel), bodyTuning.accel * DT));
     b.pos = add(b.pos, scale(b.vel, DT));
-    // Everyone but the carrier stays on the field (the carrier can run out of bounds).
-    if (b.id !== carrierId) {
-      b.pos = v(Math.max(-field.halfWidth, Math.min(field.halfWidth, b.pos.x)), b.pos.y);
-    }
+    keepInBounds(b, carrierId);
   }
   if (carrier && handedOff(state)) driveBlocks(state, carrier.id);
   for (const d of hanging) {
@@ -117,6 +124,9 @@ function driveBlocks(state: RunState, carrierId: number): void {
     const shove = scale(norm(sub(d.pos, by.pos)), best * DT);
     d.pos = add(d.pos, shove);
     by.pos = add(by.pos, shove);
+    // After the whistle nothing else keeps them on the field (step.ts, downOver).
+    keepInBounds(d, carrierId);
+    keepInBounds(by, carrierId);
   }
 }
 
@@ -166,10 +176,7 @@ export function separate(state: RunState): void {
   }
   // A shove never pushes anyone but the carrier out of bounds.
   const carrier = state.field.ball.at === 'carried' ? state.field.ball.by : null;
-  for (const b of bodies) {
-    if (b.id === carrier) continue;
-    b.pos = v(Math.max(-field.halfWidth, Math.min(field.halfWidth, b.pos.x)), b.pos.y);
-  }
+  for (const b of bodies) keepInBounds(b, carrier);
 }
 
 /** Whether two bodies are touching (for tackles, sacks and pancakes). */

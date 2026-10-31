@@ -372,11 +372,11 @@ export type Phase =
 export interface RunState {
   readonly seed: number;
   /**
-   * Hard mode (?hard=1): the zones go round and round until you lose, each with two
+   * Hard mode (a link's default: `readModes`): the zones go round and round until you lose, each with two
    * more defenders; recruits grow by 30 a zone (Hands more slowly); you set your lineup.
    */
   readonly hard: boolean;
-  /** Two-tap throwing (?aim=2): the first THROW stops the line, the second lobs it as far as the marker. */
+  /** Two-tap throwing (a link's default: `readModes`): the first THROW stops the line, the second lobs it as far as the marker. */
   readonly twoTapAim: boolean;
   /** ?snag=1: SNAG IT! from the first drive, not only from drive 5 (docs/SNAG.md). */
   readonly snagAlways: boolean;

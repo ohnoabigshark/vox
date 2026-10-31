@@ -12,11 +12,15 @@ esrauch's roadmap is `MILESTONES.md`.
   (`docs/stacks/vox.md` in `/root/projects`).
 - **`upstream` is esrauch's repo, with pushing disabled.** Pull his changes
   from it; our own remote comes with the fork.
-- **The user plays with `?hard=1&aim=2`** (hard mode, two-tap throwing). Try
-  changes in that mode as well as the default, and keep those flags on any
-  link that opens the game. Practice links (the play editor's Try it) are the
-  exception: they carry only `aim=2`, since hard mode changes nothing on the
-  Forest's first drive (decision map t3).
+- **The game defaults to hard mode with two-tap throwing,** the way the user
+  plays (`readModes` in `src/arcade/content/modeFlags.ts`); `?hard=0` and
+  `?aim=1` turn them off. Try changes in the default and in esrauch's
+  original game, `?hard=0&aim=1`. Old links with `?hard=1&aim=2` still play
+  the default. Practice links (the play editor's Try it) carry `aim=2` or
+  `aim=1`, whichever Try with chose, and ignore hard mode (decision map t3).
+- **Releases go to `https://ohnoabigshark.github.io/vox/`** only when the user
+  asks: the `Deploy` workflow runs by hand on `main` and nothing else
+  (`docs/PLAN.md`, release mode). Merging to `main` publishes nothing.
 - **The built game is served at `https://…ts.net:8443/vox/`,** rebuilt by git
   hooks after every commit, merge and branch checkout in this checkout, and
   swapped in only if the build passes (`docs/stacks/vox.md` in

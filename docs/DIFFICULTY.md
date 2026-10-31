@@ -5,7 +5,7 @@ defenders, each tougher. Planned by grilling on the decision map
 (https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL), round 9, 2026-10-30;
 the item numbers below are the map's.
 
-## What changes (hard mode, `?hard=1`)
+## What changes (hard mode: the default; `?hard=0` turns it off)
 
 - **Each drive's own line-up stays** (d1): the hand-made defenses of 4 to 9
   defenders are esrauch's design. Only hard mode's extra defenders change.

@@ -100,11 +100,13 @@ export interface Practice {
 
 /**
  * The query of a practice link (Try it, round 4 of the map): `try` the play,
- * `sketch` its key in the editor, and `aim=2` for two-tap throwing.
+ * `sketch` its key in the editor, and `aim=2` for two-tap throwing or
+ * `aim=1` for the sweep. Both are written, since two-tap is the default
+ * (`readModes`).
  */
 export function practiceQuery(play: Play, sketch: string, twoTap: boolean): string {
   const params = new URLSearchParams({ try: playToLink(play), sketch });
-  if (twoTap) params.set('aim', '2');
+  params.set('aim', twoTap ? '2' : '1');
   return params.toString();
 }
 

@@ -66,3 +66,17 @@ fell inside the stage, at phone and laptop sizes.
   (`Bench.snagView`); the game, where each SNAG IT! starts at its own
   moment, was never affected. A test fails with the old id; a headless run
   of a 3-dot rep then a 5-dot one shows all five.
+
+## B5. A defender could end up just past the sideline after the whistle (fixed)
+
+Found on the `release-mode` branch, 2026-10-31, when our first wide play,
+Clear Out (a handoff run along the sideline), joined the play pool: the
+long-run invariants test saw a defender 0.02 yards out of bounds during the
+pause after a down. Two moves skipped the clamp that keeps everyone but the
+carrier on the field (`physics.ts`): a knocked-down body sliding, and a
+block on a handoff driving its man back. During play the later
+`separate()` clamped them anyway, but after the whistle only `moveBodies`
+runs. No play before Clear Out went near enough the sideline to show it.
+
+- 2026-10-31, fixed: one `keepInBounds` in `physics.ts`, now used by every
+  move, the slide and the block drive included. Two tests fail without it.

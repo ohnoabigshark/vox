@@ -121,7 +121,8 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   run options, rather than typing them into the URL. _User, 2026-10-31: "a
   dev setup mode where we can enable/disable different tap events, toggle
   throw type etc before starting a run."_ Today those options are URL
-  flags read once in `src/main.ts` (`?aim=2` two-tap throwing, `?hard=1`,
+  flags read once in `src/main.ts` (two-tap throwing and hard mode, on unless
+  `?aim=1` or `?hard=0`,
   `?snag=1` SNAG IT! from the first drive, `?area=N`, `?seed=N`,
   `?monsters`, `?win`), and Break it! always deals one of its three
   (`bar`, `mash`, `juke`, `BREAK_KINDS` in `sim/breakit.ts`); nothing turns
@@ -135,7 +136,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   option touching about ten places (`main.ts`, `game.ts`'s option, field
   and two `createRun` calls, `run.ts`, `types.ts`): the setup mode is the
   time to gather them into one run-options object, so a new switch is one
-  edit.
+  edit. Hard mode and two-tap throwing already travel as a pair (`Modes`
+  from `readModes`, the game's options, `createRun`'s, `RunState`), and the
+  game and `createRun` default both to off while a link defaults both to
+  on: one type with one set of defaults (release mode's review, v6).
 - **More events like Frog Rain, starting with an event editor** (dev, then
   difficulty). _User, 2026-10-31: "more events like frog rain. along with
   that should be an event editor, like the tap event editor, that lets us
@@ -175,6 +179,38 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   (a countdown in the HUD, the cards flashing).
 - **More plays**, drawn in the editor. There are five today: Slants, Deep
   Shot, Curl & Flat, Dive and Sweep. _User, 2026-10-28._
+- **A playable release for esrauch** (branch `release-mode`): our fork on
+  GitHub Pages, published the way his is, so he can try what we've made, and
+  a release you can ask for by name. _User, 2026-10-31._ Planned by grilling
+  on the map https://claude.ai/artifact/25UZwavNd7byH2udNgSQMH (research:
+  https://claude.ai/artifact/8K9sR87AB8C4BK71xeHEVU), all three rounds
+  decided 2026-10-31:
+  - **Where:** GitHub Pages on our fork, `ohnoabigshark.github.io/vox/`
+    (Source: GitHub Actions), with the link on the repo's page (p1). The
+    built game goes public; f1 and h1 in the stack record are amended (p5).
+  - **When:** only when asked, from GitHub's `main`: `deploy.yml` keeps the
+    "Run workflow" trigger and loses `push` (p2, p3). Each deploy is tagged
+    `release-N` (p4).
+  - **What:** the full `npm run build`, dev pages included at `/vox/dev/`,
+    open to anyone with the link, "fine for now" (b8, replacing b1 and b7).
+    Gated by `npm run check` (b6). It plays `tuning.ts`'s defaults: the
+    bench's saves are never committed, so no guard (b9).
+  - **The game's defaults:** hard mode and two-tap throwing in every build;
+    `?hard=0` and `?aim=1` switch them off, and anything else leaves the
+    default (b2). Read in one tested function. The other link options keep
+    working (b3); practice's ‹ Sketch is left alone (b4).
+  - **Our plays:** the six in-game sketches (Crazy, Empty Set, Clear Out,
+    Clear Out Pass, Juke, Flipper), pasted from Copy code, go into
+    `ourPlays.ts` (s1–s3). Then the user switches their sketches out of the
+    game, or the tailnet game deals each twice (s4). Accepted scope on this
+    branch (s5).
+  - **Release mode:** a `vox-release` skill in the config repo checks that
+    GitHub's `main` matches local `main`, lists what's new since the last tag,
+    runs the workflow, confirms the live site changed, tags the release and
+    gives the link. It stops only if local `main` is ahead or nothing is new
+    (r1, r2). Written after the first deploy by hand (o2).
+  - **Later:** a drafted note for esrauch with each release (r3); taking the
+    dev tools out of the release again (`build:release` stays for that).
 
 ## Later (not yet in order)
 

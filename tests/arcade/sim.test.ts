@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { PLAYS } from '../../src/arcade/content/plays';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { aimContact, pocketTime, sweepAngle, sweepSpeed } from '../../src/arcade/sim/ball';
 import { physicsOf } from '../../src/arcade/sim/bodies';
+import { moveBodies } from '../../src/arcade/sim/physics';
 import {
   createRun,
   dispatch,
@@ -61,8 +63,8 @@ describe('a run', () => {
   it('deals different hands, with handoff cards among them', () => {
     const seen = new Set<number>();
     for (let seed = 1; seed <= 40; seed++) createRun(seed).hand.forEach((i) => seen.add(i));
-    expect(seen.size).toBe(PLAYS.length);
-    expect(PLAYS.some((p) => p.handoff !== undefined)).toBe(true);
+    expect(seen.size).toBe(PLAY_POOL.length);
+    expect(PLAY_POOL.some((p) => p.handoff !== undefined)).toBe(true);
   });
 
   it('nobody but the Bats moves before the call', () => {
@@ -87,8 +89,31 @@ describe('a run', () => {
     expect(dispatch(s, { type: 'call', hand: 5 }).state.called).toBeNull();
   });
 
+  it('Flip draws every play in the pool as its mirror picture, routes and line-up', () => {
+    // Ours too, whose own line-ups mirror with them (review v11, 2026-10-31).
+    const across = (st: RunState) =>
+      st.field.players.filter((q) => q.slot >= 0).map((q) => q.pos.x);
+    const ends = (st: RunState) =>
+      st.field.players.flatMap((q) => (q.job.kind === 'route' ? [q.job.to.at(-1)!.x] : []));
+    const sorted = (xs: number[]) => [...xs].sort((a, b) => a - b);
+    for (const p of PLAY_POOL) {
+      const called = dispatch(createRun(4, undefined, 0, { playbook: [p] }), {
+        type: 'call',
+        hand: 0,
+      }).state;
+      const flipped = dispatch(called, { type: 'flip' }).state;
+      const mirrored = (xs: number[]) => sorted(xs.map((x) => -x));
+      expect(sorted(ends(flipped)), p.id).toEqual(mirrored(ends(called)));
+      sorted(across(flipped)).forEach((x, i) =>
+        expect(x, p.id).toBeCloseTo(mirrored(across(called))[i]!),
+      );
+    }
+  });
+
   it('Flip mirrors the called play where it stands', () => {
-    const s = createRun(4);
+    // esrauch's plays, which all use the standard line-up: a play with its own
+    // line-up mirrors that too (playbook.test.ts, flipped line-ups).
+    const s = createRun(4, undefined, 0, { playbook: PLAYS });
     const called = dispatch(s, { type: 'call', hand: 1 }).state;
     const flipped = dispatch(called, { type: 'flip' }).state;
     expect(flipped.play.flipped).toBe(true);
@@ -182,6 +207,37 @@ describe('stats are physics', () => {
     );
     const r = run(s, 1);
     expect(ofType(r.events, 'pancake')[0]).toEqual({ type: 'pancake', blocker: 2, defender: 100 });
+  });
+});
+
+describe('the sideline', () => {
+  // BUGS.md B5: a knocked-down body slid on past the sideline, since it
+  // skipped the clamp the others get (found by Clear Out, 2026-10-31).
+  it('stops a knocked-down defender sliding out of bounds at the sideline', () => {
+    const edge = arcadeTuning.field.halfWidth;
+    const s = playState([], [{ kind: 'cover', pos: v(edge - 0.01, 5) }]);
+    const d = s.field.defenders[0]!;
+    d.down = 0.5;
+    d.vel = v(6, 0);
+    moveBodies(s);
+    expect(d.pos.x).toBe(edge);
+  });
+
+  it('stops a block on a handoff driving its man out of bounds, after the whistle too', () => {
+    const edge = arcadeTuning.field.halfWidth;
+    const s = carry(
+      playState(
+        [
+          { role: 'runner', pos: v(0, -2) },
+          { role: 'blocker', pos: v(edge - 0.6, 5), stats: { heft: 90 }, job: { kind: 'block' } },
+        ],
+        [{ kind: 'cover', pos: v(edge, 5), stats: { heft: 10 } }],
+      ),
+      2,
+    );
+    s.play = { index: s.playbook.findIndex((p) => p.handoff !== undefined), flipped: false };
+    moveBodies(s);
+    expect(s.field.defenders[0]!.pos.x).toBe(edge);
   });
 });
 
