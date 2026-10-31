@@ -102,6 +102,22 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   decided: a line under the first "SNAG IT!" of a run ("Tap as the ring
   hits the dot"); an outline on the dot that the ring closes onto; a flash
   on the dot at the moment to tap.
+- **A dev setup mode** (dev): a screen before a run starts where the Coach
+  turns each tap test on or off, picks the throw type, and sets the other
+  run options, rather than typing them into the URL. _User, 2026-10-31: "a
+  dev setup mode where we can enable/disable different tap events, toggle
+  throw type etc before starting a run."_ Today those options are URL
+  flags read once in `src/main.ts` (`?aim=2` two-tap throwing, `?hard=1`,
+  `?snag=1` SNAG IT! from the first drive, `?area=N`, `?seed=N`,
+  `?monsters`, `?win`), and Break it! always deals one of its three
+  (`bar`, `mash`, `juke`, `BREAK_KINDS` in `sim/breakit.ts`); nothing turns
+  one off. It is the dev panel `docs/rules.md` asks for ("Build a dev panel
+  from the start"), which `?snag=1` stood in for (`docs/SNAG.md`). Open for
+  its grilling: where it lives (a screen in the game behind a dev flag, or
+  a dev page that builds the link); which switches (each Break it! kind and
+  SNAG IT! on, off or always; throw type; hard mode; the starting area; the
+  seed; pickups and Frog Rain); whether the phone remembers the last setup;
+  and whether practice gets it too.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in
