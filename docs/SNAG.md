@@ -146,7 +146,8 @@ something playable"), so they are recorded here instead.
    seconds left (2, then 1), and shows no dot; as it ends, the title is
    SNAG IT! and dot 1 is up.
 3. A tap during the countdown hits nothing and costs nothing.
-4. One setting, `tapTests.ready`, sets both: moved, it moves the mash's
+4. One setting, `countdown.ready` (named `tapTests.ready` until review
+   c3), sets both: moved, it moves the mash's
    countdown and SNAG IT!'s first dot alike. The bench shows its slider on
    the bar, mash, juke and SNAG IT! tabs, first in each (cd-c4), and saving
    it on one tab saves it for all four. `breakit.ready` and `snag.call`
@@ -161,6 +162,6 @@ The look is checked in a phone-sized screenshot.
 - **Break it!'s chain countdown** (half a second for a grab hard on another,
   `breakit.chainReady`) stays Break it!'s own: SNAG IT! can't chain.
 - **Order of work** (cd-c5): on `snag-countdown`, from `test-bench`, one
-  commit each: this plan; the countdown moved into `tapTests` (no change in
+  commit each: this plan; the countdown moved into `tapTests` (since renamed `countdown`, review c3; no change in
   play); SNAG IT!'s countdown in the sim, the view and the box, with the
   call removed and the bench's slider; the docs reconciled.

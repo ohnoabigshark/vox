@@ -92,7 +92,7 @@ describe('the knobs', () => {
 
   it('2: each tab has its own sliders; the three Break it!s share the countdown and the extra tackler', () => {
     const keys = (t: (typeof BENCH_TESTS)[number]): string[] => knobsFor(t).map((k) => k.key);
-    const shared = ['tapTests.ready', 'breakit.perExtraTackler'];
+    const shared = ['countdown.ready', 'breakit.perExtraTackler'];
     expect(keys('bar')).toEqual([
       ...shared,
       'breakit.meterSeconds',
@@ -113,9 +113,9 @@ describe('the knobs', () => {
       'breakit.jukeLinger',
     ]);
     // SNAG IT!: the shared countdown first (cd-c4), then every value in its block.
-    expect(keys('snag')[0]).toBe('tapTests.ready');
+    expect(keys('snag')[0]).toBe('countdown.ready');
     expect(keys('snag').sort()).toEqual(
-      ['tapTests.ready', ...Object.keys(arcadeTuning.snag).map((k) => `snag.${k}`)].sort(),
+      ['countdown.ready', ...Object.keys(arcadeTuning.snag).map((k) => `snag.${k}`)].sort(),
     );
     expect(keys('shoo')).toEqual(['crows.window']);
   });

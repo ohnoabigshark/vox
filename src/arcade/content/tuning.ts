@@ -110,8 +110,8 @@ export const tuningDefaults = {
      */
     scans: 4.5,
   },
-  /** The quick tap tests that freeze the play: Break it!'s three and SNAG IT! (docs/SNAG.md, cd-c8). */
-  tapTests: {
+  /** The countdown before a tap test that freezes the play: Break it!'s three and SNAG IT! (docs/SNAG.md, cd-c8). */
+  countdown: {
     /**
      * Each opens with a countdown ("GET READY TO MASH! 2…") this long in
      * sim time (2 seconds on screen, at the game's 0.8 time scale); taps
@@ -120,7 +120,7 @@ export const tuningDefaults = {
     ready: 1.6,
   },
   breakit: {
-    /** Break it!'s countdown is `tapTests.ready`, but only this long when it starts within `chainWindow` of the last one ending (no dead time in a pile-up). */
+    /** Break it!'s countdown is `countdown.ready`, but only this long when it starts within `chainWindow` of the last one ending (no dead time in a pile-up). */
     chainReady: 0.5,
     chainWindow: 2,
     /** The marker crosses the meter once, in this long… */
@@ -185,7 +185,7 @@ export const tuningDefaults = {
    */
   snag: {
     fromDrive: 5,
-    // It opens with the tap tests' countdown (tapTests.ready); the first dot comes as it ends.
+    // It opens with the tap tests' countdown (countdown.ready); the first dot comes as it ends.
     /** A ring closes onto its dot this long after the dot shows (0.8 s on screen)… */
     close: 0.64,
     /** …and the next dot shows this share of that later (0.5 s on screen). */

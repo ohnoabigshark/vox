@@ -37,7 +37,7 @@ something, the old text is marked _replaced_.
 
 - **One slider per value in `tuning.ts`** that the test uses, named in game
   words, with the `tuning.ts` name and number in small print beneath:
-  - all three Break it!s: the countdown (`tapTests.ready`, which SNAG IT!
+  - all three Break it!s: the countdown (`countdown.ready`, which SNAG IT!
     shares too, docs/SNAG.md cd-c8), each extra tackler
     (`breakit.perExtraTackler`);
   - the bar: the meter's crossing (`meterSeconds`), the earliest sweet spot

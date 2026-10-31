@@ -87,6 +87,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   `tuning.ts` values (`docs/BENCH.md`). One go is a **rep**, as in
   practice. Its **situation** is the drive, tacklers, crowd and Hands gap a
   rep is played in.
+- **Countdown:** the get-ready before a tap test that freezes the play
+  (Break it!'s three and SNAG IT!; not SHOO CROWS!, a reaction to the crows
+  landing): "GET READY TO MASH! 2… 1…". One setting, `countdown.ready`.
 - **Default:** a value as `tuning.ts` has it, always kept behind whatever
   is saved. The bench said "shipped" before its rework.
 - **Saved settings:** the values the Coach saved on the test bench, off

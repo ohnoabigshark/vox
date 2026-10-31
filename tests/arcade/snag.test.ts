@@ -222,7 +222,7 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
     if (!t) throw new Error('no snag');
     const { close, gap } = snagPace(9);
     t.dots.forEach((d, i) => {
-      expect(d.appearsAt).toBeCloseTo(t.startedAt + arcadeTuning.tapTests.ready + i * gap);
+      expect(d.appearsAt).toBeCloseTo(t.startedAt + arcadeTuning.countdown.ready + i * gap);
       expect(d.closesAt).toBeCloseTo(d.appearsAt + close);
       expect(d.result).toBeNull();
       for (const c of [d.x, d.y]) {
@@ -326,10 +326,10 @@ describe('SNAG IT!: the countdown (cd-c10)', () => {
     const start = snagView(s);
     expect(start?.ready).toBeCloseTo(2, 6);
     expect(start?.dots.every((d) => d.ring === null)).toBe(true);
-    const half = run(s, arcadeTuning.tapTests.ready / 2).state;
+    const half = run(s, arcadeTuning.countdown.ready / 2).state;
     expect(snagView(half)?.ready).toBeCloseTo(1, 1);
     expect(snagView(half)?.dots.every((d) => d.ring === null)).toBe(true);
-    const after = run(s, arcadeTuning.tapTests.ready + DT).state;
+    const after = run(s, arcadeTuning.countdown.ready + DT).state;
     expect(snagView(after)?.ready).toBeNull();
     expect(snagView(after)?.dots[0]?.ring).not.toBeNull();
   });
@@ -343,8 +343,8 @@ describe('SNAG IT!: the countdown (cd-c10)', () => {
     expect(ofType(played.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'great' }]);
   });
 
-  it("4: one setting, tapTests.ready, moves SNAG IT!'s first dot", () => {
-    layerSaved(arcadeTuning, tuningDefaults, { 'tapTests.ready': 2.4 });
+  it("4: one setting, countdown.ready, moves SNAG IT!'s first dot", () => {
+    layerSaved(arcadeTuning, tuningDefaults, { 'countdown.ready': 2.4 });
     const t = bulletContest(5).snag;
     if (!t) throw new Error('no snag');
     expect(t.dots[0]!.appearsAt - t.startedAt).toBeCloseTo(2.4, 9);

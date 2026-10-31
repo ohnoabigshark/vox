@@ -50,7 +50,7 @@ const snagMore = (key: string, label: string, unit: KnobUnit): Knob => ({
 
 export const KNOBS: readonly Knob[] = [
   // The tap tests' countdown, shared by Break it!'s three and SNAG IT! (docs/SNAG.md, cd-c8).
-  k('tapTests.ready', 'Get ready countdown', 'seconds', [...BREAKS, 'snag']),
+  k('countdown.ready', 'Get ready countdown', 'seconds', [...BREAKS, 'snag']),
   k('breakit.perExtraTackler', 'Each extra tackler leaves', 'share', BREAKS),
   k('breakit.meterSeconds', 'Marker crosses in', 'seconds', ['bar']),
   k('breakit.earliest', 'Sweet spot no earlier than', 'share', ['bar']),
