@@ -9,6 +9,8 @@
  */
 import { assertNever } from '../../assertNever';
 import type { BossName } from '../sim/types';
+import saved from './saved-events.json' with { type: 'json' };
+import { checkSavedEvents, layerEvents } from './savedEvents';
 import { arcadeTuning } from './tuning';
 
 /** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
@@ -118,9 +120,20 @@ export function eventKind(event: FieldEvent): EventKind {
 /** Every field event as the code has it. */
 export const fieldEventDefaults: readonly FieldEvent[] = [FROG_RAIN];
 
-/** The field event with this id. */
+const savedEvents = checkSavedEvents(saved);
+
+/** What the game plays: the defaults, with `saved-events.json` laid over them. */
+export const fieldEvents: readonly FieldEvent[] = layerEvents(
+  fieldEventDefaults,
+  savedEvents.events,
+);
+
+/** Saved events left out as `fieldEvents` was made (none, normally); the game shows them. */
+export const savedEventWarnings: readonly string[] = savedEvents.warnings;
+
+/** The field event with this id, as the game plays it. */
 export function fieldEventById(id: string): FieldEvent {
-  const e = fieldEventDefaults.find((x) => x.id === id);
+  const e = fieldEvents.find((x) => x.id === id);
   if (!e) throw new Error(`no field event ${id}`);
   return e;
 }

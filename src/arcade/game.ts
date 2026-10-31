@@ -24,6 +24,7 @@ import { ArcadeBodies } from './render/bodies';
 import { ArcadeLines, createArcadeTurf } from './render/field';
 import { ArcadeFieldProps } from './render/fieldProps';
 import { ArcadeFrogRain } from './render/frogRain';
+import { savedEventWarnings } from './content/fieldEvents';
 import { ArcadePickups } from './render/pickups';
 import { ArcadeIntro } from './render/intro';
 import { ArcadeOutro } from './render/outro';
@@ -269,6 +270,8 @@ export class ArcadeGame {
       onBack: () => this.backToSketch(),
     });
     if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
+    // Saved events the game couldn't read are left out: say so, never silently (docs/FIELD_EVENTS.md).
+    if (savedEventWarnings.length > 0) this.hud.notice(savedEventWarnings.join(' · '));
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),

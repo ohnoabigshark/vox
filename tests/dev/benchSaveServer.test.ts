@@ -5,14 +5,20 @@ import { join } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { tuningDefaults } from '../../src/arcade/content/tuning';
-import { gitInServedGame, handleBenchSave, savedFileWriter } from '../../tools/benchSave';
+import { benchCheck } from '../../tools/benchSave';
+import {
+  gitInServedGame,
+  handleSave,
+  savedFileWriter,
+  type SavedFileDeps,
+} from '../../tools/savedFile';
 
 /** docs/BENCH.md, the rework's test F: the hot-reload server writes the saved file, never commits. */
 
 describe('the save endpoint', () => {
   const fake = (): {
     written: string[];
-    deps: Parameters<typeof handleBenchSave>[2];
+    deps: SavedFileDeps;
   } => {
     const written: string[] = [];
     return {
@@ -20,14 +26,14 @@ describe('the save endpoint', () => {
       deps: {
         write: async (text) => void written.push(text),
         inServedGame: async () => written.length === 0,
-        defaults: async () => tuningDefaults,
+        check: benchCheck(tuningDefaults),
       },
     };
   };
 
   it('F: GET says it can save, and whether the saved file is in the served game', async () => {
     const { deps } = fake();
-    expect(await handleBenchSave('GET', '', deps)).toEqual({
+    expect(await handleSave('GET', '', deps)).toEqual({
       status: 200,
       body: '{"inServedGame":true}',
     });
@@ -35,42 +41,42 @@ describe('the save endpoint', () => {
 
   it('F: POST writes a valid settings object, sorted, as prettier writes JSON', async () => {
     const { deps, written } = fake();
-    const r = await handleBenchSave('POST', '{"snag.window":0.2,"snag.close":0.56}', deps);
+    const r = await handleSave('POST', '{"snag.window":0.2,"snag.close":0.56}', deps);
     expect(r).toEqual({ status: 200, body: '{"inServedGame":false}' });
     expect(written).toEqual(['{\n  "snag.close": 0.56,\n  "snag.window": 0.2\n}\n']);
-    await handleBenchSave('POST', '{}', deps);
+    await handleSave('POST', '{}', deps);
     expect(written[1]).toBe('{}\n');
   });
 
   it('F: anything else is turned away without writing', async () => {
     const { deps, written } = fake();
-    expect(await handleBenchSave('POST', 'not json', deps)).toEqual({
+    expect(await handleSave('POST', 'not json', deps)).toEqual({
       status: 400,
       body: 'not JSON',
     });
-    expect(await handleBenchSave('POST', '[1]', deps)).toEqual({
+    expect(await handleSave('POST', '[1]', deps)).toEqual({
       status: 400,
       body: 'saved-tuning.json is not an object of settings, so nothing saved was played',
     });
-    expect(await handleBenchSave('POST', '{"snag.nope":1}', deps)).toEqual({
+    expect(await handleSave('POST', '{"snag.nope":1}', deps)).toEqual({
       status: 400,
       body: 'saved-tuning.json: snag.nope is not a setting in tuning.ts, so it was left out',
     });
-    expect(await handleBenchSave('POST', '{"snag.close":"fast"}', deps)).toEqual({
+    expect(await handleSave('POST', '{"snag.close":"fast"}', deps)).toEqual({
       status: 400,
       body: 'saved-tuning.json: snag.close is not a number ("fast"), so it was left out',
     });
-    expect(await handleBenchSave('PUT', '{}', deps)).toEqual({ status: 405, body: 'GET or POST' });
+    expect(await handleSave('PUT', '{}', deps)).toEqual({ status: 405, body: 'GET or POST' });
     expect(written).toEqual([]);
   });
 
   it('F: a failed write says why', async () => {
-    const r = await handleBenchSave('POST', '{}', {
+    const r = await handleSave('POST', '{}', {
       write: async () => {
         throw new Error('disk full');
       },
       inServedGame: async () => true,
-      defaults: async () => tuningDefaults,
+      check: benchCheck(tuningDefaults),
     });
     expect(r).toEqual({ status: 500, body: 'disk full' });
   });
@@ -109,7 +115,7 @@ describe('the saved file in git', () => {
 });
 
 describe('the hot-reload server', () => {
-  it("F: a save doesn't restart it: its config doesn't load saved-tuning.json", async () => {
+  it("F: a save doesn't restart it: its config loads neither saved file (nor field events, test 6)", async () => {
     // Vite restarts the server, reloading every page, when a file its config
     // loaded changes; that would throw away the other tabs' unsaved moves.
     const loaded = await loadConfigFromFile(
@@ -117,6 +123,10 @@ describe('the hot-reload server', () => {
       'vite.config.ts',
     );
     expect(loaded?.dependencies.length).toBeGreaterThan(0);
-    expect(loaded?.dependencies.filter((d) => /saved-tuning|tuning\.ts/.test(d))).toEqual([]);
+    expect(
+      loaded?.dependencies.filter((d) =>
+        /saved-tuning|tuning\.ts|saved-events|fieldEvents\.ts/.test(d),
+      ),
+    ).toEqual([]);
   });
 });
