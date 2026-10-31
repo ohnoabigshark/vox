@@ -13,7 +13,8 @@ double is better for first pass").
 - **The five tap tests,** one tab each: Break it!'s bar, mash and juke,
   SNAG IT!, and SHOO CROWS!. The throw's aim line and two-tap marker are
   left out: they're aiming on the field.
-- **The real tests on a plain stage.** Each rep is a run from `createRun`
+- **The real tests on a plain stage,** drawn from the same views as the
+  game (`ui/testViews.ts`). Each rep is a run from `createRun`
   with the test started directly (`startBreakIt` with its kind forced,
   `startSnag` with a contest made up from the situation, or the crows landed
   on the QB), stepped at 60 Hz with the Coach's taps, so hits, misses and
@@ -53,7 +54,9 @@ double is better for first pass").
   it!), the crowd (1 to 3 defenders reaching) and the Hands gap (−40 to
   +40, SNAG IT!). A line sums them up, such as "drive 7 · 3 dots · ring
   0.80 s".
-- **Toggles (k3):** Again (on: the next rep a second after the grade),
+- **Toggles (k3):** Again (on: the next rep a second after the grade, if
+  the Coach tapped in that one, so a bench left alone stops rather than
+  logging reps nobody played; found driving the page, 2026-10-31),
   Sound, Buzz, and Timing (t1). Buttons: GO, Reset to shipped (the open
   tab), Copy settings (the open tab, as `tuning.ts` lines).
 - **Kept on the phone (k4)** between visits, in its browser storage; a
@@ -68,7 +71,9 @@ on and written in the rep's log line:
   +0.05 s");
 - **mash:** taps, taps a second, and how full it got;
 - **juke:** the reaction to the arrow, out of the window, and a wrong side;
-- **SNAG IT!:** each dot, early or late of its ring closing;
+- **SNAG IT!:** each dot, early or late of its ring closing, filling in
+  dot by dot (a dot still to play shows as …); the others show once the
+  grade is in;
 - **SHOO CROWS!:** the reaction to the landing, out of the window.
 
 ## The log (l1–l3)
@@ -143,3 +148,8 @@ Keeping them
 On `test-bench`, from `snag-it` (w1), one commit each: this plan; SNAG IT!'s
 sizes into `tuning.ts`; the bench's core (`src/dev/bench/`); the log; the
 page; the docs reconciled.
+
+As built, 2026-10-31: those six, plus one between the sizes and the core
+that moved the game's test views (`breakView`, `snagView`, whether SHOO!
+shows) out of `game.ts` into `ui/testViews.ts`, and `TIME_SCALE` into
+`tuning.ts`, so the bench draws from the same code as the game.

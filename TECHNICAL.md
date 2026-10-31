@@ -298,7 +298,7 @@ slice 0
 - **TypeScript strict mode** (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), ESLint and Prettier.
 - **Unit tests (Vitest)** in `tests/`, mirroring `src/`: the sim's rules (catches, contests, blocks, pancakes, Break it!, the pocket, downs and drives, perks, the roster and bench, crowding), content checks, the voxel parser and mesher, audio data, palettes.
 - **Headless balance runs:** `npm run balance:arcade [runs]` (`tools/arcade-balance.ts`) plays whole runs through the sim with a bot and reports drives won, how downs end, each play type's spread of gains, Break it! results by kind, and where runs get stopped. The bot plays like a practised player by default; `BOT='{…}'` changes its knobs and `BALANCE_SCENARIO='{…}'` runs one custom scenario. It's slow (seconds a run), so use a few dozen runs per comparison.
-- **Dev pages** (in the normal build so they can be tried on phones; `npm run build:release` leaves them out): `/dev/` (an index), `models.html`, `audio.html`, `beat.html` (the beat clock and calibration), `lyrics.html`, and `plays.html` (the play editor, docs/PLAY_EDITOR.md).
+- **Dev pages** (in the normal build so they can be tried on phones; `npm run build:release` leaves them out): `/dev/` (an index), `models.html`, `audio.html`, `beat.html` (the beat clock and calibration), `lyrics.html`, `plays.html` (the play editor, docs/PLAY_EDITOR.md), and `bench.html` (the test bench: each quick tap test on its own, with sliders for its `tuning.ts` values, docs/BENCH.md). The bench logs every change and rep through the dev server: `tools/benchLog.ts` is a Vite plugin that appends each line to the file named by `BENCH_LOG`, and with it blank, or on a build served as files, the bench says it isn't recording.
 - **Device testing:** a regular check on a real mid-range Android phone and a real iPhone. Desktop emulation isn't enough for touch and feel.
 
 ---
@@ -317,7 +317,7 @@ slice 0
 ```
 /
 ├─ index.html
-├─ dev/                    // dev pages: index, models, audio, beat, lyrics, plays
+├─ dev/                    // dev pages: index, models, audio, beat, lyrics, plays, bench
 ├─ src/
 │  ├─ main.ts              // waits for the font, then builds the game (with your sketches in the game)
 │  ├─ clock.ts             // now(): the one place our code reads the wall clock (fork)
