@@ -80,6 +80,13 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   whether a contested catch picks SNAG IT! or the tip drill at random (as
   Break it! picks its three), or each fits a kind of catch (a lob, a
   bullet); how many pops, and how fast; what it grades on.
+- **The test bench** (dev): a page to play each quick tap test on its own,
+  with sliders for its `tuning.ts` values and a log of every change and
+  rep, so the settings that feel right can go into the game. Grilled
+  2026-10-31 (b1–b3, k1–k5, l1–l3, t1, u1–u2, w1; all approved, k5 the
+  other way); the design is `docs/BENCH.md`. Built on the `test-bench`
+  branch. _User, 2026-10-31: "it should actually serve as a dev test page
+  for all of the quick action games we have."_
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in

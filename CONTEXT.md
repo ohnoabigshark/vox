@@ -77,6 +77,14 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   In code, a run with `practice` set. _Avoid:_ "trial", the old in-game Try it.
 - **Copy code:** the sketch written as an entry for `ourPlays.ts`.
 
+## The test bench _(ours)_
+
+- **Test bench:** the dev page where each quick tap test (Break it!'s
+  three, SNAG IT!, SHOO CROWS!) is played on its own, with sliders for its
+  `tuning.ts` values (`docs/BENCH.md`). One go is a **rep**, as in
+  practice. Its **situation** is the drive, tacklers, crowd and Hands gap a
+  rep is played in.
+
 ## The field
 
 - **Prop:** a solid object on the field that bodies steer around, such as a
