@@ -250,7 +250,9 @@ async function main(): Promise<void> {
     renderSave();
   });
   saveButton.addEventListener('click', () => {
-    const next = savedAfter(saved, settings, test());
+    // The tab saved is the one open at the tap, even if another is open when the reply comes.
+    const tab = test();
+    const next = savedAfter(saved, settings, tab);
     saving = true;
     renderSave();
     saver
@@ -259,7 +261,7 @@ async function main(): Promise<void> {
         (r) => {
           saved = next;
           saveState = { server: { kind: 'up', inServedGame: r.inServedGame }, error: null };
-          record(saveLine(test(), next, now()));
+          record(saveLine(tab, next, now()));
         },
         (e: unknown) => {
           saveState = { ...saveState, error: e instanceof Error ? e.message : String(e) };
