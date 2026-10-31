@@ -158,6 +158,14 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     dev page, and what it allows (every slot, or routes only); whether the
     play rules still apply; whether the play is kept afterwards (in the
     run's playbook, as a sketch) or gone after the down.
+  - **Select any play** (a reward, alongside Draw up a play): instead of
+    the three play cards dealt, the Coach picks any play for that down.
+    _User, 2026-10-31._ Open for its grilling, with Draw up a play: which
+    plays it offers (the whole playbook, only those unlocked so far, the
+    Coach's sketches too); whether the Coach sees the defense's line-up
+    before picking, as with Draw up a play; how it's earned and how
+    often, and whether the two are offered side by side as one reward
+    pick.
 - **Defense against a computer offense.** The Coach plays defense while the
   computer runs the offense. The sim's AI only drives defenders and carriers
   today, so the offense needs play calling and throw timing of its own, and
