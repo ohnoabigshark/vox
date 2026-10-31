@@ -4,6 +4,7 @@ import { breakHardness } from '../../src/arcade/sim/breakit';
 import type { StepInput } from '../../src/arcade/sim/types';
 import { shooShowing, snagView } from '../../src/arcade/ui/testViews';
 import { step } from '../../src/arcade/sim/step';
+import { tipLanding } from '../../src/arcade/sim/tip';
 import { Bench } from '../../src/dev/bench/bench';
 import {
   BENCH_TESTS,
@@ -16,6 +17,8 @@ import {
   pathsOf,
   reachOf,
   defaultValue,
+  tabOffDefault,
+  tabPaths,
   toScreen,
   tuningValue,
   withValue,
@@ -407,5 +410,97 @@ describe('the reps', () => {
     for (let i = 0; i < 300; i++) bench.tick(1 / 60);
     expect(bench.reps).toBe(1);
     expect(bench.rep?.result?.grade).toBe('bad');
+  });
+});
+
+describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
+  it('its tab: five sliders in order, and More’s two, shared with SNAG IT!', () => {
+    expect(BENCH_TESTS).toContain('tip');
+    const tab = knobsFor('tip');
+    expect(tab.filter((k) => !k.more).map((k) => k.key)).toEqual([
+      'countdown.ready',
+      'tip.firstPop',
+      'tip.shrink',
+      'tip.clean',
+      'tip.bobble',
+    ]);
+    expect(tab.filter((k) => k.more).map((k) => k.key)).toEqual([
+      'catchTests.fromDrive',
+      'catchTests.linger',
+    ]);
+    for (const shared of ['catchTests.fromDrive', 'catchTests.linger']) {
+      expect(knob(shared).tests).toEqual(['snag', 'tip']);
+    }
+  });
+
+  it('SNAG IT!’s situation sliders, which set the pops; the summary says so', () => {
+    const pops = (s: Situation): number => startRep('tip', s, 1).state.tip!.pops.length;
+    expect(pops(at(5))).toBe(3);
+    expect(pops(at(5, { crowd: 2 }))).toBe(4);
+    expect(pops(at(5, { handsGap: 20 }))).toBe(2);
+    expect(pops(at(13))).toBe(5);
+    expect(summary('tip', at(5))).toBe('drive 5 · 3 pops · first 1.00 s in the air');
+    expect(summary('tip', at(11, { crowd: 2 }))).toBe(
+      'drive 11 · 5 pops · first 0.95 s in the air',
+    );
+  });
+
+  it('a rep plays a tip drill at once, timing each tap against the landing', () => {
+    const rep = startRep('tip', at(5), 1);
+    expect(rep.state.phase).toBe('tip');
+    expect(timingText(rep.timing)).toBe('… · … · …');
+    const result = play(rep, (r, t) => {
+      const d = r.state.tip;
+      const landing = d ? tipLanding(d) : null;
+      if (landing === null) return undefined;
+      // The first pop on its landing, the second 0.1 s late, then none.
+      const late = d!.results.length === 1 ? 0.08 : 0;
+      if (d!.results.length >= 2) return undefined;
+      return Math.abs(t - (landing + late)) < DT / 2 + 1e-9 ? { tip: true } : undefined;
+    });
+    expect(result.grade).toBe('bad');
+    if (result.timing.test !== 'tip') throw new Error('not the tip drill');
+    const [first, second, third] = result.timing.pops;
+    expect(first).toEqual({ off: expect.closeTo(0, 2), result: 'clean' });
+    expect(second?.result).toBe('bobble');
+    expect(second?.off).toBeCloseTo(0.1, 1);
+    expect(third).toEqual({ off: null, result: 'drop' });
+    expect(timingText(result.timing)).toMatch(/^[+−]0\.00 clean · \+0\.1\d bobble · none drop$/);
+  });
+
+  it('the bench shows the box, a new one each rep, and keeps it for the linger', () => {
+    const bench = new Bench({ test: 'tip', situation: at(5), again: false });
+    expect(bench.tipView()).toBeNull();
+    bench.go();
+    const first = bench.tipView();
+    expect(first?.pips).toEqual([null, null, null]);
+    bench.go();
+    expect(bench.tipView()?.id).not.toBe(first?.id);
+    for (let i = 0; i < 2000 && !bench.rep?.result; i++) bench.tick(1 / 60);
+    expect(bench.tipView()?.pips).toEqual(['drop', null, null]);
+    bench.tick(0.25);
+    expect(bench.tipView()).not.toBeNull();
+    bench.tick(0.1);
+    expect(bench.tipView()).toBeNull();
+    bench.showTest('snag');
+    bench.go();
+    expect(bench.tipView()).toBeNull();
+  });
+
+  it('Save writes the tab’s values', () => {
+    applySettings({ 'tip.clean': 0.06 });
+    expect(tuningValue('tip.clean')).toBe(0.06);
+    expect([...tabPaths('tip')].sort()).toEqual([
+      'catchTests.fromDrive',
+      'catchTests.linger',
+      'countdown.ready',
+      'tip.bobble',
+      'tip.clean',
+      'tip.firstPop',
+      'tip.shrink',
+    ]);
+    expect(tabOffDefault({ 'tip.clean': 0.06, 'snag.close': 0.5 }, 'tip')).toEqual({
+      'tip.clean': 0.06,
+    });
   });
 });

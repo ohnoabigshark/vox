@@ -6,8 +6,8 @@
  */
 import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
 import type { ArcadeEvent, StepInput } from '../../arcade/sim/types';
-import type { SnagView } from '../../arcade/ui/controls';
-import { snagView } from '../../arcade/ui/testViews';
+import type { SnagView, TipView } from '../../arcade/ui/controls';
+import { snagView, tipView } from '../../arcade/ui/testViews';
 import type { BenchTest } from './knobs';
 import { startRep, stepRep, type Rep, type RepResult, type Situation } from './reps';
 
@@ -78,14 +78,29 @@ export class Bench {
    * rep's dots (B4). Here each rep is its own: its number is the view's id.
    */
   snagView(): SnagView | null {
+    const rep = this.showing();
+    const view = rep ? snagView(rep.state) : null;
+    return view ? { ...view, id: this.reps } : null;
+  }
+
+  /** What the tip drill's box shows for the rep on now, or null; each rep its own box, as SNAG IT!'s (B4). */
+  tipView(): TipView | null {
+    const rep = this.showing();
+    const view = rep ? tipView(rep.state) : null;
+    return view ? { ...view, id: this.reps } : null;
+  }
+
+  /**
+   * The rep on now while it still shows its box, or null. After the grade
+   * the rep's sim stops, so the bench times the box's linger
+   * (catchTests.linger, the last dot's or pop's result) itself, from when the
+   * grade came in.
+   */
+  private showing(): Rep | null {
     const rep = this.rep;
     if (!rep) return null;
-    // After the grade the rep's sim stops, so the bench times the box's linger
-    // (catchTests.linger, the last dot's pop) itself, from when the grade came in.
     const since = this.wait === null ? 0 : AGAIN_AFTER - this.wait;
-    if (rep.result && since >= arcadeTuning.catchTests.linger / TIME_SCALE) return null;
-    const view = snagView(rep.state);
-    return view ? { ...view, id: this.reps } : null;
+    return !rep.result || since < arcadeTuning.catchTests.linger / TIME_SCALE ? rep : null;
   }
 
   /** A tap, for the next step. */

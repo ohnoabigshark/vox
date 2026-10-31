@@ -12,11 +12,19 @@ import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
 import { createRun, driveAt } from '../../arcade/sim/run';
 import { catchCount } from '../../arcade/sim/catchTests';
 import { snagPace, startSnag } from '../../arcade/sim/snag';
+import { startTip, tipLanding, tipPops, tipTimes } from '../../arcade/sim/tip';
 import { step } from '../../arcade/sim/step';
 import { startingRoster } from '../../arcade/sim/team';
-import type { ArcadeEvent, Player, RunState, StepInput } from '../../arcade/sim/types';
+import type { Contest } from '../../arcade/sim/ball';
+import type {
+  ArcadeEvent,
+  Grade,
+  Player,
+  RunState,
+  StepInput,
+  TipResult,
+} from '../../arcade/sim/types';
 import { breakGrade } from '../../arcade/ui/tapTestCalls';
-import type { Grade } from '../../arcade/sim/types';
 import type { BenchTest } from './knobs';
 
 /** Where a rep is played (k2): the drive, and who's in on it. */
@@ -48,17 +56,24 @@ export const SITUATION_SLIDERS: readonly {
     min: 1,
     max: 20,
     step: 1,
-    tests: ['bar', 'mash', 'juke', 'snag'],
+    tests: ['bar', 'mash', 'juke', 'snag', 'tip'],
   },
   { key: 'tacklers', label: 'Tacklers', min: 1, max: 3, step: 1, tests: ['bar', 'mash', 'juke'] },
-  { key: 'crowd', label: 'Defenders reaching', min: 1, max: 3, step: 1, tests: ['snag'] },
+  {
+    key: 'crowd',
+    label: 'Defenders reaching',
+    min: 1,
+    max: 3,
+    step: 1,
+    tests: ['snag', 'tip'],
+  },
   {
     key: 'handsGap',
     label: 'Hands gap (yours − theirs)',
     min: -40,
     max: 40,
     step: 5,
-    tests: ['snag'],
+    tests: ['snag', 'tip'],
   },
 ];
 
@@ -89,6 +104,17 @@ export type Timing =
   | {
       readonly test: 'snag';
       readonly dots: readonly ({ readonly off: number | null; readonly hit: boolean } | null)[];
+    }
+  /**
+   * Each pop, early (−) or late of its landing (off null if it wasn't
+   * tapped), and how it went; null while it's still to play.
+   */
+  | {
+      readonly test: 'tip';
+      readonly pops: readonly ({
+        readonly off: number | null;
+        readonly result: TipResult;
+      } | null)[];
     }
   /** The reaction to the landing, out of the window. */
   | { readonly test: 'shoo'; readonly reaction: number | null; readonly window: number };
@@ -145,24 +171,17 @@ export function startRep(test: BenchTest, situation: Situation, seed: number): R
               };
       break;
     }
-    case 'snag': {
-      // The receiver's Hands over the defenders' by the gap; as many defenders reaching as the crowd.
-      const i = players.findIndex((p) => p.role === 'catcher');
-      const catcher = players[i];
-      if (!catcher) throw new Error('the run has no Catcher');
-      const receiver: Player = {
-        ...catcher,
-        stats: { ...catcher.stats, hands: BASE_STATS.hands + situation.handsGap },
-      };
-      players[i] = receiver;
-      const crowd = defenders.slice(0, situation.crowd).map((d, j) => {
-        const reaching = { ...d, stats: { ...d.stats, hands: BASE_STATS.hands } };
-        defenders[j] = reaching;
-        return reaching;
-      });
-      startSnag(state, { receiver, defenders: crowd }, qb.pos, events);
-      const dots = state.snag?.dots.map(() => null) ?? [];
-      timing = { test, dots };
+    case 'snag':
+    case 'tip': {
+      // A contested ball: SNAG IT! or the tip drill started on it at once.
+      const contest = contestOf(state, situation);
+      if (test === 'snag') {
+        startSnag(state, contest, qb.pos, events);
+        timing = { test, dots: state.snag?.dots.map(() => null) ?? [] };
+      } else {
+        startTip(state, contest, qb.pos, events);
+        timing = { test, pops: state.tip?.pops.map(() => null) ?? [] };
+      }
       break;
     }
     case 'shoo': {
@@ -176,6 +195,29 @@ export function startRep(test: BenchTest, situation: Situation, seed: number): R
     }
   }
   return { test, situation, state, startedAt: state.time, timing, result: null };
+}
+
+/**
+ * The contest a catch test's rep is played on: the receiver's Hands over the
+ * defenders' by the situation's gap, and as many defenders reaching as its
+ * crowd.
+ */
+function contestOf(state: RunState, situation: Situation): Contest {
+  const { players, defenders } = state.field;
+  const i = players.findIndex((p) => p.role === 'catcher');
+  const catcher = players[i];
+  if (!catcher) throw new Error('the run has no Catcher');
+  const receiver: Player = {
+    ...catcher,
+    stats: { ...catcher.stats, hands: BASE_STATS.hands + situation.handsGap },
+  };
+  players[i] = receiver;
+  const crowd = defenders.slice(0, situation.crowd).map((d, j) => {
+    const reaching = { ...d, stats: { ...d.stats, hands: BASE_STATS.hands } };
+    defenders[j] = reaching;
+    return reaching;
+  });
+  return { receiver, defenders: crowd };
 }
 
 /** Step a rep once with this input: the timing notes any tap, and the result comes with the grade. */
@@ -195,6 +237,17 @@ export function stepRep(rep: Rep, input: StepInput): { rep: Rep; events: ArcadeE
       dots[e.index] = { off: tapped ? (t - dot.closesAt) / TIME_SCALE : null, hit: e.hit };
     }
     timing = { ...timing, dots };
+  }
+  if (timing.test === 'tip') {
+    const pops = [...timing.pops];
+    const drill = prev.tip;
+    const landing = drill ? tipLanding(drill) : null;
+    for (const e of events) {
+      if (e.type !== 'tipPop') continue;
+      const tapped = input.tip && landing !== null;
+      pops[e.index] = { off: tapped ? (t - landing) / TIME_SCALE : null, result: e.result };
+    }
+    timing = { ...timing, pops };
   }
   const grade = gradeOf(events);
   const result = grade ? { test: rep.test, situation: rep.situation, grade, timing } : null;
@@ -241,6 +294,7 @@ function noteTap(rep: Rep, input: StepInput, t: number): Timing {
       return { ...timing, reaction: (t - rep.startedAt) / TIME_SCALE };
     }
     case 'snag':
+    case 'tip':
       return timing;
   }
 }
@@ -252,6 +306,7 @@ function gradeOf(events: readonly ArcadeEvent[]): Grade | null {
       case 'breakResult':
         return breakGrade(e.outcome);
       case 'snagResult':
+      case 'tipResult':
         return e.grade;
       case 'crowsShooed':
         return 'great';
@@ -290,6 +345,10 @@ export function timingText(timing: Timing): string {
               : `${signed(d.off)} ${d.hit ? 'hit' : d.off < 0 ? 'early' : 'late'}`,
         )
         .join(' · ');
+    case 'tip':
+      return timing.pops
+        .map((p) => (p === null ? '…' : `${p.off === null ? 'none' : signed(p.off)} ${p.result}`))
+        .join(' · ');
     case 'shoo':
       return timing.reaction === null
         ? `too late · ${timing.window.toFixed(2)} s`
@@ -325,6 +384,10 @@ export function summary(test: BenchTest, situation: Situation): string {
       const count = catchCount({ drive, crowd: situation.crowd, handsGap: situation.handsGap });
       const pace = snagPace(drive);
       return `drive ${drive} · ${count} dots · ring ${s(pace.close)} · ${s(pace.gap)} apart`;
+    }
+    case 'tip': {
+      const pops = tipPops({ drive, crowd: situation.crowd, handsGap: situation.handsGap });
+      return `drive ${drive} · ${pops} pops · first ${s(tipTimes(drive, 1)[0] ?? 0)} in the air`;
     }
     case 'shoo':
       return `${s(arcadeTuning.crows.window)} to shoo`;
