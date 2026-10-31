@@ -238,7 +238,7 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
     expect(first?.dots).toHaveLength(3);
     // Every rep is a fresh run, so each SNAG IT! starts at the same moment:
     // the box can't tell them apart by that, and kept the last rep's dots.
-    bench.options.situation = { drive: 1, tacklers: 1, crowd: 3, handsGap: -25 };
+    bench.setSituation({ drive: 1, tacklers: 1, crowd: 3, handsGap: -25 });
     bench.go();
     const second = bench.snagView();
     expect(second?.dots).toHaveLength(5);
@@ -248,7 +248,7 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
   it('there is no box between reps, or on another tab', () => {
     const bench = new Bench({ test: 'snag', situation: at(5), again: false });
     expect(bench.snagView()).toBeNull();
-    bench.options.test = 'shoo';
+    bench.showTest('shoo');
     bench.go();
     expect(bench.snagView()).toBeNull();
   });

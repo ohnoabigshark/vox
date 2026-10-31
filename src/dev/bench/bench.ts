@@ -34,12 +34,36 @@ export class Bench {
   /** Whether the Coach has tapped in this rep. */
   private touched = false;
 
-  constructor(readonly options: BenchOptions) {}
+  private opts: BenchOptions;
+
+  constructor(options: BenchOptions) {
+    this.opts = { ...options };
+  }
+
+  /** What the bench is set to: the open tab's test, the situation, and Again. */
+  get options(): Readonly<BenchOptions> {
+    return this.opts;
+  }
+
+  /** Another tab: its test, with no rep on until GO. */
+  showTest(test: BenchTest): void {
+    this.opts = { ...this.opts, test };
+    this.rep = null;
+  }
+
+  /** The situation the next rep is played in. */
+  setSituation(situation: Situation): void {
+    this.opts = { ...this.opts, situation };
+  }
+
+  setAgain(again: boolean): void {
+    this.opts = { ...this.opts, again };
+  }
 
   /** GO: a new rep, now. */
   go(): void {
     this.seed++;
-    this.rep = startRep(this.options.test, this.options.situation, this.seed);
+    this.rep = startRep(this.opts.test, this.opts.situation, this.seed);
     this.reps++;
     this.accumulator = 0;
     this.pending = {};
@@ -78,7 +102,7 @@ export class Bench {
     if (rep.result) {
       if (this.wait !== null) {
         this.wait -= screen;
-        if (this.wait <= 0 && this.options.again && this.touched) this.go();
+        if (this.wait <= 0 && this.opts.again && this.touched) this.go();
       }
       return { events, finished: null };
     }
