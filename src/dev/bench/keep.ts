@@ -37,7 +37,7 @@ export interface BenchStore {
 const KEY = 'getJackBack.testBench';
 const VERSION = 1;
 const UNAVAILABLE = "This browser isn't keeping the bench's settings (private browsing?).";
-const UNREADABLE = "The bench's saved settings can't be read, so it starts from the defaults.";
+const UNREADABLE = "The bench's kept tab and situation can't be read, so it starts afresh.";
 
 /** The situation's ranges (k2). */
 const RANGES: Readonly<Record<keyof Situation, readonly [number, number]>> = {

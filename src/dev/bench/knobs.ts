@@ -211,11 +211,6 @@ export function round(v: number): number {
   return +v.toFixed(4);
 }
 
-/** The knob that edits a path, or null if none does (a slider that's gone). */
-export function knobOf(path: string): Knob | null {
-  return KNOBS.find((x) => pathsOf(x).includes(path)) ?? null;
-}
-
 /** The settings with `path` at `v`: kept only while it's off its default. */
 export function withValue(settings: Settings, path: string, v: number): Settings {
   const rest = withoutPaths(settings, [path]);
