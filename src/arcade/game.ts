@@ -43,7 +43,9 @@ import {
   createRun,
   dispatch,
   downAndDistance,
+  downOn,
   driveNumber,
+  frozenForTest,
   setUpDrive,
   startingRoster,
 } from './sim/run';
@@ -526,7 +528,7 @@ export class ArcadeGame {
     // The whole width is always in view, so only follow upfield.
     want = v(0, want.y);
     // In Break it! (and SNAG IT!) the camera eases in a little on the tackle (the catch).
-    const frozen = state.phase === 'breakit' || state.phase === 'snag';
+    const frozen = frozenForTest(state.phase);
     const k = 1 - Math.exp(-dt * (frozen ? 2 : 4));
     this.focus = v(
       this.focus.x + (want.x - this.focus.x) * k,
@@ -695,7 +697,7 @@ export class ArcadeGame {
       phase === 'over' || phase === 'won'
         ? `${drivesWon} ${drivesWon === 1 ? 'drive' : 'drives'} won`
         : '';
-    const live = phase === 'setup' || phase === 'play' || phase === 'breakit' || phase === 'snag';
+    const live = downOn(phase);
     this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
     const ready = this.live && !this.paused;
     // Practice: ‹ Sketch between reps (map item t4), not mid-play.

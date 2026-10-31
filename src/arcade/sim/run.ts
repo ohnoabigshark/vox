@@ -7,6 +7,7 @@ import { areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
 import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
+import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
@@ -30,6 +31,7 @@ import type {
   DownResult,
   Drive,
   DriveKind,
+  Phase,
   RosterPlayer,
   RunState,
   FrogLane,
@@ -490,6 +492,29 @@ export function nextDown(state: RunState, events: ArcadeEvent[]): void {
   }
   drive.down++;
   setUpDown(state, events);
+}
+
+/** Whether a down is on: lined up, in play, or frozen for a test (the banner shows down and distance). */
+export function downOn(phase: Phase): boolean {
+  switch (phase) {
+    case 'setup':
+    case 'play':
+    case 'breakit':
+    case 'snag':
+      return true;
+    case 'downOver':
+    case 'draft':
+    case 'over':
+    case 'won':
+      return false;
+    default:
+      return assertNever(phase);
+  }
+}
+
+/** Whether the play is frozen for a tap test (Break it!, SNAG IT!). */
+export function frozenForTest(phase: Phase): boolean {
+  return phase === 'breakit' || phase === 'snag';
 }
 
 /** Down and distance, e.g. "3rd & 4", or "3rd & Goal" on the Boss drive. Yards round up. */
