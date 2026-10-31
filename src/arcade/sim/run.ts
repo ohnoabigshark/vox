@@ -28,6 +28,7 @@ import type {
   ArcadeEvent,
   ArcadeResult,
   DownResult,
+  Drive,
   DriveKind,
   RosterPlayer,
   RunState,
@@ -36,6 +37,17 @@ import type {
 } from './types';
 
 export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
+
+/** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
+export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
+  return drive.area * DRIVE_KINDS.length + drive.index + 1;
+}
+
+/** The area and index (both from 0) of a drive's number in the run: `driveNumber` backwards. */
+export function driveAt(n: number): Pick<Drive, 'area' | 'index'> {
+  const i = Math.max(0, Math.floor(n) - 1);
+  return { area: Math.floor(i / DRIVE_KINDS.length), index: i % DRIVE_KINDS.length };
+}
 
 /** Seven plain humans (sim/team.ts). */
 export { startingRoster };

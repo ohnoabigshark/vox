@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning, DT } from '../../src/arcade/content/tuning';
-import { createRun } from '../../src/arcade/sim/run';
-import { dotOpen, driveNumber, nextDot, snagCount, snagPace } from '../../src/arcade/sim/snag';
+import { createRun, driveAt, driveNumber } from '../../src/arcade/sim/run';
+import { dotOpen, nextDot, snagCount, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
@@ -130,6 +130,13 @@ describe('SNAG IT!: how many dots (s1)', () => {
     expect(driveNumber({ area: 1, index: 0 })).toBe(5);
     expect(driveNumber({ area: 2, index: 3 })).toBe(12);
     expect(driveNumber({ area: 4, index: 0 })).toBe(17);
+  });
+
+  it('and back: the area and index of a drive number (review a7)', () => {
+    expect(driveAt(1)).toEqual({ area: 0, index: 0 });
+    expect(driveAt(5)).toEqual({ area: 1, index: 0 });
+    expect(driveAt(12)).toEqual({ area: 2, index: 3 });
+    for (let n = 1; n <= 20; n++) expect(driveNumber(driveAt(n))).toBe(n);
   });
 });
 

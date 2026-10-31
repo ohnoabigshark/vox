@@ -11,18 +11,13 @@
 import { arcadeTuning } from '../content/tuning';
 import type { Contest } from './ball';
 import { rngFor } from './random';
-import { DRIVE_KINDS } from './run';
-import type { ArcadeEvent, Drive, RunState, SnagDot, SnagGrade, StepInput, Vec } from './types';
+import { driveNumber } from './run';
+import type { ArcadeEvent, RunState, SnagDot, SnagGrade, StepInput, Vec } from './types';
 import { add, dist, len, norm, scale, sub } from './vec';
 
 const sn = arcadeTuning.snag;
 
 const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
-
-/** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
-export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
-  return drive.area * DRIVE_KINDS.length + drive.index + 1;
-}
 
 /** Whether a contested ball goes to SNAG IT! on this drive. */
 export function snagOn(state: RunState): boolean {

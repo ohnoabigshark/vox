@@ -43,6 +43,7 @@ import {
   createRun,
   dispatch,
   downAndDistance,
+  driveNumber,
   setUpDrive,
   startingRoster,
 } from './sim/run';
@@ -804,7 +805,7 @@ export class ArcadeGame {
    */
   private originOf(drive: Drive): number {
     const area = drive.area % arcadeTuning.run.areas;
-    return (area * DRIVE_KINDS.length + drive.index) * arcadeTuning.drive.distance;
+    return (driveNumber({ area, index: drive.index }) - 1) * arcadeTuning.drive.distance;
   }
 
   /** ?win=1: the run as if just won (on the King's drive, eleven recruits on the bench), and the win cutscene. */
@@ -820,7 +821,7 @@ export class ArcadeGame {
     s.drivesWon = arcadeTuning.run.areas * DRIVE_KINDS.length;
     s.phase = 'won';
     this.state = s;
-    this.origin = (s.drive.area * DRIVE_KINDS.length + s.drive.index) * arcadeTuning.drive.distance;
+    this.origin = this.originOf(s.drive);
     this.bodies.sync(s);
     this.fieldProps.update(s, this.origin);
     this.startOutro();
