@@ -6,6 +6,7 @@
  * The field is in yards from the line of scrimmage (x across, y upfield), as
  * the play editor's is. An area on "either" side is drawn on the right.
  */
+import { assertNever } from '../../assertNever';
 import {
   fieldEventDefaults,
   type EventArea,
@@ -121,6 +122,8 @@ export function sizeArea(start: EditorState, handle: Handle, to: Yards): EditorS
     }
     case 'edge':
       return start;
+    default:
+      return assertNever(handle);
   }
 }
 

@@ -101,10 +101,13 @@ export interface SaveState {
 const hhmm = (at: number): string =>
   new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(at);
 
+/** What the bench's save status line names: its page, and what it saves. */
+export const BENCH_STATUS = { page: 'bench.html', what: 'settings' } as const;
+
 /** The save status line, and whether it's a problem (shown in red); `page` is the dev page saving, `what` what it saves. */
 export function saveStatus(
   s: SaveState,
-  { page, what }: { page: string; what: string } = { page: 'bench.html', what: 'settings' },
+  { page, what }: { readonly page: string; readonly what: string },
 ): { text: string; bad: boolean } {
   if (s.error !== null) {
     return { text: `Couldn't save: ${s.error}. Your changes are still here.`, bad: true };
@@ -131,9 +134,8 @@ export function saveStatus(
   }
 }
 
-/** The hot-reload server's save endpoint. */
 /** A saved file's endpoint on the hot-reload server: the bench's settings, or the event editor's events. */
-export interface BenchSaver<T = Settings> {
+export interface FileSaver<T> {
   /** Whether anything here can save, and if so whether the saved file is in the served game. */
   probe(): Promise<Exclude<SaveServer, { kind: 'checking' }>>;
   /** Write the whole saved file; throws with the server's reason when it can't. */
@@ -145,7 +147,7 @@ const answer = (x: unknown): { inServedGame: boolean } => ({
 });
 
 /** The endpoint at `url`. */
-export function httpSaver<T = Settings>(url: string, fetchFn: typeof fetch = fetch): BenchSaver<T> {
+export function httpSaver<T>(url: string, fetchFn: typeof fetch = fetch): FileSaver<T> {
   return {
     async probe() {
       let r: Response;

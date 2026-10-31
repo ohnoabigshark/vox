@@ -454,7 +454,7 @@ function partsOf(e: Editing): HTMLElement[] {
       change(setGoesOff(e.ed, s)),
     ),
     chips(
-      'Kind',
+      'Goes off as',
       [
         { value: 'burst', text: 'Burst' },
         { value: 'spell', text: 'Spell', off: 'Comes with the taffy flood' },

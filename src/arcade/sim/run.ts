@@ -13,7 +13,7 @@ import { rngFor } from './random';
 import { assignMarks } from './ai';
 import { pickupsForDrive } from './pickups';
 import { placeEvent } from './fieldEvents';
-import { fieldEventById, type FieldEvent } from '../content/fieldEvents';
+import { fieldEventById, type DefaultEventId, type FieldEvent } from '../content/fieldEvents';
 import { BOSS_SPOT, drivePropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
@@ -244,7 +244,7 @@ export function setUpDrive(
 }
 
 /** This down's field event: the one practice tries, or else the drive's own (Frog Rain), placed. */
-function placedEvent(state: RunState, drives: string | undefined): FieldEventOn | null {
+function placedEvent(state: RunState, drives: DefaultEventId | undefined): FieldEventOn | null {
   if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
   return drives ? placeEvent(state, fieldEventById(drives)) : null;
 }

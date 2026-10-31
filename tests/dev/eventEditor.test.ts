@@ -53,25 +53,35 @@ describe('the editor (test 7)', () => {
       radius: 2,
     });
     // Never past the sideline.
-    expect(moveArea(s, { x: 20, y: 0 }).event.area).toMatchObject({ out: hw });
+    expect(moveArea(s, { x: 20, y: 0 }).event.area).toEqual({
+      shape: 'circle',
+      across: 'right',
+      out: hw,
+      at: 12,
+      radius: 2,
+    });
   });
 
   it('handles size it: a lane’s near and far edges and its width; a circle’s edge', () => {
     const s = startEditing(lane);
     const handles = handlesOf(lane.area);
     expect(handles.map((h) => h.handle)).toEqual(['near', 'far', 'width']);
-    expect(sizeArea(s, 'far', { x: 0, y: 10.2 }).event.area).toMatchObject({ from: -1, to: 10 });
-    expect(sizeArea(s, 'near', { x: 0, y: 2.6 }).event.area).toMatchObject({ from: 2.5, to: 16 });
+    const sized = (area: object): object => ({ ...lane.area, ...area });
+    expect(sizeArea(s, 'far', { x: 0, y: 10.2 }).event.area).toEqual(sized({ to: 10 }));
+    expect(sizeArea(s, 'near', { x: 0, y: 2.6 }).event.area).toEqual(sized({ from: 2.5 }));
     // The width handle is the lane's inner edge: dragged toward the middle, it widens.
-    expect(sizeArea(s, 'width', { x: hw - 8.2, y: 5 }).event.area).toMatchObject({ width: 8 });
+    expect(sizeArea(s, 'width', { x: hw - 8.2, y: 5 }).event.area).toEqual(sized({ width: 8 }));
     // Never inside out: the near edge stops half a yard short of the far one.
-    expect(sizeArea(s, 'near', { x: 0, y: 30 }).event.area).toMatchObject({ from: 15.5, to: 16 });
+    expect(sizeArea(s, 'near', { x: 0, y: 30 }).event.area).toEqual(sized({ from: 15.5 }));
     const c = startEditing({
       ...lane,
       area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
     });
     expect(handlesOf(c.event.area).map((h) => h.handle)).toEqual(['edge']);
-    expect(sizeArea(c, 'edge', { x: 7.1, y: 12 }).event.area).toMatchObject({ radius: 3 });
+    expect(sizeArea(c, 'edge', { x: 7.1, y: 12 }).event.area).toEqual({
+      ...c.event.area,
+      radius: 3,
+    });
   });
 
   it('the bar under the field says where it is, in yards', () => {

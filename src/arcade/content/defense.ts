@@ -5,6 +5,7 @@
  * brings the whole forest. Every area adds to every defender's stats.
  */
 import type { BossName, DefenderKind, PropKind, Stats } from '../sim/types';
+import type { DefaultEventId } from './fieldEvents';
 
 export interface DefenderDef {
   readonly name: string;
@@ -86,7 +87,7 @@ export interface DefenseSpec {
   /** Added to every defender's stats on top of the area's boost (a sleepy first drive is negative). */
   readonly boost: number;
   /** The drive's field event, by id: Mister Frog's Frog Rain (docs/FIELD_EVENTS.md). */
-  readonly fieldEvent?: string;
+  readonly fieldEvent?: DefaultEventId;
   /** The Queen's Royal Decree: each down one of the three cards is banned (it can't be called). */
   readonly decree?: boolean;
   /** A Boss drive: the Boss who stands in its end zone, a prop (sim/props.ts, BOSSES). */

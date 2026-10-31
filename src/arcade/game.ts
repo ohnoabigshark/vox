@@ -765,19 +765,14 @@ export class ArcadeGame {
    */
   private newRun(sketches: readonly Play[] = []): RunState {
     const p = this.practice;
-    if (p?.kind === 'sketch')
+    if (p)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
         snagAlways: this.snagAlways,
         tipAlways: this.tipAlways,
-        practice: p.play,
-      });
-    if (p?.kind === 'event')
-      return createRun(this.seed, firstRoster(this.monsters), 0, {
-        twoTapAim: this.twoTapAim,
-        snagAlways: this.snagAlways,
-        tipAlways: this.tipAlways,
-        eventPractice: { event: p.event, drive: p.drive },
+        ...(p.kind === 'sketch'
+          ? { practice: p.play }
+          : { eventPractice: { event: p.event, drive: p.drive } }),
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,

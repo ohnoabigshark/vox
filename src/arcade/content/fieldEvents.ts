@@ -117,8 +117,13 @@ export function eventKind(event: FieldEvent): EventKind {
   }
 }
 
+/** The ids of the events in the code: what a drive may name, so a wrong one won't compile. */
+export type DefaultEventId = 'frogRain';
+
+const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = { frogRain: FROG_RAIN };
+
 /** Every field event as the code has it. */
-export const fieldEventDefaults: readonly FieldEvent[] = [FROG_RAIN];
+export const fieldEventDefaults: readonly FieldEvent[] = Object.values(DEFAULTS);
 
 const savedEvents = checkSavedEvents(saved);
 
@@ -132,7 +137,7 @@ export const fieldEvents: readonly FieldEvent[] = layerEvents(
 export const savedEventWarnings: readonly string[] = savedEvents.warnings;
 
 /** The field event with this id, as the game plays it. */
-export function fieldEventById(id: string): FieldEvent {
+export function fieldEventById(id: DefaultEventId): FieldEvent {
   const e = fieldEvents.find((x) => x.id === id);
   if (!e) throw new Error(`no field event ${id}`);
   return e;

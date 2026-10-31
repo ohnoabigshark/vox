@@ -50,6 +50,7 @@ import {
   unsaved,
   unsavedOffScreen,
   type SaveState,
+  BENCH_STATUS,
 } from './save';
 import { SITUATION_SLIDERS, summary, timingText, type Grade, type RepResult } from './reps';
 
@@ -239,7 +240,7 @@ async function main(): Promise<void> {
     const changes = unsaved(saved, settings, test()).length;
     saveButton.textContent = saveLabel(changes);
     saveButton.disabled = saveState.server.kind !== 'up' || changes === 0 || saving;
-    const { text, bad } = saveStatus(saveState);
+    const { text, bad } = saveStatus(saveState, BENCH_STATUS);
     savedEl.textContent = text;
     savedEl.classList.toggle('off', bad);
     // Unsaved values no row on screen shows (another area's, b10).

@@ -9,6 +9,7 @@ import {
   unsaved,
   unsavedOffScreen,
   type SaveState,
+  BENCH_STATUS,
 } from '../../src/dev/bench/save';
 
 /** docs/BENCH.md, the rework's tests D, E, H and I: Save and Restore on the bench. */
@@ -107,7 +108,7 @@ describe('what the page says', () => {
 
   it('H: the status says where saves stand, plainly, and a failure in red', () => {
     const status = (server: SaveState['server'], error: string | null = null) =>
-      saveStatus({ server, error });
+      saveStatus({ server, error }, BENCH_STATUS);
     expect(status({ kind: 'checking' })).toEqual({
       text: 'Checking for the save server…',
       bad: false,
@@ -133,16 +134,25 @@ describe('what the page says', () => {
   it('b2: once saved this visit, the status says when (the plan: "a saved tab says when it saved")', () => {
     const at = Date.UTC(2026, 9, 31, 4, 12, 30);
     expect(
-      saveStatus({ server: { kind: 'up', inServedGame: false, savedAt: at }, error: null }),
+      saveStatus(
+        { server: { kind: 'up', inServedGame: false, savedAt: at }, error: null },
+        BENCH_STATUS,
+      ),
     ).toEqual({ text: 'Saved 04:12 · not in the served game yet', bad: false });
     expect(
-      saveStatus({ server: { kind: 'up', inServedGame: true, savedAt: at }, error: null }),
+      saveStatus(
+        { server: { kind: 'up', inServedGame: true, savedAt: at }, error: null },
+        BENCH_STATUS,
+      ),
     ).toEqual({ text: 'Saved 04:12 · in the served game', bad: false });
   });
 
   it("b11: a server that answers with an error says so in its words, not 'no server'", () => {
     expect(
-      saveStatus({ server: { kind: 'broken', reason: 'git: not a repository' }, error: null }),
+      saveStatus(
+        { server: { kind: 'broken', reason: 'git: not a repository' }, error: null },
+        BENCH_STATUS,
+      ),
     ).toEqual({
       text: "The save server can't save: git: not a repository",
       bad: true,
