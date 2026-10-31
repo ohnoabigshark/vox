@@ -31,7 +31,7 @@ import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
-import { catchTestsOn, whichCatchTest } from './catchTests';
+import { catchTestsOn, whichCatchTest, type CatchTest } from './catchTests';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
 import type {
@@ -48,6 +48,12 @@ import type {
 import { add, dist, len, norm, scale, sub, v } from './vec';
 
 const { contact, field } = arcadeTuning;
+
+/** How each catch test starts on a contested ball: one entry a test, so a new one can't be left out. */
+const START_CATCH_TEST: Readonly<Record<CatchTest, typeof startSnag>> = {
+  snag: startSnag,
+  tip: startTip,
+};
 
 /**
  * Tests can force which Break it! comes up (it's random otherwise). Not part
@@ -515,8 +521,7 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
     ball.at === 'flight' &&
     catchTestsOn(state)
   ) {
-    const start = whichCatchTest(state) === 'snag' ? startSnag : startTip;
-    start(state, outcome.contest, ball.from, events);
+    START_CATCH_TEST[whichCatchTest(state)](state, outcome.contest, ball.from, events);
     return true;
   }
   if (outcome.kind === 'caught') {

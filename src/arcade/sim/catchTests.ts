@@ -13,6 +13,9 @@ import { add, clamp, len, norm, scale, sub } from './vec';
 
 const ct = arcadeTuning.catchTests;
 
+/** The catch tests: SNAG IT! and the tip drill. */
+export type CatchTest = 'snag' | 'tip';
+
 /** Whether a contested ball goes to a catch test on this drive. */
 export function catchTestsOn(state: RunState): boolean {
   return state.snagAlways || state.tipAlways || driveNumber(state.drive) >= ct.fromDrive;
@@ -23,7 +26,7 @@ export function catchTestsOn(state: RunState): boolean {
  * ?snag=1 or ?tip=1 forces, or else either, half and half, from the run's
  * seed.
  */
-export function whichCatchTest(state: RunState): 'snag' | 'tip' {
+export function whichCatchTest(state: RunState): CatchTest {
   if (state.snagAlways !== state.tipAlways) return state.snagAlways ? 'snag' : 'tip';
   return rngFor(state.seed, 'catch', state.step).next() < 0.5 ? 'snag' : 'tip';
 }
