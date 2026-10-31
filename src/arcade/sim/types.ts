@@ -256,7 +256,28 @@ export interface SnagDot {
 /** How a SNAG IT! dot went: hit, missed, or null while it's still to play. */
 export type SnagDotResult = 'hit' | 'miss' | null;
 
-export type SnagGrade = 'great' | 'ok' | 'bad';
+/**
+ * The tip drill (docs/TIP.md): a contested ball, the play frozen while the
+ * Coach juggles it, tapping as each pop lands back on the receiver's hands.
+ */
+export interface TipDrill {
+  readonly startedAt: number;
+  /** Who'd catch it, and the defenders reaching for it too (the first is the one that'd bat it). */
+  readonly receiver: number;
+  readonly defenders: readonly number[];
+  /** How long each pop is in the air, in order (sim seconds). */
+  readonly pops: readonly number[];
+  /** When the pop being played left the hands: the first as the countdown ends, each later one at the tap before it. */
+  poppedAt: number;
+  /** How each pop played so far went, in order. */
+  readonly results: TipResult[];
+}
+
+/** How a pop went: tapped close to its landing, a little off, or dropped. */
+export type TipResult = 'clean' | 'bobble' | 'drop';
+
+/** A tap test's grade, as Break it!, SNAG IT! and the tip drill all grade. */
+export type Grade = 'great' | 'ok' | 'bad';
 
 export type DriveKind = 'intro' | 'challenge' | 'gimmick' | 'boss';
 
@@ -341,6 +362,8 @@ export type Phase =
   | 'breakit'
   /** SNAG IT!: the play is frozen while you tap the dots. */
   | 'snag'
+  /** The tip drill: the play is frozen while you juggle the ball. */
+  | 'tip'
   | 'downOver'
   | 'draft'
   | 'over'
@@ -357,6 +380,8 @@ export interface RunState {
   readonly twoTapAim: boolean;
   /** ?snag=1: SNAG IT! from the first drive, not only from drive 5 (docs/SNAG.md). */
   readonly snagAlways: boolean;
+  /** ?tip=1: the tip drill from the first drive (docs/TIP.md); with ?snag=1 too, either at random. */
+  readonly tipAlways: boolean;
   /** Fixed steps since the run began, and the time they add up to. */
   step: number;
   time: number;
@@ -388,10 +413,14 @@ export interface RunState {
   snag: Snag | null;
   /**
    * The SNAG IT! that just finished, every dot graded, and when: kept so the
-   * box can show the last dot's pop before it closes (`snag.linger`). For the
+   * box can show the last dot's pop before it closes (`catchTests.linger`). For the
    * screen only; nothing in the sim reads it.
    */
   snagDone: { readonly snag: Snag; readonly endedAt: number } | null;
+  /** The tip drill, while it's on… */
+  tip: TipDrill | null;
+  /** …and the one that just finished, and when, kept as `snagDone` is (for the screen only). */
+  tipDone: { readonly tip: TipDrill; readonly endedAt: number } | null;
   /** The seven on the field, in slot order (the slot decides the position played)… */
   roster: RosterPlayer[];
   /** …and the bench: kept, but not playing, newest first (it has no limit). */
@@ -424,6 +453,8 @@ export interface StepInput {
   readonly shoo?: boolean;
   /** SNAG IT!: a tap on this dot. */
   readonly snag?: number;
+  /** The tip drill: a tap anywhere in its box. */
+  readonly tip?: boolean;
 }
 
 export type Action =
@@ -461,7 +492,13 @@ export type ArcadeEvent =
   /** A dot hit or missed in SNAG IT!… */
   | { readonly type: 'snagDot'; readonly index: number; readonly hit: boolean }
   /** …and how it went. */
-  | { readonly type: 'snagResult'; readonly grade: SnagGrade }
+  | { readonly type: 'snagResult'; readonly grade: Grade }
+  /** A contested ball: the tip drill starts… */
+  | { readonly type: 'tipStarted'; readonly receiver: number; readonly pops: number }
+  /** …each pop tapped clean, bobbled or dropped… */
+  | { readonly type: 'tipPop'; readonly index: number; readonly result: TipResult }
+  /** …and how it went. */
+  | { readonly type: 'tipResult'; readonly grade: Grade }
   /** A tap in the sweet spot: this tackler goes flying, the carrier keeps going. */
   | { readonly type: 'brokeTackle'; readonly id: number; readonly defender: number }
   /** A close tap: the carrier drags its tacklers this far before it goes down. */

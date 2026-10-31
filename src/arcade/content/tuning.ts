@@ -179,30 +179,59 @@ export const tuningDefaults = {
     maxDrag: 4,
   },
   /**
-   * SNAG IT! (docs/SNAG.md): a contested ball, from drive `fromDrive`, is a
-   * test of dots in a box, each tapped as its ring closes. Times are sim
-   * seconds (the screen's times 0.8); positions are shares of the box.
+   * What SNAG IT! and the tip drill share (docs/TIP.md, g3): when they start,
+   * how many dots or pops, and how much quicker they get.
+   */
+  catchTests: {
+    /** A contested ball goes to a catch test from this drive (or the first, with ?snag=1 or ?tip=1). */
+    fromDrive: 5,
+    /**
+     * The count: this many on drives 5-8, one more every `moreEvery` drives
+     * (an area's four), one more for each defender after the first in reach,
+     * one fewer when the receiver's Hands beat the best defender's by
+     * `handsGap`, one more the other way; never under `minCount` or over
+     * `maxCount`. SNAG IT! has that many dots.
+     */
+    minCount: 2,
+    maxCount: 5,
+    moreEvery: 4,
+    handsGap: 20,
+    /**
+     * The pace: past this drive everything is this share quicker each drive,
+     * down to this share of the usual (SNAG IT!'s ring: 0.8 s on screen,
+     * 0.04 s quicker a drive, 0.5 s from drive 18).
+     */
+    fasterAfter: 10,
+    perDrive: 0.05,
+    floor: 0.625,
+    /** The box stays this long after the grade, so the last tap's result is seen (0.3 s on screen). */
+    linger: 0.24,
+  },
+  /** The tip drill (docs/TIP.md): the ball popping up off the receiver's hands, tapped as it lands. */
+  tip: {
+    /** The first pop is in the air this long (1.0 s on screen; quicker later, by `catchTests`)… */
+    firstPop: 0.8,
+    /** …and each later one this share of the one before (so about two-thirds as high). */
+    shrink: 0.8,
+    /** A tap this close to a landing, either side, is clean (0.07 s on screen)… */
+    clean: 0.056,
+    /** …this close, a bobble (0.14 s on screen); any other tap, or none by then, a drop. */
+    bobble: 0.112,
+    /** One more pop than SNAG IT! would have dots in the same spot (`catchTests` counts them). */
+    morePops: 1,
+  },
+  /**
+   * SNAG IT! (docs/SNAG.md): a catch test of dots in a box, each tapped as
+   * its ring closes. Times are sim seconds (the screen's times 0.8);
+   * positions are shares of the box.
    */
   snag: {
-    fromDrive: 5,
-    /** A ring closes onto its dot this long after the dot shows (0.8 s on screen)… */
+    /** A ring closes onto its dot this long after the dot shows (0.8 s on screen; quicker later, by `catchTests`)… */
     close: 0.64,
     /** …and the next dot shows this share of that later (0.5 s on screen). */
     gapShare: 0.625,
-    /** Past this drive, the ring closes this much sooner each drive, down to the floor (0.5 s on screen). */
-    fasterAfter: 10,
-    perDrive: 0.032,
-    closeFloor: 0.4,
     /** A tap this close to the ring closing, either side, is a hit (0.15 s on screen). */
     window: 0.12,
-    /** The box stays this long after the grade, so the last dot's pop or crack is seen (0.3 s on screen). */
-    linger: 0.24,
-    /** 2 dots on drives 5-8, then one more every `moreEvery` drives (an area's four), never under 2 or over 5. */
-    minDots: 2,
-    maxDots: 5,
-    moreEvery: 4,
-    /** One fewer dot when the receiver's Hands beat the best defender's by this much; one more the other way. */
-    handsGap: 20,
     /** Each dot's middle stays this far in from the box's edges… */
     margin: 0.14,
     /** …at least this far from the two dots before it, and at most this far from the last. */

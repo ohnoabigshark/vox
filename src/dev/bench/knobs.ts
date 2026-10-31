@@ -10,9 +10,9 @@ import { numberAt } from '../../arcade/content/savedTuning';
 import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
 import { driveAt } from '../../arcade/sim/run';
 
-/** The five tap tests, one tab each (b1). */
-export type BenchTest = 'bar' | 'mash' | 'juke' | 'snag' | 'shoo';
-export const BENCH_TESTS: readonly BenchTest[] = ['bar', 'mash', 'juke', 'snag', 'shoo'];
+/** The tap tests, one tab each (b1; the tip drill's from docs/TIP.md, g6). */
+export type BenchTest = 'bar' | 'mash' | 'juke' | 'snag' | 'tip' | 'shoo';
+export const BENCH_TESTS: readonly BenchTest[] = ['bar', 'mash', 'juke', 'snag', 'tip', 'shoo'];
 
 /**
  * How a value reads: seconds (shown as screen time), a share (0 to 1), a
@@ -47,10 +47,18 @@ const snagMore = (key: string, label: string, unit: KnobUnit): Knob => ({
   ...snag(key, label, unit),
   more: true,
 });
+const catchMore = (
+  key: string,
+  label: string,
+  unit: KnobUnit,
+  tests: readonly BenchTest[] = ['snag'],
+): Knob => ({ ...k(`catchTests.${key}`, label, unit, tests), more: true });
+const tip = (key: string, label: string, unit: KnobUnit): Knob =>
+  k(`tip.${key}`, label, unit, ['tip']);
 
 export const KNOBS: readonly Knob[] = [
-  // The tap tests' countdown, shared by Break it!'s three and SNAG IT! (docs/SNAG.md, cd-c8).
-  k('countdown.ready', 'Get ready countdown', 'seconds', [...BREAKS, 'snag']),
+  // The tap tests' countdown, shared by Break it!'s three and the catch tests (docs/SNAG.md, cd-c8).
+  k('countdown.ready', 'Get ready countdown', 'seconds', [...BREAKS, 'snag', 'tip']),
   k('breakit.perExtraTackler', 'Each extra tackler leaves', 'share', BREAKS),
   k('breakit.meterSeconds', 'Marker crosses in', 'seconds', ['bar']),
   k('breakit.earliest', 'Sweet spot no earlier than', 'share', ['bar']),
@@ -62,7 +70,7 @@ export const KNOBS: readonly Knob[] = [
   k('breakit.byArea.{area}.jukeWindow', 'Juke window', 'seconds', ['juke']),
   k('breakit.jukeBreakShare', 'Share of it that breaks', 'share', ['juke']),
   k('breakit.jukeLinger', 'Red linger', 'seconds', ['juke']),
-  // SNAG IT!: the seven that shape a rep, then the eleven behind More
+  // SNAG IT!: the seven that shape a rep, then the twelve behind More
   // (r-p2): where dots may land, and how it changes over a run.
   snag('close', 'Ring closes in', 'seconds'),
   snag('window', 'Hit window ±', 'seconds'),
@@ -73,15 +81,22 @@ export const KNOBS: readonly Knob[] = [
   snagMore('minApart', 'Dots at least apart', 'share'),
   snagMore('margin', 'Dots in from the edge', 'share'),
   snagMore('box', 'Box at most', 'px'),
-  snagMore('fromDrive', 'From drive', 'count'),
-  snagMore('fasterAfter', 'Faster after drive', 'count'),
-  snagMore('perDrive', 'Faster each drive by', 'seconds'),
-  snagMore('closeFloor', 'Ring close no faster than', 'seconds'),
-  snagMore('minDots', 'Fewest dots', 'count'),
-  snagMore('maxDots', 'Most dots', 'count'),
-  snagMore('moreEvery', 'One more dot every … drives', 'count'),
-  snagMore('handsGap', 'Hands gap for a dot more or less', 'count'),
-  snagMore('linger', 'Box stays after the grade', 'seconds'),
+  // What SNAG IT! shares with the tip drill (docs/TIP.md, g3): tuned here for both,
+  // and when they start and the box's linger on the tip drill's tab too (g6).
+  catchMore('fromDrive', 'Catch tests from drive', 'count', ['snag', 'tip']),
+  catchMore('fasterAfter', 'Quicker after drive', 'count'),
+  catchMore('perDrive', 'Quicker each drive by', 'share'),
+  catchMore('floor', 'No quicker than', 'share'),
+  catchMore('minCount', 'Fewest dots', 'count'),
+  catchMore('maxCount', 'Most dots', 'count'),
+  catchMore('moreEvery', 'One more dot every … drives', 'count'),
+  catchMore('handsGap', 'Hands gap for a dot more or less', 'count'),
+  catchMore('linger', 'Box stays after the grade', 'seconds', ['snag', 'tip']),
+  // The tip drill: its five (g6).
+  tip('firstPop', 'First pop in the air', 'seconds'),
+  tip('shrink', 'Each pop (share of the last)', 'share'),
+  tip('clean', 'Clean within ±', 'seconds'),
+  tip('bobble', 'Bobble within ±', 'seconds'),
   k('crows.window', 'Time to shoo', 'seconds', ['shoo']),
 ];
 

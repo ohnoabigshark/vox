@@ -15,6 +15,18 @@ map's c1 to c10), where they would clash with the first map's.
 Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 `tuning.ts` holds each one times 0.8.
 
+**Since the tip drill** (`docs/TIP.md`, 2026-10-31), SNAG IT! is one of two
+**catch tests**: from drive 5 a contested ball picks SNAG IT! or the tip
+drill at random, half and half, and `?snag=1` makes every contested ball
+SNAG IT! (with `?tip=1` too, either). What the two share moved to
+`catchTests` in `tuning.ts` and `sim/catchTests.ts`, with SNAG IT! playing
+exactly as before: when they start (`fromDrive`), the dot count
+(`minCount`, `maxCount`, `moreEvery`, `handsGap`), the pace past drive 10
+(now a share of the usual: 5% a drive, down to 62.5%, the same 0.04 s a
+drive and 0.5 s floor for the ring) and the box's linger. Where the
+sections below say "every contested ball", read "every contested ball that
+picks SNAG IT!".
+
 ## When (c2, c3, c6)
 
 - **A contested ball** is one that one of your players and a defender could
@@ -68,7 +80,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## How many dots (s1)
 
-- **The level:** 2 on drives 5–8, then one more every four drives (an area; `moreEvery`): 3 on
+- **The level:** 2 on drives 5–8, then one more every four drives (an area; `catchTests.moreEvery`, shared with the tip drill): 3 on
   9–12, 4 on 13–16, 5 from 17.
 - **The crowd:** one more for each defender after the first whose reach
   covers the ball.
@@ -110,7 +122,7 @@ one without. The numbers get tuned from those and from the Coach's play.
   (`predictsCatch`), as a Coach who can win SNAG IT! would. So a run with
   SNAG IT! and one without differ in the throws the bot picks, not only in
   how contested balls end; compare them knowing that.
-- **The box stays 0.3 s after the grade** (`snag.linger`, review a1), so the
+- **The box stays 0.3 s after the grade** (`catchTests.linger`, review a1), so the
   last dot's pop or crack is seen; the play goes on meanwhile.
 
 ## Tests, written first

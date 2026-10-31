@@ -1,4 +1,6 @@
 .arc-controls {
+  /* The bar's "close" band and the tip drill's bobble: a near miss. */
+  --close-yellow: #ffd23f;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -100,7 +102,7 @@
 }
 
 .arc-near {
-  background: rgb(255 210 63 / 0.35);
+  background: color-mix(in srgb, var(--close-yellow) 35%, transparent);
 }
 
 .arc-sweet {
@@ -348,5 +350,154 @@
   .arc-snag-dot.hit,
   .arc-snag-dot.miss {
     animation-duration: 0.01s;
+  }
+}
+
+/*
+ * The tip drill (docs/TIP.md): SNAG IT!'s box, with a bar of hands near the
+ * bottom and the ball popping up off them. controls.ts sets the ball's
+ * height (`--ball`: 0 on the hands, 1 at the first pop's top) and the
+ * shadow's size from the view; the hands flash each pop's result, and the
+ * pips keep them.
+ */
+.arc-tip {
+  /* The hands this far down the box, and the first pop's top this far above them. */
+  --tip-hands: 76%;
+  --tip-rise: 58%;
+}
+
+.arc-tip-hands {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: var(--tip-hands);
+  height: 12px;
+  translate: 0 -50%;
+  border: var(--edge) solid var(--ink);
+  border-radius: 6px;
+  background: var(--pumpkin);
+  box-shadow: inset 0 3px 0 rgb(255 255 255 / 0.4);
+  pointer-events: none;
+}
+
+/* Two mitts on the bar, where the ball lands. */
+.arc-tip-hands::before,
+.arc-tip-hands::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  width: 26px;
+  height: 18px;
+  border: var(--edge) solid var(--ink);
+  border-radius: 12px 12px 4px 4px;
+  background: var(--bone);
+}
+
+.arc-tip-hands::before {
+  left: calc(50% - 34px);
+}
+
+.arc-tip-hands::after {
+  right: calc(50% - 34px);
+}
+
+.arc-tip-hands.clean {
+  background: var(--slime-green);
+}
+
+.arc-tip-hands.bobble {
+  background: var(--close-yellow);
+}
+
+.arc-tip-hands.drop {
+  background: var(--danger);
+}
+
+.arc-tip-shadow {
+  position: absolute;
+  left: 50%;
+  top: var(--tip-hands);
+  width: 70px;
+  height: 14px;
+  translate: -50% -150%;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.65);
+  pointer-events: none;
+}
+
+/* The ball: its bottom at the height controls.ts sets. */
+.arc-tip-ball {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--tip-hands) - var(--ball, 0) * var(--tip-rise));
+  width: 56px;
+  height: 38px;
+  translate: -50% -130%;
+  border: var(--edge) solid var(--ink);
+  border-radius: 50%;
+  background: #8a4a22;
+  box-shadow: inset 0 4px 0 rgb(255 255 255 / 0.25);
+  pointer-events: none;
+}
+
+/* Its laces. */
+.arc-tip-ball::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 42%;
+  height: 6px;
+  /* A seam across, and stitches over it. */
+  background:
+    linear-gradient(var(--bone), var(--bone)) 0 50% / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, var(--bone) 0 2px, transparent 2px 6px);
+}
+
+.arc-tip-ball.bobble {
+  animation: arc-tip-wobble 0.2s ease-in-out;
+}
+
+@keyframes arc-tip-wobble {
+  30% {
+    rotate: -18deg;
+  }
+  70% {
+    rotate: 14deg;
+  }
+}
+
+.arc-tip-pips {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.arc-tip-pips i {
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: rgb(247 241 227 / 0.3);
+}
+
+.arc-tip-pips i.clean {
+  background: var(--slime-green);
+}
+
+.arc-tip-pips i.bobble {
+  background: var(--close-yellow);
+}
+
+.arc-tip-pips i.drop {
+  background: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arc-tip-ball.bobble {
+    animation: none;
   }
 }

@@ -66,8 +66,8 @@ import type {
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls } from './ui/controls';
-import { breakGrade, gradeCall, tapTestSound } from './ui/tapTestCalls';
-import { breakView, shooShowing, snagView } from './ui/testViews';
+import { breakGrade, gradeCall, tapTestBuzz, tapTestSound } from './ui/tapTestCalls';
+import { breakView, shooShowing, snagView, tipView } from './ui/testViews';
 import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
 import type { Play } from './content/plays';
@@ -110,6 +110,8 @@ export interface ArcadeOptions {
   twoTapAim?: boolean;
   /** SNAG IT! from the first drive (?snag=1), not only from drive 5 (docs/SNAG.md). */
   snagAlways?: boolean;
+  /** The tip drill from the first drive (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
+  tipAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
   /**
@@ -167,6 +169,7 @@ export class ArcadeGame {
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
   private readonly snagAlways: boolean;
+  private readonly tipAlways: boolean;
   /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
   private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
   /** Reads the play editor's sketches in the game; none without it. */
@@ -224,6 +227,7 @@ export class ArcadeGame {
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
     this.snagAlways = options.snagAlways ?? false;
+    this.tipAlways = options.tipAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
@@ -271,6 +275,7 @@ export class ArcadeGame {
       onJuke: (side) => this.press({ juke: side }),
       onShoo: () => this.press({ shoo: true }),
       onSnag: (dot) => this.press({ snag: dot }),
+      onTip: () => this.press({ tip: true }),
     });
 
     document.addEventListener('keydown', (e) => this.onKey(e));
@@ -434,6 +439,7 @@ export class ArcadeGame {
     this.controls.setButtons(canThrow(state) && !this.paused);
     this.controls.setBreak(breakView(state));
     this.controls.setSnag(snagView(state));
+    this.controls.setTip(tipView(state));
     this.follow(dt);
     this.view.render();
   }
@@ -456,7 +462,7 @@ export class ArcadeGame {
     else if (ball.at === 'contested') want = ball.pos;
     // The whole width is always in view, so only follow upfield.
     want = v(0, want.y);
-    // In Break it! (and SNAG IT!) the camera eases in a little on the tackle (the catch).
+    // In Break it! (and the catch tests) the camera eases in a little on the tackle (the catch).
     const frozen = frozenForTest(state.phase);
     const k = 1 - Math.exp(-dt * (frozen ? 2 : 4));
     this.focus = v(
@@ -543,10 +549,16 @@ export class ArcadeGame {
           break;
         }
         case 'snagDot':
-          if (e.hit) navigator.vibrate?.(12);
+        case 'tipPop':
+          if (tapTestBuzz(e)) navigator.vibrate?.(12);
           break;
         case 'snagResult': {
           const call = gradeCall('snag', e.grade);
+          this.hud.big(call.word, call.tone);
+          break;
+        }
+        case 'tipResult': {
+          const call = gradeCall('tip', e.grade);
           this.hud.big(call.word, call.tone);
           break;
         }
@@ -708,12 +720,14 @@ export class ArcadeGame {
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
         snagAlways: this.snagAlways,
+        tipAlways: this.tipAlways,
         practice: this.practice.play,
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
       snagAlways: this.snagAlways,
+      tipAlways: this.tipAlways,
       playbook: [...PLAY_POOL, ...sketches],
     });
   }
@@ -826,6 +840,7 @@ export class ArcadeGame {
       if (phase === 'setup') this.act({ type: 'hike' });
       else if (phase === 'breakit') this.press({ breakTap: true });
       else if (phase === 'snag') this.snagKey();
+      else if (phase === 'tip') this.press({ tip: true });
       else this.press({ throw: true });
     } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
       if (phase === 'breakit') this.press({ juke: e.code === 'ArrowLeft' ? -1 : 1 });

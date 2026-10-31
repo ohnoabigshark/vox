@@ -16,7 +16,7 @@ import { SfxPlayer, prepareSfx, type SfxId } from '../../audio/sfx';
 import type { ArcadeEvent } from '../../arcade/sim/types';
 import { ArcadeControls } from '../../arcade/ui/controls';
 import { nextDot } from '../../arcade/sim/snag';
-import { gradeCall, tapTestSound } from '../../arcade/ui/tapTestCalls';
+import { gradeCall, tapTestBuzz, tapTestSound } from '../../arcade/ui/tapTestCalls';
 import { breakView, shooShowing } from '../../arcade/ui/testViews';
 import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
@@ -58,8 +58,12 @@ const TAB: Readonly<Record<BenchTest, string>> = {
   mash: 'Mash',
   juke: 'Juke',
   snag: 'SNAG IT!',
+  tip: 'TIP DRILL!',
   shoo: 'SHOO',
 };
+
+/** Whether a tab is a catch test's (SNAG IT!, the tip drill): no cue at its start, and a readout that fills in as it goes. */
+const isCatchTest = (t: BenchTest): boolean => t === 'snag' || t === 'tip';
 
 /** The grade in one big word, as the game calls it. */
 function word(r: RepResult): string {
@@ -188,7 +192,7 @@ async function main(): Promise<void> {
     // The game's sound for each tap test event (ui/tapTestCalls.ts).
     const sound = tapTestSound(e);
     if (sound) play(sound);
-    if (e.type === 'snagDot' && e.hit && kept.toggles.buzz) navigator.vibrate?.(12);
+    if (tapTestBuzz(e) && kept.toggles.buzz) navigator.vibrate?.(12);
   };
 
   // ── The bench and the test screen. ──
@@ -203,6 +207,7 @@ async function main(): Promise<void> {
     onJuke: (side) => bench.press({ juke: side }),
     onShoo: () => bench.press({ shoo: true }),
     onSnag: (dot) => bench.press({ snag: dot }),
+    onTip: () => bench.press({ tip: true }),
   });
   let bigTimer = 0;
   const showWord = (r: RepResult): void => {
@@ -416,7 +421,8 @@ async function main(): Promise<void> {
       if (t === 'snag') {
         const i = bench.rep ? nextDot(bench.rep.state) : null;
         if (i !== null) bench.press({ snag: i });
-      } else if (t === 'shoo') bench.press({ shoo: true });
+      } else if (t === 'tip') bench.press({ tip: true });
+      else if (t === 'shoo') bench.press({ shoo: true });
       else bench.press({ breakTap: true });
     } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
       bench.press({ juke: e.code === 'ArrowLeft' ? -1 : 1 });
@@ -431,10 +437,11 @@ async function main(): Promise<void> {
     const { events, finished } = bench.tick((t - last) / 1000);
     last = t;
     if (bench.reps !== reps) {
-      // A new rep: the game's cue for it (the grab, or the crows landing; SNAG IT! has none).
+      // A new rep: the game's cue for it (the grab, or the crows landing; the catch tests have none).
       reps = bench.reps;
-      if (test() === 'shoo') play('hop');
-      else if (test() !== 'snag') play('burst');
+      const t = test();
+      if (t === 'shoo') play('hop');
+      else if (!isCatchTest(t)) play('burst');
     }
     for (const e of events) react(e);
     if (finished) {
@@ -445,11 +452,12 @@ async function main(): Promise<void> {
     const state = rep && !rep.result ? rep.state : null;
     controls.setBreak(state ? breakView(state) : null);
     controls.setSnag(bench.snagView());
+    controls.setTip(bench.tipView());
     controls.setShoo(state ? shooShowing(state) : false);
     idle.hidden = state !== null || (rep?.result != null && kept.toggles.again);
     const grade: Grade | null = rep?.result?.grade ?? null;
-    // SNAG IT!'s readout fills in dot by dot; the others' once the grade is in.
-    const shown = rep && kept.toggles.timing && (rep.result || rep.test === 'snag');
+    // The catch tests' readouts fill in dot by dot (pop by pop); the others' once the grade is in.
+    const shown = rep && kept.toggles.timing && (rep.result || isCatchTest(rep.test));
     timingEl.textContent = shown
       ? `${timingText(rep.timing)}${grade ? ` → ${grade.toUpperCase()}` : ''}`
       : '';

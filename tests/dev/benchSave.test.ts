@@ -100,8 +100,8 @@ describe('what the page says', () => {
     expect(saveLabel(3)).toBe('Save 3 changes');
     const saved = { 'snag.close': 0.56 };
     const current = { 'snag.close': 0.56, 'crows.window': 0.7, 'countdown.ready': 2 };
-    // The countdown is SNAG IT!'s too (docs/SNAG.md, cd-c8).
-    expect(tabsWithUnsaved(saved, current)).toEqual(['bar', 'mash', 'juke', 'snag', 'shoo']);
+    // The countdown is the catch tests' too (docs/SNAG.md, cd-c8; docs/TIP.md, g6).
+    expect(tabsWithUnsaved(saved, current)).toEqual(['bar', 'mash', 'juke', 'snag', 'tip', 'shoo']);
     expect(tabsWithUnsaved(saved, saved)).toEqual([]);
   });
 

@@ -10,14 +10,13 @@
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import type { BreakKind, Player, RunState, StepInput, Tackle } from './types';
+import { clamp } from './vec';
 
 const b = arcadeTuning.breakit;
 
 export type BreakOutcome = 'break' | 'drag' | 'tackle';
 
 const BREAK_KINDS: readonly BreakKind[] = ['bar', 'mash', 'juke'];
-
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
 
 /** How hard the three tests are: the bar's sweet spot, the mash's fill per tap, the juke's window. */
 export type BreakHardness = { -readonly [K in keyof (typeof b.byArea)[number]]: number };

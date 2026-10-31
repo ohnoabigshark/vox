@@ -2,79 +2,38 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { layerSaved } from '../../src/arcade/content/savedTuning';
 import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
 import { createRun, driveAt, driveNumber } from '../../src/arcade/sim/run';
-import {
-  dotOpen,
-  nextDot,
-  snagCount,
-  snagCountdownLeft,
-  snagPace,
-} from '../../src/arcade/sim/snag';
+import { dotOpen, nextDot, snagCountdownLeft, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { snagView } from '../../src/arcade/ui/testViews';
+import { catchCount } from '../../src/arcade/sim/catchTests';
 import { v } from '../../src/arcade/sim/vec';
 import { startRep } from '../../src/dev/bench/reps';
 import { ofType, playState, run, stand, throwAt } from './helpers';
+import * as contested from './contests';
+import { onDrive, type Force } from './contests';
 
 /** docs/SNAG.md: the tests it lists, in its order. */
 
 const sn = arcadeTuning.snag;
 
-/** Put a down on the given drive of the run (1-based: drive 5 is the Candy Queendom's first). */
-function onDrive(state: RunState, drive: number): RunState {
-  const area = Math.floor((drive - 1) / 4);
-  state.drive = { ...state.drive, area, index: (drive - 1) % 4 };
-  return state;
-}
-
 /**
- * A bullet to (4, 6) with a Catcher half a yard to the right of its line, and
- * Covers placed (from their reach) so each gets a hand to it at the same
- * moment as the Catcher: a contested ball. `along` puts a Cover that far
- * further up the line (yards), still reaching it at that moment. With more
- * Hands on the Cover, today's rule gives it the ball.
+ * From drive 5 a contested ball picks SNAG IT! or the tip drill at random
+ * (docs/TIP.md, t2); these tests pick SNAG IT! from there, as ?snag=1 does.
+ * Before drive 5 nothing is forced, so today's rule still settles it.
  */
+const snagFrom5 = (drive: number): Force | undefined => (drive >= 5 ? 'snag' : undefined);
+
 function bulletContest(
   drive: number,
   catcherHands = 60,
   covers: readonly { hands: number; along?: number }[] = [{ hands: 60 }],
 ): RunState {
-  const dir = v(0.371, 0.928);
-  const right = v(0.928, -0.371);
-  const s = playState(
-    [{ pos: v(4 + right.x * 0.5, 6 + right.y * 0.5), stats: { hands: catcherHands } }],
-    covers.map((c) => ({ kind: 'cover' as const, pos: v(0, 30), stats: { hands: c.hands } })),
-  );
-  const catcher = s.field.players[1]!;
-  catcher.job = stand(catcher.pos);
-  // How far short of (4, 6), along the line, the ball comes into the Catcher's reach.
-  const entry = Math.sqrt(catcher.reach ** 2 - 0.25);
-  covers.forEach((c, i) => {
-    const d = s.field.defenders[i]!;
-    const along = c.along ?? 0;
-    const off = Math.sqrt(d.reach ** 2 - (entry + along) ** 2);
-    d.pos = v(4 + dir.x * along - right.x * off, 6 + dir.y * along - right.y * off);
-  });
-  onDrive(s, drive);
-  return run(s, 2, throwAt(s, v(4, 6))).state;
+  return contested.bulletContest(drive, catcherHands, covers, snagFrom5(drive));
 }
 
-/** A lob coming down at (0.4, 10) between a Catcher and a Cover, the Cover nearer: contested. */
 function lobContest(drive: number): RunState {
-  const s = playState(
-    [{ pos: v(2.2, 10), job: stand(v(2.2, 10)) }],
-    [{ kind: 'cover', pos: v(-0.2, 10) }],
-  );
-  onDrive(s, drive);
-  s.field.ball = {
-    at: 'flight',
-    from: v(0, -4),
-    target: v(0.4, 10),
-    thrownAt: s.time,
-    landsAt: s.time + 0.5,
-    lob: true,
-  };
-  return run(s, 1).state;
+  return contested.lobContest(drive, snagFrom5(drive));
 }
 
 type Tap = 'hit' | 'early' | 'none';
@@ -107,31 +66,31 @@ function snag(state: RunState, taps: readonly Tap[]): { state: RunState; events:
 
 describe('SNAG IT!: how many dots (s1)', () => {
   it('2 from drive 5, one more a zone, 5 from drive 17', () => {
-    expect(snagCount({ drive: 5, crowd: 1, handsGap: 0 })).toBe(2);
-    expect(snagCount({ drive: 8, crowd: 1, handsGap: 0 })).toBe(2);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: 0 })).toBe(3);
-    expect(snagCount({ drive: 13, crowd: 1, handsGap: 0 })).toBe(4);
-    expect(snagCount({ drive: 17, crowd: 1, handsGap: 0 })).toBe(5);
-    expect(snagCount({ drive: 40, crowd: 1, handsGap: 0 })).toBe(5);
+    expect(catchCount({ drive: 5, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ drive: 8, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: 0 })).toBe(3);
+    expect(catchCount({ drive: 13, crowd: 1, handsGap: 0 })).toBe(4);
+    expect(catchCount({ drive: 17, crowd: 1, handsGap: 0 })).toBe(5);
+    expect(catchCount({ drive: 40, crowd: 1, handsGap: 0 })).toBe(5);
     // Before drive 5 (only with ?snag=1), the level gives 2.
-    expect(snagCount({ drive: 1, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ drive: 1, crowd: 1, handsGap: 0 })).toBe(2);
   });
 
   it('one more for each defender after the first in reach', () => {
-    expect(snagCount({ drive: 5, crowd: 2, handsGap: 0 })).toBe(3);
-    expect(snagCount({ drive: 5, crowd: 3, handsGap: 0 })).toBe(4);
+    expect(catchCount({ drive: 5, crowd: 2, handsGap: 0 })).toBe(3);
+    expect(catchCount({ drive: 5, crowd: 3, handsGap: 0 })).toBe(4);
   });
 
   it('one fewer when the receiver’s Hands beat theirs by 20, one more the other way', () => {
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: 20 })).toBe(2);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: 19 })).toBe(3);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: -20 })).toBe(4);
-    expect(snagCount({ drive: 9, crowd: 1, handsGap: -19 })).toBe(3);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: 20 })).toBe(2);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: 19 })).toBe(3);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: -20 })).toBe(4);
+    expect(catchCount({ drive: 9, crowd: 1, handsGap: -19 })).toBe(3);
   });
 
   it('never under 2 or over 5', () => {
-    expect(snagCount({ drive: 5, crowd: 1, handsGap: 40 })).toBe(2);
-    expect(snagCount({ drive: 17, crowd: 4, handsGap: -30 })).toBe(5);
+    expect(catchCount({ drive: 5, crowd: 1, handsGap: 40 })).toBe(2);
+    expect(catchCount({ drive: 17, crowd: 4, handsGap: -30 })).toBe(5);
   });
 
   it('a level is the drive’s number in the run', () => {
@@ -159,10 +118,11 @@ describe('SNAG IT!: how fast (s2)', () => {
   });
 
   it('past drive 10, faster each drive, down to the floor', () => {
-    expect(snagPace(11).close).toBeCloseTo(sn.close - sn.perDrive);
-    expect(snagPace(12).close).toBeCloseTo(sn.close - 2 * sn.perDrive);
+    // 0.04 s quicker a drive on screen, to 0.5 s (catchTests: 5% a drive, to 62.5%).
+    expect(snagPace(11).close / 0.8).toBeCloseTo(0.76);
+    expect(snagPace(12).close / 0.8).toBeCloseTo(0.72);
     expect(snagPace(11).gap).toBeCloseTo(snagPace(11).close * sn.gapShare);
-    expect(snagPace(18).close).toBeCloseTo(sn.closeFloor);
+    expect(snagPace(18).close / 0.8).toBeCloseTo(0.5);
     expect(snagPace(40)).toEqual(snagPace(18));
   });
 });
@@ -178,7 +138,7 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
     expect(lost.field.ball).toMatchObject({ at: 'dead', how: 'batted' });
   });
 
-  it('from drive 5 a contested bullet goes to SNAG IT!, whichever way today’s rule would go', () => {
+  it('from drive 5 a contested bullet goes to SNAG IT! (when it’s picked), whichever way today’s rule would go', () => {
     for (const cover of [60, 70]) {
       const s = bulletContest(5, 60, [{ hands: cover }]);
       expect(s.phase).toBe('snag');
@@ -374,7 +334,7 @@ describe('SNAG IT!: the last dot is seen (review a1)', () => {
     // Graded on the step the last dot was tapped (a few steps of play follow in the helper).
     expect(done?.endedAt).toBeLessThanOrEqual(r.state.time);
     // 0.3 s on screen, at the game's 0.8 time scale.
-    expect(sn.linger / 0.8).toBeCloseTo(0.3, 9);
+    expect(arcadeTuning.catchTests.linger / 0.8).toBeCloseTo(0.3, 9);
   });
 });
 
@@ -448,22 +408,8 @@ describe('SNAG IT!: what the plan’s tests promised, checked in full (review a4
 
   it('before drive 5 a contested lob is settled as today; from drive 5, whichever way it would go', () => {
     // A lob onto (0.4, 10): the Catcher at x 2.2, a Cover at x `cover` (they move as it falls).
-    const lob = (drive: number, cover: number): RunState => {
-      const s = playState(
-        [{ pos: v(2.2, 10), job: stand(v(2.2, 10)) }],
-        [{ kind: 'cover', pos: v(cover, 10) }],
-      );
-      onDrive(s, drive);
-      s.field.ball = {
-        at: 'flight',
-        from: v(0, -4),
-        target: v(0.4, 10),
-        thrownAt: s.time,
-        landsAt: s.time + 0.5,
-        lob: true,
-      };
-      return run(s, 1).state;
-    };
+    const lob = (drive: number, cover: number): RunState =>
+      contested.lobContest(drive, snagFrom5(drive), cover);
     // Today's rule, before drive 5: one caught, one batted, no SNAG IT!.
     expect(lob(4, -0.2).field.ball).toEqual({ at: 'carried', by: 2 });
     expect(lob(4, 0.3).field.ball).toMatchObject({ at: 'dead', how: 'batted' });

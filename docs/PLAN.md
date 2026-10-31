@@ -76,10 +76,24 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   defender's hands and the Coach taps as it drops onto a bar, three times,
   juggling it until it's held: one spot, pure timing. It was option C on
   the SNAG IT! map. _User, 2026-10-30: "I like the tip drill idea too, and
-  we should park that as another catch challenge."_ Open for its grilling:
-  whether a contested catch picks SNAG IT! or the tip drill at random (as
-  Break it! picks its three), or each fits a kind of catch (a lob, a
-  bullet); how many pops, and how fast; what it grades on.
+  we should park that as another catch challenge."_ Being grilled on the
+  map https://claude.ai/artifact/PHeREqJNv3izp9eLinmcz4, on the
+  `tip-drill` branch. Round 1, decided 2026-10-31 (t1–t5, all approved):
+  - **The drop** (t1): the ball pops straight up off the receiver's hands
+    and falls back; tap anywhere in the box as it meets the hands, its
+    shadow on them growing as it falls. _User: "Let's see how the initial
+    concept plays and maybe we add drift later"_ (the drift is under Later).
+  - Each contested ball picks SNAG IT! or the tip drill at random, half and
+    half (t2), from drive 5, one setting saying when both start (t3).
+  - Its grades do what SNAG IT!'s do (t4), and everything else works as
+    SNAG IT! does: the shared countdown, the freeze, the box and its
+    linger, outside Break it!'s two, a bench tab, the balance bot, the
+    existing sounds (t5).
+  - Rounds 2 and 3, decided the same day (g1–g6, u1–u3, w1): clean, bobble
+    or drop, a drop ending it; one more pop than SNAG IT! has dots; the
+    name stays tip drill (_user's note on g4: "Tip drill"_), tried with
+    `?tip=1`. The design is `docs/TIP.md`. Built on the `tip-drill`
+    branch.
 - **The test bench** (dev): a page to play each quick tap test on its own,
   with sliders for its `tuning.ts` values and a Save that puts the
   settings that feel right into the game (a log of every change and rep
@@ -102,6 +116,48 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   decided: a line under the first "SNAG IT!" of a run ("Tap as the ring
   hits the dot"); an outline on the dot that the ring closes onto; a flash
   on the dot at the moment to tap.
+- **A dev setup mode** (dev): a screen before a run starts where the Coach
+  turns each tap test on or off, picks the throw type, and sets the other
+  run options, rather than typing them into the URL. _User, 2026-10-31: "a
+  dev setup mode where we can enable/disable different tap events, toggle
+  throw type etc before starting a run."_ Today those options are URL
+  flags read once in `src/main.ts` (`?aim=2` two-tap throwing, `?hard=1`,
+  `?snag=1` SNAG IT! from the first drive, `?area=N`, `?seed=N`,
+  `?monsters`, `?win`), and Break it! always deals one of its three
+  (`bar`, `mash`, `juke`, `BREAK_KINDS` in `sim/breakit.ts`); nothing turns
+  one off. It is the dev panel `docs/rules.md` asks for ("Build a dev panel
+  from the start"), which `?snag=1` stood in for (`docs/SNAG.md`). Open for
+  its grilling: where it lives (a screen in the game behind a dev flag, or
+  a dev page that builds the link); which switches (each Break it! kind and
+  SNAG IT! on, off or always; throw type; hard mode; the starting area; the
+  seed; pickups and Frog Rain); whether the phone remembers the last setup;
+  and whether practice gets it too. The tip drill's review found each link
+  option touching about ten places (`main.ts`, `game.ts`'s option, field
+  and two `createRun` calls, `run.ts`, `types.ts`): the setup mode is the
+  time to gather them into one run-options object, so a new switch is one
+  edit.
+- **More events like Frog Rain, starting with an event editor** (dev, then
+  difficulty). _User, 2026-10-31: "more events like frog rain. along with
+  that should be an event editor, like the tap event editor, that lets us
+  tune the options of an event. maybe make the editor first and we can
+  tweak frog rain and then we develop the next event."_ In that order:
+  1. **The event editor:** a page like the test bench where an event plays
+     again and again, with sliders for its values and a Save into the saved
+     settings (`saved-tuning.json`), which already takes any `tuning.ts`
+     value. Frog Rain's are `frogRain` in `tuning.ts`: the lane's width,
+     how far behind and ahead of the line it runs, when the frogs come down,
+     how long their shadows warn, and how long a player stays flattened.
+     Today Frog Rain falls only on Mister Frog's drive (the Forest's Boss,
+     drive 4), so trying a change means playing three drives first.
+  2. **Frog Rain tuned on it** by the Coach.
+  3. **The next event,** designed and then tuned on the editor.
+
+  Open for its grilling: whether the editor is its own page or a tab on
+  the test bench; what plays in it (a practice down with the event forced,
+  played by the Coach or by the bot; which play and which defense); whether
+  SHOO CROWS! and the Royal Decree get tabs too; and, for the events after
+  Frog Rain, whether each stays a Boss's one gimmick (`CONTEXT.md`) or
+  events can come on any drive, and what the glossary calls them.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in
@@ -133,6 +189,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   rather than being shoved yards back. How long, and how far back counts, is
   open. _User, 2026-10-30._
 - **A native Android build** of the game. _User, 2026-10-30._
+- **The tip drill's drift:** each pop carries the ball left or right, its
+  shadow marking where along the hands it comes down, and the Coach taps
+  that spot as it lands. Option B on the tip drill's map (t1), parked until
+  the drop has been played. _User, 2026-10-31._
 
 - **Route timing and speeds,** the rest of e5's advanced play editing. Where
   players line up was built in round 5. _User, 2026-10-29._

@@ -83,13 +83,14 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 ## The test bench _(ours)_
 
 - **Test bench:** the dev page where each quick tap test (Break it!'s
-  three, SNAG IT!, SHOO CROWS!) is played on its own, with sliders for its
+  three, SNAG IT!, the tip drill, SHOO CROWS!) is played on its own, with sliders for its
   `tuning.ts` values (`docs/BENCH.md`). One go is a **rep**, as in
   practice. Its **situation** is the drive, tacklers, crowd and Hands gap a
   rep is played in.
 - **Countdown:** the get-ready before a tap test that freezes the play
-  (Break it!'s three and SNAG IT!; not SHOO CROWS!, a reaction to the crows
-  landing): "GET READY TO MASH! 2… 1…". One setting, `countdown.ready`.
+  (Break it!'s three, SNAG IT! and the tip drill; not SHOO CROWS!, a
+  reaction to the crows landing): "GET READY TO MASH! 2… 1…". One setting,
+  `countdown.ready`.
 - **Default:** a value as `tuning.ts` has it, always kept behind whatever
   is saved. The bench said "shipped" before its rework.
 - **Saved settings:** the values the Coach saved on the test bench, off
@@ -116,3 +117,8 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   free, caught and tackled, or batted (`docs/SNAG.md`). In code, the
   `snag` phase. It isn't a Break it! and doesn't count toward their two a
   down. _Avoid:_ "catch Break it!".
+- **Tip drill** _(ours)_: the other tap test on a contested ball, picked at
+  random with SNAG IT!: the ball pops up off the receiver's hands and each
+  **pop** is tapped as it lands on them, **clean**, a **bobble** or a
+  **drop** (`docs/TIP.md`). TIP DRILL! on screen; in code, `tip`. SNAG IT!
+  and the tip drill are the **catch tests**.

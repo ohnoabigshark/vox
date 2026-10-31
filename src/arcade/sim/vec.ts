@@ -17,6 +17,9 @@ export function norm(a: Vec): Vec {
 }
 
 /** `a` with its length capped at `max`. */
+/** `x` held to `lo`–`hi`. */
+export const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
+
 export function clampLen(a: Vec, max: number): Vec {
   const l = len(a);
   return l <= max ? a : scale(a, max / l);

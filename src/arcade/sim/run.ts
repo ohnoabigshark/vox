@@ -113,6 +113,8 @@ export function createRun(
     readonly twoTapAim?: boolean;
     /** ?snag=1: SNAG IT! from the first drive. */
     readonly snagAlways?: boolean;
+    /** ?tip=1: the tip drill from the first drive. */
+    readonly tipAlways?: boolean;
     /** The plays it deals from; the whole play pool if not given. */
     readonly playbook?: readonly Play[];
     /**
@@ -130,6 +132,7 @@ export function createRun(
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
     snagAlways: options.snagAlways ?? false,
+    tipAlways: options.tipAlways ?? false,
     step: 0,
     time: 0,
     phase: 'setup',
@@ -142,6 +145,8 @@ export function createRun(
     tackle: null,
     snag: null,
     snagDone: null,
+    tip: null,
+    tipDone: null,
     roster,
     bench: [],
     perks: noPerks(),
@@ -501,6 +506,7 @@ export function downOn(phase: Phase): boolean {
     case 'play':
     case 'breakit':
     case 'snag':
+    case 'tip':
       return true;
     case 'downOver':
     case 'draft':
@@ -512,9 +518,9 @@ export function downOn(phase: Phase): boolean {
   }
 }
 
-/** Whether the play is frozen for a tap test (Break it!, SNAG IT!). */
+/** Whether the play is frozen for a tap test (Break it!, SNAG IT!, the tip drill). */
 export function frozenForTest(phase: Phase): boolean {
-  return phase === 'breakit' || phase === 'snag';
+  return phase === 'breakit' || phase === 'snag' || phase === 'tip';
 }
 
 /** Down and distance, e.g. "3rd & 4", or "3rd & Goal" on the Boss drive. Yards round up. */
