@@ -385,23 +385,29 @@ export function timelineText(t: EventTimeline): string[] {
   ];
 }
 
+/** What a new event starts with, beside its id and name: generic, plain, a circle ahead on the right, flattening everyone. */
+const STARTING: Omit<FieldEvent, 'id' | 'name'> = {
+  boss: null,
+  area: { shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 },
+  goesOff: 1.6,
+  lasts: 1.2,
+  warning: { buildUp: 0.7 },
+  effect: { kind: 'flatten', on: 'everyone' },
+  call: 'TACKLED!',
+  look: 'plain',
+};
+
 /** A new event: generic, with the plain look, its id from its name and never one already taken. */
 export function newEvent(name: string, taken: readonly string[]): FieldEvent {
   const base = idFromName(name);
   let id = base;
   for (let n = 2; taken.includes(id); n++) id = `${base}${n}`;
-  return {
-    id,
-    name,
-    boss: null,
-    area: { shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 },
-    goesOff: 1.6,
-    lasts: 1.2,
-    warning: { buildUp: 0.7 },
-    effect: { kind: 'flatten', on: 'everyone' },
-    call: 'TACKLED!',
-    look: 'plain',
-  };
+  return { id, name, ...STARTING };
+}
+
+/** An event of yours as it started (↺ for one never saved, review d3): New event's values, under its own id and name. */
+export function startingValues(e: FieldEvent): FieldEvent {
+  return { id: e.id, name: e.name, ...STARTING };
 }
 
 /** The word called when it tackles a carrier; a blank one means it says nothing. */

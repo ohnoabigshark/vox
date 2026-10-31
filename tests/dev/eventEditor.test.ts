@@ -17,6 +17,7 @@ import {
   savedWithout,
   setCall,
   setNumber,
+  startingValues,
   setOn,
   setShape,
   sizeArea,
@@ -257,5 +258,12 @@ describe('review of the bench-style editor', () => {
       'goes off 2.00 s',
       'ends 3.50 s',
     ]);
+  });
+
+  it('d3: an event of yours never saved goes back to New event’s starting values, under its own name', () => {
+    const made = newEvent('Fog', ['frogRain']);
+    const tried = setOn(setNumber(startEditing(made), 'goesOff', 3), 'theirs').event;
+    expect(startingValues(tried)).toEqual(made);
+    expect(startingValues({ ...tried, name: 'Thick fog' })).toEqual({ ...made, name: 'Thick fog' });
   });
 });

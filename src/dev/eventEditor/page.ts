@@ -35,6 +35,7 @@ import {
   timelineText,
   type EventTimeline,
   replaceEvent,
+  startingValues,
   setNumber,
   type NumberKey,
   type SliderDrag,
@@ -261,8 +262,6 @@ interface Editing {
   tryBox: HTMLElement;
   /** …and the buttons and the save status, drawn again. */
   actions: HTMLElement;
-  /** The event as it was opened: ↺'s mark for one of yours never saved. */
-  opened: FieldEvent;
 }
 
 let editing: Editing | null = null;
@@ -288,11 +287,10 @@ function open(event: FieldEvent): void {
     sliderKeys: '',
     sliding: null,
     parts: el('div', { className: 'controls' }),
-    tryBox: el('div'),
     actions: el('div', { className: 'controls' }),
-    opened: event,
+    // Try it plays the event as it is when tapped.
+    tryBox: tryRow(event, () => e.ed.event),
   };
-  e.tryBox = tryRow(e);
   e.timeline.setAttribute('role', 'img');
   editing = e;
   name.addEventListener('change', () =>
@@ -333,6 +331,8 @@ function draw(): void {
   if (!e) return;
   const ev = e.ed.event;
   e.kind.textContent = eventKind(ev);
+  // The name follows Undo, Restore defaults and Revert to saved, unless it's being typed in (review b3).
+  if (document.activeElement !== e.name) e.name.value = ev.name;
   drawField(e.field, ev.area);
   e.readout.textContent = areaReadout(ev.area);
   e.top.replaceChildren(...topOf(e));
@@ -443,11 +443,17 @@ interface SliderRow {
   show(view: Shown): void;
 }
 
-/** What ↺ and the tick on the track go back to: a built-in event's code, or your event as saved (or as opened). */
+/** What ↺ and the tick on the track go back to: a built-in event's code, or yours as saved (or as it started, if never saved). */
 function baselineOf(e: Editing): FieldEvent {
-  const id = e.ed.event.id;
-  return fieldEventDefaults.find((d) => d.id === id) ?? saved[id] ?? e.opened;
+  const ev = e.ed.event;
+  return fieldEventDefaults.find((d) => d.id === ev.id) ?? saved[ev.id] ?? startingValues(ev);
 }
+
+/** The event as the game has it now (its default, or as saved), or undefined for one never saved. */
+const savedVersion = (id: string): FieldEvent | undefined => events().find((x) => x.id === id);
+
+/** Two of a slider's numbers that read the same. */
+const sameNumber = (a: number, b: number): boolean => Math.abs(a - b) < 1e-9;
 
 /** The sliders for this event's numbers: built when the numbers change shape, otherwise shown again in place, so a drag keeps its grip. */
 function syncSliders(e: Editing): void {
@@ -478,19 +484,31 @@ function syncSliders(e: Editing): void {
       ...places.filter((x) => x !== undefined),
     );
   }
-  const base = eventNumbers(baselineOf(e));
-  const kept = events().find((x) => x.id === e.ed.event.id);
+  const baseline = baselineOf(e);
+  const base = eventNumbers(baseline);
+  const builtIn = isDefault(e.ed.event.id);
+  const kept = savedVersion(e.ed.event.id);
   const keptNumbers = kept ? eventNumbers(kept) : null;
+  // A built-in event saved off its code says what's saved too, as the bench's rows do (review d1).
+  const savedCopy = builtIn ? saved[e.ed.event.id] : undefined;
+  const savedOff = savedCopy ? eventNumbers(savedCopy) : null;
   for (const n of numbers) {
     const b = base.find((x) => x.key === n.key);
     const k = keptNumbers?.find((x) => x.key === n.key);
+    const s = savedOff?.find((x) => x.key === n.key);
+    const word = builtIn ? 'default' : kept ? 'saved' : 'starts at';
+    // The default may be another shape, with no such number: then ↺ has nothing to go back to (review b2).
+    const note = b
+      ? `${word} ${numberText(b)}${s && !sameNumber(s.value, b.value) ? ` · saved ${numberText(s)}` : ''}`
+      : `${word}: a ${baseline.area.shape}`;
     e.sliders.get(n.key)?.show({
       value: n.value,
       shown: numberText(n),
       at: fractionOf(n.value, n.range),
-      ...(b ? { tick: fractionOf(b.value, n.range), note: `default ${numberText(b)}` } : {}),
-      atDefault: b !== undefined && Math.abs(b.value - n.value) < 1e-9,
-      unsaved: k === undefined || Math.abs(k.value - n.value) > 1e-9,
+      ...(b ? { tick: fractionOf(b.value, n.range) } : {}),
+      note,
+      atDefault: b === undefined || sameNumber(b.value, n.value),
+      unsaved: k === undefined || !sameNumber(k.value, n.value),
     });
   }
   drawTimeline(e.timeline, eventTimeline(e.ed.event));
@@ -586,7 +604,7 @@ function partsOf(e: Editing): HTMLElement[] {
 /** Undo, Save, Restore defaults (or Revert to saved), and how saving stands. */
 function actionsOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
-  const current = events().find((x) => x.id === ev.id);
+  const current = savedVersion(ev.id);
   const unsaved = !current || !sameEvent(current, ev);
   const status = saveStatus({ server, error: saveError }, { page: 'events.html', what: 'events' });
   return [
@@ -621,16 +639,15 @@ function callRow(e: Editing): HTMLElement {
   );
 }
 
-/** Try it, at a drive (its defense) with or without two-tap throwing. */
 /**
  * Try it: the drive to try at, the bench's slider (↺ back to the event's own
  * drive), and the throwing. Built once per event, so the drive's drag keeps
  * its grip; Try it takes the event as it is when tapped.
  */
-function tryRow(e: Editing): HTMLElement {
-  const id = e.ed.event.id;
+function tryRow(event: FieldEvent, now: () => FieldEvent): HTMLElement {
+  const id = event.id;
   const range = { min: 1, max: DRIVES, step: 1 };
-  const own = driveFor(e.ed.event);
+  const own = driveFor(event);
   const drive = slider('Try at drive', range, {
     onMove: (v) => {
       tryDrives.set(id, v);
@@ -648,7 +665,7 @@ function tryRow(e: Editing): HTMLElement {
       shown: String(v),
       at: fractionOf(v, range),
       tick: fractionOf(own, range),
-      note: e.ed.event.boss ? `its Boss's drive is ${own}` : `default ${own}`,
+      note: event.boss ? `its Boss's drive is ${own}` : `default ${own}`,
       atDefault: v === own,
     });
   };
@@ -670,7 +687,7 @@ function tryRow(e: Editing): HTMLElement {
     el(
       'div',
       { className: 'chips' },
-      el('button', { className: 'btn go', text: 'Try it', onClick: () => tryIt(e.ed.event) }),
+      el('button', { className: 'btn go', text: 'Try it', onClick: () => tryIt(now()) }),
       tap,
     ),
   );
