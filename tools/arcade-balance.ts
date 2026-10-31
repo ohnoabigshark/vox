@@ -492,6 +492,16 @@ function spread(gains: readonly number[]): string {
   );
 }
 
+/** A catch test's grades on one line ("SNAG IT! 9 · GREAT 67% OK 33% BAD 0%"), if it came up. */
+function gradeLine(name: string, grades: ReadonlyMap<string, number>): void {
+  const n = (g: string): number => grades.get(g) ?? 0;
+  const all = n('great') + n('ok') + n('bad');
+  if (all === 0) return;
+  console.log(
+    `  ${name} ${all} · GREAT ${pct(n('great'), all)} OK ${pct(n('ok'), all)} BAD ${pct(n('bad'), all)}`,
+  );
+}
+
 function report(scenario: Scenario, t: Tally): void {
   console.log(`\n## ${scenario.name}  (${t.runs} runs)`);
   console.log(
@@ -535,24 +545,8 @@ function report(scenario: Scenario, t: Tally): void {
     const all = [...t.breakResults.values()].reduce((a, n) => a + n, 0);
     console.log(`  Break it! BAD ${pct(bad, all)} · ${kinds.join(' · ')}`);
   }
-  {
-    const n = (g: string): number => t.snagResults.get(g) ?? 0;
-    const all = n('great') + n('ok') + n('bad');
-    if (all > 0) {
-      console.log(
-        `  SNAG IT! ${all} · GREAT ${pct(n('great'), all)} OK ${pct(n('ok'), all)} BAD ${pct(n('bad'), all)}`,
-      );
-    }
-  }
-  {
-    const n = (g: string): number => t.tipResults.get(g) ?? 0;
-    const all = n('great') + n('ok') + n('bad');
-    if (all > 0) {
-      console.log(
-        `  tip drill ${all} · GREAT ${pct(n('great'), all)} OK ${pct(n('ok'), all)} BAD ${pct(n('bad'), all)}`,
-      );
-    }
-  }
+  gradeLine('SNAG IT!', t.snagResults);
+  gradeLine('tip drill', t.tipResults);
   if (t.runGrabs.length > 0) {
     const g = [...t.runGrabs].sort((a, b) => a - b);
     const q = (f: number): string => (g[Math.floor(f * (g.length - 1))] ?? 0).toFixed(1);
