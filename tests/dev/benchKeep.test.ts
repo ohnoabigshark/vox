@@ -22,7 +22,7 @@ describe('the settings kept on the phone', () => {
     expect(await benchStore(storage).load()).toEqual({ kept, problem: null });
   });
 
-  it('start from the shipped values when nothing is kept', async () => {
+  it('start from the defaults when nothing is kept', async () => {
     expect(await benchStore(memoryStorage()).load()).toEqual({ kept: FIRST_KEPT, problem: null });
   });
 
@@ -39,12 +39,12 @@ describe('the settings kept on the phone', () => {
     expect(back.situation).toEqual({ drive: 20, tacklers: 1, crowd: 3, handsGap: 40 });
   });
 
-  it("start from the shipped values, and say why, when storage can't be read", async () => {
+  it("start from the defaults, and say why, when storage can't be read", async () => {
     const garbled = memoryStorage();
     garbled.data.set('getJackBack.testBench', '{nope');
     expect(await benchStore(garbled).load()).toEqual({
       kept: FIRST_KEPT,
-      problem: "The bench's saved settings can't be read, so it starts from the shipped values.",
+      problem: "The bench's saved settings can't be read, so it starts from the defaults.",
     });
     const refusing = {
       getItem: (): string | null => {

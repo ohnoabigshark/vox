@@ -238,7 +238,7 @@ input:focus-visible {
   accent-color: var(--b-on);
 }
 
-/* The shipped value, under the track. */
+/* The default, under the track. */
 .b-tick {
   position: absolute;
   bottom: -3px;

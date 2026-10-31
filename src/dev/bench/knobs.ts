@@ -4,7 +4,7 @@
  * `{area}` for the values set by area (the slider edits the picked drive's).
  * The bench sets the live tuning object, which the sim reads as it goes, so
  * the next rep plays at the new value; `applySettings({})` puts every value
- * back as shipped.
+ * back to their defaults.
  */
 import { numberAt } from '../../arcade/content/savedTuning';
 import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
@@ -29,7 +29,7 @@ export interface Knob {
   readonly tests: readonly BenchTest[];
 }
 
-/** Settings: tuning.ts values by path, for those moved off shipped. */
+/** Settings: tuning.ts values by path, for those moved off their defaults. */
 export type Settings = Readonly<Record<string, number>>;
 
 const BREAKS: readonly BenchTest[] = ['bar', 'mash', 'juke'];
@@ -116,31 +116,31 @@ export function tuningValue(path: string): number {
   return parent[key] as number;
 }
 
-const SHIPPED = new Map(
+const DEFAULTS = new Map(
   allPaths().map((p) => {
     const { parent, key } = locate(tuningDefaults, p);
     return [p, parent[key] as number];
   }),
 );
 
-/** The value as tuning.ts ships it. */
-export function shippedValue(path: string): number {
-  const v = SHIPPED.get(path);
+/** The value tuning.ts has: its default. */
+export function defaultValue(path: string): number {
+  const v = DEFAULTS.get(path);
   if (v === undefined) throw new Error(`no knob edits ${path}`);
   return v;
 }
 
-/** Set every value the bench edits: from `settings`, or as shipped. */
+/** Set every value the bench edits: from `settings`, or as its default. */
 export function applySettings(settings: Settings): void {
-  for (const [path, shipped] of SHIPPED) {
+  for (const [path, byDefault] of DEFAULTS) {
     const { parent, key } = locate(arcadeTuning, path);
-    parent[key] = settings[path] ?? shipped;
+    parent[key] = settings[path] ?? byDefault;
   }
 }
 
-/** A knob's reach, in tuning.ts numbers (k5): half the shipped value to double it. */
+/** A knob's reach, in tuning.ts numbers (k5): half the default to double it. */
 export function reachOf(knob: Knob, path: string): { min: number; max: number; step: number } {
-  const v = shippedValue(path);
+  const v = defaultValue(path);
   switch (knob.unit) {
     case 'count':
       return { min: Math.max(1, Math.ceil(v / 2)), max: Math.floor(v * 2), step: 1 };
@@ -185,13 +185,13 @@ export function showValue(knob: Knob, v: number): string {
 
 /**
  * Copy settings (k3): the open tab's values as tuning.ts lines, each changed
- * one marked with what ships, for when the log isn't recording.
+ * one marked with its default, for when the log isn't recording.
  */
 export function copyText(test: BenchTest, drive: number, settings: Settings): string {
   const lines = knobsFor(test).map((knob) => {
     const path = pathOf(knob, drive);
-    const v = settings[path] ?? shippedValue(path);
-    const changed = v !== shippedValue(path) ? `  // was ${shippedValue(path)}` : '';
+    const v = settings[path] ?? defaultValue(path);
+    const changed = v !== defaultValue(path) ? `  // was ${defaultValue(path)}` : '';
     return `${path}: ${round(v)},${changed}`;
   });
   return [`// Test bench: ${test}, drive ${drive} (src/arcade/content/tuning.ts)`, ...lines].join(
@@ -209,13 +209,13 @@ export function knobOf(path: string): Knob | null {
   return KNOBS.find((x) => pathsOf(x).includes(path)) ?? null;
 }
 
-/** The settings with `path` at `v`: kept only while it's off shipped. */
+/** The settings with `path` at `v`: kept only while it's off its default. */
 export function withValue(settings: Settings, path: string, v: number): Settings {
   const rest = withoutPaths(settings, [path]);
-  return round(v) === round(shippedValue(path)) ? rest : { ...rest, [path]: round(v) };
+  return round(v) === round(defaultValue(path)) ? rest : { ...rest, [path]: round(v) };
 }
 
-/** The settings with these paths back as shipped. */
+/** The settings with these paths back to their defaults. */
 export function withoutPaths(settings: Settings, paths: readonly string[]): Settings {
   return Object.fromEntries(Object.entries(settings).filter(([p]) => !paths.includes(p)));
 }

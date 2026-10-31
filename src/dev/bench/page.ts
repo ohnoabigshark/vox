@@ -27,7 +27,7 @@ import {
   pathsOf,
   reachOf,
   round,
-  shippedValue,
+  defaultValue,
   showValue,
   toScreen,
   withValue,
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
     <p class="b-summary"></p>
     <div class="b-row">
       <button class="b-go">GO</button>
-      <button class="b-reset">Reset to shipped</button>
+      <button class="b-reset">Reset to defaults</button>
       <button class="b-copy">Copy settings</button>
     </div>
     <textarea class="b-copied" readonly hidden rows="8"></textarea>
@@ -271,10 +271,10 @@ async function main(): Promise<void> {
     const drive = kept.situation.drive;
     for (const knob of knobsFor(test())) {
       const path = pathOf(knob, drive);
-      const shipped = shippedValue(path);
+      const byDefault = defaultValue(path);
       const reach = reachOf(knob, path);
       const step = knob.unit === 'seconds' ? 0.01 : reach.step;
-      const value = (): number => settings[path] ?? shipped;
+      const value = (): number => settings[path] ?? byDefault;
       const row = slider(
         knob.label,
         showValue(knob, value()),
@@ -285,12 +285,12 @@ async function main(): Promise<void> {
       );
       const tick = document.createElement('span');
       tick.className = 'b-tick';
-      tick.style.left = `${((shipped - reach.min) / (reach.max - reach.min)) * 100}%`;
+      tick.style.left = `${((byDefault - reach.min) / (reach.max - reach.min)) * 100}%`;
       row.track.append(tick);
       const note = document.createElement('small');
       const showNote = (): void => {
-        note.textContent = `${path} ${round(value())} · ships ${round(shipped)}`;
-        row.label.classList.toggle('changed', value() !== shipped);
+        note.textContent = `${path} ${round(value())} · default ${round(byDefault)}`;
+        row.label.classList.toggle('changed', value() !== byDefault);
       };
       showNote();
       row.label.append(note);

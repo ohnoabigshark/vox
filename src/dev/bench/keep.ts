@@ -1,9 +1,9 @@
 /**
  * The test bench's settings, kept in this browser's storage between visits
  * (docs/BENCH.md, k4): the open tab, the situation, the sliders moved off
- * shipped, and the toggles. What's kept is checked on the way back in: a
+ * their defaults, and the toggles. What's kept is checked on the way back in: a
  * slider that's gone is dropped and a value out of reach is pulled inside
- * it; storage that can't be read starts from the shipped values and says so.
+ * it; storage that can't be read starts from the defaults and says so.
  */
 import { BENCH_TESTS, knobOf, reachOf, type BenchTest, type Settings } from './knobs';
 import { FIRST_SITUATION, type Situation } from './reps';
@@ -38,8 +38,7 @@ export interface BenchStore {
 const KEY = 'getJackBack.testBench';
 const VERSION = 1;
 const UNAVAILABLE = "This browser isn't keeping the bench's settings (private browsing?).";
-const UNREADABLE =
-  "The bench's saved settings can't be read, so it starts from the shipped values.";
+const UNREADABLE = "The bench's saved settings can't be read, so it starts from the defaults.";
 
 /** The situation's ranges (k2). */
 const RANGES: Readonly<Record<keyof Situation, readonly [number, number]>> = {

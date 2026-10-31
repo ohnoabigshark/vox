@@ -14,7 +14,7 @@ import {
   pathOf,
   pathsOf,
   reachOf,
-  shippedValue,
+  defaultValue,
   toScreen,
   tuningValue,
   withValue,
@@ -63,15 +63,15 @@ function play(
 afterEach(() => applySettings({}));
 
 describe('the knobs', () => {
-  it('1: every slider names a real tuning value, starts at the shipped one, and its reach holds it', () => {
+  it('1: every slider names a real tuning value, starts at its default, and its reach holds it', () => {
     for (const k of KNOBS) {
       for (const path of pathsOf(k)) {
-        const shipped = shippedValue(path);
+        const byDefault = defaultValue(path);
         expect(typeof tuningValue(path), path).toBe('number');
-        expect(tuningValue(path), path).toBe(shipped);
+        expect(tuningValue(path), path).toBe(byDefault);
         const r = reachOf(k, path);
-        expect(r.min, path).toBeLessThanOrEqual(shipped);
-        expect(r.max, path).toBeGreaterThanOrEqual(shipped);
+        expect(r.min, path).toBeLessThanOrEqual(byDefault);
+        expect(r.max, path).toBeGreaterThanOrEqual(byDefault);
       }
     }
     expect(allPaths()).toEqual(KNOBS.flatMap(pathsOf));
@@ -120,7 +120,7 @@ describe('the knobs', () => {
     expect(keys('shoo')).toEqual(['crows.window']);
   });
 
-  it('3: a moved slider changes the next rep, and Reset to shipped puts it back', () => {
+  it('3: a moved slider changes the next rep, and Reset to defaults puts it back', () => {
     applySettings({ 'snag.close': fromScreen(knob('snag.close'), 1) });
     const dot = startRep('snag', at(5), 1).state.snag!.dots[0]!;
     expect((dot.closesAt - dot.appearsAt) / TIME_SCALE).toBeCloseTo(1, 6);
@@ -129,7 +129,7 @@ describe('the knobs', () => {
     expect(back.closesAt - back.appearsAt).toBe(0.64);
   });
 
-  it('3: a slider moved back to shipped drops out of the settings, and Reset drops the tab', () => {
+  it('3: a slider moved back to its default drops out of the settings, and Reset drops the tab', () => {
     const close = withValue({}, 'snag.close', 0.56);
     expect(close).toEqual({ 'snag.close': 0.56 });
     expect(withValue(close, 'snag.close', 0.64)).toEqual({});

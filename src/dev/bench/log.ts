@@ -9,7 +9,7 @@ import {
   knobsFor,
   pathOf,
   round,
-  shippedValue,
+  defaultValue,
   type BenchTest,
   type Settings,
 } from './knobs';
@@ -44,7 +44,7 @@ export function settingsLine(
   now: number,
 ): LogLine {
   const paths = typeof path === 'string' ? [path] : path;
-  const value = (p: string): number => round(settings[p] ?? shippedValue(p));
+  const value = (p: string): number => round(settings[p] ?? defaultValue(p));
   const all = Object.fromEntries(
     knobsFor(test).map((k) => [pathOf(k, situation.drive), value(pathOf(k, situation.drive))]),
   );
