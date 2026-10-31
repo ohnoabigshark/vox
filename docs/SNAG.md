@@ -152,8 +152,12 @@ something playable"), so they are recorded here instead.
    the bar, mash, juke and SNAG IT! tabs, first in each (cd-c4), and saving
    it on one tab saves it for all four. `breakit.ready` and `snag.call`
    are gone.
-5. The balance bot still plays SNAG IT! and Break it! and grades them
-   (their existing tests, unchanged).
+5. The balance bot still plays SNAG IT! and Break it! and grades them.
+   _As checked (review c4):_ no test covers the bot (its script runs every
+   scenario as it's imported), so "their existing tests" was wrong. What
+   showed it: a hard-mode balance run of 6 runs, in which the bot played
+   SNAG IT! 9 times through the countdown (6 GREAT, 3 OK) and Break it! as
+   before. Test 4 also checks the mash's countdown, since review c4.
 
 The look is checked in a phone-sized screenshot.
 

@@ -13,6 +13,7 @@ import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { snagView } from '../../src/arcade/ui/testViews';
 import { v } from '../../src/arcade/sim/vec';
+import { startRep } from '../../src/dev/bench/reps';
 import { ofType, playState, run, stand, throwAt } from './helpers';
 
 /** docs/SNAG.md: the tests it lists, in its order. */
@@ -349,11 +350,15 @@ describe('SNAG IT!: the countdown (cd-c10)', () => {
     expect(ofType(played.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'great' }]);
   });
 
-  it("4: one setting, countdown.ready, moves SNAG IT!'s first dot", () => {
+  it("4: one setting, countdown.ready, moves the mash's countdown and SNAG IT!'s first dot alike", () => {
     layerSaved(arcadeTuning, tuningDefaults, { 'countdown.ready': 2.4 });
     const t = bulletContest(5).snag;
     if (!t) throw new Error('no snag');
     expect(t.dots[0]!.appearsAt - t.startedAt).toBeCloseTo(2.4, 9);
+    // A mash started the game's way (the bench's rep does it with startBreakIt).
+    const mash = startRep('mash', { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state;
+    expect(mash.tackle?.kind).toBe('mash');
+    expect(mash.tackle?.ready).toBe(2.4);
   });
 });
 
