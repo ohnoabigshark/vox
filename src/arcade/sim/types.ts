@@ -250,8 +250,11 @@ export interface SnagDot {
   readonly appearsAt: number;
   readonly closesAt: number;
   /** Hit or missed, or null while it's still to play. */
-  result: 'hit' | 'miss' | null;
+  result: SnagDotResult;
 }
+
+/** How a SNAG IT! dot went: hit, missed, or null while it's still to play. */
+export type SnagDotResult = 'hit' | 'miss' | null;
 
 export type SnagGrade = 'great' | 'ok' | 'bad';
 

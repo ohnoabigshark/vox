@@ -56,8 +56,11 @@ export const arcadeTuning = {
      * (within the range: a lighter blocker can only hold it).
      */
     drive: { base: 0.8, perHeft: 0.9, min: 0, max: 4 },
-    /** A tackler shaken off in Break it! lies there this long. */
+    /** A tackler shaken off in Break it! (or knocked off a SNAG IT! GREAT) lies there this long… */
     brokenTime: 1.0,
+    /** …sent flying this fast (yards a second); a pancake or a scatter goes at `knockSpeed`. */
+    brokenSpeed: 5,
+    knockSpeed: 4,
     /** Bodies this close (beyond touching) count as contact for a tackle or a sack. */
     slop: 0.1,
     /**
