@@ -137,7 +137,7 @@ export function judgeSnag(
   if (!t) throw new Error('SNAG IT! phase with no SNAG IT! running');
   const now = state.time;
   const tapped = input.snag === undefined ? undefined : t.dots[input.snag];
-  if (tapped && tapped.result === null && now >= tapped.appearsAt) {
+  if (tapped && dotOpen(tapped, now)) {
     const hit = Math.abs(now - tapped.closesAt) <= sn.window;
     tapped.result = hit ? 'hit' : 'miss';
     events.push({ type: 'snagDot', index: t.dots.indexOf(tapped), hit });
@@ -150,6 +150,17 @@ export function judgeSnag(
   if (t.dots.some((d) => d.result === null)) return null;
   const misses = t.dots.filter((d) => d.result === 'miss').length;
   return misses === 0 ? 'great' : misses === 1 ? 'ok' : 'bad';
+}
+
+/** Whether a dot can be tapped at `time`: it has shown, and isn't graded yet. */
+export function dotOpen(dot: SnagDot, time: number): boolean {
+  return dot.result === null && time >= dot.appearsAt;
+}
+
+/** The dot a tap with no aim (Space) goes to: the open one that shows first, so closes first; or null. */
+export function nextDot(state: RunState): number | null {
+  const i = state.snag?.dots.findIndex((d) => dotOpen(d, state.time)) ?? -1;
+  return i >= 0 ? i : null;
 }
 
 /** How far a dot's ring has closed (0 as the dot shows, 1 closed on it), or null before it shows. */

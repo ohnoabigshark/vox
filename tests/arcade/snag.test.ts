@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning, DT } from '../../src/arcade/content/tuning';
 import { createRun } from '../../src/arcade/sim/run';
-import { driveNumber, snagCount, snagPace } from '../../src/arcade/sim/snag';
+import { dotOpen, driveNumber, nextDot, snagCount, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
@@ -79,8 +79,7 @@ function snag(state: RunState, taps: readonly Tap[]): { state: RunState; events:
     const dots = s.snag?.dots ?? [];
     const tap = dots.findIndex(
       (d, k) =>
-        d.result === null &&
-        now >= d.appearsAt &&
+        dotOpen(d, now) &&
         ((taps[k] === 'hit' && Math.abs(now - d.closesAt) < DT / 2 + 1e-9) ||
           (taps[k] === 'early' && now - d.appearsAt < DT)),
     );
@@ -324,5 +323,21 @@ describe('SNAG IT!: never fail silently (review a8)', () => {
     const s = bulletContest(5);
     s.snag = null;
     expect(() => step(s, {})).toThrow('SNAG IT! phase with no SNAG IT! running');
+  });
+});
+
+describe('SNAG IT!: the dot to tap, defined once (review a5)', () => {
+  it('a dot is open from when it shows until it is graded; the next dot is the first open one', () => {
+    const s = bulletContest(5);
+    const [d0, d1] = s.snag?.dots ?? [];
+    if (!d0 || !d1) throw new Error('no dots');
+    expect(dotOpen(d0, d0.appearsAt - DT)).toBe(false);
+    expect(dotOpen(d0, d0.appearsAt)).toBe(true);
+    expect(nextDot(s)).toBeNull();
+    const shown = run(s, d1.appearsAt - s.time + DT).state;
+    expect(nextDot(shown)).toBe(0);
+    shown.snag!.dots[0]!.result = 'hit';
+    expect(dotOpen(shown.snag!.dots[0]!, shown.time)).toBe(false);
+    expect(nextDot(shown)).toBe(1);
   });
 });

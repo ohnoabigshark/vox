@@ -34,6 +34,8 @@ import { FORM_STATS } from '../src/arcade/content/team';
 import { rngFor } from '../src/arcade/sim/random';
 import { plus } from '../src/arcade/sim/stats';
 import { breakMarker, jukeShowing } from '../src/arcade/sim/breakit';
+import { DT } from '../src/arcade/content/tuning';
+import { dotOpen } from '../src/arcade/sim/snag';
 import { canThrow, step } from '../src/arcade/sim/step';
 import type { ArcadeEvent, Form, Role, RunState, Stats, StepInput } from '../src/arcade/sim/types';
 import { dist } from '../src/arcade/sim/vec';
@@ -227,9 +229,9 @@ function botInput(state: RunState, rng: Rng, plan: Plan): StepInput {
       plan.snagSkips = t.dots.map(() => rng.next() < BOT.snagMiss);
     }
     // The step this input lands on: tap the dot whose ring closes then.
-    const next = state.time + 1 / 60;
+    const next = state.time + DT;
     const i = t.dots.findIndex(
-      (d, k) => d.result === null && !plan.snagSkips[k] && Math.abs(next - d.closesAt) <= 0.5 / 60,
+      (d, k) => dotOpen(d, next) && !plan.snagSkips[k] && Math.abs(next - d.closesAt) <= DT / 2,
     );
     return i >= 0 ? { snag: i } : {};
   }

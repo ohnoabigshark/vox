@@ -57,7 +57,7 @@ import {
   mashLeft,
   type BreakOutcome,
 } from './sim/breakit';
-import { ringClosed } from './sim/snag';
+import { nextDot, ringClosed } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import type {
   Action,
@@ -887,9 +887,8 @@ export class ArcadeGame {
 
   /** Space in SNAG IT!: a tap on the dot that's showing and closes first. */
   private snagKey(): void {
-    const dots = this.state.snag?.dots ?? [];
-    const i = dots.findIndex((d) => d.result === null && this.state.time >= d.appearsAt);
-    if (i >= 0) this.press({ snag: i });
+    const i = nextDot(this.state);
+    if (i !== null) this.press({ snag: i });
   }
 
   private onKey(e: KeyboardEvent): void {
