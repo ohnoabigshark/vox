@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
+import { benchLogPlugin } from './tools/benchLog';
 
 // Where the dev and preview servers listen. Loopback unless DEV_BIND says
 // otherwise: our droplet has a public address, so `--host`'s every-interface
@@ -14,7 +15,13 @@ const host = process.env.DEV_BIND || '127.0.0.1';
 const proxiedHost = process.env.DEV_HOST || '';
 const hmrPort = Number(process.env.DEV_HMR_PORT || '') || 443;
 
+// The test bench's log (docs/BENCH.md, l1): where the hot-reload server
+// appends its lines. vox-dev.sh sets it; blank, the bench says it isn't
+// recording.
+const benchLog = process.env.BENCH_LOG || '';
+
 export default defineConfig({
+  plugins: [benchLogPlugin(benchLog)],
   server: {
     host,
     ...(proxiedHost
