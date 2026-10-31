@@ -8,6 +8,7 @@
  * left), y upfield. Each drive starts its line of scrimmage at y = 0 and its
  * first-down line at y = 10. Times are seconds.
  */
+import type { EventLook, FieldEvent } from '../content/fieldEvents';
 import type { Play } from '../content/plays';
 
 export interface Vec {
@@ -128,14 +129,35 @@ export interface Pickup {
   readonly y: number;
 }
 
-/** Mister Frog's Frog Rain: the lane it falls in this down (shown before the snap). */
-export interface FrogLane {
-  /** The lane's middle (yards across) and half its width. */
+/** A field event's area as placed this down, in field yards: a rectangle (a lane or a band). */
+export interface PlacedRect {
+  readonly shape: 'rect';
+  /** Left and right edges (across), near and far edges (upfield). */
+  readonly x0: number;
+  readonly x1: number;
+  readonly y0: number;
+  readonly y1: number;
+}
+
+/** A field event's circle as placed this down, in field yards. */
+export interface PlacedCircle {
+  readonly shape: 'circle';
   readonly x: number;
-  readonly half: number;
-  /** It runs from the line of scrimmage up to here (yards upfield). */
-  readonly from: number;
-  readonly to: number;
+  readonly y: number;
+  readonly r: number;
+}
+
+export type PlacedArea = PlacedRect | PlacedCircle;
+
+/** A field event on the field this down (docs/FIELD_EVENTS.md): which, where, and when it goes off. */
+export interface FieldEventOn {
+  readonly event: FieldEvent;
+  readonly area: PlacedArea;
+  /**
+   * Sim seconds of live play until it goes off: null before the snap; past
+   * zero it counts on to −1 for the show, then null again.
+   */
+  left: number | null;
 }
 
 /**
@@ -162,13 +184,8 @@ export interface Field {
   props: readonly FieldProp[];
   /** The pickups lying there, not yet taken (none in practice). */
   pickups: readonly Pickup[];
-  /**
-   * Frog Rain (Mister Frog's drive): this down's lane, and once it's snapped,
-   * the seconds of live play until the frogs all come down in it (negative
-   * after, for the show), or null.
-   */
-  frogLane: FrogLane | null;
-  frogDump: number | null;
+  /** This down's field event (Frog Rain, on Mister Frog's drive), shown from before the snap, or null. */
+  fieldEvent: FieldEventOn | null;
   /** The King's two pairs of crows (his drive), in the order they go, or null. */
   crows: RoyalCrows[] | null;
   ball: Ball;
@@ -397,6 +414,8 @@ export interface RunState {
    * one sketch, called at every setup, and every rep lines up the same spot.
    */
   readonly practice: boolean;
+  /** Event practice (the event editor's Try it): the field event set off every rep, or null. */
+  readonly practiceEvent: FieldEvent | null;
   /** The pickups taken this run, by id: they never come back (map item k3). */
   taken: number[];
   /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */
@@ -521,10 +540,15 @@ export type ArcadeEvent =
       readonly slot: number;
       readonly replaced: string | null;
     }
-  /** The frogs came down (Frog Rain): `flattened` are the bodies in the lane they knocked down. */
-  | { readonly type: 'frogRain'; readonly flattened: readonly number[] }
-  /** …and the carrier was in it: tackled there. */
-  | { readonly type: 'frogged'; readonly id: number }
+  /** A field event went off (the frogs came down): `hit` are the bodies in it that it caught… */
+  | {
+      readonly type: 'fieldEventWentOff';
+      readonly event: string;
+      readonly look: EventLook;
+      readonly hit: readonly number[];
+    }
+  /** …and the carrier was one: tackled there, with the event's call (FROGGED!), or none. */
+  | { readonly type: 'eventTackled'; readonly id: number; readonly call: string | null }
   /** One of your players ran through a pickup and took it (docs/PICKUPS.md). */
   | {
       readonly type: 'pickupTaken';

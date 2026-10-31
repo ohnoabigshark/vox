@@ -1,5 +1,6 @@
 import { readModes } from './arcade/content/modeFlags';
 import { readPractice } from './arcade/content/playCode';
+import { readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
 import { now } from './clock';
 import { browserStorage, inGamePlays, sketchStore } from './dev/playEditor/sketches';
@@ -25,6 +26,9 @@ const seed = Number(params.get('seed')) || Math.floor(Math.random() * 1e9);
 // ?try=…&sketch=… is practice, from the play editor's Try it (dev/plays.html): that
 // one play on the field, rep after rep, with ‹ Sketch back to the editor.
 const practice = readPractice(location.search);
+// ?event=…&drive=… is event practice, from the event editor's Try it (dev/events.html):
+// that field event every rep at that drive, with ‹ Events back to the editor.
+const eventPractice = readEventPractice(location.search);
 // Hard mode (endless zones) and two-tap throwing (aim, then distance) are on unless
 // ?hard=0 or ?aim=1 turns them off (readModes).
 const modes = readModes(params);
@@ -44,6 +48,7 @@ const game = new ArcadeGame(canvas, ui, {
   tipAlways: params.get('tip') === '1',
   farmSong: Number(params.get('farmSong')) || 1,
   ...(practice ? { practice } : {}),
+  ...(eventPractice ? { eventPractice } : {}),
   // The play editor's sketches in the game join the plays dealt, read at every PLAY and
   // AGAIN. If they can't be read the game stays quiet: the editor's list says why (n4).
   sketchesInGame: async () =>

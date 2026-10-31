@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { benchLogPlugin } from './tools/benchLog';
 import { benchSavePlugin } from './tools/benchSave';
+import { eventsSavePlugin } from './tools/eventsSave';
 
 // Where the dev and preview servers listen. Loopback unless DEV_BIND says
 // otherwise: our droplet has a public address, so `--host`'s every-interface
@@ -26,6 +27,7 @@ export default defineConfig({
   plugins: [
     benchLogPlugin(benchLog),
     benchSavePlugin(resolve(import.meta.dirname, 'src/arcade/content/saved-tuning.json')),
+    eventsSavePlugin(resolve(import.meta.dirname, 'src/arcade/content/saved-events.json')),
   ],
   server: {
     host,
@@ -59,6 +61,7 @@ export default defineConfig({
               devLyrics: resolve(import.meta.dirname, 'dev/lyrics.html'),
               devPlays: resolve(import.meta.dirname, 'dev/plays.html'),
               devBench: resolve(import.meta.dirname, 'dev/bench.html'),
+              devEvents: resolve(import.meta.dirname, 'dev/events.html'),
             }),
       },
     },

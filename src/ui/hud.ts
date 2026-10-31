@@ -179,9 +179,14 @@ export class Hud {
     this.noticeEl.hidden = text === null;
   }
 
+  /** Practice: what the back button says (‹ Sketch, or ‹ Events for the event editor's Try it). */
+  setBackLabel(text: string): void {
+    this.backButton.textContent = text;
+  }
+
   /**
-   * Practice: ‹ Sketch, shown between reps. Hidden mid-play, it keeps its
-   * place, so down and distance doesn't jump across the top.
+   * Practice: the back button, shown between reps. Hidden mid-play, it keeps
+   * its place, so down and distance doesn't jump across the top.
    */
   setBack(show: boolean): void {
     this.backButton.hidden = false;

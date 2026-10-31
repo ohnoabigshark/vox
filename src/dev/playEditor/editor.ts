@@ -19,10 +19,7 @@ import {
 import { ROSTER_ROLES, lineUpSpot, playSlot } from '../../arcade/content/team';
 import { arcadeTuning } from '../../arcade/content/tuning';
 
-export interface Yards {
-  readonly x: number;
-  readonly y: number;
-}
+import type { Yards } from '../fieldSvg';
 
 export interface EditorState {
   readonly play: Play;

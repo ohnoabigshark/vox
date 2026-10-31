@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { PLAYS } from '../../src/arcade/content/plays';
+import { FROG_RAIN } from '../../src/arcade/content/fieldEvents';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { aimContact, pocketTime, sweepAngle, sweepSpeed } from '../../src/arcade/sim/ball';
 import { physicsOf } from '../../src/arcade/sim/bodies';
@@ -885,18 +886,22 @@ describe('the play fake', () => {
 });
 
 describe("Mister Frog's Frog Rain", () => {
+  /** The lane these tests use: down the right side, x 1.9 to 9.1, a yard behind the line to 16 ahead. */
+  const RIGHT_LANE = { shape: 'rect', x0: 1.9, x1: 9.1, y0: -1, y1: 16 } as const;
+
   it('his drive shows a lane each down, never over the pumpkin; he stands in the end zone', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = createRun(seed);
       setUpDrive(s, 0, 3, [], true);
       expect(s.drive.kind).toBe('boss');
       expect(s.field.props.some((p) => p.model === 'bosses/misterFrog')).toBe(true);
-      const lane = s.field.frogLane!;
-      expect(Math.abs(lane.x) - lane.half).toBeGreaterThan(1);
+      const lane = s.field.fieldEvent!.area;
+      if (lane.shape !== 'rect') throw new Error('a lane is a rectangle');
+      expect(Math.min(Math.abs(lane.x0), Math.abs(lane.x1))).toBeGreaterThan(1);
     }
     // Other drives have none.
     const s = createRun(1);
-    expect(s.field.frogLane).toBeNull();
+    expect(s.field.fieldEvent).toBeNull();
   });
 
   /** A down with a lane down the right side, its frogs about to come down. */
@@ -905,15 +910,18 @@ describe("Mister Frog's Frog Rain", () => {
     defenders: Parameters<typeof playState>[1] = [],
   ) => {
     const s = playState(players, defenders);
-    s.field.frogLane = { x: 5.5, half: 3.6, from: -1, to: 16 };
-    s.field.frogDump = DT * 2;
+    s.field.fieldEvent = { event: FROG_RAIN, area: RIGHT_LANE, left: DT * 2 };
     return s;
   };
 
   it('the frogs all come down at once: a carrier in the lane is FROGGED (tackled there)', () => {
     const s = carry(rain([{ role: 'runner', pos: v(4, 3), job: stand(v(4, 3)) }]), 2);
     const r = run(s, 0.2);
-    expect(ofType(r.events, 'frogged')[0]?.id).toBe(2);
+    expect(ofType(r.events, 'eventTackled')[0]).toEqual({
+      type: 'eventTackled',
+      id: 2,
+      call: 'FROGGED!',
+    });
     expect(ofType(r.events, 'tackled')).toHaveLength(1);
   });
 
@@ -926,8 +934,8 @@ describe("Mister Frog's Frog Rain", () => {
       [{ kind: 'cover', pos: v(7, 9) }],
     );
     const r = run(s, 0.1);
-    expect(ofType(r.events, 'frogRain')[0]?.flattened.slice().sort()).toEqual([100, 2]);
-    expect(ofType(r.events, 'frogged')).toHaveLength(0);
+    expect(ofType(r.events, 'fieldEventWentOff')[0]?.hit.slice().sort()).toEqual([100, 2]);
+    expect(ofType(r.events, 'eventTackled')).toHaveLength(0);
     expect(body(r.state, 2).down).toBeGreaterThan(0);
     expect(body(r.state, 3).down).toBe(0);
   });
@@ -936,11 +944,11 @@ describe("Mister Frog's Frog Rain", () => {
     const s = createRun(3);
     setUpDrive(s, 0, 3, [], true);
     let st = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
-    expect(st.field.frogDump).toBe(arcadeTuning.frogRain.dumpAt);
+    expect(st.field.fieldEvent?.left).toBe(FROG_RAIN.goesOff);
     let dumps = 0;
     for (let i = 0; i < 400 && (st.phase === 'play' || st.phase === 'breakit'); i++) {
       const r = step(st, st.phase === 'breakit' ? { breakTap: i % 4 === 0 } : {});
-      dumps += ofType(r.events, 'frogRain').length;
+      dumps += ofType(r.events, 'fieldEventWentOff').length;
       st = r.state;
     }
     expect(dumps).toBeLessThanOrEqual(1);
@@ -954,12 +962,11 @@ describe("Mister Frog's Frog Rain", () => {
     s.field.lane = 0;
     let st = untilGrabbed(s).state;
     expect(st.phase).toBe('breakit');
-    st.field.frogLane = { x: 5.5, half: 3.6, from: -1, to: 16 };
-    st.field.frogDump = 0.5;
+    st.field.fieldEvent = { event: FROG_RAIN, area: RIGHT_LANE, left: 0.5 };
     // Well inside the countdown, so it's still Break it!.
     for (let i = 0; i < 30; i++) st = step(st).state;
     expect(st.phase).toBe('breakit');
-    expect(st.field.frogDump).toBe(0.5);
+    expect(st.field.fieldEvent?.left).toBe(0.5);
   });
 });
 
@@ -981,7 +988,7 @@ describe('the Candy Kingdom', () => {
     expect(s.drive.name).toBe("The Queen's Court");
     expect(s.field.props.some((p) => p.model === 'bosses/queen')).toBe(true);
     expect(s.banned).not.toBeNull();
-    expect(s.field.frogLane).toBeNull();
+    expect(s.field.fieldEvent).toBeNull();
     // The Forest's Boss drive has no Decree.
     setUpDrive(s, 0, 3, [], true);
     expect(s.banned).toBeNull();

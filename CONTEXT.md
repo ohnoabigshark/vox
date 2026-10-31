@@ -37,7 +37,8 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Line of scrimmage** and **first-down line:** where the down starts, and
   10 yards past where the drive started.
 - **Boss:** the area's last drive, with its own gimmick (Frog Rain, the
-  Royal Decree, the crows).
+  Royal Decree, the crows). A gimmick can be a field event (Frog Rain) or
+  not (the decree bans a card).
 - **TRICK OR TREAT!:** the screen between drives where the Coach takes one of
   two new players (the **offer**) and arranges the roster. In code it's the
   **draft** (`phase: 'draft'`). Use "the draft" in docs and code, so it
@@ -79,6 +80,21 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   played over and over from the same spot (map item t6). Each go is a rep.
   In code, a run with `practice` set. _Avoid:_ "trial", the old in-game Try it.
 - **Copy code:** the sketch written as an entry for `ourPlays.ts`.
+
+## Field events _(ours)_
+
+- **Field event:** something that happens on the field during a down: an
+  **area** (a **lane**, **band** or **circle**, in yards from the line), when
+  it **goes off** (a **burst**, hitting whoever is in it then, or a
+  **spell**, holding whoever is in it while it lasts), a **warning** (shown
+  before the snap, then its **build-up**), and an **effect** (flatten, slow,
+  ethereal) on your players, the defenders or everyone
+  (`docs/FIELD_EVENTS.md`). Frog Rain is the first. _Avoid:_ "event" alone,
+  which is the sim's `ArcadeEvent`.
+- **Blessing, hex, mischief:** a field event that can only help you, only
+  hurt you, or do both.
+- **Event editor:** the dev page where field events are made, tuned and
+  tried (`/dev/events.html`).
 
 ## The test bench _(ours)_
 

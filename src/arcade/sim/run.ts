@@ -3,7 +3,7 @@
  * steps (the snap, moving on after a drive). Steps are advanced by step()
  * in step.ts. See GAMEPLAY.md, The Run, A Drive and A Down.
  */
-import { areaAt, type DefenseSpec } from '../content/defense';
+import { AREAS, areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
 import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
@@ -12,6 +12,8 @@ import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
 import { pickupsForDrive } from './pickups';
+import { placeEvent } from './fieldEvents';
+import { fieldEventById, type DefaultEventId, type FieldEvent } from '../content/fieldEvents';
 import { BOSS_SPOT, drivePropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
@@ -25,6 +27,7 @@ import {
   startingRoster,
 } from './team';
 import type {
+  BossName,
   Action,
   ArcadeEvent,
   ArcadeResult,
@@ -34,8 +37,8 @@ import type {
   Phase,
   RosterPlayer,
   RunState,
-  FrogLane,
   RoyalCrows,
+  FieldEventOn,
 } from './types';
 
 export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
@@ -43,6 +46,13 @@ export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick
 /** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
 export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
   return drive.area * DRIVE_KINDS.length + drive.index + 1;
+}
+
+/** The number of the drive a Boss stands on: the last drive of its area. */
+export function bossDrive(boss: BossName): number {
+  const area = AREAS.findIndex((a) => a.boss.boss === boss);
+  if (area < 0) throw new Error(`no area has ${boss} for its Boss`);
+  return driveNumber({ area, index: DRIVE_KINDS.length - 1 });
 }
 
 /** The area and index (both from 0) of a drive's number in the run: `driveNumber` backwards. */
@@ -122,12 +132,19 @@ export function createRun(
      * called at every setup, and every rep lines up the same spot again.
      */
     readonly practice?: Play;
+    /**
+     * Event practice (the event editor's Try it, docs/FIELD_EVENTS.md f3):
+     * this event every rep, at this drive (1-based) against its defense,
+     * with three cards dealt each time.
+     */
+    readonly eventPractice?: { readonly event: FieldEvent; readonly drive: number };
   } = {},
 ): RunState {
   const state: RunState = {
     seed,
     playbook: options.practice ? [options.practice] : (options.playbook ?? PLAY_POOL),
-    practice: options.practice !== undefined,
+    practice: options.practice !== undefined || options.eventPractice !== undefined,
+    practiceEvent: options.eventPractice?.event ?? null,
     taken: [],
     hard: options.hard ?? false,
     twoTapAim: options.twoTapAim ?? false,
@@ -156,8 +173,7 @@ export function createRun(
       defenders: [],
       props: [],
       pickups: [],
-      frogLane: null,
-      frogDump: null,
+      fieldEvent: null,
       crows: null,
       ball: { at: 'qb' },
       runPath: null,
@@ -175,6 +191,13 @@ export function createRun(
     yards: 0,
     nextId: 1,
   };
+  if (options.eventPractice) {
+    // The chosen drive, as if the ones before it were won.
+    const at = driveAt(options.eventPractice.drive);
+    state.drivesWon = options.eventPractice.drive - 1;
+    setUpDrive(state, at.area, at.index, [], true);
+    return state;
+  }
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
   state.drivesWon = area * DRIVE_KINDS.length;
   setUpDrive(state, area, 0, [], true);
@@ -220,15 +243,10 @@ export function setUpDrive(
   if (!ready) state.phase = 'draft';
 }
 
-/** Frog Rain: this down's lane, in from a sideline picked at random (never over the pumpkin), so you can Flip away from it. */
-function frogLane(state: RunState): FrogLane {
-  const f = arcadeTuning.frogRain;
-  const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
-  const { los } = state.drive;
-  const hw = arcadeTuning.field.halfWidth;
-  const half = hw * f.width;
-  const side = rng.next() < 0.5 ? -1 : 1;
-  return { x: side * (hw - half), half, from: los - f.behind, to: los + f.ahead };
+/** This down's field event: the one practice tries, or else the drive's own (Frog Rain), placed. */
+function placedEvent(state: RunState, drives: DefaultEventId | undefined): FieldEventOn | null {
+  if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
+  return drives ? placeEvent(state, fieldEventById(drives)) : null;
 }
 
 /** The King's crows, back on his arms for a new down (he stands at BOSS_SPOT). */
@@ -251,8 +269,8 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   while (state.hand.length < Math.min(HAND, state.playbook.length)) {
     state.hand.push(deck.splice(rng.int(0, deck.length - 1), 1)[0] ?? 0);
   }
-  // Practice deals its one play, already called.
-  state.called = state.practice ? 0 : null;
+  // The play editor's practice deals its one play, already called; event practice deals three (f3).
+  state.called = state.practice && !state.practiceEvent ? 0 : null;
   const spec = driveDefense(state, drive.area, drive.index);
   // The Queen's Royal Decree: one card of the three is banned this down.
   state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
@@ -270,8 +288,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
     defenders,
     props: state.field.props,
     pickups: state.field.pickups,
-    frogLane: spec.frogRain ? frogLane(state) : null,
-    frogDump: null,
+    fieldEvent: placedEvent(state, spec.fieldEvent),
     crows: spec.boss === 'king' ? perchedCrows() : null,
     ball: { at: 'qb' },
     runPath: null,
@@ -359,8 +376,9 @@ function hike(state: RunState, events: ArcadeEvent[]): void {
   if (state.phase !== 'setup' || state.called === null || !play) return;
   state.phase = 'play';
   state.snappedAt = state.time;
-  // Frog Rain: the frogs are on their way.
-  state.field.frogDump = state.field.frogLane ? arcadeTuning.frogRain.dumpAt : null;
+  // A field event (Frog Rain): on its way.
+  const on = state.field.fieldEvent;
+  if (on) on.left = on.event.goesOff;
   assignMarks(state);
   events.push({ type: 'snapped' });
   const runner =

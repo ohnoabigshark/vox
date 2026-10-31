@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Events · Dev</title>
+    <link rel="stylesheet" href="/src/ui/fonts.css" />
+    <link rel="stylesheet" href="/src/dev/eventEditor/page.css" />
+  </head>
+  <body>
+    <!-- Dev tool: the event editor (docs/FIELD_EVENTS.md). Make, tune and try field events,
+         and save them into the game. Excluded by `npm run build:release`. -->
+    <main id="app"></main>
+    <div id="status" role="status" hidden></div>
+    <script type="module" src="/src/dev/eventEditor/page.ts"></script>
+  </body>
+</html>

@@ -101,8 +101,14 @@ export interface SaveState {
 const hhmm = (at: number): string =>
   new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(at);
 
-/** The save status line, and whether it's a problem (shown in red). */
-export function saveStatus(s: SaveState): { text: string; bad: boolean } {
+/** What the bench's save status line names: its page, and what it saves. */
+export const BENCH_STATUS = { page: 'bench.html', what: 'settings' } as const;
+
+/** The save status line, and whether it's a problem (shown in red); `page` is the dev page saving, `what` what it saves. */
+export function saveStatus(
+  s: SaveState,
+  { page, what }: { readonly page: string; readonly what: string },
+): { text: string; bad: boolean } {
   if (s.error !== null) {
     return { text: `Couldn't save: ${s.error}. Your changes are still here.`, bad: true };
   }
@@ -111,7 +117,7 @@ export function saveStatus(s: SaveState): { text: string; bad: boolean } {
     case 'checking':
       return { text: 'Checking for the save server…', bad: false };
     case 'none':
-      return { text: 'Saving needs the hot-reload server (/vox-dev/dev/bench.html)', bad: true };
+      return { text: `Saving needs the hot-reload server (/vox-dev/dev/${page})`, bad: true };
     case 'broken':
       return { text: `The save server can't save: ${server.reason}`, bad: true };
     case 'up': {
@@ -120,7 +126,7 @@ export function saveStatus(s: SaveState): { text: string; bad: boolean } {
         return { text: `Saved ${hhmm(server.savedAt)} · ${where}`, bad: false };
       }
       return server.inServedGame
-        ? { text: 'Saved settings are in the served game', bad: false }
+        ? { text: `Saved ${what} are in the served game`, bad: false }
         : { text: 'Saved · not in the served game yet', bad: false };
     }
     default:
@@ -128,12 +134,12 @@ export function saveStatus(s: SaveState): { text: string; bad: boolean } {
   }
 }
 
-/** The hot-reload server's save endpoint. */
-export interface BenchSaver {
+/** A saved file's endpoint on the hot-reload server: the bench's settings, or the event editor's events. */
+export interface FileSaver<T> {
   /** Whether anything here can save, and if so whether the saved file is in the served game. */
   probe(): Promise<Exclude<SaveServer, { kind: 'checking' }>>;
   /** Write the whole saved file; throws with the server's reason when it can't. */
-  save(saved: Settings): Promise<{ inServedGame: boolean }>;
+  save(saved: T): Promise<{ inServedGame: boolean }>;
 }
 
 const answer = (x: unknown): { inServedGame: boolean } => ({
@@ -141,7 +147,7 @@ const answer = (x: unknown): { inServedGame: boolean } => ({
 });
 
 /** The endpoint at `url`. */
-export function httpSaver(url: string, fetchFn: typeof fetch = fetch): BenchSaver {
+export function httpSaver<T>(url: string, fetchFn: typeof fetch = fetch): FileSaver<T> {
   return {
     async probe() {
       let r: Response;
