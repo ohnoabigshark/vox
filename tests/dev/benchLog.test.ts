@@ -58,9 +58,16 @@ describe('the log', () => {
       test: 'snag',
       saved: { 'snag.close': 0.56 },
     });
-    expect(saveLine('mash', file, NOW)).toMatchObject({ saved: { 'breakit.ready': 2 } });
+    const mash = saveLine('mash', file, NOW);
+    if (mash.kind !== 'save') throw new Error('not a save line');
+    expect(mash.saved).toEqual({ 'breakit.ready': 2 });
     // Saving the defaults is a line too: nothing saved for that tab.
-    expect(saveLine('juke', {}, NOW)).toMatchObject({ kind: 'save', saved: {} });
+    expect(saveLine('juke', {}, NOW)).toEqual({
+      at: '2026-10-31T15:02:11.000Z',
+      kind: 'save',
+      test: 'juke',
+      saved: {},
+    });
   });
 
   it('M: a slider move is no line at all: the old settings lines are turned away', () => {
