@@ -37,8 +37,9 @@ something, the old text is marked _replaced_.
 
 - **One slider per value in `tuning.ts`** that the test uses, named in game
   words, with the `tuning.ts` name and number in small print beneath:
-  - all three Break it!s: the countdown (`breakit.ready`), each extra
-    tackler (`breakit.perExtraTackler`);
+  - all three Break it!s: the countdown (`tapTests.ready`, which SNAG IT!
+    shares too, docs/SNAG.md cd-c8), each extra tackler
+    (`breakit.perExtraTackler`);
   - the bar: the meter's crossing (`meterSeconds`), the earliest sweet spot
     (`earliest`), the sweet spot (`byArea[n].sweet`), "close" (`near`);
   - the mash: its time (`mashSeconds`), fill per tap (`byArea[n].mashPerTap`),
@@ -48,7 +49,8 @@ something, the old text is marked _replaced_.
   - SNAG IT!: every value in `snag`, including the three sizes that were
     CSS (k1's callout): the dot (72 px), the ring's starting size (twice the
     dot) and the box (460 px at most). Pared by r-p2: seven shown (the ring's
-    close, the hit window, the next dot's share, the call, the dot size, the
+    close, the hit window, the next dot's share, the call (since cd-c7 the
+    shared countdown, first), the dot size, the
     ring's starting size, dots at most apart) and the other eleven, which
     shape how SNAG IT! changes over a run, behind **More**. The Coach likes
     SNAG IT! as it plays (r-p1); changes to it go on their own branch (r-p3);
