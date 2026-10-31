@@ -46,6 +46,7 @@ import {
   savedAfter,
   tabsWithUnsaved,
   unsaved,
+  unsavedOffScreen,
   type SaveState,
 } from './save';
 import { SITUATION_SLIDERS, summary, timingText, type Grade, type RepResult } from './reps';
@@ -90,6 +91,7 @@ async function main(): Promise<void> {
       <button class="b-save">Saved</button>
       <button class="b-reset">Restore defaults</button>
     </div>
+    <p class="b-also" hidden></p>
     <div class="b-row b-toggles">${TOGGLES.map(
       (t) => `<label><input type="checkbox" data-toggle="${t.key}" /> ${t.label}</label>`,
     ).join('')}</div>
@@ -110,6 +112,7 @@ async function main(): Promise<void> {
   const knobsEl = q('.b-knobs');
   const saveButton = q<HTMLButtonElement>('.b-save');
   const savedEl = q('.b-saved');
+  const alsoEl = q('.b-also');
 
   const store = benchStore(browserStorage());
   const loaded = await store.load();
@@ -243,6 +246,10 @@ async function main(): Promise<void> {
     const { text, bad } = saveStatus(saveState);
     savedEl.textContent = text;
     savedEl.classList.toggle('off', bad);
+    // Unsaved values no row on screen shows (another area's, b10).
+    const also = unsavedOffScreen(saved, settings, test(), kept.situation.drive);
+    alsoEl.hidden = also.length === 0;
+    alsoEl.textContent = `Also unsaved: ${also.join(', ')}`;
     renderTabs();
   };
   void saver.probe().then((r) => {
@@ -290,8 +297,11 @@ async function main(): Promise<void> {
           kept = { ...kept, situation };
           bench.options.situation = situation;
           show();
-          // A by-area slider edits the new drive's area.
-          if (sit.key === 'drive') renderKnobs();
+          // A by-area slider edits the new drive's area, so what's off screen changes too.
+          if (sit.key === 'drive') {
+            renderKnobs();
+            renderSave();
+          }
           showSummary();
           keep();
         },

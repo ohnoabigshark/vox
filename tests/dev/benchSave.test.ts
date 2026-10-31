@@ -7,6 +7,7 @@ import {
   saveStatus,
   tabsWithUnsaved,
   unsaved,
+  unsavedOffScreen,
   type SaveState,
 } from '../../src/dev/bench/save';
 
@@ -73,6 +74,15 @@ describe('Restore defaults', () => {
 });
 
 describe('what the page says', () => {
+  it("b10: unsaved values not on screen (another area's) are listed by slider and area", () => {
+    // Drive 2 shows the Forest's sweet spot; the Candy Queendom's was moved on drive 7.
+    const current = { 'breakit.byArea.1.sweet': 0.1, 'breakit.byArea.0.sweet': 0.08 };
+    expect(unsavedOffScreen({}, current, 'bar', 2)).toEqual(['Sweet spot (Candy Queendom)']);
+    expect(unsavedOffScreen({}, current, 'bar', 7)).toEqual(["Sweet spot (Froggy's Forest)"]);
+    // On screen: nothing to list.
+    expect(unsavedOffScreen({}, { 'breakit.near': 0.2 }, 'bar', 2)).toEqual([]);
+  });
+
   it("H: Save counts the tab's unsaved changes, and each tab with any is marked", () => {
     expect(saveLabel(0)).toBe('Saved');
     expect(saveLabel(1)).toBe('Save 1 change');

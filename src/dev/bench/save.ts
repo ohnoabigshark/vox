@@ -6,7 +6,18 @@
  * tabs share are one value each, so they save and restore as one (r-s8).
  */
 import { assertNever } from '../../assertNever';
-import { BENCH_TESTS, defaultValue, round, tabPaths, type BenchTest, type Settings } from './knobs';
+import { areaAt } from '../../arcade/content/defense';
+import {
+  BENCH_TESTS,
+  defaultValue,
+  knobsFor,
+  pathOf,
+  pathsOf,
+  round,
+  tabPaths,
+  type BenchTest,
+  type Settings,
+} from './knobs';
 
 const valueIn = (settings: Settings, path: string): number =>
   round(settings[path] ?? defaultValue(path));
@@ -14,6 +25,28 @@ const valueIn = (settings: Settings, path: string): number =>
 /** The tab's values moved since they were saved. */
 export function unsaved(saved: Settings, current: Settings, test: BenchTest): string[] {
   return tabPaths(test).filter((p) => valueIn(saved, p) !== valueIn(current, p));
+}
+
+/**
+ * The tab's unsaved values that no row on screen shows: a by-area slider
+ * shows the picked drive's area, but Save saves every area's (r-s8). Each is
+ * its slider's name and the area: "Sweet spot (Candy Queendom)".
+ */
+export function unsavedOffScreen(
+  saved: Settings,
+  current: Settings,
+  test: BenchTest,
+  drive: number,
+): string[] {
+  const shown = new Set(knobsFor(test).map((k) => pathOf(k, drive)));
+  return unsaved(saved, current, test)
+    .filter((p) => !shown.has(p))
+    .map((p) => {
+      const knob = knobsFor(test).find((k) => pathsOf(k).includes(p));
+      const area = /\.byArea\.(\d+)\./.exec(p)?.[1];
+      const where = area === undefined ? '' : ` (${areaAt(Number(area)).name})`;
+      return `${knob?.label ?? p}${where}`;
+    });
 }
 
 /** The tabs with anything unsaved, for the dot on each tab's button. */
