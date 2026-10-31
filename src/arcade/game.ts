@@ -568,12 +568,12 @@ export class ArcadeGame {
           this.hud.big(call.word, call.tone);
           break;
         }
-        case 'frogRain':
+        case 'fieldEventWentOff':
           play('burst');
-          play('hop');
+          if (this.state.field.fieldEvent?.event.look === 'frogRain') play('hop');
           break;
-        case 'frogged':
-          this.hud.big('FROGGED!', 'bad');
+        case 'eventTackled':
+          this.hud.big(e.call, 'bad');
           break;
         case 'pickupTaken':
           play(PICKUP_SOUND[e.kind]);

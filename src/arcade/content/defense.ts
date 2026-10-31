@@ -85,8 +85,8 @@ export interface DefenseSpec {
   readonly defenders: readonly DefenseSpot[];
   /** Added to every defender's stats on top of the area's boost (a sleepy first drive is negative). */
   readonly boost: number;
-  /** Mister Frog's Frog Rain: a lane shown before each snap, frogs falling in it during the down. */
-  readonly frogRain?: boolean;
+  /** The drive's field event, by id: Mister Frog's Frog Rain (docs/FIELD_EVENTS.md). */
+  readonly fieldEvent?: string;
   /** The Queen's Royal Decree: each down one of the three cards is banned (it can't be called). */
   readonly decree?: boolean;
   /** A Boss drive: the Boss who stands in its end zone, a prop (sim/props.ts, BOSSES). */
@@ -159,7 +159,7 @@ export const FOREST: ArcadeArea = {
     name: "Mister Frog's Pond",
     boss: 'misterFrog',
     boost: 0,
-    frogRain: true,
+    fieldEvent: 'frogRain',
     defenders: [
       d('rusher', -1.8, 1),
       d('rusher', 1.8, 1),

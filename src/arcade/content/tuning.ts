@@ -345,19 +345,6 @@ export const tuningDefaults = {
     /** He has two pairs: the second takes off this long after the first is shooed (or misses). */
     nextFlock: 0.8,
   },
-  frogRain: {
-    /** The lane runs in from one sideline (either, at random) this share of the way across: never over the pumpkin, so Flip matters. */
-    width: 0.4,
-    /** It runs from just behind the line of scrimmage to this far upfield. */
-    behind: 1,
-    ahead: 16,
-    /** The frogs all come down at once, this long into the down (seconds of live play)… */
-    dumpAt: 1.6,
-    /** …their shadows filling the lane this long before… */
-    warn: 0.7,
-    /** …and everyone in the lane is flattened for this long (a carrier in it is tackled: FROGGED!). */
-    flatTime: 1.2,
-  },
 } as const;
 
 /** What the game plays: the defaults, with `saved-tuning.json` laid over them. */

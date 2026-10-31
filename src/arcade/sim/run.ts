@@ -12,6 +12,8 @@ import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
 import { pickupsForDrive } from './pickups';
+import { placeEvent } from './fieldEvents';
+import { fieldEventById } from '../content/fieldEvents';
 import { BOSS_SPOT, drivePropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
@@ -34,7 +36,6 @@ import type {
   Phase,
   RosterPlayer,
   RunState,
-  FrogLane,
   RoyalCrows,
 } from './types';
 
@@ -156,8 +157,7 @@ export function createRun(
       defenders: [],
       props: [],
       pickups: [],
-      frogLane: null,
-      frogDump: null,
+      fieldEvent: null,
       crows: null,
       ball: { at: 'qb' },
       runPath: null,
@@ -220,17 +220,6 @@ export function setUpDrive(
   if (!ready) state.phase = 'draft';
 }
 
-/** Frog Rain: this down's lane, in from a sideline picked at random (never over the pumpkin), so you can Flip away from it. */
-function frogLane(state: RunState): FrogLane {
-  const f = arcadeTuning.frogRain;
-  const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
-  const { los } = state.drive;
-  const hw = arcadeTuning.field.halfWidth;
-  const half = hw * f.width;
-  const side = rng.next() < 0.5 ? -1 : 1;
-  return { x: side * (hw - half), half, from: los - f.behind, to: los + f.ahead };
-}
-
 /** The King's crows, back on his arms for a new down (he stands at BOSS_SPOT). */
 function perchedCrows(): RoyalCrows[] {
   return [0, 1].map(() => ({ phase: 'perched', pos: BOSS_SPOT, left: 0, on: null, goneAt: null }));
@@ -270,8 +259,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
     defenders,
     props: state.field.props,
     pickups: state.field.pickups,
-    frogLane: spec.frogRain ? frogLane(state) : null,
-    frogDump: null,
+    fieldEvent: spec.fieldEvent ? placeEvent(state, fieldEventById(spec.fieldEvent)) : null,
     crows: spec.boss === 'king' ? perchedCrows() : null,
     ball: { at: 'qb' },
     runPath: null,
@@ -359,8 +347,9 @@ function hike(state: RunState, events: ArcadeEvent[]): void {
   if (state.phase !== 'setup' || state.called === null || !play) return;
   state.phase = 'play';
   state.snappedAt = state.time;
-  // Frog Rain: the frogs are on their way.
-  state.field.frogDump = state.field.frogLane ? arcadeTuning.frogRain.dumpAt : null;
+  // A field event (Frog Rain): on its way.
+  const on = state.field.fieldEvent;
+  if (on) on.left = on.event.goesOff;
   assignMarks(state);
   events.push({ type: 'snapped' });
   const runner =

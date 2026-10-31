@@ -7,7 +7,6 @@
  */
 import * as THREE from 'three';
 import { common, hexToNumber } from '../../content/palettes';
-import { arcadeTuning } from '../content/tuning';
 import { downOn } from '../sim/run';
 import type { RunState } from '../sim/types';
 import { v } from '../sim/vec';
@@ -86,13 +85,23 @@ export class ArcadeFrogRain {
   }
 
   update(state: RunState, origin: number): void {
-    const lane = state.field.frogLane;
+    // Frog Rain's look (docs/FIELD_EVENTS.md): its lane and its frogs, from the field event on the field.
+    const on = state.field.fieldEvent?.event.look === 'frogRain' ? state.field.fieldEvent : null;
+    const lane =
+      on && on.area.shape === 'rect'
+        ? {
+            x: (on.area.x0 + on.area.x1) / 2,
+            half: (on.area.x1 - on.area.x0) / 2,
+            from: on.area.y0,
+            to: on.area.y1,
+          }
+        : null;
     const live = downOn(state.phase);
     const showLane = lane !== null && live;
     this.lane.visible = showLane;
     for (const e of this.edges) e.visible = showLane;
-    const dump = state.field.frogDump;
-    const warn = arcadeTuning.frogRain.warn;
+    const dump = on?.left ?? null;
+    const warn = on?.event.warning.buildUp ?? 0;
     if (lane && showLane) {
       const length = lane.to - lane.from;
       const mid = toWorld(v(lane.x, (lane.from + lane.to) / 2), origin, 0.025);

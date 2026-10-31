@@ -32,6 +32,7 @@ import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
 import { catchTestsOn, whichCatchTest, type CatchTest } from './catchTests';
+import { caughtBy, countDown } from './fieldEvents';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
 import type {
@@ -104,7 +105,7 @@ export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
   separate(state);
   pushOutOfProps(state);
   if (takePickups(state, events)) return { state, events };
-  if (frogRain(state, events)) return { state, events };
+  if (fieldEvent(state, events)) return { state, events };
   if (royalCrows(state, input, events)) return { state, events };
   if (resolveContact(state, events)) return { state, events };
   if (dragDone(state, events)) return { state, events };
@@ -329,40 +330,24 @@ function catchGraded(
 }
 
 /**
- * Frog Rain (Mister Frog): the frogs all come down in the lane at once, a
- * moment into the down (the countdown runs only while the play is live).
- * Everyone in the lane is flattened, and a carrier in it is tackled there:
- * FROGGED! Once a down.
+ * A field event (docs/FIELD_EVENTS.md, Frog Rain first): its countdown runs
+ * only while the play is live, and as it goes off, a burst flattens whoever
+ * is in its area for its `lasts`; a carrier caught is tackled there, with the
+ * event's call (FROGGED!). Once a down.
  */
-function frogRain(state: RunState, events: ArcadeEvent[]): boolean {
-  const lane = state.field.frogLane;
-  const dump = state.field.frogDump;
-  if (!lane || dump === null) return false;
-  const next = dump - DT;
-  // Keep counting past it (to −1 s) for the show, then stop.
-  state.field.frogDump = next < -1 ? null : next;
-  if (dump <= 0 || next > 0) return false;
-  const inLane = (b: Body): boolean =>
-    Math.abs(b.pos.x - lane.x) <= lane.half + b.radius &&
-    b.pos.y >= lane.from - b.radius &&
-    b.pos.y <= lane.to + b.radius;
-  const under = [...state.field.players, ...state.field.defenders].filter(
-    (b) =>
-      b.down <= 0 &&
-      !(b.side === 'team' && b.role === 'qb') &&
-      !(b.side === 'defense' && b.planted) &&
-      inLane(b),
-  );
-  const flat = arcadeTuning.frogRain.flatTime;
-  for (const b of under) {
-    b.down = flat;
+function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
+  const on = state.field.fieldEvent;
+  if (!on || !countDown(on)) return false;
+  const caught = caughtBy(state, on);
+  for (const b of caught) {
+    b.down = on.event.lasts;
     b.vel = v(0, 0);
     if (b.side === 'defense') b.latch = null;
   }
-  events.push({ type: 'frogRain', flattened: under.map((b) => b.id) });
+  events.push({ type: 'fieldEventWentOff', event: on.event.id, hit: caught.map((b) => b.id) });
   const carrier = carrierOf(state);
-  if (carrier && under.includes(carrier)) {
-    events.push({ type: 'frogged', id: carrier.id });
+  if (carrier && caught.includes(carrier)) {
+    events.push({ type: 'eventTackled', id: carrier.id, call: on.event.call ?? '' });
     tackle(state, carrier, -1, events);
     return true;
   }
