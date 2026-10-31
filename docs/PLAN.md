@@ -206,6 +206,12 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     (_user: "I just want that in the plan (including my choices for it). I
     don't want to do that work as part of the event blessing curse mischief
     work"_).
+
+  Round 3, decided the same day (u1–u4, x1–x3; all approved): the whole
+  design confirmed, with the editor offering only what the game can play
+  (x1), Try it carrying the unsaved event (x2), and Frog Rain's rules (who's
+  spared, the call, the carrier steering clear) made every event's (x3). The
+  design is `docs/FIELD_EVENTS.md`.
 - **Losses move you back past the drive's start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
   the line back, but never behind where the drive started (`endDown` in
