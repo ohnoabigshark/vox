@@ -43,13 +43,16 @@ import {
   createRun,
   dispatch,
   downAndDistance,
+  downOn,
+  driveNumber,
+  frozenForTest,
   setUpDrive,
   startingRoster,
 } from './sim/run';
 import { rollOffer } from './sim/team';
 import { FORM_STATS } from './content/team';
 import { plus } from './sim/stats';
-import type { BreakOutcome } from './sim/breakit';
+import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import type {
   Action,
@@ -58,12 +61,12 @@ import type {
   Player,
   RosterPlayer,
   RunState,
-  SnagGrade,
   StepInput,
   PickupKind,
 } from './sim/types';
 import { v } from './sim/vec';
 import { ArcadeControls } from './ui/controls';
+import { breakGrade, gradeCall, tapTestSound } from './ui/tapTestCalls';
 import { breakView, shooShowing, snagView } from './ui/testViews';
 import type { Practice } from './content/playCode';
 import { PLAY_POOL } from './content/playPool';
@@ -106,7 +109,7 @@ export interface ArcadeOptions {
   /** Two-tap throwing (?aim=2): the first tap stops the line, the second picks how far. */
   twoTapAim?: boolean;
   /** SNAG IT! from the first drive (?snag=1), not only from drive 5 (docs/SNAG.md). */
-  snag?: boolean;
+  snagAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
   /**
@@ -152,16 +155,6 @@ const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
 const SONG_LINK_DELAY_MS = 3000;
 const WIDTH_MARGIN = 1.06;
 
-/** How a Break it! went, in one big word. */
-const BREAK_WORD: Readonly<Record<BreakOutcome, string>> = {
-  break: 'GREAT!',
-  drag: 'OK',
-  tackle: 'BAD',
-};
-
-/** How a SNAG IT! went, in one big word (as Break it!'s). */
-const SNAG_WORD: Readonly<Record<SnagGrade, string>> = { great: 'GREAT!', ok: 'OK', bad: 'BAD' };
-
 export class ArcadeGame {
   private state: RunState;
   private seed: number;
@@ -173,7 +166,7 @@ export class ArcadeGame {
   private readonly video: boolean;
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
-  private readonly snag: boolean;
+  private readonly snagAlways: boolean;
   /** Practice: the sketch's play, and its key in the editor for ‹ Sketch; null in an ordinary game. */
   private readonly practice: { readonly play: Play; readonly sketch: string | null } | null;
   /** Reads the play editor's sketches in the game; none without it. */
@@ -230,7 +223,7 @@ export class ArcadeGame {
     this.video = options.video ?? false;
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
-    this.snag = options.snag ?? false;
+    this.snagAlways = options.snagAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     this.practice = link?.play.ok ? { play: link.play.play, sketch: link.sketch } : null;
@@ -464,7 +457,7 @@ export class ArcadeGame {
     // The whole width is always in view, so only follow upfield.
     want = v(0, want.y);
     // In Break it! (and SNAG IT!) the camera eases in a little on the tackle (the catch).
-    const frozen = state.phase === 'breakit' || state.phase === 'snag';
+    const frozen = frozenForTest(state.phase);
     const k = 1 - Math.exp(-dt * (frozen ? 2 : 4));
     this.focus = v(
       this.focus.x + (want.x - this.focus.x) * k,
@@ -498,6 +491,9 @@ export class ArcadeGame {
   private react(events: readonly ArcadeEvent[], prev: RunState): void {
     const play = (id: Parameters<Conductor['play']>[0]): void => this.conductor.play(id);
     for (const e of events) {
+      // A tap test's sounds, as the test bench plays them (ui/tapTestCalls.ts).
+      const sound = tapTestSound(e);
+      if (sound) play(sound);
       switch (e.type) {
         case 'banned':
           play('fumble');
@@ -541,35 +537,25 @@ export class ArcadeGame {
         case 'pancake':
           play('burst');
           break;
-        case 'breakResult':
-          this.hud.big(
-            BREAK_WORD[e.outcome],
-            e.outcome === 'break' ? 'good' : e.outcome === 'drag' ? 'ok' : 'bad',
-          );
+        case 'breakResult': {
+          const call = gradeCall('bar', breakGrade(e.outcome));
+          this.hud.big(call.word, call.tone);
           break;
+        }
         case 'snagDot':
-          play(e.hit ? 'catch' : 'fumble');
           if (e.hit) navigator.vibrate?.(12);
           break;
-        case 'snagResult':
-          this.hud.big(SNAG_WORD[e.grade], e.grade === 'great' ? 'good' : e.grade);
+        case 'snagResult': {
+          const call = gradeCall('snag', e.grade);
+          this.hud.big(call.word, call.tone);
           break;
-        case 'grabbed':
-        case 'brokeTackle':
-        case 'dragged':
-          play('burst');
-          break;
-        case 'crowsLanded':
-          play('hop');
-          break;
+        }
         case 'crowsShooed':
-          play('burst');
-          this.hud.big('SHOOED!', 'good');
+        case 'crowsStruck': {
+          const call = gradeCall('shoo', e.type === 'crowsShooed' ? 'great' : 'bad');
+          this.hud.big(call.word, call.tone);
           break;
-        case 'crowsStruck':
-          play('burst');
-          this.hud.big('CROWS!', 'bad');
-          break;
+        }
         case 'frogRain':
           play('burst');
           play('hop');
@@ -633,7 +619,7 @@ export class ArcadeGame {
       phase === 'over' || phase === 'won'
         ? `${drivesWon} ${drivesWon === 1 ? 'drive' : 'drives'} won`
         : '';
-    const live = phase === 'setup' || phase === 'play' || phase === 'breakit' || phase === 'snag';
+    const live = downOn(phase);
     this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
     const ready = this.live && !this.paused;
     // Practice: ‹ Sketch between reps (map item t4), not mid-play.
@@ -721,13 +707,13 @@ export class ArcadeGame {
     if (this.practice)
       return createRun(this.seed, firstRoster(this.monsters), 0, {
         twoTapAim: this.twoTapAim,
-        snag: this.snag,
+        snagAlways: this.snagAlways,
         practice: this.practice.play,
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
       twoTapAim: this.twoTapAim,
-      snag: this.snag,
+      snagAlways: this.snagAlways,
       playbook: [...PLAY_POOL, ...sketches],
     });
   }
@@ -743,7 +729,7 @@ export class ArcadeGame {
    */
   private originOf(drive: Drive): number {
     const area = drive.area % arcadeTuning.run.areas;
-    return (area * DRIVE_KINDS.length + drive.index) * arcadeTuning.drive.distance;
+    return (driveNumber({ area, index: drive.index }) - 1) * arcadeTuning.drive.distance;
   }
 
   /** ?win=1: the run as if just won (on the King's drive, eleven recruits on the bench), and the win cutscene. */
@@ -759,7 +745,7 @@ export class ArcadeGame {
     s.drivesWon = arcadeTuning.run.areas * DRIVE_KINDS.length;
     s.phase = 'won';
     this.state = s;
-    this.origin = (s.drive.area * DRIVE_KINDS.length + s.drive.index) * arcadeTuning.drive.distance;
+    this.origin = this.originOf(s.drive);
     this.bodies.sync(s);
     this.fieldProps.update(s, this.origin);
     this.startOutro();
@@ -826,9 +812,8 @@ export class ArcadeGame {
 
   /** Space in SNAG IT!: a tap on the dot that's showing and closes first. */
   private snagKey(): void {
-    const dots = this.state.snag?.dots ?? [];
-    const i = dots.findIndex((d) => d.result === null && this.state.time >= d.appearsAt);
-    if (i >= 0) this.press({ snag: i });
+    const i = nextDot(this.state);
+    if (i !== null) this.press({ snag: i });
   }
 
   private onKey(e: KeyboardEvent): void {

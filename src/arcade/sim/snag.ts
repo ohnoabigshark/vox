@@ -11,18 +11,13 @@
 import { arcadeTuning } from '../content/tuning';
 import type { Contest } from './ball';
 import { rngFor } from './random';
-import { DRIVE_KINDS } from './run';
-import type { ArcadeEvent, Drive, RunState, SnagDot, SnagGrade, StepInput, Vec } from './types';
+import { driveNumber } from './run';
+import type { ArcadeEvent, RunState, SnagDot, SnagGrade, StepInput, Vec } from './types';
 import { add, dist, len, norm, scale, sub } from './vec';
 
 const sn = arcadeTuning.snag;
 
 const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
-
-/** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
-export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
-  return drive.area * DRIVE_KINDS.length + drive.index + 1;
-}
 
 /** Whether a contested ball goes to SNAG IT! on this drive. */
 export function snagOn(state: RunState): boolean {
@@ -30,14 +25,16 @@ export function snagOn(state: RunState): boolean {
 }
 
 /**
- * How many dots: 2 from drive 5, one more a zone; one more for each defender
+ * How many dots: 2 from drive 5, one more every `moreEvery` drives (an area's
+ * four); one more for each defender
  * after the first reaching for the ball; one fewer when the receiver's Hands
  * beat the best defender's by `handsGap`, one more the other way. 2 to 5.
  */
 export function snagCount(c: { drive: number; crowd: number; handsGap: number }): number {
-  const level = sn.minDots + Math.floor(Math.max(0, c.drive - sn.fromDrive) / sn.perZone);
+  // The level (docs/SNAG.md) is the drive's number in the run.
+  const byLevel = sn.minDots + Math.floor(Math.max(0, c.drive - sn.fromDrive) / sn.moreEvery);
   const hands = c.handsGap >= sn.handsGap ? -1 : c.handsGap <= -sn.handsGap ? 1 : 0;
-  return clamp(level + Math.max(0, c.crowd - 1) + hands, sn.minDots, sn.maxDots);
+  return clamp(byLevel + Math.max(0, c.crowd - 1) + hands, sn.minDots, sn.maxDots);
 }
 
 /** How fast on this drive: how long a ring takes to close, and the gap between dots (sim seconds). */
@@ -134,10 +131,11 @@ export function judgeSnag(
   events: ArcadeEvent[],
 ): SnagGrade | null {
   const t = state.snag;
-  if (!t) return 'bad';
+  // The phase and the test are set and cleared together; one without the other is a bug.
+  if (!t) throw new Error('SNAG IT! phase with no SNAG IT! running');
   const now = state.time;
   const tapped = input.snag === undefined ? undefined : t.dots[input.snag];
-  if (tapped && tapped.result === null && now >= tapped.appearsAt) {
+  if (tapped && dotOpen(tapped, now)) {
     const hit = Math.abs(now - tapped.closesAt) <= sn.window;
     tapped.result = hit ? 'hit' : 'miss';
     events.push({ type: 'snagDot', index: t.dots.indexOf(tapped), hit });
@@ -150,6 +148,17 @@ export function judgeSnag(
   if (t.dots.some((d) => d.result === null)) return null;
   const misses = t.dots.filter((d) => d.result === 'miss').length;
   return misses === 0 ? 'great' : misses === 1 ? 'ok' : 'bad';
+}
+
+/** Whether a dot can be tapped at `time`: it has shown, and isn't graded yet. */
+export function dotOpen(dot: SnagDot, time: number): boolean {
+  return dot.result === null && time >= dot.appearsAt;
+}
+
+/** The dot a tap with no aim (Space) goes to: the open one that shows first, so closes first; or null. */
+export function nextDot(state: RunState): number | null {
+  const i = state.snag?.dots.findIndex((d) => dotOpen(d, state.time)) ?? -1;
+  return i >= 0 ? i : null;
 }
 
 /** How far a dot's ring has closed (0 as the dot shows, 1 closed on it), or null before it shows. */

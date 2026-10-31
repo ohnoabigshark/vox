@@ -67,7 +67,7 @@ describe('saved settings in the game', () => {
     expect(arcadeTuning).toEqual(tuningDefaults);
   });
 
-  it('C: tuning.ts lays saved-tuning.json over the defaults as it loads, so the game and the bot play it', async () => {
+  it('C: tuning.ts lays saved-tuning.json over the defaults as it loads, so whatever loads it plays the save', async () => {
     vi.resetModules();
     vi.doMock('../../src/arcade/content/saved-tuning.json', () => ({
       default: { 'snag.close': 0.56 },

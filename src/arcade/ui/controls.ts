@@ -10,6 +10,7 @@
  * Buttons fire on press, not release: in a timing game every frame counts.
  */
 import './controls.css';
+import type { SnagDotResult } from '../sim/types';
 import { ringScale, snagBoxStyle } from './snagLook';
 
 export interface ControlHandlers {
@@ -37,7 +38,7 @@ export interface SnagView {
     readonly x: number;
     readonly y: number;
     readonly ring: number | null;
-    readonly result: 'hit' | 'miss' | null;
+    readonly result: SnagDotResult;
   }[];
 }
 

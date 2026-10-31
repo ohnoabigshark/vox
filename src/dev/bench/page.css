@@ -79,6 +79,13 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* Unsaved values no row on screen shows (another area's; review b10). */
+.b-also {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--b-on);
+}
+
 /* A tab with changes not saved yet (r-s8). */
 .b-tabs .unsaved::after {
   content: ' ●';

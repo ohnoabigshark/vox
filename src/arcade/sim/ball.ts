@@ -103,10 +103,10 @@ export function lobLanding(state: RunState, from: Vec, at: Vec): FlightOutcome {
   const defender = reaching[0];
   const contest = receiver && defender ? { receiver, defenders: reaching } : undefined;
   if (receiver && defender && dist(defender.pos, at) < dist(receiver.pos, at)) {
-    return { kind: 'batted', by: defender.id, at: defender.pos, contested: true, contest };
+    return { kind: 'batted', by: defender.id, at: defender.pos, contest };
   }
-  if (receiver) return { kind: 'caught', by: receiver, contested: defender !== undefined, contest };
-  if (defender) return { kind: 'batted', by: defender.id, at: defender.pos, contested: false };
+  if (receiver) return { kind: 'caught', by: receiver, contest };
+  if (defender) return { kind: 'batted', by: defender.id, at: defender.pos };
   return { kind: 'incomplete', at };
 }
 
@@ -142,18 +142,13 @@ export interface Contest {
   readonly defenders: readonly Defender[];
 }
 
+/** Where a flight ends; `contest` when your player and a defender both had a hand to it (contested). */
 export type FlightOutcome =
-  | {
-      readonly kind: 'caught';
-      readonly by: Player;
-      readonly contested: boolean;
-      readonly contest?: Contest | undefined;
-    }
+  | { readonly kind: 'caught'; readonly by: Player; readonly contest?: Contest | undefined }
   | {
       readonly kind: 'batted';
       readonly by: number;
       readonly at: Vec;
-      readonly contested: boolean;
       readonly contest?: Contest | undefined;
     }
   | { readonly kind: 'incomplete'; readonly at: Vec }
@@ -195,10 +190,10 @@ export function contact(
   const defender = reaching[0];
   const contest = catcher && defender ? { receiver: catcher, defenders: reaching } : undefined;
   if (catcher && defender && defender.stats.hands > catcher.stats.hands) {
-    return { kind: 'batted', by: defender.id, at: defender.pos, contested: true, contest };
+    return { kind: 'batted', by: defender.id, at: defender.pos, contest };
   }
-  if (catcher) return { kind: 'caught', by: catcher, contested: defender !== undefined, contest };
-  if (defender) return { kind: 'batted', by: defender.id, at: defender.pos, contested: false };
+  if (catcher) return { kind: 'caught', by: catcher, contest };
+  if (defender) return { kind: 'batted', by: defender.id, at: defender.pos };
   if (last) {
     // Candy Corn Magnet (a perk): a ball about to fall incomplete gets twice the reach.
     const magnet = state.perks.magnet
@@ -213,7 +208,7 @@ export function contact(
           )
           .sort((a, b) => dist(a.pos, at) - dist(b.pos, at) || a.id - b.id)[0]
       : undefined;
-    if (magnet) return { kind: 'caught', by: magnet, contested: false };
+    if (magnet) return { kind: 'caught', by: magnet };
     return { kind: 'incomplete', at: end };
   }
   return null;

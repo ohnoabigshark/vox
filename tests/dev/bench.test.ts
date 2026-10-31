@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { arcadeTuning, DT, TIME_SCALE } from '../../src/arcade/content/tuning';
 import { breakHardness } from '../../src/arcade/sim/breakit';
 import type { StepInput } from '../../src/arcade/sim/types';
-import { shooShowing } from '../../src/arcade/ui/testViews';
+import { shooShowing, snagView } from '../../src/arcade/ui/testViews';
+import { step } from '../../src/arcade/sim/step';
 import { Bench } from '../../src/dev/bench/bench';
 import {
   BENCH_TESTS,
@@ -119,7 +120,7 @@ describe('the knobs', () => {
     expect(keys('shoo')).toEqual(['crows.window']);
   });
 
-  it('N: SNAG IT! shows the seven that shape a rep; the eleven that shape a run are behind More', () => {
+  it('N: SNAG IT! shows the seven that shape a rep; the rest, which shape a run, are behind More', () => {
     const shown = (t: (typeof BENCH_TESTS)[number]): string[] =>
       knobsFor(t)
         .filter((k) => !k.more)
@@ -147,13 +148,14 @@ describe('the knobs', () => {
       'snag.closeFloor',
       'snag.minDots',
       'snag.maxDots',
-      'snag.perZone',
+      'snag.moreEvery',
       'snag.handsGap',
+      'snag.linger',
     ]);
     for (const t of ['bar', 'mash', 'juke', 'shoo'] as const) expect(more(t)).toEqual([]);
   });
 
-  it('3: a moved slider changes the next rep, and Reset to defaults puts it back', () => {
+  it('3: a moved slider changes the next rep, and back at its default it plays the default', () => {
     applySettings({ 'snag.close': fromScreen(knob('snag.close'), 1) });
     const dot = startRep('snag', at(5), 1).state.snag!.dots[0]!;
     expect((dot.closesAt - dot.appearsAt) / TIME_SCALE).toBeCloseTo(1, 6);
@@ -191,6 +193,38 @@ describe('the knobs', () => {
   });
 });
 
+describe('a1: the last dot is seen', () => {
+  /** A SNAG IT! rep left untapped, run to its grade. */
+  const graded = (): Bench => {
+    const bench = new Bench({ test: 'snag', situation: at(5), again: false });
+    bench.go();
+    for (let i = 0; i < 2000 && !bench.rep?.result; i++) bench.tick(1 / 60);
+    return bench;
+  };
+
+  it('the shared view keeps the finished box, every dot graded, 0.3 s on screen, then closes', () => {
+    const state = graded().rep!.state;
+    expect(state.phase).not.toBe('snag');
+    expect(snagView(state)?.dots.map((d) => d.result)).toEqual(['miss', 'miss']);
+    const later = (screen: number): typeof state => {
+      let s = state;
+      for (let t = 0; t < screen * TIME_SCALE - 1e-9; t += DT) s = step(s).state;
+      return s;
+    };
+    expect(snagView(later(0.25))).not.toBeNull();
+    expect(snagView(later(0.35))).toBeNull();
+  });
+
+  it('the bench keeps it too, 0.3 s after the grade', () => {
+    const bench = graded();
+    expect(bench.snagView()?.dots.map((d) => d.result)).toEqual(['miss', 'miss']);
+    bench.tick(0.25);
+    expect(bench.snagView()).not.toBeNull();
+    bench.tick(0.1);
+    expect(bench.snagView()).toBeNull();
+  });
+});
+
 describe('B4: each rep starts its SNAG IT! box clean', () => {
   it('a new rep has a new box, so a rep with more dots than the last gets a dot for each', () => {
     const bench = new Bench({
@@ -203,7 +237,7 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
     expect(first?.dots).toHaveLength(3);
     // Every rep is a fresh run, so each SNAG IT! starts at the same moment:
     // the box can't tell them apart by that, and kept the last rep's dots.
-    bench.options.situation = { drive: 1, tacklers: 1, crowd: 3, handsGap: -25 };
+    bench.setSituation({ drive: 1, tacklers: 1, crowd: 3, handsGap: -25 });
     bench.go();
     const second = bench.snagView();
     expect(second?.dots).toHaveLength(5);
@@ -213,7 +247,7 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
   it('there is no box between reps, or on another tab', () => {
     const bench = new Bench({ test: 'snag', situation: at(5), again: false });
     expect(bench.snagView()).toBeNull();
-    bench.options.test = 'shoo';
+    bench.showTest('shoo');
     bench.go();
     expect(bench.snagView()).toBeNull();
   });

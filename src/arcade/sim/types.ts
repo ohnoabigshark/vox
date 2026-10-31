@@ -250,8 +250,11 @@ export interface SnagDot {
   readonly appearsAt: number;
   readonly closesAt: number;
   /** Hit or missed, or null while it's still to play. */
-  result: 'hit' | 'miss' | null;
+  result: SnagDotResult;
 }
+
+/** How a SNAG IT! dot went: hit, missed, or null while it's still to play. */
+export type SnagDotResult = 'hit' | 'miss' | null;
 
 export type SnagGrade = 'great' | 'ok' | 'bad';
 
@@ -383,6 +386,12 @@ export interface RunState {
   tackle: Tackle | null;
   /** SNAG IT!, while it's on. */
   snag: Snag | null;
+  /**
+   * The SNAG IT! that just finished, every dot graded, and when: kept so the
+   * box can show the last dot's pop before it closes (`snag.linger`). For the
+   * screen only; nothing in the sim reads it.
+   */
+  snagDone: { readonly snag: Snag; readonly endedAt: number } | null;
   /** The seven on the field, in slot order (the slot decides the position played)… */
   roster: RosterPlayer[];
   /** …and the bench: kept, but not playing, newest first (it has no limit). */

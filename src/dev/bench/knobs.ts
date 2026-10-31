@@ -8,7 +8,7 @@
  */
 import { numberAt } from '../../arcade/content/savedTuning';
 import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
-import { DRIVE_KINDS } from '../../arcade/sim/run';
+import { driveAt } from '../../arcade/sim/run';
 
 /** The five tap tests, one tab each (b1). */
 export type BenchTest = 'bar' | 'mash' | 'juke' | 'snag' | 'shoo';
@@ -79,8 +79,9 @@ export const KNOBS: readonly Knob[] = [
   snagMore('closeFloor', 'Ring close no faster than', 'seconds'),
   snagMore('minDots', 'Fewest dots', 'count'),
   snagMore('maxDots', 'Most dots', 'count'),
-  snagMore('perZone', 'One more dot every … drives', 'count'),
+  snagMore('moreEvery', 'One more dot every … drives', 'count'),
   snagMore('handsGap', 'Hands gap for a dot more or less', 'count'),
+  snagMore('linger', 'Box stays after the grade', 'seconds'),
   k('crows.window', 'Time to shoo', 'seconds', ['shoo']),
 ];
 
@@ -92,7 +93,7 @@ const AREAS = arcadeTuning.breakit.byArea.length;
 
 /** The area a drive (1-based) is in, as a by-area value counts it: past the Farm, the Farm's. */
 function areaOf(drive: number): number {
-  return Math.min(AREAS - 1, Math.max(0, Math.floor((drive - 1) / DRIVE_KINDS.length)));
+  return Math.min(AREAS - 1, Math.max(0, driveAt(drive).area));
 }
 
 /** The value a knob edits at this drive. */
@@ -208,11 +209,6 @@ export function showValue(knob: Knob, v: number): string {
 /** A tuning.ts number written plainly: no float noise. */
 export function round(v: number): number {
   return +v.toFixed(4);
-}
-
-/** The knob that edits a path, or null if none does (a slider that's gone). */
-export function knobOf(path: string): Knob | null {
-  return KNOBS.find((x) => pathsOf(x).includes(path)) ?? null;
 }
 
 /** The settings with `path` at `v`: kept only while it's off its default. */

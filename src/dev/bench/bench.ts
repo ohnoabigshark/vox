@@ -4,7 +4,7 @@
  * starts the next rep a second after the grade, if the Coach tapped in this
  * one (so a bench left alone stops, rather than logging reps nobody played).
  */
-import { DT, TIME_SCALE } from '../../arcade/content/tuning';
+import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
 import type { ArcadeEvent, StepInput } from '../../arcade/sim/types';
 import type { SnagView } from '../../arcade/ui/controls';
 import { snagView } from '../../arcade/ui/testViews';
@@ -34,12 +34,36 @@ export class Bench {
   /** Whether the Coach has tapped in this rep. */
   private touched = false;
 
-  constructor(readonly options: BenchOptions) {}
+  private opts: BenchOptions;
+
+  constructor(options: BenchOptions) {
+    this.opts = { ...options };
+  }
+
+  /** What the bench is set to: the open tab's test, the situation, and Again. */
+  get options(): Readonly<BenchOptions> {
+    return this.opts;
+  }
+
+  /** Another tab: its test, with no rep on until GO. */
+  showTest(test: BenchTest): void {
+    this.opts = { ...this.opts, test };
+    this.rep = null;
+  }
+
+  /** The situation the next rep is played in. */
+  setSituation(situation: Situation): void {
+    this.opts = { ...this.opts, situation };
+  }
+
+  setAgain(again: boolean): void {
+    this.opts = { ...this.opts, again };
+  }
 
   /** GO: a new rep, now. */
   go(): void {
     this.seed++;
-    this.rep = startRep(this.options.test, this.options.situation, this.seed);
+    this.rep = startRep(this.opts.test, this.opts.situation, this.seed);
     this.reps++;
     this.accumulator = 0;
     this.pending = {};
@@ -54,8 +78,13 @@ export class Bench {
    * rep's dots (B4). Here each rep is its own: its number is the view's id.
    */
   snagView(): SnagView | null {
-    const state = this.rep && !this.rep.result ? this.rep.state : null;
-    const view = state ? snagView(state) : null;
+    const rep = this.rep;
+    if (!rep) return null;
+    // After the grade the rep's sim stops, so the bench times the box's linger
+    // (snag.linger, the last dot's pop) itself, from when the grade came in.
+    const since = this.wait === null ? 0 : AGAIN_AFTER - this.wait;
+    if (rep.result && since >= arcadeTuning.snag.linger / TIME_SCALE) return null;
+    const view = snagView(rep.state);
     return view ? { ...view, id: this.reps } : null;
   }
 
@@ -73,7 +102,7 @@ export class Bench {
     if (rep.result) {
       if (this.wait !== null) {
         this.wait -= screen;
-        if (this.wait <= 0 && this.options.again && this.touched) this.go();
+        if (this.wait <= 0 && this.opts.again && this.touched) this.go();
       }
       return { events, finished: null };
     }

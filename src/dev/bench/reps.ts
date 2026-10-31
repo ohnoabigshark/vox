@@ -6,14 +6,15 @@
  * in screen seconds, read off the run at the moment of each tap.
  */
 import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
+import { BASE_STATS } from '../../arcade/content/team';
 import { qbOf } from '../../arcade/sim/ai';
 import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
-import { createRun } from '../../arcade/sim/run';
+import { createRun, driveAt } from '../../arcade/sim/run';
 import { snagCount, snagPace, startSnag } from '../../arcade/sim/snag';
 import { step } from '../../arcade/sim/step';
 import { startingRoster } from '../../arcade/sim/team';
 import type { ArcadeEvent, Player, RunState, StepInput } from '../../arcade/sim/types';
-import { DRIVE_KINDS } from '../../arcade/sim/run';
+import { breakGrade, type Grade } from '../../arcade/ui/tapTestCalls';
 import type { BenchTest } from './knobs';
 
 /** Where a rep is played (k2): the drive, and who's in on it. */
@@ -30,7 +31,36 @@ export interface Situation {
 
 export const FIRST_SITUATION: Situation = { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 };
 
-export type Grade = 'great' | 'ok' | 'bad';
+/** The situation's sliders (k2): which tests each is for, and its range. */
+export const SITUATION_SLIDERS: readonly {
+  key: keyof Situation;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  tests: readonly BenchTest[];
+}[] = [
+  {
+    key: 'drive',
+    label: 'Drive',
+    min: 1,
+    max: 20,
+    step: 1,
+    tests: ['bar', 'mash', 'juke', 'snag'],
+  },
+  { key: 'tacklers', label: 'Tacklers', min: 1, max: 3, step: 1, tests: ['bar', 'mash', 'juke'] },
+  { key: 'crowd', label: 'Defenders reaching', min: 1, max: 3, step: 1, tests: ['snag'] },
+  {
+    key: 'handsGap',
+    label: 'Hands gap (yours − theirs)',
+    min: -40,
+    max: 40,
+    step: 5,
+    tests: ['snag'],
+  },
+];
+
+export type { Grade } from '../../arcade/ui/tapTestCalls';
 
 /** How the taps went (t1), in screen seconds. */
 export type Timing =
@@ -80,13 +110,8 @@ export interface Rep {
 
 /** Start a rep of `test` in `situation`; `seed` varies where the sweet spot, the arrow and the dots fall. */
 export function startRep(test: BenchTest, situation: Situation, seed: number): Rep {
-  const state = createRun(seed, startingRoster(), 0, { snag: true });
-  const drive = situation.drive - 1;
-  state.drive = {
-    ...state.drive,
-    area: Math.floor(drive / DRIVE_KINDS.length),
-    index: drive % DRIVE_KINDS.length,
-  };
+  const state = createRun(seed, startingRoster(), 0, { snagAlways: true });
+  state.drive = { ...state.drive, ...driveAt(situation.drive) };
   state.phase = 'play';
   state.snappedAt = state.time;
   state.field.pickups = [];
@@ -125,11 +150,11 @@ export function startRep(test: BenchTest, situation: Situation, seed: number): R
       if (!catcher) throw new Error('the run has no Catcher');
       const receiver: Player = {
         ...catcher,
-        stats: { ...catcher.stats, hands: 50 + situation.handsGap },
+        stats: { ...catcher.stats, hands: BASE_STATS.hands + situation.handsGap },
       };
       players[i] = receiver;
       const crowd = defenders.slice(0, situation.crowd).map((d, j) => {
-        const reaching = { ...d, stats: { ...d.stats, hands: 50 } };
+        const reaching = { ...d, stats: { ...d.stats, hands: BASE_STATS.hands } };
         defenders[j] = reaching;
         return reaching;
       });
@@ -223,7 +248,7 @@ function gradeOf(events: readonly ArcadeEvent[]): Grade | null {
   for (const e of events) {
     switch (e.type) {
       case 'breakResult':
-        return e.outcome === 'break' ? 'great' : e.outcome === 'drag' ? 'ok' : 'bad';
+        return breakGrade(e.outcome);
       case 'snagResult':
         return e.grade;
       case 'crowsShooed':
@@ -273,7 +298,7 @@ export function timingText(timing: Timing): string {
 /** What the situation adds up to for this test (k2), in screen seconds. */
 export function summary(test: BenchTest, situation: Situation): string {
   const { drive } = situation;
-  const area = Math.floor((drive - 1) / DRIVE_KINDS.length);
+  const { area } = driveAt(drive);
   const b = arcadeTuning.breakit;
   const pile = b.perExtraTackler ** (situation.tacklers - 1);
   const level = breakHardness(area);

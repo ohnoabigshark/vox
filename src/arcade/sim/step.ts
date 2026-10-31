@@ -39,6 +39,7 @@ import type {
   Player,
   RunState,
   StepInput,
+  Vec,
 } from './types';
 import { add, dist, len, norm, scale, sub, v } from './vec';
 
@@ -142,6 +143,12 @@ function throwBullet(state: RunState, events: ArcadeEvent[]): void {
 }
 
 /** Someone has the ball now: it runs, and picks its lane. */
+/** Knock a player down for `down` seconds, sent away from `from` at `speed` (yards a second). */
+function knockFlying(d: Body, from: Vec, down: number, speed: number): void {
+  d.down = down;
+  d.vel = scale(norm(sub(d.pos, from)), speed);
+}
+
 export function giveBall(state: RunState, p: Player): void {
   p.job = { kind: 'carry' };
   state.field.ball = { at: 'carried', by: p.id };
@@ -166,8 +173,7 @@ function resolveContact(state: RunState, events: ArcadeEvent[]): boolean {
       if (d.planted || d.down > 0 || !touching(p, d)) continue;
       const ratio = handedOff(state) ? contact.runPancakeRatio : contact.pancakeRatio;
       if (p.mass < ratio * d.mass) continue;
-      d.down = contact.pancakeTime;
-      d.vel = scale(norm(sub(d.pos, p.pos)), 4);
+      knockFlying(d, p.pos, contact.pancakeTime, contact.knockSpeed);
       events.push({ type: 'pancake', blocker: p.id, defender: d.id });
     }
   }
@@ -228,8 +234,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
   if (outcome === 'break') {
     // BREAK: they go flying, and the carrier keeps going.
     for (const d of tacklers) {
-      d.down = contact.brokenTime;
-      d.vel = scale(norm(sub(d.pos, carrier.pos)), 5);
+      knockFlying(d, carrier.pos, contact.brokenTime, contact.brokenSpeed);
       events.push({ type: 'brokeTackle', id: carrier.id, defender: d.id });
     }
     // The rest of the pile is knocked back too, and nobody can grab it for a moment: it breaks free.
@@ -237,8 +242,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
     for (const d of state.field.defenders) {
       if (tacklers.includes(d) || d.planted || d.down > 0) continue;
       if (dist(d.pos, carrier.pos) > carrier.radius + d.radius + b.scatter) continue;
-      d.down = b.scatterDown;
-      d.vel = scale(norm(sub(d.pos, carrier.pos)), 4);
+      knockFlying(d, carrier.pos, b.scatterDown, contact.knockSpeed);
     }
     state.field.breakaway = b.breakaway;
     return;
@@ -266,6 +270,7 @@ function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
   const grade = judgeSnag(state, input, events);
   if (!grade || !t) return;
   events.push({ type: 'snagResult', grade });
+  state.snagDone = { snag: t, endedAt: state.time };
   state.snag = null;
   state.phase = 'play';
   const receiver = state.field.players.find((p) => p.id === t.receiver);
@@ -284,10 +289,7 @@ function snag(state: RunState, input: StepInput, events: ArcadeEvent[]): void {
     tackle(state, receiver, first?.id ?? -1, events);
     return;
   }
-  for (const d of defenders) {
-    d.down = contact.brokenTime;
-    d.vel = scale(norm(sub(d.pos, receiver.pos)), 5);
-  }
+  for (const d of defenders) knockFlying(d, receiver.pos, contact.brokenTime, contact.brokenSpeed);
   state.field.breakaway = arcadeTuning.breakit.breakaway;
   checkCarrier(state, events);
 }
@@ -485,11 +487,16 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
   }
   if (outcome.kind === 'caught') {
     giveBall(state, outcome.by);
-    events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contested });
+    events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contest !== undefined });
     return checkCarrier(state, events);
   }
   if (outcome.kind === 'batted') {
-    events.push({ type: 'batted', by: outcome.by, at: outcome.at, contested: outcome.contested });
+    events.push({
+      type: 'batted',
+      by: outcome.by,
+      at: outcome.at,
+      contested: outcome.contest !== undefined,
+    });
     state.field.ball = { at: 'dead', pos: outcome.at, how: 'batted' };
     endDown(state, 'batted', state.drive.los, events);
     return true;

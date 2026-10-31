@@ -13,13 +13,13 @@ import { writeFile } from 'node:fs/promises';
 import { basename, dirname } from 'node:path';
 import { promisify } from 'node:util';
 import type { Plugin } from 'vite';
+import { endpoint } from './endpoint';
+import { BENCH_SAVE_PATH } from '../src/dev/bench/endpoints';
 // savedTuning imports nothing; tuning.ts (which loads the saved file) is
 // loaded per request through Vite, never by the config: a file the config
 // loads restarts the server when it changes, and a save would then reload
 // every page, losing the other tabs' unsaved moves.
 import { checkSaved } from '../src/arcade/content/savedTuning';
-
-export const BENCH_SAVE_PATH = '__bench-save';
 
 export interface SaveDeps {
   write(text: string): Promise<void>;
@@ -87,24 +87,9 @@ export function benchSavePlugin(file: string): Plugin {
             }
           ).tuningDefaults,
       };
-      server.middlewares.use((req, res, next) => {
-        if (!(req.url ?? '').split('?')[0]?.endsWith(`/${BENCH_SAVE_PATH}`)) return next();
-        let body = '';
-        req.setEncoding('utf8');
-        req.on('data', (chunk: string) => (body += chunk));
-        req.on('end', () => {
-          void handleBenchSave(req.method ?? '', body, deps)
-            .catch((e: unknown) => ({
-              status: 500,
-              body: e instanceof Error ? e.message : String(e),
-            }))
-            .then((r) => {
-              res.statusCode = r.status;
-              res.setHeader('content-type', r.status === 200 ? 'application/json' : 'text/plain');
-              res.end(r.body);
-            });
-        });
-      });
+      server.middlewares.use(
+        endpoint(BENCH_SAVE_PATH, (method, body) => handleBenchSave(method, body, deps)),
+      );
     },
     // Vite still drops its cached copy of the file, so the next load reads the save.
     handleHotUpdate(ctx) {

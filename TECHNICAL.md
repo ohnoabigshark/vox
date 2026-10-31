@@ -65,6 +65,7 @@ Items marked **▲ Decision** are recommendations that are still open to change.
 | `setup` | Before the snap: three cards dealt, a card called (its routes drawn), Flip, HIKE!. |
 | `play` | The down is live: the sweep, THROW, the ball in the air, the carrier running. |
 | `breakit` | The carrier is grabbed: the play is frozen for a Break it! test. |
+| `snag` | A contested ball, from drive 5: the play is frozen for SNAG IT! (`sim/snag.ts`, docs/SNAG.md). |
 | `downOver` | A short pause showing what happened, then the next down (or drive). |
 | `draft` | TRICK OR TREAT! between drives: the offer, the roster and the bench. |
 | `over` / `won` | Game over, or all three areas cleared. |
@@ -143,7 +144,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 **Plain DOM and CSS, layered over the WebGL canvas.** The canvas fills the screen and a DOM root sits over it; the overlay doesn't block taps by default (`pointer-events: none`), and only real controls accept them.
 
 - **`src/ui/hud.ts`** (`Hud`): the drive banner and down and distance at the top; the prompt and the context button (PLAY, HIKE!, RESUME, AGAIN); the hand of three play cards and Flip; `pop()` for results and `big()` for Break it!'s GREAT / OK / BAD; and the **TRICK OR TREAT!** overlay: the two New Player! cards (each a player card), and the roster with the field down the left by position and the bench (no limit, newest first) down the right, each player a photo box, stat bars and a note.
-- **`src/arcade/ui/controls.ts`**: THROW, SHOO!, and the Break it! panel (the countdown, the bar, the mash meter, the juke buttons).
+- **`src/arcade/ui/controls.ts`**: THROW, SHOO!, the Break it! panel (the countdown, the bar, the mash meter, the juke buttons), and SNAG IT!'s box (its dots, each a button with its ring closing onto it; it stays `snag.linger` after the grade so the last dot's pop shows). The phases a down is on in, and those frozen for a test, are `downOn` and `frozenForTest` in `sim/run.ts`.
 - **`src/arcade/ui/trickOrTreat.ts`**: turns the run state into what the overlay shows (the two New Player! cards as player cards, the roster rows, the ★ on a preferred position). **`kindIcons.ts`**: each kind's 12×12 pixel portrait as inline SVG.
 - **The look is retro pixel:** square corners, hard ink outlines, flat offset shadows, outlined text, segmented bars, scanlines on dark panels; the tokens are at the top of `src/ui/base.css` (`--edge`, `--text-edge`, `--scanlines`). Animations stay smooth.
 - **Font:** Creepster (OFL, self-hosted in `assets/fonts`), loaded before the game is built so no text ever shows in a fallback font.
@@ -154,8 +155,8 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 
 ## 7. Input and Haptics
 
-- **Every input is a tap on a DOM control:** a card, Flip, HIKE!, THROW, the Break it! panel (anywhere on it; the juke's ◀ and ▶), the offer, the roster.
-- **Keys for a desktop:** 1–3 call a card, F flips, Space hikes (then throws, and taps the bar and the mash), ← and → juke, S shoos the King's crows.
+- **Every input is a tap on a DOM control:** a card, Flip, HIKE!, THROW, the Break it! panel (anywhere on it; the juke's ◀ and ▶), SNAG IT!'s dots (each its own button), the offer, the roster.
+- **Keys for a desktop:** 1–3 call a card, F flips, Space hikes (then throws, taps the bar and the mash, and taps SNAG IT!'s next dot, `nextDot` in `sim/snag.ts`), ← and → juke, S shoos the King's crows.
 - **Stopping browser gestures:** `touch-action: none` on the game surface, and no double-tap zoom, pull-to-refresh, text selection or long-press menu.
 - **Haptics** (`navigator.vibrate`) are planned for the snap, throws, catches and hits. iOS Safari doesn't support vibration, so nothing may depend on it.
 
@@ -178,7 +179,7 @@ All game content is **typed data**, kept apart from the engine code.
 
 ```
 src/arcade/content/
-  tuning.ts    // tuningDefaults: every number the sim uses (field, body, contact, throw, sweep, breakit, carrier, defense, drive, run); arcadeTuning, what plays: those with saved-tuning.json on top
+  tuning.ts    // tuningDefaults: every number the sim uses (field, body, contact, throw, sweep, breakit, snag, carrier, defense, drive, run); arcadeTuning, what plays: those with saved-tuning.json on top
   savedTuning.ts // layerSaved and checkSaved: the test bench's saved settings over the defaults (docs/BENCH.md)
   saved-tuning.json // the bench's saved settings, off their defaults; {} plays tuning.ts exactly
   team.ts      // roster roles, the standard line-up and lineUpSpot (a play's own, or standard), BASE_STATS, FORM_STATS (each kind's trade), POSITION_STAT, BENCH_SIZE, radii
@@ -300,7 +301,7 @@ slice 0
 - **TypeScript strict mode** (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), ESLint and Prettier.
 - **Unit tests (Vitest)** in `tests/`, mirroring `src/`: the sim's rules (catches, contests, blocks, pancakes, Break it!, the pocket, downs and drives, perks, the roster and bench, crowding), content checks, the voxel parser and mesher, audio data, palettes.
 - **Headless balance runs:** `npm run balance:arcade [runs]` (`tools/arcade-balance.ts`) plays whole runs through the sim with a bot and reports drives won, how downs end, each play type's spread of gains, Break it! results by kind, and where runs get stopped. The bot plays like a practised player by default; `BOT='{…}'` changes its knobs and `BALANCE_SCENARIO='{…}'` runs one custom scenario. It's slow (seconds a run), so use a few dozen runs per comparison.
-- **Dev pages** (in the normal build so they can be tried on phones; `npm run build:release` leaves them out): `/dev/` (an index), `models.html`, `audio.html`, `beat.html` (the beat clock and calibration), `lyrics.html`, `plays.html` (the play editor, docs/PLAY_EDITOR.md), and `bench.html` (the test bench: each quick tap test on its own, with sliders for its `tuning.ts` values, docs/BENCH.md). Each tab's Save writes `src/arcade/content/saved-tuning.json` through the dev server (`tools/benchSave.ts`, a Vite plugin; never a commit), which the game, the balance bot and the bench play over `tuning.ts`'s defaults; unit tests play the defaults (`tests/setup.ts`). The bench logs each rep and each save through the dev server too: `tools/benchLog.ts` appends each line to the file named by `BENCH_LOG`, and with it blank, or on a build served as files, the bench says it isn't recording and can't save. Neither plugin loads `tuning.ts` when the config loads, or every save would restart the dev server.
+- **Dev pages** (in the normal build so they can be tried on phones; `npm run build:release` leaves them out): `/dev/` (an index), `models.html`, `audio.html`, `beat.html` (the beat clock and calibration), `lyrics.html`, `plays.html` (the play editor, docs/PLAY_EDITOR.md), and `bench.html` (the test bench: each quick tap test on its own, with sliders for its `tuning.ts` values, docs/BENCH.md). Each tab's Save writes `src/arcade/content/saved-tuning.json` through the dev server (`tools/benchSave.ts`, a Vite plugin; never a commit), which the game, the balance bot and the bench play over `tuning.ts`'s defaults; unit tests play the defaults (`tests/setup.ts`). The bench logs each rep and each save through the dev server too: `tools/benchLog.ts` appends each line to the file named by `BENCH_LOG`, and with it blank, or on a build served as files, the bench says it isn't recording and can't save. Neither plugin loads `tuning.ts` when the config loads, or every save would restart the dev server. Both answer through `tools/endpoint.ts`, which always replies (a throw is a 500 naming it). The bench and the game share the tap tests' views (`ui/testViews.ts`) and their calls and sounds (`ui/tapTestCalls.ts`).
 - **Device testing:** a regular check on a real mid-range Android phone and a real iPhone. Desktop emulation isn't enough for touch and feel.
 
 ---
@@ -328,7 +329,7 @@ slice 0
 │  │  ├─ content/          // tuning, team, plays, defense, perks
 │  │  ├─ sim/              // the pure rules (§4)
 │  │  ├─ render/           // three.js views of the sim (§5)
-│  │  └─ ui/               // THROW and Break it!, TRICK OR TREAT!'s view, kind portraits
+│  │  └─ ui/               // THROW, Break it! and SNAG IT!, TRICK OR TREAT!'s view, kind portraits
 │  ├─ render/              // View (renderer, lights) and ForestScenery
 │  ├─ ui/                  // the HUD, base styles, fonts, palette CSS variables
 │  ├─ game/conductor.ts    // music and SFX

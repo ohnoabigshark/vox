@@ -6,8 +6,9 @@
  * out of range is pulled inside it, sliders kept before the rework are
  * ignored, and storage that can't be read starts afresh and says so.
  */
+import { clamp, isRecord } from './checks';
 import { BENCH_TESTS, type BenchTest } from './knobs';
-import { FIRST_SITUATION, type Situation } from './reps';
+import { FIRST_SITUATION, SITUATION_SLIDERS, type Situation } from './reps';
 
 export interface Toggles {
   readonly again: boolean;
@@ -37,19 +38,12 @@ export interface BenchStore {
 const KEY = 'getJackBack.testBench';
 const VERSION = 1;
 const UNAVAILABLE = "This browser isn't keeping the bench's settings (private browsing?).";
-const UNREADABLE = "The bench's saved settings can't be read, so it starts from the defaults.";
+const UNREADABLE = "The bench's kept tab and situation can't be read, so it starts afresh.";
 
-/** The situation's ranges (k2). */
-const RANGES: Readonly<Record<keyof Situation, readonly [number, number]>> = {
-  drive: [1, 20],
-  tacklers: [1, 3],
-  crowd: [1, 3],
-  handsGap: [-40, 40],
-};
-
-const clamp = (x: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, x));
-const isRecord = (x: unknown): x is Record<string, unknown> =>
-  typeof x === 'object' && x !== null && !Array.isArray(x);
+/** The situation's ranges (k2), from its sliders. */
+const RANGES = Object.fromEntries(
+  SITUATION_SLIDERS.map((x) => [x.key, [x.min, x.max] as const]),
+) as Readonly<Record<keyof Situation, readonly [number, number]>>;
 
 export function benchStore(storage: Pick<Storage, 'getItem' | 'setItem'>): BenchStore {
   return {

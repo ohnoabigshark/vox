@@ -21,7 +21,7 @@ describe('the settings kept on the phone', () => {
     expect(await benchStore(storage).load()).toEqual({ kept, problem: null });
   });
 
-  it('start from the defaults when nothing is kept', async () => {
+  it('start afresh when nothing is kept', async () => {
     expect(await benchStore(memoryStorage()).load()).toEqual({ kept: FIRST_KEPT, problem: null });
   });
 
@@ -50,12 +50,12 @@ describe('the settings kept on the phone', () => {
     expect(storage.data.get('getJackBack.testBench')).not.toContain('settings');
   });
 
-  it("start from the defaults, and say why, when storage can't be read", async () => {
+  it("start afresh, and say why, when storage can't be read", async () => {
     const garbled = memoryStorage();
     garbled.data.set('getJackBack.testBench', '{nope');
     expect(await benchStore(garbled).load()).toEqual({
       kept: FIRST_KEPT,
-      problem: "The bench's saved settings can't be read, so it starts from the defaults.",
+      problem: "The bench's kept tab and situation can't be read, so it starts afresh.",
     });
     const refusing = {
       getItem: (): string | null => {

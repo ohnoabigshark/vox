@@ -15,11 +15,14 @@ import { RENDER_RATE } from '../../audio/music';
 import { SfxPlayer, prepareSfx, type SfxId } from '../../audio/sfx';
 import type { ArcadeEvent } from '../../arcade/sim/types';
 import { ArcadeControls } from '../../arcade/ui/controls';
+import { nextDot } from '../../arcade/sim/snag';
+import { gradeCall, tapTestSound } from '../../arcade/ui/tapTestCalls';
 import { breakView, shooShowing } from '../../arcade/ui/testViews';
 import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
 import { browserStorage } from '../playEditor/sketches';
 import { Bench } from './bench';
+import { BENCH_LOG_PATH, BENCH_SAVE_PATH } from './endpoints';
 import { benchStore, type Kept, type Toggles } from './keep';
 import {
   BENCH_TESTS,
@@ -35,7 +38,8 @@ import {
   type Settings,
 } from './knobs';
 import { httpLog, repLine, saveLine, type LogLine } from './log';
-import { Grab, fractionOf, rowView, snap, type Range, type RowView } from './row';
+import { fractionOf, rowView } from './row';
+import { slider } from './slider';
 import {
   httpSaver,
   restoredTab,
@@ -44,9 +48,10 @@ import {
   savedAfter,
   tabsWithUnsaved,
   unsaved,
+  unsavedOffScreen,
   type SaveState,
 } from './save';
-import { summary, timingText, type Grade, type RepResult, type Situation } from './reps';
+import { SITUATION_SLIDERS, summary, timingText, type Grade, type RepResult } from './reps';
 
 const TAB: Readonly<Record<BenchTest, string>> = {
   bar: 'Bar',
@@ -58,38 +63,8 @@ const TAB: Readonly<Record<BenchTest, string>> = {
 
 /** The grade in one big word, as the game calls it. */
 function word(r: RepResult): string {
-  if (r.test === 'shoo') return r.grade === 'great' ? 'SHOOED!' : 'CROWS!';
-  return { great: 'GREAT!', ok: 'OK', bad: 'BAD' }[r.grade];
+  return gradeCall(r.test, r.grade).word;
 }
-
-/** The situation's sliders (k2): which tests each is for, and its range. */
-const SITUATION: readonly {
-  key: keyof Situation;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  tests: readonly BenchTest[];
-}[] = [
-  {
-    key: 'drive',
-    label: 'Drive',
-    min: 1,
-    max: 20,
-    step: 1,
-    tests: ['bar', 'mash', 'juke', 'snag'],
-  },
-  { key: 'tacklers', label: 'Tacklers', min: 1, max: 3, step: 1, tests: ['bar', 'mash', 'juke'] },
-  { key: 'crowd', label: 'Defenders reaching', min: 1, max: 3, step: 1, tests: ['snag'] },
-  {
-    key: 'handsGap',
-    label: 'Hands gap (yours − theirs)',
-    min: -40,
-    max: 40,
-    step: 5,
-    tests: ['snag'],
-  },
-];
 
 const TOGGLES: readonly { key: keyof Toggles; label: string }[] = [
   { key: 'again', label: 'Again' },
@@ -117,6 +92,7 @@ async function main(): Promise<void> {
       <button class="b-save">Saved</button>
       <button class="b-reset">Restore defaults</button>
     </div>
+    <p class="b-also" hidden></p>
     <div class="b-row b-toggles">${TOGGLES.map(
       (t) => `<label><input type="checkbox" data-toggle="${t.key}" /> ${t.label}</label>`,
     ).join('')}</div>
@@ -137,6 +113,7 @@ async function main(): Promise<void> {
   const knobsEl = q('.b-knobs');
   const saveButton = q<HTMLButtonElement>('.b-save');
   const savedEl = q('.b-saved');
+  const alsoEl = q('.b-also');
 
   const store = benchStore(browserStorage());
   const loaded = await store.load();
@@ -150,7 +127,7 @@ async function main(): Promise<void> {
   applySettings(settings);
 
   // ── The log: whether it's being recorded is always on show (never fail silently). ──
-  const log = httpLog(`${import.meta.env.BASE_URL}__bench-log`);
+  const log = httpLog(`${import.meta.env.BASE_URL}${BENCH_LOG_PATH}`);
   let recording: boolean | null = null;
   const showStatus = (): void => {
     const rec =
@@ -208,20 +185,10 @@ async function main(): Promise<void> {
     if (kept.toggles.sound) sfx?.play(id);
   };
   const react = (e: ArcadeEvent): void => {
-    switch (e.type) {
-      case 'snagDot':
-        play(e.hit ? 'catch' : 'fumble');
-        if (e.hit && kept.toggles.buzz) navigator.vibrate?.(12);
-        break;
-      case 'brokeTackle':
-      case 'dragged':
-      case 'crowsShooed':
-      case 'crowsStruck':
-        play('burst');
-        break;
-      default:
-        break;
-    }
+    // The game's sound for each tap test event (ui/tapTestCalls.ts).
+    const sound = tapTestSound(e);
+    if (sound) play(sound);
+    if (e.type === 'snagDot' && e.hit && kept.toggles.buzz) navigator.vibrate?.(12);
   };
 
   // ── The bench and the test screen. ──
@@ -260,26 +227,30 @@ async function main(): Promise<void> {
   };
 
   // ── Save (docs/BENCH.md, Saving): each tab's own, through the hot-reload server. ──
-  const saver = httpSaver(`${import.meta.env.BASE_URL}__bench-save`);
-  let saveState: SaveState = { server: 'checking', inServedGame: true, error: null };
+  const saver = httpSaver(`${import.meta.env.BASE_URL}${BENCH_SAVE_PATH}`);
+  let saveState: SaveState = { server: { kind: 'checking' }, error: null };
   let saving = false;
   const renderSave = (): void => {
     const changes = unsaved(saved, settings, test()).length;
     saveButton.textContent = saveLabel(changes);
-    saveButton.disabled = saveState.server !== 'up' || changes === 0 || saving;
+    saveButton.disabled = saveState.server.kind !== 'up' || changes === 0 || saving;
     const { text, bad } = saveStatus(saveState);
     savedEl.textContent = text;
     savedEl.classList.toggle('off', bad);
+    // Unsaved values no row on screen shows (another area's, b10).
+    const also = unsavedOffScreen(saved, settings, test(), kept.situation.drive);
+    alsoEl.hidden = also.length === 0;
+    alsoEl.textContent = `Also unsaved: ${also.join(', ')}`;
     renderTabs();
   };
   void saver.probe().then((r) => {
-    saveState = r
-      ? { ...saveState, server: 'up', inServedGame: r.inServedGame }
-      : { ...saveState, server: 'none' };
+    saveState = { ...saveState, server: r };
     renderSave();
   });
   saveButton.addEventListener('click', () => {
-    const next = savedAfter(saved, settings, test());
+    // The tab saved is the one open at the tap, even if another is open when the reply comes.
+    const tab = test();
+    const next = savedAfter(saved, settings, tab);
     saving = true;
     renderSave();
     saver
@@ -287,8 +258,11 @@ async function main(): Promise<void> {
       .then(
         (r) => {
           saved = next;
-          saveState = { server: 'up', inServedGame: r.inServedGame, error: null };
-          record(saveLine(test(), next, now()));
+          saveState = {
+            server: { kind: 'up', inServedGame: r.inServedGame, savedAt: now() },
+            error: null,
+          };
+          record(saveLine(tab, next, now()));
         },
         (e: unknown) => {
           saveState = { ...saveState, error: e instanceof Error ? e.message : String(e) };
@@ -306,16 +280,19 @@ async function main(): Promise<void> {
   });
   const renderSituation = (): void => {
     situationEl.innerHTML = '';
-    for (const sit of SITUATION.filter((x) => x.tests.includes(test()))) {
+    for (const sit of SITUATION_SLIDERS.filter((x) => x.tests.includes(test()))) {
       const range = { min: sit.min, max: sit.max, step: sit.step };
       const row = slider(sit.label, range, {
         onMove: (v) => {
           const situation = { ...kept.situation, [sit.key]: v };
           kept = { ...kept, situation };
-          bench.options.situation = situation;
+          bench.setSituation(situation);
           show();
-          // A by-area slider edits the new drive's area.
-          if (sit.key === 'drive') renderKnobs();
+          // A by-area slider edits the new drive's area, so what's off screen changes too.
+          if (sit.key === 'drive') {
+            renderKnobs();
+            renderSave();
+          }
           showSummary();
           keep();
         },
@@ -399,8 +376,7 @@ async function main(): Promise<void> {
   for (const b of app.querySelectorAll<HTMLButtonElement>('[data-test]')) {
     b.addEventListener('click', () => {
       const t = b.dataset.test as BenchTest;
-      bench.options.test = t;
-      bench.rep = null;
+      bench.showTest(t);
       kept = { ...kept, test: t };
       keep();
       showTab();
@@ -411,7 +387,7 @@ async function main(): Promise<void> {
     box.checked = kept.toggles[key];
     box.addEventListener('change', () => {
       kept = { ...kept, toggles: { ...kept.toggles, [key]: box.checked } };
-      bench.options.again = kept.toggles.again;
+      bench.setAgain(kept.toggles.again);
       keep();
     });
   }
@@ -438,10 +414,8 @@ async function main(): Promise<void> {
       e.preventDefault();
       const t = test();
       if (t === 'snag') {
-        const s = bench.rep?.state;
-        const dots = s?.snag?.dots ?? [];
-        const i = dots.findIndex((d) => d.result === null && (s?.time ?? 0) >= d.appearsAt);
-        if (i >= 0) bench.press({ snag: i });
+        const i = bench.rep ? nextDot(bench.rep.state) : null;
+        if (i !== null) bench.press({ snag: i });
       } else if (t === 'shoo') bench.press({ shoo: true });
       else bench.press({ breakTap: true });
     } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
@@ -482,107 +456,6 @@ async function main(): Promise<void> {
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
-}
-
-/** What a slider row shows; the tuning rows add the rest of `RowView`. */
-type Shown = Pick<RowView, 'shown' | 'at'> & Partial<RowView> & { readonly value: number };
-
-/**
- * A slider row that moves only when its knob is dragged (r-u1): a touch on
- * the track does nothing and a swipe from there scrolls the page. The knob
- * also takes the arrow keys. With `onReset`, the row has a ↺ (r-u3).
- */
-function slider(
-  name: string,
-  range: Range,
-  on: { onMove(v: number): void; onReset?(): void },
-): { el: HTMLElement; show(view: Shown): void } {
-  const el = document.createElement('div');
-  el.className = 'b-slider';
-  el.innerHTML = `
-    <span class="b-name"></span><output></output>
-    <div class="b-track"><span class="b-fill"></span><span class="b-tick" hidden></span>
-      <span class="b-knob" role="slider" tabindex="0"></span></div>
-    <small hidden></small>`;
-  const q = <T extends HTMLElement>(sel: string): T => {
-    const found = el.querySelector<T>(sel);
-    if (!found) throw new Error(`slider missing ${sel}`);
-    return found;
-  };
-  const title = q('.b-name');
-  title.textContent = name;
-  const mark = document.createElement('em');
-  mark.textContent = 'UNSAVED';
-  const output = q<HTMLOutputElement>('output');
-  const track = q('.b-track');
-  const fill = q('.b-fill');
-  const tick = q('.b-tick');
-  const knob = q('.b-knob');
-  const note = q('small');
-  knob.setAttribute('aria-label', name);
-  knob.setAttribute('aria-valuemin', String(range.min));
-  knob.setAttribute('aria-valuemax', String(range.max));
-  let reset: HTMLButtonElement | null = null;
-  if (on.onReset) {
-    reset = document.createElement('button');
-    reset.className = 'b-one';
-    reset.textContent = '↺';
-    reset.setAttribute('aria-label', `${name}: back to its default`);
-    reset.addEventListener('click', () => on.onReset?.());
-    output.after(reset);
-  }
-  let value = range.min;
-  const grab = new Grab(range, () => track.getBoundingClientRect().width);
-  const moveTo = (v: number): void => {
-    if (v !== value) on.onMove(v);
-  };
-  track.addEventListener('pointerdown', (e) => {
-    const onKnob = e.target instanceof Element && e.target.closest('.b-knob') !== null;
-    if (!grab.down(onKnob ? 'knob' : 'track', e.clientX, value)) return;
-    e.preventDefault();
-    knob.setPointerCapture(e.pointerId);
-    knob.focus();
-    el.classList.add('grabbed');
-  });
-  knob.addEventListener('pointermove', (e) => {
-    const v = grab.move(e.clientX);
-    if (v !== null) moveTo(v);
-  });
-  const letGo = (): void => {
-    if (!grab.dragging) return;
-    grab.up();
-    el.classList.remove('grabbed');
-  };
-  knob.addEventListener('pointerup', letGo);
-  knob.addEventListener('pointercancel', letGo);
-  knob.addEventListener('keydown', (e) => {
-    const by = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
-    if (by === undefined) return;
-    e.preventDefault();
-    moveTo(snap(value + by * range.step, range));
-  });
-  return {
-    el,
-    show(view) {
-      value = view.value;
-      output.textContent = view.shown;
-      knob.style.left = fill.style.width = `${view.at * 100}%`;
-      knob.setAttribute('aria-valuenow', String(view.value));
-      knob.setAttribute('aria-valuetext', view.shown);
-      if (view.tick !== undefined) {
-        tick.hidden = false;
-        tick.style.left = `${view.tick * 100}%`;
-      }
-      if (view.note !== undefined) {
-        note.hidden = false;
-        note.textContent = view.note;
-      }
-      el.classList.toggle('unsaved', view.unsaved === true);
-      if (view.unsaved) title.append(mark);
-      else mark.remove();
-      if (reset) reset.disabled = view.atDefault === true;
-    },
-  };
 }
 
 void main().catch((e: unknown) => {
