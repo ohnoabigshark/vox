@@ -8,12 +8,11 @@
 import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
 import { qbOf } from '../../arcade/sim/ai';
 import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
-import { createRun } from '../../arcade/sim/run';
+import { createRun, driveAt } from '../../arcade/sim/run';
 import { snagCount, snagPace, startSnag } from '../../arcade/sim/snag';
 import { step } from '../../arcade/sim/step';
 import { startingRoster } from '../../arcade/sim/team';
 import type { ArcadeEvent, Player, RunState, StepInput } from '../../arcade/sim/types';
-import { DRIVE_KINDS } from '../../arcade/sim/run';
 import type { BenchTest } from './knobs';
 
 /** Where a rep is played (k2): the drive, and who's in on it. */
@@ -81,12 +80,7 @@ export interface Rep {
 /** Start a rep of `test` in `situation`; `seed` varies where the sweet spot, the arrow and the dots fall. */
 export function startRep(test: BenchTest, situation: Situation, seed: number): Rep {
   const state = createRun(seed, startingRoster(), 0, { snagAlways: true });
-  const drive = situation.drive - 1;
-  state.drive = {
-    ...state.drive,
-    area: Math.floor(drive / DRIVE_KINDS.length),
-    index: drive % DRIVE_KINDS.length,
-  };
+  state.drive = { ...state.drive, ...driveAt(situation.drive) };
   state.phase = 'play';
   state.snappedAt = state.time;
   state.field.pickups = [];
@@ -273,7 +267,7 @@ export function timingText(timing: Timing): string {
 /** What the situation adds up to for this test (k2), in screen seconds. */
 export function summary(test: BenchTest, situation: Situation): string {
   const { drive } = situation;
-  const area = Math.floor((drive - 1) / DRIVE_KINDS.length);
+  const { area } = driveAt(drive);
   const b = arcadeTuning.breakit;
   const pile = b.perExtraTackler ** (situation.tacklers - 1);
   const level = breakHardness(area);

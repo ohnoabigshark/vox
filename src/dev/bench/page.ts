@@ -15,6 +15,7 @@ import { RENDER_RATE } from '../../audio/music';
 import { SfxPlayer, prepareSfx, type SfxId } from '../../audio/sfx';
 import type { ArcadeEvent } from '../../arcade/sim/types';
 import { ArcadeControls } from '../../arcade/ui/controls';
+import { nextDot } from '../../arcade/sim/snag';
 import { breakView, shooShowing } from '../../arcade/ui/testViews';
 import { now } from '../../clock';
 import { applyPaletteVars } from '../../ui/paletteVars';
@@ -438,10 +439,8 @@ async function main(): Promise<void> {
       e.preventDefault();
       const t = test();
       if (t === 'snag') {
-        const s = bench.rep?.state;
-        const dots = s?.snag?.dots ?? [];
-        const i = dots.findIndex((d) => d.result === null && (s?.time ?? 0) >= d.appearsAt);
-        if (i >= 0) bench.press({ snag: i });
+        const i = bench.rep ? nextDot(bench.rep.state) : null;
+        if (i !== null) bench.press({ snag: i });
       } else if (t === 'shoo') bench.press({ shoo: true });
       else bench.press({ breakTap: true });
     } else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {

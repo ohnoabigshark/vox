@@ -8,7 +8,7 @@
  */
 import { numberAt } from '../../arcade/content/savedTuning';
 import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
-import { DRIVE_KINDS } from '../../arcade/sim/run';
+import { driveAt } from '../../arcade/sim/run';
 
 /** The five tap tests, one tab each (b1). */
 export type BenchTest = 'bar' | 'mash' | 'juke' | 'snag' | 'shoo';
@@ -93,7 +93,7 @@ const AREAS = arcadeTuning.breakit.byArea.length;
 
 /** The area a drive (1-based) is in, as a by-area value counts it: past the Farm, the Farm's. */
 function areaOf(drive: number): number {
-  return Math.min(AREAS - 1, Math.max(0, Math.floor((drive - 1) / DRIVE_KINDS.length)));
+  return Math.min(AREAS - 1, Math.max(0, driveAt(drive).area));
 }
 
 /** The value a knob edits at this drive. */
