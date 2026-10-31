@@ -234,21 +234,19 @@ async function main(): Promise<void> {
 
   // ── Save (docs/BENCH.md, Saving): each tab's own, through the hot-reload server. ──
   const saver = httpSaver(`${import.meta.env.BASE_URL}${BENCH_SAVE_PATH}`);
-  let saveState: SaveState = { server: 'checking', inServedGame: true, error: null };
+  let saveState: SaveState = { server: { kind: 'checking' }, error: null };
   let saving = false;
   const renderSave = (): void => {
     const changes = unsaved(saved, settings, test()).length;
     saveButton.textContent = saveLabel(changes);
-    saveButton.disabled = saveState.server !== 'up' || changes === 0 || saving;
+    saveButton.disabled = saveState.server.kind !== 'up' || changes === 0 || saving;
     const { text, bad } = saveStatus(saveState);
     savedEl.textContent = text;
     savedEl.classList.toggle('off', bad);
     renderTabs();
   };
   void saver.probe().then((r) => {
-    saveState = r
-      ? { ...saveState, server: 'up', inServedGame: r.inServedGame }
-      : { ...saveState, server: 'none' };
+    saveState = { ...saveState, server: r };
     renderSave();
   });
   saveButton.addEventListener('click', () => {
@@ -260,7 +258,7 @@ async function main(): Promise<void> {
       .then(
         (r) => {
           saved = next;
-          saveState = { server: 'up', inServedGame: r.inServedGame, error: null };
+          saveState = { server: { kind: 'up', inServedGame: r.inServedGame }, error: null };
           record(saveLine(test(), next, now()));
         },
         (e: unknown) => {

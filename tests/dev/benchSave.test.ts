@@ -7,6 +7,7 @@ import {
   saveStatus,
   tabsWithUnsaved,
   unsaved,
+  type SaveState,
 } from '../../src/dev/bench/save';
 
 /** docs/BENCH.md, the rework's tests D, E, H and I: Save and Restore on the bench. */
@@ -83,24 +84,35 @@ describe('what the page says', () => {
   });
 
   it('H: the status says where saves stand, plainly, and a failure in red', () => {
-    expect(saveStatus({ server: 'checking', inServedGame: true, error: null })).toEqual({
+    const status = (server: SaveState['server'], error: string | null = null) =>
+      saveStatus({ server, error });
+    expect(status({ kind: 'checking' })).toEqual({
       text: 'Checking for the save server…',
       bad: false,
     });
-    expect(saveStatus({ server: 'none', inServedGame: true, error: null })).toEqual({
+    expect(status({ kind: 'none' })).toEqual({
       text: 'Saving needs the hot-reload server (/vox-dev/dev/bench.html)',
       bad: true,
     });
-    expect(saveStatus({ server: 'up', inServedGame: true, error: null })).toEqual({
+    expect(status({ kind: 'up', inServedGame: true })).toEqual({
       text: 'Saved settings are in the served game',
       bad: false,
     });
-    expect(saveStatus({ server: 'up', inServedGame: false, error: null })).toEqual({
+    expect(status({ kind: 'up', inServedGame: false })).toEqual({
       text: 'Saved · not in the served game yet',
       bad: false,
     });
-    expect(saveStatus({ server: 'up', inServedGame: false, error: 'disk full' })).toEqual({
+    expect(status({ kind: 'up', inServedGame: false }, 'disk full')).toEqual({
       text: "Couldn't save: disk full. Your changes are still here.",
+      bad: true,
+    });
+  });
+
+  it("b11: a server that answers with an error says so in its words, not 'no server'", () => {
+    expect(
+      saveStatus({ server: { kind: 'broken', reason: 'git: not a repository' }, error: null }),
+    ).toEqual({
+      text: "The save server can't save: git: not a repository",
       bad: true,
     });
   });
@@ -112,9 +124,13 @@ describe('what the page says', () => {
       throw new TypeError('Failed to fetch');
     }) as typeof fetch;
     const ok = answering(200, '{"inServedGame":false}');
-    expect(await httpSaver('/x', ok).probe()).toEqual({ inServedGame: false });
-    expect(await httpSaver('/x', answering(404, 'Not Found')).probe()).toBeNull();
-    expect(await httpSaver('/x', down).probe()).toBeNull();
+    expect(await httpSaver('/x', ok).probe()).toEqual({ kind: 'up', inServedGame: false });
+    expect(await httpSaver('/x', answering(404, 'Not Found')).probe()).toEqual({ kind: 'none' });
+    expect(await httpSaver('/x', down).probe()).toEqual({ kind: 'none' });
+    expect(await httpSaver('/x', answering(500, 'git: not a repository')).probe()).toEqual({
+      kind: 'broken',
+      reason: 'git: not a repository',
+    });
     expect(await httpSaver('/x', ok).save({ 'snag.close': 0.56 })).toEqual({ inServedGame: false });
     await expect(
       httpSaver('/x', answering(400, 'snag.nope is not a setting')).save({}),
