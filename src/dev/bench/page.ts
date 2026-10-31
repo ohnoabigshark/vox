@@ -330,9 +330,30 @@ async function main(): Promise<void> {
       situationEl.append(row.el);
     }
   };
+  // The sliders behind More (r-p2) stay open or shut for the visit.
+  let moreOpen = false;
   const renderKnobs = (): void => {
     knobsEl.innerHTML = '';
     const drive = kept.situation.drive;
+    const behind = knobsFor(test()).filter((k) => k.more);
+    const moreButton = document.createElement('button');
+    moreButton.className = 'b-more';
+    const moreEl = document.createElement('div');
+    moreEl.className = 'b-knobs-more';
+    const showMore = (): void => {
+      const changed = behind.filter(
+        (k) => rowView(k, pathOf(k, drive), saved, settings).unsaved,
+      ).length;
+      moreButton.textContent = moreOpen
+        ? 'Fewer'
+        : `More: ${behind.length} sliders${changed > 0 ? ` · ${changed} unsaved` : ''}`;
+      moreButton.setAttribute('aria-expanded', String(moreOpen));
+      moreEl.hidden = !moreOpen;
+    };
+    moreButton.addEventListener('click', () => {
+      moreOpen = !moreOpen;
+      showMore();
+    });
     for (const knob of knobsFor(test())) {
       const path = pathOf(knob, drive);
       const reach = reachOf(knob, path);
@@ -345,6 +366,7 @@ async function main(): Promise<void> {
         settings = withValue(settings, path, v);
         applySettings(settings);
         show();
+        showMore();
         showSummary();
         renderSave();
       };
@@ -360,7 +382,11 @@ async function main(): Promise<void> {
         });
       };
       show();
-      knobsEl.append(row.el);
+      (knob.more ? moreEl : knobsEl).append(row.el);
+    }
+    if (behind.length > 0) {
+      showMore();
+      knobsEl.append(moreButton, moreEl);
     }
   };
   const showTab = (): void => {

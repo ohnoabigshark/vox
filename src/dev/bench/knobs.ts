@@ -27,6 +27,8 @@ export interface Knob {
   readonly label: string;
   readonly unit: KnobUnit;
   readonly tests: readonly BenchTest[];
+  /** Behind the tab's More button (r-p2): it shapes a run more than a rep. */
+  readonly more?: true;
 }
 
 /** Settings: tuning.ts values by path, for those moved off their defaults. */
@@ -41,6 +43,10 @@ const k = (key: string, label: string, unit: KnobUnit, tests: readonly BenchTest
 });
 const snag = (key: string, label: string, unit: KnobUnit): Knob =>
   k(`snag.${key}`, label, unit, ['snag']);
+const snagMore = (key: string, label: string, unit: KnobUnit): Knob => ({
+  ...snag(key, label, unit),
+  more: true,
+});
 
 export const KNOBS: readonly Knob[] = [
   k('breakit.ready', 'Get ready countdown', 'seconds', BREAKS),
@@ -55,24 +61,26 @@ export const KNOBS: readonly Knob[] = [
   k('breakit.byArea.{area}.jukeWindow', 'Juke window', 'seconds', ['juke']),
   k('breakit.jukeBreakShare', 'Share of it that breaks', 'share', ['juke']),
   k('breakit.jukeLinger', 'Red linger', 'seconds', ['juke']),
-  snag('fromDrive', 'From drive', 'count'),
-  snag('call', '"SNAG IT!" call', 'seconds'),
+  // SNAG IT!: the seven that shape a rep, then the eleven behind More
+  // (r-p2): where dots may land, and how it changes over a run.
   snag('close', 'Ring closes in', 'seconds'),
-  snag('gapShare', 'Next dot after (share of the close)', 'share'),
-  snag('fasterAfter', 'Faster after drive', 'count'),
-  snag('perDrive', 'Faster each drive by', 'seconds'),
-  snag('closeFloor', 'Ring close no faster than', 'seconds'),
   snag('window', 'Hit window ±', 'seconds'),
-  snag('minDots', 'Fewest dots', 'count'),
-  snag('maxDots', 'Most dots', 'count'),
-  snag('perZone', 'One more dot every … drives', 'count'),
-  snag('handsGap', 'Hands gap for a dot more or less', 'count'),
-  snag('margin', 'Dots in from the edge', 'share'),
-  snag('minApart', 'Dots at least apart', 'share'),
-  snag('maxApart', 'Dots at most apart', 'share'),
+  snag('gapShare', 'Next dot after (share of the close)', 'share'),
+  snag('call', '"SNAG IT!" call', 'seconds'),
   snag('dotSize', 'Dot size', 'px'),
   snag('ringFrom', 'Ring starts at (times the dot)', 'number'),
-  snag('box', 'Box at most', 'px'),
+  snag('maxApart', 'Dots at most apart', 'share'),
+  snagMore('minApart', 'Dots at least apart', 'share'),
+  snagMore('margin', 'Dots in from the edge', 'share'),
+  snagMore('box', 'Box at most', 'px'),
+  snagMore('fromDrive', 'From drive', 'count'),
+  snagMore('fasterAfter', 'Faster after drive', 'count'),
+  snagMore('perDrive', 'Faster each drive by', 'seconds'),
+  snagMore('closeFloor', 'Ring close no faster than', 'seconds'),
+  snagMore('minDots', 'Fewest dots', 'count'),
+  snagMore('maxDots', 'Most dots', 'count'),
+  snagMore('perZone', 'One more dot every … drives', 'count'),
+  snagMore('handsGap', 'Hands gap for a dot more or less', 'count'),
   k('crows.window', 'Time to shoo', 'seconds', ['shoo']),
 ];
 

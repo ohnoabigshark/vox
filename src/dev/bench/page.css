@@ -204,6 +204,21 @@ button:disabled {
   padding-right: 6px;
 }
 
+/* More (r-p2): the sliders that shape a run more than a rep. */
+.b-more {
+  justify-self: start;
+  margin: 4px 8px;
+}
+
+.b-knobs-more {
+  display: grid;
+  gap: 6px;
+}
+
+.b-knobs-more[hidden] {
+  display: none;
+}
+
 .b-situation,
 .b-knobs {
   display: grid;

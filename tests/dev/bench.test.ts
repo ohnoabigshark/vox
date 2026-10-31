@@ -120,6 +120,40 @@ describe('the knobs', () => {
     expect(keys('shoo')).toEqual(['crows.window']);
   });
 
+  it('N: SNAG IT! shows the seven that shape a rep; the eleven that shape a run are behind More', () => {
+    const shown = (t: (typeof BENCH_TESTS)[number]): string[] =>
+      knobsFor(t)
+        .filter((k) => !k.more)
+        .map((k) => k.label);
+    const more = (t: (typeof BENCH_TESTS)[number]): string[] =>
+      knobsFor(t)
+        .filter((k) => k.more)
+        .map((k) => k.key);
+    expect(shown('snag')).toEqual([
+      'Ring closes in',
+      'Hit window ±',
+      'Next dot after (share of the close)',
+      '"SNAG IT!" call',
+      'Dot size',
+      'Ring starts at (times the dot)',
+      'Dots at most apart',
+    ]);
+    expect(more('snag')).toEqual([
+      'snag.minApart',
+      'snag.margin',
+      'snag.box',
+      'snag.fromDrive',
+      'snag.fasterAfter',
+      'snag.perDrive',
+      'snag.closeFloor',
+      'snag.minDots',
+      'snag.maxDots',
+      'snag.perZone',
+      'snag.handsGap',
+    ]);
+    for (const t of ['bar', 'mash', 'juke', 'shoo'] as const) expect(more(t)).toEqual([]);
+  });
+
   it('3: a moved slider changes the next rep, and Reset to defaults puts it back', () => {
     applySettings({ 'snag.close': fromScreen(knob('snag.close'), 1) });
     const dot = startRep('snag', at(5), 1).state.snag!.dots[0]!;
