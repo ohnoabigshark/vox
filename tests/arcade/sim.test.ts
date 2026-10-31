@@ -3,6 +3,7 @@ import { PLAYS } from '../../src/arcade/content/plays';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { aimContact, pocketTime, sweepAngle, sweepSpeed } from '../../src/arcade/sim/ball';
 import { physicsOf } from '../../src/arcade/sim/bodies';
+import { moveBodies } from '../../src/arcade/sim/physics';
 import {
   createRun,
   dispatch,
@@ -182,6 +183,37 @@ describe('stats are physics', () => {
     );
     const r = run(s, 1);
     expect(ofType(r.events, 'pancake')[0]).toEqual({ type: 'pancake', blocker: 2, defender: 100 });
+  });
+});
+
+describe('the sideline', () => {
+  // BUGS.md B5: a knocked-down body slid on past the sideline, since it
+  // skipped the clamp the others get (found by Clear Out, 2026-10-31).
+  it('stops a knocked-down defender sliding out of bounds at the sideline', () => {
+    const edge = arcadeTuning.field.halfWidth;
+    const s = playState([], [{ kind: 'cover', pos: v(edge - 0.01, 5) }]);
+    const d = s.field.defenders[0]!;
+    d.down = 0.5;
+    d.vel = v(6, 0);
+    moveBodies(s);
+    expect(d.pos.x).toBe(edge);
+  });
+
+  it('stops a block on a handoff driving its man out of bounds, after the whistle too', () => {
+    const edge = arcadeTuning.field.halfWidth;
+    const s = carry(
+      playState(
+        [
+          { role: 'runner', pos: v(0, -2) },
+          { role: 'blocker', pos: v(edge - 0.6, 5), stats: { heft: 90 }, job: { kind: 'block' } },
+        ],
+        [{ kind: 'cover', pos: v(edge, 5), stats: { heft: 10 } }],
+      ),
+      2,
+    );
+    s.play = { index: s.playbook.findIndex((p) => p.handoff !== undefined), flipped: false };
+    moveBodies(s);
+    expect(s.field.defenders[0]!.pos.x).toBeLessThanOrEqual(edge);
   });
 });
 
