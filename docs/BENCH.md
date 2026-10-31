@@ -218,7 +218,11 @@ Saved settings in the game
   screen and every other value is its default.
 - **B.** A saved value for a setting that doesn't exist, or that isn't a number,
   is left out, with a warning that names it.
-- **C.** The balance bot plays the saved values, through the same function.
+- **C.** `tuning.ts` lays the saved file over the defaults as it loads, so
+  whatever loads it plays the save: the game, the bench, and the balance
+  bot, which reads `arcadeTuning` through the sim. (Reworded by review b6:
+  the test runs a bench rep, not the bot, which nothing tests; the bot's
+  script runs every scenario as it's imported.)
 
 Save and Restore
 
