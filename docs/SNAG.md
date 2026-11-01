@@ -94,7 +94,8 @@ picks SNAG IT!".
 - **GREAT** (every dot hit): caught, and every defender contesting it is
   knocked flying, so the receiver runs free (a GREAT break's moment where
   nobody can grab it).
-- **OK** (one miss): caught, and tackled on the spot. The yards count.
+- **OK** (one miss): caught, and tackled on the spot. The yards count; caught
+  past the line, or in the end zone, it wins the drive (B6).
 - **BAD** (two or more misses): batted down by the defender: incomplete.
 - Each hit pops its dot green, with the catch sound and a short buzz
   (where the phone can: iPhones can't); each miss cracks it red, with the
