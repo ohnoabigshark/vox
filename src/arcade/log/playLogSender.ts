@@ -50,27 +50,35 @@ export class PlayLogSender {
 
   /** Queue lines; `now` sends them at once (a down's end, a flag). */
   add(lines: readonly PlayLogLine[], opts: { readonly now?: boolean } = {}): void {
+    this.queueUp(lines);
+    if (opts.now && this.current !== 'off') this.schedule(0);
+    else this.schedule(SEND_EVERY);
+  }
+
+  /**
+   * Queue `lines`, then send everything queued now, in batches, without
+   * waiting for a timer, a retry's wait or a send already out. For a ⚑, whose
+   * pop says whether it was stored (review r5), and for the page being
+   * hidden, after which a phone may freeze or close it (review r4).
+   * Resolves whether all of it was stored.
+   */
+  sendNow(lines: readonly PlayLogLine[] = []): Promise<boolean> {
+    this.queueUp(lines);
+    this.timer?.cancel();
+    this.timer = null;
+    const sends: Promise<boolean>[] = [];
+    while (this.queue.length > 0) sends.push(this.send());
+    return Promise.all(sends).then((oks) => oks.every(Boolean));
+  }
+
+  /** Past the queue's size the oldest lines go, counted for the next line sent. */
+  private queueUp(lines: readonly PlayLogLine[]): void {
     this.queue.push(...lines);
     const over = this.queue.length - QUEUE;
     if (over > 0) {
       this.queue.splice(0, over);
       this.dropped += over;
     }
-    if (opts.now && this.current !== 'off') this.schedule(0);
-    else this.schedule(SEND_EVERY);
-  }
-
-  /**
-   * Send everything queued now, in batches, without waiting for a timer or a
-   * send already out: for the page being hidden, after which a phone may
-   * freeze or close it (review r4). Resolves whether all of it was stored.
-   */
-  sendNow(): Promise<boolean> {
-    this.timer?.cancel();
-    this.timer = null;
-    const sends: Promise<boolean>[] = [];
-    while (this.queue.length > 0) sends.push(this.send());
-    return Promise.all(sends).then((oks) => oks.every(Boolean));
   }
 
   /**

@@ -18,9 +18,10 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   reports is a moment (a snap, a throw, a catch, a tap test's start and
   grade, a tackle, a pickup, a field event, the crows, the down's end, a
   drive won), not a frame. A session opens with a `start` line, sent as the
-  page loads, so ⚑ knows whether the log is there before the first tap
-  (found in the headless check: without it, a first tap said "Flagged" with
-  the log down). Each line carries:
+  page loads, so ⚑ turns red at once if the log isn't there, before you've
+  played a down (found in the headless check: without it, a first tap said
+  "Flagged" with the log down, which r5 has since ruled out on its own).
+  Each line carries:
   - `at`: the wall-clock time, from `src/clock`, in UTC (l3);
   - `session` (one per page load) and `seed` (one per run), so one run's
     lines can be picked out;
@@ -37,10 +38,14 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
     was still the down just played; found reading the first real session.)
 - **Times (l3):** UTC in the file. Times the user gives are read as New
   York time unless they say otherwise.
-- **⚑ (l4):** a button beside the down and distance. A tap writes a `flag`
-  line with the same context and pops "Flagged 11:21:07" (the phone's own
-  time). If the log can't be reached, ⚑ turns red and a tap pops "Not
-  logging": a gap in the log is never silent.
+- **⚑ (l4):** a button beside the down and distance. A tap sends a `flag`
+  line with the same context at once, even while the log is down, and once
+  the log has answered pops "Flagged 11:21:07" (the phone's own time) if
+  it stored the line, or "Not logging" if it didn't (review r5: it first
+  went by the last send's answer, so it could say "Flagged" just after the
+  log went down). That takes a moment, up to 10 s if the log never
+  answers. While the log can't be reached, ⚑ is red: a gap in the log is
+  never silent.
 - **Which builds (l5):** only our tailnet builds. The log's address goes
   into a build only when `PLAY_LOG_URL` is set, and only
   `.claude/bin/vox-rebuild.sh` (the build at `/vox/`) and `vox-dev.sh` (the

@@ -508,18 +508,19 @@ export class ArcadeGame {
     return { meta, sender };
   }
 
-  /** ⚑ (l4): mark this moment in the play log, and say so; or say it isn't logging. */
+  /** ⚑ (l4): mark this moment in the play log, and say so once it's stored, or that it isn't logging (review r5). */
   private flag(): void {
     const log = this.playLog;
     if (!log) return;
     const at = now();
-    log.sender.add([flagLine(this.state, log.meta, at)], { now: true });
-    if (log.sender.status === 'off') this.hud.pop('Not logging', 'bad');
-    else
-      this.hud.pop(
-        `Flagged ${new Date(at).toLocaleTimeString('en-US', { hour12: false })}`,
-        'good',
-      );
+    void log.sender.sendNow([flagLine(this.state, log.meta, at)]).then((stored) => {
+      if (!stored) this.hud.pop('Not logging', 'bad');
+      else
+        this.hud.pop(
+          `Flagged ${new Date(at).toLocaleTimeString('en-US', { hour12: false })}`,
+          'good',
+        );
+    });
   }
 
   private draw(dt: number): void {

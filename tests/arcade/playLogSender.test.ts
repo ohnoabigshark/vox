@@ -199,4 +199,34 @@ describe('the play log: sending', () => {
     void h.sender.sendNow();
     expect(h.sent).toEqual([[{ n: 1 }], [{ n: 2 }]]);
   });
+
+  it('a flag goes at once and says whether the log stored it (review r5)', async () => {
+    const h = harness();
+    h.sender.add([line(1)]);
+    const stored = h.sender.sendNow([line(2)]);
+    expect(h.sent).toEqual([[{ n: 1 }, { n: 2 }]]);
+    expect(await stored).toBe(true);
+  });
+
+  it('…and says it wasn’t, when the log refuses it or never answers; the lines are kept', async () => {
+    const refused = harness([{ ok: false, status: 502 }]);
+    expect(await refused.sender.sendNow([line(1)])).toBe(false);
+    expect(refused.sender.status).toBe('off');
+    const silent = harness(['hangs']);
+    const stored = silent.sender.sendNow([line(1)]);
+    await silent.tick(); // no answer in 10 s
+    expect(await stored).toBe(false);
+    expect(await silent.tick()).toBe(FIRST_RETRY);
+    expect(silent.sent.at(-1)).toEqual([{ n: 1 }]);
+  });
+
+  it('…even while the log is down: a tap tries again at once', async () => {
+    const h = harness([{ ok: false, status: 502 }]);
+    h.sender.add([line(1)]);
+    await h.tick();
+    expect(await h.sender.sendNow([line(2)])).toBe(true);
+    expect(h.sent.at(-1)).toEqual([{ n: 1 }, { n: 2 }]);
+    expect(h.sender.status).toBe('on');
+    expect(h.timers).toEqual([]);
+  });
 });

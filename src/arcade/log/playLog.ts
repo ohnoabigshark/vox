@@ -62,7 +62,7 @@ export function eventLines(
   }));
 }
 
-/** The page opened: a session's first line, sent at once so ⚑ learns early if the log is there. */
+/** The page opened: a session's first line, sent at once so ⚑ turns red early if the log isn't there. */
 export function startLine(state: RunState, meta: LogMeta, now: number): PlayLogLine {
   return context(state, state, meta, now, 'start');
 }
