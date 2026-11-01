@@ -61,3 +61,55 @@ main.event-editor .field-box {
 .part .value {
   font-variant-numeric: tabular-nums;
 }
+
+/* The sliders (the bench's own, round 4 e1) and the timeline between them (e4). */
+.numbers {
+  display: grid;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.timeline {
+  position: relative;
+  height: 46px;
+  margin: 4px 0 8px;
+}
+
+.tl-seg {
+  position: absolute;
+  top: 4px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.tl-seg.faint {
+  background: rgb(162 89 255 / 0.25);
+}
+
+.tl-seg.warn {
+  background: rgb(162 89 255 / 0.7);
+}
+
+.tl-seg.hit {
+  background: rgb(111 207 106 / 0.6);
+}
+
+.tl-mark {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 20px;
+  background: #f1ead8;
+}
+
+.tl-words {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 24px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #a99bc9;
+  font-variant-numeric: tabular-nums;
+}

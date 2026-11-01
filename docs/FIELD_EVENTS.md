@@ -232,3 +232,49 @@ changed:
   listed again in the saved-events check, which may import only types (r6);
   the render loop's `performance.now()`, animation time as elsewhere (r19);
   one earlier commit with two concerns, left in the history (r20).
+
+## Round 4: the editor, bench style (2026-10-31)
+
+After trying the editor, on a fourth map
+(https://claude.ai/artifact/RBbZbLN9b6hUkbDqxbsV38): _User: "UI should be
+much closer to test bench for tap events. so sliders are full width, have
+resets, etc. we also need a reset to defaults for all settings."_
+
+- **Bench sliders** (e1, e2): every number is the bench's own slider
+  (`bench/slider.ts`, its styles now loaded with it), full width, moved only
+  by its knob, with ↺ back to its default and the default ticked on the
+  track: the three times, the area's numbers (in step with dragging it), and
+  Try it's drive. A drag of one slider is one step for Undo.
+- **Restore defaults** (e3) is always there on a built-in event, setting
+  every number back to the code's; Save makes it so, as on the bench. An
+  event you made gets **Revert to saved**.
+- **The timing** (e4): the warning starts its length before the event goes
+  off, never before the snap (Frog Rain: 2.0 − 0.875 = 1.125 s), drawn as
+  one timeline between the time sliders and the area's; the build-up's
+  slider is "Warning before it goes off". _User: "I don't quite understand
+  the timing diffs between the build up vs goes off after the snap."_
+- **Not now** (e5): "either side" drawn on both sides of the editor's field.
+  The flip the Coach saw was "either side" landing on the left in play,
+  where the editor draws it on the right. _User: "I didn't know either side
+  made it flip randomly, that makes sense."_
+
+### After review (2026-10-31)
+
+The review of `event-editor-bench`
+(https://claude.ai/artifact/64vKBpkzo5JbDkmqYTnLYV, the Coach approving
+every recommendation) changed:
+
+- **One drag, one Undo step** (b1): the slider widget says when its knob is
+  let go, and `dragNumber` (tested) keeps one drag one step; two drags in a
+  row are two.
+- **One rule for an area's numbers** (b4): `holdArea` holds them for
+  dragging, the handles and the sliders alike, never past `FARTHEST` (30
+  yards) or 6 behind, never inside out; a circle in the middle has no "out".
+- **↺** is greyed when the default has no such number, saying what shape the
+  default is (b2); on an event of yours never saved it goes to New event's
+  starting values (d3).
+- **The small print** says what's saved, as the bench's does (d1); numbers
+  and the timeline read alike, from the rules (m1, d2): Frog Rain's warning
+  starts at 1.125 s.
+- **The name box** follows Undo, Restore defaults and Revert to saved (b3).
+- **Kept:** Restore defaults greys out when there's nothing to restore (d4).
