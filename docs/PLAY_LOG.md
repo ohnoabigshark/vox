@@ -85,6 +85,11 @@ next line sent says how many were dropped.
   music, which headless Chrome never starts): a `start` line, every event
   of the down, and a `flag` line reached `play.jsonl` through Tailscale;
   with the log answering 502, ⚑ was red and a tap said "Not logging".
+- Checked again after the review's fixes (5e22d4c), on the served build:
+  a tap's flag line went out during the tap and its pop said "Flagged";
+  with the log answering 502, and with it never answering, the pop said
+  "Not logging" and ⚑ was red (after 10 s, for the one that never
+  answered); hiding the page sent the down's queued lines 6 ms later.
 - `vox-log` holds about 80 MB, not the 40 the map guessed.
 - ⚑ shows on the start screen too, at the top right.
 - The service runs from vox's main checkout (like `hermit-scheduler` from
