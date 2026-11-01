@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { benchLogPlugin } from './tools/benchLog';
@@ -22,7 +23,28 @@ const hmrPort = Number(process.env.DEV_HMR_PORT || '') || 443;
 // recording.
 const benchLog = process.env.BENCH_LOG || '';
 
+// The play log (docs/PLAY_LOG.md, l5): where the game sends its lines, on
+// the tailnet's origin. Opt-in: only our tailnet builds set PLAY_LOG_URL
+// (vox-rebuild.sh for /vox/, vox-dev.sh for /vox-dev/). Unset, as on GitHub
+// Pages, which builds with plain `npm run build` (review r1), the game sends
+// nothing and shows no flag. This and the commit are the only values this
+// config puts into the game (src/arcade/log/build.ts reads them).
+const playLogUrl = process.env.PLAY_LOG_URL || '';
+// `npm run build:release` leaves the dev tools out (below).
+const release = process.env.RELEASE === '1';
+function commit(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
 export default defineConfig({
+  define: {
+    __PLAY_LOG_URL__: JSON.stringify(playLogUrl),
+    __BUILD__: JSON.stringify(commit()),
+  },
   // The test bench's Save writes here (docs/BENCH.md, Saving); only the dev server has it.
   plugins: [
     benchLogPlugin(benchLog),
@@ -51,7 +73,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
-        ...(process.env.RELEASE === '1'
+        ...(release
           ? {}
           : {
               devIndex: resolve(import.meta.dirname, 'dev/index.html'),

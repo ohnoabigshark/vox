@@ -24,7 +24,12 @@ export interface HudHandlers {
   onRoster?(spot: number): void;
   /** Practice: ‹ Sketch, back to the play editor. */
   onBack?(): void;
+  /** ⚑: mark this moment in the play log (docs/PLAY_LOG.md, l4). */
+  onFlag?(): void;
 }
+
+/** ⚑'s look once shown (it starts hidden, and stays so with no play log): plain, or red when the log can't be reached. */
+export type FlagLook = 'plain' | 'off';
 
 /** One of your players on the roster panel. */
 /** One stat as a bar: its value (50 is ordinary), whether the slot leans on it, and a change to preview. */
@@ -110,6 +115,7 @@ export class Hud {
   private readonly popEl: HTMLElement;
   private readonly noticeEl: HTMLButtonElement;
   private readonly backButton: HTMLButtonElement;
+  private readonly flagButton: HTMLButtonElement;
   private readonly draft: HTMLElement;
   private popTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly bigEl: HTMLElement;
@@ -125,7 +131,10 @@ export class Hud {
       <div class="hud-top">
         <button class="hud-back interactive" hidden>‹ Sketch</button>
         <div class="hud-banner"></div>
-        <div class="hud-downs"></div>
+        <div class="hud-right">
+          <button class="hud-flag interactive" aria-label="Flag this moment in the play log" hidden>⚑</button>
+          <div class="hud-downs"></div>
+        </div>
       </div>
       <div class="hud-message"></div>
       <div class="hud-pop"></div>
@@ -157,6 +166,8 @@ export class Hud {
     this.noticeEl.addEventListener('click', () => this.notice(null));
     this.backButton = q<HTMLButtonElement>('.hud-back');
     this.backButton.addEventListener('click', () => handlers.onBack?.());
+    this.flagButton = q<HTMLButtonElement>('.hud-flag');
+    this.flagButton.addEventListener('click', () => handlers.onFlag?.());
     this.bigEl = q('.hud-big');
     this.draft = q('.hud-draft');
 
@@ -327,6 +338,12 @@ export class Hud {
     this.bigEl.className = `hud-big show ${tone}`;
     clearTimeout(this.bigTimer);
     this.bigTimer = setTimeout(() => (this.bigEl.className = 'hud-big'), 1000);
+  }
+
+  /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */
+  setFlag(look: FlagLook): void {
+    this.flagButton.hidden = false;
+    this.flagButton.classList.toggle('off', look === 'off');
   }
 
   /** A short pop above the controls: a catch rating, a block, a tackle. */
