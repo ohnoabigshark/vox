@@ -39,6 +39,31 @@
   visibility: hidden;
 }
 
+/* Down and distance, with ⚑ (the play log, docs/PLAY_LOG.md) beside it. */
+.hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-flag {
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+  width: 2.1rem;
+  height: 2.1rem;
+  color: var(--ink);
+  background: var(--bone);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.hud-flag.off {
+  color: white;
+  background: var(--danger);
+}
+
 .hud-downs {
   font-size: 1.3rem;
   font-weight: 900;

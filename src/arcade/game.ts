@@ -57,6 +57,10 @@ import { FORM_STATS } from './content/team';
 import { plus } from './sim/stats';
 import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
+import { now } from '../clock';
+import { BUILD, PLAY_LOG_URL } from './log/build';
+import { eventLines, flagLine, type LogMeta } from './log/playLog';
+import { PlayLogSender } from './log/playLogSender';
 import type {
   Action,
   ArcadeEvent,
@@ -241,6 +245,8 @@ export class ArcadeGame {
   private intro: ArcadeIntro | null = null;
   /** Where the camera looks (field yards, smoothed). */
   private focus = v(0, -4);
+  /** The play log (docs/PLAY_LOG.md): every event sent to the droplet; null in the release build. */
+  private readonly playLog: { readonly meta: LogMeta; readonly sender: PlayLogSender } | null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -303,7 +309,9 @@ export class ArcadeGame {
       onSkip: () => this.act({ type: 'skipDraft' }),
       onRoster: (spot) => this.onRoster(spot),
       onBack: () => this.backToEditor(),
+      onFlag: () => this.flag(),
     });
+    this.playLog = PLAY_LOG_URL ? this.startPlayLog(PLAY_LOG_URL) : null;
     if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
     if (tryEvent && !tryEvent.event.ok)
       this.hud.notice(`${tryEvent.event.reason} Playing without it.`);
@@ -463,6 +471,47 @@ export class ArcadeGame {
     if (this.state.phase === 'won' && !this.outro) this.startOutro();
     this.react(events, prev);
     if (events.length > 0 || this.state.phase !== prev.phase) this.syncHud();
+    if (this.playLog && events.length > 0) {
+      const lines = eventLines(prev, this.state, events, this.playLog.meta, now());
+      this.playLog.sender.add(lines, { now: events.some((e) => e.type === 'downEnded') });
+    }
+  }
+
+  /** The play log: sent where the build says (l1), its status shown on ⚑ (l4). */
+  private startPlayLog(url: string): { meta: LogMeta; sender: PlayLogSender } {
+    const sender = new PlayLogSender({
+      post: (body) =>
+        fetch(url, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body,
+          // A send can outlive the page (a reload mid-down) only under the browser's 64 kB limit.
+          keepalive: body.length < 60_000,
+        }),
+      later: (fn, ms) => void setTimeout(fn, ms),
+      onStatus: (status) => this.hud.setFlag(status === 'off' ? 'off' : 'plain'),
+    });
+    this.hud.setFlag('plain');
+    const meta: LogMeta = {
+      session: crypto.randomUUID().slice(0, 8),
+      build: BUILD,
+      flags: location.search.replace(/^\?/, ''),
+    };
+    return { meta, sender };
+  }
+
+  /** ⚑ (l4): mark this moment in the play log, and say so; or say it isn't logging. */
+  private flag(): void {
+    const log = this.playLog;
+    if (!log) return;
+    const at = now();
+    log.sender.add([flagLine(this.state, log.meta, at)], { now: true });
+    if (log.sender.status === 'off') this.hud.pop('Not logging', 'bad');
+    else
+      this.hud.pop(
+        `Flagged ${new Date(at).toLocaleTimeString('en-US', { hour12: false })}`,
+        'good',
+      );
   }
 
   private draw(dt: number): void {
