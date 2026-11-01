@@ -115,6 +115,10 @@ https://…ts.net:8443/vox-log/`); the game itself doesn't use it.
   (not JSON, not an array, a line without `at` or `kind`); GET says it's
   recording; a blank `PLAY_LOG` refuses to start, naming it; past the size
   the file is rotated and only three old ones kept.
+- **The game's wiring** (`startPlayLog`, `after()` and `flag()` in
+  `src/arcade/game.ts`) has no test of its own: it is a few lines between
+  the tested lines and sender, checked end to end in the headless check
+  (As built). Review r7 left it so.
 - **The build:** with `PLAY_LOG_URL=/vox-log/`, `dist/` holds `/vox-log/`;
   with plain `npm run build`, as Pages builds, it doesn't, and still holds
   the dev tools (checked by hand, as the rules ask).

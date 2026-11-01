@@ -6,7 +6,9 @@
  * puts it at https://…ts.net:8443/vox-log/ on the tailnet.
  *
  * Node runs this file as it is (`node tools/playLog/server.ts`, Node 24
- * strips the types), so it imports nothing but Node's own modules.
+ * strips the types), so it imports nothing but Node's own modules. That is
+ * why its request handling repeats the bench log's (tools/benchLog.ts)
+ * rather than sharing it: sharing would need a build step (review r7).
  */
 import { appendFile, mkdir, rename, rm, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -16,7 +18,7 @@ import { pathToFileURL } from 'node:url';
 /** Started fresh once past this; the last `KEEP` old ones kept (l6). */
 const MAX_BYTES = 20 * 1024 * 1024;
 const KEEP = 3;
-/** A batch is at most 500 lines of a few hundred bytes; this is well over. */
+/** A batch is at most `BATCH` (500) lines of a few hundred bytes (src/arcade/log/playLogSender.ts, which can't share a constant with this file); this is about 4× that. */
 const MAX_BODY = 2 * 1024 * 1024;
 
 export type Answer = { readonly status: number; readonly body: string };

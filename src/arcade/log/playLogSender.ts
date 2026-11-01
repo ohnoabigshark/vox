@@ -27,7 +27,7 @@ export const FIRST_RETRY = 2000;
 export const LAST_RETRY = 60000;
 /** A send with no answer by then has failed. */
 export const SEND_TIMEOUT = 10_000;
-/** Lines in one POST, well under the service's limit on a body. */
+/** Lines in one POST, well under the service's limit on a body (`MAX_BODY` in tools/playLog/server.ts, which can't import this). */
 export const BATCH = 500;
 /** Lines the page holds while the log can't be reached; past it, the oldest go. */
 export const QUEUE = 5000;
