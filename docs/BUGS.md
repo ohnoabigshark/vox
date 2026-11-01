@@ -101,3 +101,15 @@ drive. To confirm with a failing test before fixing.
   `catchGraded` now asks `checkCarrier` first, as GREAT does, and tackles only
   if the catch didn't win the drive. Not explained: the user saw "1st & Goal",
   where a tackle uses up a down and should show "2nd & Goal".
+- 2026-11-01, seen again by the user on an ordinary drive: 1st & 10, a
+  10-yard pass, and the next down was 2nd & 1 with the line already past the
+  marker (the screen never shows less than 1). Not a catch test this time:
+  seven ways of ending a down tackled the carrier without asking whether
+  they were past the line, and only `checkCarrier`, last in each step, asked.
+  One is reproduced by a test: Break it!'s DRAG ends where it hauls the
+  carrier to, and when that spot is just past the line the drag tackles in
+  the very step the carrier crosses. Fixed on `past-the-line` (decision map
+  M8ojJKewTknTjpmxx3eEcY, b1): `endDown` itself turns a tackle or out of
+  bounds at or past the line into a first down, so every path follows one
+  rule. The catch tests keep their own check, so a catch past the line
+  scores without a tackle shown first.

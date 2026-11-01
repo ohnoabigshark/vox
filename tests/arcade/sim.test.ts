@@ -459,6 +459,19 @@ describe('the carrier, and Break it! (the bar)', () => {
     expect(end.state.drive.los).toBeGreaterThan(body(g, 2).pos.y + 0.3);
   });
 
+  it('a drag that ends in the step the carrier crosses the line still wins the drive (B6, review b1)', () => {
+    const g = grabbed().state;
+    const t = bar(g);
+    const close = t.sweet.from > t.near ? t.sweet.from - t.near / 2 : t.sweet.to + t.near / 2;
+    const r = tapAt(g, close);
+    const drag = r.state.field.drag;
+    if (!drag) throw new Error('no drag');
+    // The line where the drag ends: it's crossed in the step the drag is done.
+    const s = { ...r.state, drive: { ...r.state.drive, firstDown: drag.to } };
+    const end = run(s, 4);
+    expect(ofType(end.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
+  });
+
   it('a tap that misses, or no tap at all, is a tackle', () => {
     const g = grabbed().state;
     const t = bar(g);
@@ -719,6 +732,20 @@ describe('drives and the run', () => {
     expect(drives).toEqual([...area(0), ...area(1), ...area(2)]);
     expect(s.phase).toBe('won');
     expect(coverHeft).toEqual([30, 40, 50]);
+  });
+
+  it('a down ended at or past the line wins the drive, however it ended (B6, review b1)', () => {
+    const ended = (result: 'tackled' | 'outOfBounds', at: number) => {
+      const s = createRun(1);
+      const events: ArcadeEvent[] = [];
+      endDown(s, result, s.drive.firstDown + at, events);
+      return { result: s.result?.result, events: ofType(events, 'downEnded').map((e) => e.result) };
+    };
+    for (const how of ['tackled', 'outOfBounds'] as const) {
+      expect(ended(how, 0.4)).toEqual({ result: 'firstDown', events: ['firstDown'] });
+      expect(ended(how, 0)).toEqual({ result: 'firstDown', events: ['firstDown'] });
+      expect(ended(how, -0.1)).toEqual({ result: how, events: [how] });
+    }
   });
 
   it('the Boss drive goes for the end zone: "& Goal"', () => {
