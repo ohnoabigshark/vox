@@ -59,7 +59,7 @@ import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import { now } from '../clock';
 import { BUILD, PLAY_LOG_URL } from './log/build';
-import { eventLines, flagLine, type LogMeta } from './log/playLog';
+import { eventLines, flagLine, startLine, type LogMeta } from './log/playLog';
 import { PlayLogSender } from './log/playLogSender';
 import type {
   Action,
@@ -497,6 +497,7 @@ export class ArcadeGame {
       build: BUILD,
       flags: location.search.replace(/^\?/, ''),
     };
+    sender.add([startLine(this.state, meta, now())], { now: true });
     return { meta, sender };
   }
 

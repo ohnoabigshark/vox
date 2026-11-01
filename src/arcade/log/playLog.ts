@@ -20,7 +20,8 @@ export interface LogMeta {
 export interface PlayLogLine {
   /** UTC, ISO 8601. */
   readonly at: string;
-  readonly kind: 'event' | 'flag';
+  /** A sim event, a ⚑, or the page opening (a session's first line). */
+  readonly kind: 'event' | 'flag' | 'start';
   readonly session: string;
   readonly seed: number;
   readonly build: string;
@@ -58,6 +59,11 @@ export function eventLines(
       ? { next: { los: round(next.drive.los), down: next.drive.down } }
       : {}),
   }));
+}
+
+/** The page opened: a session's first line, sent at once so ⚑ learns early if the log is there. */
+export function startLine(state: RunState, meta: LogMeta, now: number): PlayLogLine {
+  return context(state, state, meta, now, 'start');
 }
 
 /** ⚑ (l4): a line marking this moment, with no event. */

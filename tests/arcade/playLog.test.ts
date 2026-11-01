@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { eventLines, flagLine, type LogMeta } from '../../src/arcade/log/playLog';
+import { eventLines, flagLine, startLine, type LogMeta } from '../../src/arcade/log/playLog';
 import { createRun } from '../../src/arcade/sim/run';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
@@ -93,6 +93,20 @@ describe('the play log: ⚑ (l4)', () => {
     const line = flagLine(s, meta, NOW);
     expect(line).toMatchObject({ kind: 'flag', at: '2026-11-01T16:21:07.512Z', down: 2, los: 4 });
     expect(line.carrier).toEqual({ id: 2, x: 3.14, y: 11.46 });
+    expect(line.event).toBeUndefined();
+  });
+});
+
+describe('the play log: the page opening', () => {
+  it('a start line says a session began, with its build and flags, so ⚑ knows at once whether the log is there', () => {
+    const s = createRun(1);
+    const line = startLine(s, meta, NOW);
+    expect(line).toMatchObject({
+      kind: 'start',
+      session: 's1',
+      build: 'abc1234',
+      flags: 'aim=2&snag=1',
+    });
     expect(line.event).toBeUndefined();
   });
 });
