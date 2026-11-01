@@ -35,7 +35,8 @@ export const QUEUE = 5000;
 export class PlayLogSender {
   private queue: PlayLogLine[] = [];
   private dropped = 0;
-  private pending = false;
+  /** The send waiting to go, if any, and how long it was set to wait. */
+  private timer: { readonly ms: number; readonly cancel: () => void } | null = null;
   private sending = false;
   private retry = FIRST_RETRY;
   private current: LogStatus = 'unknown';
@@ -58,13 +59,21 @@ export class PlayLogSender {
     else this.schedule(SEND_EVERY);
   }
 
+  /**
+   * Send after `ms`. A send already waiting stands, unless this one is at once
+   * and that one isn't (review r3); a send in flight schedules the next itself.
+   */
   private schedule(ms: number): void {
-    if (this.pending || this.sending) return;
-    this.pending = true;
-    this.ports.later(() => {
-      this.pending = false;
+    if (this.sending) return;
+    if (this.timer) {
+      if (ms > 0 || this.timer.ms === 0) return;
+      this.timer.cancel();
+    }
+    const cancel = this.ports.later(() => {
+      this.timer = null;
       void this.send();
     }, ms);
+    this.timer = { ms, cancel };
   }
 
   private async send(): Promise<void> {

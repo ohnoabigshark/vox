@@ -81,6 +81,23 @@ describe('the play log: sending', () => {
     expect(h.sent).toEqual([[{ n: 1 }]]);
   });
 
+  it('at once even with a routine send already waiting (review r3)', async () => {
+    const h = harness();
+    h.sender.add([line(1)]);
+    h.sender.add([line(2)], { now: true });
+    expect(h.timers.map((t) => t.ms)).toEqual([0]);
+    await h.tick();
+    expect(h.sent).toEqual([[{ n: 1 }, { n: 2 }]]);
+  });
+
+  it('while the log is down, at once waits its turn: the retry’s wait stands', async () => {
+    const h = harness([{ ok: false, status: 502 }]);
+    h.sender.add([line(1)]);
+    await h.tick();
+    h.sender.add([line(2)], { now: true });
+    expect(h.timers.map((t) => t.ms)).toEqual([FIRST_RETRY]);
+  });
+
   it('a sent batch sets the status on', async () => {
     const h = harness();
     expect(h.sender.status).toBe('unknown');
