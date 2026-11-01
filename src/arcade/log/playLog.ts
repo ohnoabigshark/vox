@@ -38,8 +38,11 @@ export interface PlayLogLine {
   readonly ball: string;
   readonly carrier: { readonly id: number; readonly x: number; readonly y: number } | null;
   readonly event?: ArcadeEvent;
-  /** On a down's end: where the line of scrimmage moved to, and the next down. */
-  readonly next?: { readonly los: number; readonly down: number };
+  /**
+   * On a down's end: where the line of scrimmage moved to. Not the next down:
+   * that is settled after the pause (nextDown), and the next down's own lines carry it.
+   */
+  readonly next?: { readonly los: number };
   /** Lines the page had to drop before this one (its queue was full). */
   readonly dropped?: number;
 }
@@ -55,9 +58,7 @@ export function eventLines(
   return events.map((e) => ({
     ...context(prev, next, meta, now, 'event'),
     event: rounded(e),
-    ...(e.type === 'downEnded'
-      ? { next: { los: round(next.drive.los), down: next.drive.down } }
-      : {}),
+    ...(e.type === 'downEnded' ? { next: { los: round(next.drive.los) } } : {}),
   }));
 }
 

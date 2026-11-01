@@ -31,7 +31,10 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
     the line of scrimmage and the first-down line, and the play called;
   - the ball and the carrier's spot just after the event;
   - the event itself, as the sim reported it. A `downEnded` line also
-    carries where the line of scrimmage moved to and the next down.
+    carries where the line of scrimmage moved to (`next.los`), but not the
+    next down: the game settles that after the pause, so the next down's own
+    lines carry it. (A first version logged the drive's down there, which
+    was still the down just played; found reading the first real session.)
 - **Times (l3):** UTC in the file. Times the user gives are read as New
   York time unless they say otherwise.
 - **⚑ (l4):** a button beside the down and distance. A tap writes a `flag`
@@ -77,7 +80,7 @@ flags; `jq` picks out a session or a time window.
 - **The lines** (`tests/arcade/playLog.test.ts`): one line per event, in
   order; the down's context comes from the state the step started in; the
   carrier's spot from the state after; a `downEnded` line carries the new
-  line of scrimmage and down; a flag line carries the same context with no
+  line of scrimmage and not the next down; a flag line carries the same context with no
   event; practice is marked; positions rounded to hundredths.
 - **Sending** (`tests/arcade/playLogSender.test.ts`, with a fake fetch):
   lines go as one array per send; a 204 sets the status on; a failure sets

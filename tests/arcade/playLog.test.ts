@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { eventLines, flagLine, startLine, type LogMeta } from '../../src/arcade/log/playLog';
-import { createRun } from '../../src/arcade/sim/run';
+import { createRun, endDown } from '../../src/arcade/sim/run';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, playState } from './helpers';
@@ -54,14 +54,16 @@ describe('the play log: its lines (l2)', () => {
     expect(line?.ball).toBe('carried');
   });
 
-  it("a down's end also says where the line moved to and the down that's next", () => {
+  it("a down's end says where the line moved to, and not the next down, which comes after the pause", () => {
+    // The next down is settled by nextDown once the pause is over, so in the
+    // step a down ends, the drive still shows the down just played.
     const before = carrying();
     const after = structuredClone(before);
-    after.drive = { ...after.drive, los: 11.4567, down: 3 };
-    const ended: ArcadeEvent = { type: 'downEnded', result: 'firstDown', gained: 7.4567 };
-    const [line] = eventLines(before, after, [ended], meta, NOW);
-    expect(line?.next).toEqual({ los: 11.46, down: 3 });
-    expect(line?.event).toEqual({ type: 'downEnded', result: 'firstDown', gained: 7.46 });
+    const events: ArcadeEvent[] = [];
+    endDown(after, 'tackled', 7.4567, events);
+    const [line] = eventLines(before, after, events, meta, NOW);
+    expect(line?.next).toEqual({ los: 7.46 });
+    expect(line?.event).toEqual({ type: 'downEnded', result: 'tackled', gained: 3.46 });
     const [other] = eventLines(before, after, [{ type: 'snapped' }], meta, NOW);
     expect(other?.next).toBeUndefined();
   });
