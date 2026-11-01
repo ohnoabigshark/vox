@@ -66,7 +66,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 - **GREAT** (every tap clean): caught, and every contesting defender is
   knocked flying, as SNAG IT!'s GREAT.
-- **OK** (a bobble, no drop): caught, and tackled on the spot.
+- **OK** (a bobble, no drop): caught, and tackled on the spot; caught past the
+  line, or in the end zone, it wins the drive (B6).
 - **BAD** (a drop): the drill ends at once, and the ball is batted down.
 - **It is harsher than SNAG IT!,** which forgives one miss: a bot that
   drops one tap in twenty and bobbles one in five gets BAD on about 14% of

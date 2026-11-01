@@ -231,6 +231,16 @@ describe('6. the grade (t4, g1)', () => {
     expect(ended?.gained).toBeCloseTo(6 - s.drive.los, 0);
   });
 
+  it('a bobble past the line: OK, and the catch wins the drive (B6)', () => {
+    const s = bulletContest(5, 60, undefined, 'tip');
+    // The ball is caught at y 6: put the line (the goal line, on a Boss drive) behind it.
+    s.drive = { ...s.drive, firstDown: 5 };
+    const r = play(s, [CLEAN, BOBBLE, CLEAN]);
+    expect(ofType(r.events, 'tipResult')).toEqual([{ type: 'tipResult', grade: 'ok' }]);
+    expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
+    expect(ofType(r.events, 'tackled')).toEqual([]);
+  });
+
   it('a drop ends the drill at once: BAD, batted down by the Cover', () => {
     const r = play(bulletContest(5, 60, undefined, 'tip'), [CLEAN, 'none', CLEAN]);
     expect(ofType(r.events, 'tipPop').map((e) => e.result)).toEqual(['clean', 'drop']);

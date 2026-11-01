@@ -80,3 +80,24 @@ runs. No play before Clear Out went near enough the sideline to show it.
 
 - 2026-10-31, fixed: one `keepInBounds` in `physics.ts`, now used by every
   move, the slide and the block drive included. Two tests fail without it.
+
+## B6. A SNAG IT! catch in the end zone doesn't score; the drive goes on (fixed)
+
+Reported by the user, 2026-11-01: a catch in the end zone off SNAG IT! gave
+"1st & Goal" and another play, though the receiver was already in the end
+zone. Their guess: any tap test after a catch skips the touchdown check.
+
+Not reproduced yet. Read from the code, the likely cause is the catch tests'
+OK grade: `catchGraded` in `sim/step.ts` (shared by SNAG IT! and the tip
+drill) calls `tackle()` straight away, which ends the down as `tackled` at
+the receiver's spot without asking `checkCarrier` whether that spot is past
+the line. GREAT calls `checkCarrier` and should score. So an OK catch past
+the line, in the end zone on a Boss drive or past the first-down line on an
+ordinary one, would move the line of scrimmage past it but not win the
+drive. To confirm with a failing test before fixing.
+
+- 2026-11-01, fixed: confirmed by two tests (SNAG IT! and the tip drill),
+  which fail on the old code with the down ended as `tackled`. On OK,
+  `catchGraded` now asks `checkCarrier` first, as GREAT does, and tackles only
+  if the catch didn't win the drive. Not explained: the user saw "1st & Goal",
+  where a tackle uses up a down and should show "2nd & Goal".

@@ -257,6 +257,16 @@ describe('SNAG IT!: the grade (c4, s4)', () => {
     expect(ofType(r.events, 'downEnded')[0]?.result).toBe('tackled');
   });
 
+  it('one miss past the line: OK, and the catch wins the drive (B6)', () => {
+    const s = bulletContest(5);
+    // The ball is caught at y 6: put the line (the goal line, on a Boss drive) behind it.
+    s.drive = { ...s.drive, firstDown: 5 };
+    const r = snag(s, ['hit', 'none']);
+    expect(ofType(r.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'ok' }]);
+    expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
+    expect(ofType(r.events, 'tackled')).toEqual([]);
+  });
+
   it('two misses: BAD, batted down by the Cover', () => {
     const r = snag(bulletContest(5), ['none', 'early']);
     expect(ofType(r.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'bad' }]);
