@@ -295,6 +295,16 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     is shown when it's earned, and where the list of them lives; the stats
     screen's design, with mockups.
 
+- **A short tutorial** that teaches a new player how to play, above all the
+  passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
+  teach people how to play, esp with the passing mechanic."_ Open for its
+  grilling: what it covers beyond the throw (calling a play, Break it!,
+  SNAG IT! and the tip drill, pickups and field events); its shape (a
+  scripted first drive, prompts over real play, or a page of its own);
+  hard mode's two-tap throw against the original one-tap, since the game
+  now defaults to two-tap; when it shows (first launch only, and how to
+  open it again or skip it); with mockups.
+
 ## Later (not yet in order)
 
 - **Tackles for a loss, explored.** They already happen: a tackled carrier
@@ -353,6 +363,35 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   called "a backdoor way to sharing plays". A real way to share, such as a
   link that opens the play, could grow from Try it's link (e2, e3). _User,
   2026-10-29._
+- **A team that grows (a big change, not yet broken up).** Your players
+  skill up slowly on their own, from the results of each play and what each
+  of them did in it, and certain pickups raise a stat for good. The aim is a
+  sense of progression: improving the squad you have, rather than always
+  bringing in new players. With it, TRICK OR TREAT! rarely offers a new
+  player and offers new plays instead (Plays as rewards, below), along
+  with Draw up a play as an override of the three play cards dealt each
+  down, which opens the play editor with the defense shown in it. _User,
+  2026-11-01: "I want to also consider a more radical change to the game:
+  players slowly skill up on their own, depending on the results of each
+  play and what the players did on each play... the idea is to provide
+  more of a sense of progression and improvement of your team, not always
+  bringing in new players but instead improving your squad."_ The user
+  doesn't yet know what all its parts should look like, so it needs a lot
+  more work before it's split into branches. The parts seen so far:
+  - **Growth from play:** which stats grow (Heft, Hustle, Hands), from
+    what (a catch, yards after it, a block held, a tap test's grade), how
+    fast, and whether there's a ceiling. It needs the per-play results of
+    "Results, stats and achievements" (above), so that comes first.
+  - **Pickups that change a stat for good,** where today's treats and
+    tricks last only a moment (`docs/PICKUPS.md`).
+  - **TRICK OR TREAT! rebalanced:** plays offered more often than players;
+    how rarely a player comes, and whether a growing squad still needs
+    the roster screen as it is.
+  - **Draw up a play** (below), with the play editor showing the defense
+    as it lines up for that down.
+  - **Balance:** a squad that grows across a run makes later drives
+    easier, so the defense's growth by area and hard mode's second lap may
+    need tuning to match.
 - **Plays as rewards.** TRICK OR TREAT! offers a new play, not only a new
   player. The run then has its own playbook, which grows. esrauch's
   `MILESTONES.md` B4 already lists "New plays for the random pool as
