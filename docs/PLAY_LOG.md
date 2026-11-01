@@ -56,7 +56,8 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
 ## How the game sends
 
 The lines queue in the page and go in batches, a POST of a JSON array,
-about every 2 s, and at once on a down's end or a flag. A failed send keeps
+about every 2 s, and at once on a down's end or a flag. A send with no
+answer in 10 s has failed (review r2). A failed send keeps
 its lines, turns ⚑ red, and tries again after 2 s, then 4, 8, up to 60
 (the rules: retries back off). The queue holds at most 5000 lines; past
 that the oldest go, and the next line sent says how many were dropped.
@@ -87,7 +88,8 @@ flags; `jq` picks out a session or a time window.
   line of scrimmage and not the next down; a flag line carries the same context with no
   event; practice is marked; positions rounded to hundredths.
 - **Sending** (`tests/arcade/playLogSender.test.ts`, with a fake fetch):
-  lines go as one array per send; a 204 sets the status on; a failure sets
+  lines go as one array per send; a 204 sets the status on; a failure
+  (refused, unreachable, or no answer, which the fake can also give) sets
   it off, keeps the lines and retries after a doubling wait, capped; lines
   past the cap drop the oldest and say how many.
 - **The service** (`tests/tools/playLogServer.test.ts`): POST of an array

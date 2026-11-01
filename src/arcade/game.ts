@@ -480,15 +480,19 @@ export class ArcadeGame {
   /** The play log: sent where the build says (l1), its status shown on ⚑ (l4). */
   private startPlayLog(url: string): { meta: LogMeta; sender: PlayLogSender } {
     const sender = new PlayLogSender({
-      post: (body) =>
+      post: (body, signal) =>
         fetch(url, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body,
+          signal,
           // A send can outlive the page (a reload mid-down) only under the browser's 64 kB limit.
           keepalive: body.length < 60_000,
         }),
-      later: (fn, ms) => void setTimeout(fn, ms),
+      later: (fn, ms) => {
+        const t = setTimeout(fn, ms);
+        return () => clearTimeout(t);
+      },
       onStatus: (status) => this.hud.setFlag(status === 'off' ? 'off' : 'plain'),
     });
     this.hud.setFlag('plain');

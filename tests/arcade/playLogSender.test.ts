@@ -6,6 +6,7 @@ import {
   LAST_RETRY,
   QUEUE,
   SEND_EVERY,
+  SEND_TIMEOUT,
   PlayLogSender,
   type LogStatus,
   type SenderPorts,
@@ -13,21 +14,37 @@ import {
 
 /** docs/PLAY_LOG.md, How the game sends: batches, a status for ⚑, retries that back off. */
 
-type Answer = { ok: boolean; status: number } | 'unreachable';
+/** Every way a send can end: an answer, no connection, or no answer at all until it's given up on. */
+type Answer = { ok: boolean; status: number } | 'unreachable' | 'hangs';
 
-/** A fake post (answering in turn from `answers`, then 204s) and a timer the test runs by hand. */
+/**
+ * A fake post (answering in turn from `answers`, then 204s) and timers the
+ * test runs by hand. Like fetch, a post that hangs rejects when its signal aborts.
+ */
 function harness(answers: Answer[] = []) {
   const sent: unknown[][] = [];
   const timers: { fn: () => void; ms: number }[] = [];
   const statuses: LogStatus[] = [];
   const ports: SenderPorts = {
-    post: async (body) => {
+    post: (body, signal) => {
       sent.push(JSON.parse(body) as unknown[]);
       const a = answers.shift() ?? { ok: true, status: 204 };
-      if (a === 'unreachable') throw new TypeError('Failed to fetch');
-      return a;
+      if (a === 'unreachable') return Promise.reject(new TypeError('Failed to fetch'));
+      if (a === 'hangs') {
+        return new Promise((_, reject) =>
+          signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))),
+        );
+      }
+      return Promise.resolve(a);
     },
-    later: (fn, ms) => timers.push({ fn, ms }),
+    later: (fn, ms) => {
+      const t = { fn, ms };
+      timers.push(t);
+      return () => {
+        const i = timers.indexOf(t);
+        if (i >= 0) timers.splice(i, 1);
+      };
+    },
     onStatus: (s) => statuses.push(s),
   };
   const sender = new PlayLogSender(ports);
@@ -86,6 +103,27 @@ describe('the play log: sending', () => {
     expect(h.sender.status).toBe('on');
     expect(h.sent.at(-1)).toEqual([{ n: 1 }, { n: 2 }]);
     expect(h.statuses).toEqual(['off', 'on']);
+  });
+
+  it('a send with no answer is given up on after 10 s, as a failure: ⚑ turns red and it retries (review r2)', async () => {
+    const h = harness(['hangs']);
+    h.sender.add([line(1)]);
+    await h.tick();
+    expect(h.sender.status).toBe('unknown');
+    expect(h.timers.map((t) => t.ms)).toEqual([SEND_TIMEOUT]);
+    expect(SEND_TIMEOUT).toBe(10_000);
+    await h.tick(); // no answer in 10 s
+    expect(h.sender.status).toBe('off');
+    expect(await h.tick()).toBe(FIRST_RETRY); // a 204
+    expect(h.sender.status).toBe('on');
+    expect(h.sent).toEqual([[{ n: 1 }], [{ n: 1 }]]);
+  });
+
+  it('a send that answers in time leaves no timer behind to give up on it', async () => {
+    const h = harness();
+    h.sender.add([line(1)]);
+    await h.tick();
+    expect(h.timers).toEqual([]);
   });
 
   it('the wait stops growing at a minute, and starts again from 2 s once a send gets through', async () => {

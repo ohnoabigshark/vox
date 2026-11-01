@@ -3,7 +3,8 @@
  * sends): queued, posted as one JSON array about every 2 s, or at once for a
  * down's end or a ⚑. A failed send keeps its lines, sets the status off (⚑
  * turns red: a gap is never silent), and tries again after a wait that
- * doubles up to a minute.
+ * doubles up to a minute. A send with no answer in 10 s is given up on as a
+ * failure (review r2): one stuck connection mustn't hold the log up unseen.
  */
 import type { PlayLogLine } from './playLog';
 
@@ -11,16 +12,21 @@ export type LogStatus = 'unknown' | 'on' | 'off';
 
 /** How it reaches the world: the game passes fetch and setTimeout; tests pass fakes. */
 export interface SenderPorts {
-  /** POST this body; throws if the log can't be reached at all. */
-  post(body: string): Promise<{ readonly ok: boolean; readonly status: number }>;
-  /** Run `fn` after `ms`. */
-  later(fn: () => void, ms: number): void;
+  /** POST this body; rejects if the log can't be reached at all, or once `signal` aborts. */
+  post(
+    body: string,
+    signal: AbortSignal,
+  ): Promise<{ readonly ok: boolean; readonly status: number }>;
+  /** Run `fn` after `ms`; the function returned cancels it. */
+  later(fn: () => void, ms: number): () => void;
   onStatus(status: LogStatus): void;
 }
 
 export const SEND_EVERY = 2000;
 export const FIRST_RETRY = 2000;
 export const LAST_RETRY = 60000;
+/** A send with no answer by then has failed. */
+export const SEND_TIMEOUT = 10_000;
 /** Lines in one POST, well under the service's limit on a body. */
 export const BATCH = 500;
 /** Lines the page holds while the log can't be reached; past it, the oldest go. */
@@ -67,10 +73,13 @@ export class PlayLogSender {
     const batch = this.queue.splice(0, BATCH);
     const dropped = this.dropped;
     const body = dropped > 0 && batch[0] ? [{ ...batch[0], dropped }, ...batch.slice(1)] : batch;
-    const ok = await this.ports.post(JSON.stringify(body)).then(
+    const abort = new AbortController();
+    const giveUp = this.ports.later(() => abort.abort(), SEND_TIMEOUT);
+    const ok = await this.ports.post(JSON.stringify(body), abort.signal).then(
       (r) => r.ok,
       () => false,
     );
+    giveUp();
     this.sending = false;
     if (ok) {
       this.dropped -= dropped;
