@@ -37,7 +37,8 @@ export class PlayLogSender {
   private dropped = 0;
   /** The send waiting to go, if any, and how long it was set to wait. */
   private timer: { readonly ms: number; readonly cancel: () => void } | null = null;
-  private sending = false;
+  /** Sends out and not yet answered. */
+  private inFlight = 0;
   private retry = FIRST_RETRY;
   private current: LogStatus = 'unknown';
 
@@ -60,11 +61,24 @@ export class PlayLogSender {
   }
 
   /**
+   * Send everything queued now, in batches, without waiting for a timer or a
+   * send already out: for the page being hidden, after which a phone may
+   * freeze or close it (review r4). Resolves whether all of it was stored.
+   */
+  sendNow(): Promise<boolean> {
+    this.timer?.cancel();
+    this.timer = null;
+    const sends: Promise<boolean>[] = [];
+    while (this.queue.length > 0) sends.push(this.send());
+    return Promise.all(sends).then((oks) => oks.every(Boolean));
+  }
+
+  /**
    * Send after `ms`. A send already waiting stands, unless this one is at once
    * and that one isn't (review r3); a send in flight schedules the next itself.
    */
   private schedule(ms: number): void {
-    if (this.sending) return;
+    if (this.inFlight > 0) return;
     if (this.timer) {
       if (ms > 0 || this.timer.ms === 0) return;
       this.timer.cancel();
@@ -76,11 +90,13 @@ export class PlayLogSender {
     this.timer = { ms, cancel };
   }
 
-  private async send(): Promise<void> {
-    if (this.queue.length === 0) return;
-    this.sending = true;
+  /** Send the next batch; once the last send out is answered, schedule the next. */
+  private async send(): Promise<boolean> {
+    if (this.queue.length === 0) return true;
+    this.inFlight++;
     const batch = this.queue.splice(0, BATCH);
     const dropped = this.dropped;
+    this.dropped = 0;
     const body = dropped > 0 && batch[0] ? [{ ...batch[0], dropped }, ...batch.slice(1)] : batch;
     const abort = new AbortController();
     const giveUp = this.ports.later(() => abort.abort(), SEND_TIMEOUT);
@@ -89,19 +105,24 @@ export class PlayLogSender {
       () => false,
     );
     giveUp();
-    this.sending = false;
+    this.inFlight--;
     if (ok) {
-      this.dropped -= dropped;
       this.retry = FIRST_RETRY;
       this.setStatus('on');
-      if (this.queue.length > 0) this.schedule(0);
-      return;
+    } else {
+      this.queue.unshift(...batch);
+      this.dropped += dropped;
+      this.setStatus('off');
     }
-    this.queue.unshift(...batch);
-    this.setStatus('off');
-    const wait = this.retry;
-    this.retry = Math.min(this.retry * 2, LAST_RETRY);
-    this.schedule(wait);
+    if (this.inFlight > 0 || this.queue.length === 0) return ok;
+    if (ok) {
+      this.schedule(0);
+    } else {
+      const wait = this.retry;
+      this.retry = Math.min(this.retry * 2, LAST_RETRY);
+      this.schedule(wait);
+    }
+    return ok;
   }
 
   private setStatus(s: LogStatus): void {

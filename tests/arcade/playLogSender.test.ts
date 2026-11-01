@@ -180,4 +180,23 @@ describe('the play log: sending', () => {
     await h.tick();
     expect(h.sent.at(-1)?.[0]).toEqual({ n: -1 });
   });
+
+  it('when the page is hidden, everything queued goes at once, in batches, and no routine send is left waiting (review r4)', async () => {
+    const h = harness();
+    h.sender.add(Array.from({ length: BATCH + 3 }, (_, i) => line(i)));
+    void h.sender.sendNow();
+    expect(h.sent.map((b) => b.length)).toEqual([BATCH, 3]);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(h.timers).toEqual([]);
+    expect(h.sender.status).toBe('on');
+  });
+
+  it('…without waiting for a send already out', () => {
+    const h = harness(['hangs']);
+    h.sender.add([line(1)]);
+    void h.tick();
+    h.sender.add([line(2)]);
+    void h.sender.sendNow();
+    expect(h.sent).toEqual([[{ n: 1 }], [{ n: 2 }]]);
+  });
 });

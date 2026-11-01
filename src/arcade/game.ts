@@ -339,7 +339,10 @@ export class ArcadeGame {
     this.startScreen.append(play);
     if (!this.practice) uiRoot.append(this.startScreen);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') this.pause();
+      if (document.visibilityState !== 'hidden') return;
+      this.pause();
+      // A phone may freeze or close a hidden page: send what's queued now (review r4).
+      void this.playLog?.sender.sendNow();
     });
 
     this.bodies.sync(this.state);

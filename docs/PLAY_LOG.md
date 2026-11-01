@@ -57,10 +57,16 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
 
 The lines queue in the page and go in batches, a POST of a JSON array,
 about every 2 s, and at once on a down's end or a flag. A send with no
-answer in 10 s has failed (review r2). A failed send keeps
-its lines, turns ⚑ red, and tries again after 2 s, then 4, 8, up to 60
-(the rules: retries back off). The queue holds at most 5000 lines; past
-that the oldest go, and the next line sent says how many were dropped.
+answer in 10 s has failed (review r2). A failed send keeps its lines,
+turns ⚑ red, and tries again after 2 s, then 4, 8, up to 60 (the rules:
+retries back off). When the page is hidden (switching apps, locking the
+phone, closing the tab), everything queued goes at once, without waiting
+for a send already out, since a phone may freeze or close a hidden page
+(review r4). Those sends ask the browser to finish them after the page has
+gone (`keepalive`), which it does for up to 64 kB in all, a few seconds'
+play; a longer queue, built up while the log was down, may not all make
+it. The queue holds at most 5000 lines; past that the oldest go, and the
+next line sent says how many were dropped.
 
 ## As built
 
