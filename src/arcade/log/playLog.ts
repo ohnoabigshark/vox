@@ -14,7 +14,7 @@ export interface LogMeta {
   /** The commit the game was built from. */
   readonly build: string;
   /** The link's query string, e.g. `aim=2&hard=1&snag=1`. */
-  readonly flags: string;
+  readonly link: string;
 }
 
 export interface PlayLogLine {
@@ -25,7 +25,7 @@ export interface PlayLogLine {
   readonly session: string;
   readonly seed: number;
   readonly build: string;
-  readonly flags: string;
+  readonly link: string;
   readonly practice: boolean;
   /** The down as it was played. */
   readonly drive: { readonly area: number; readonly index: number; readonly kind: DriveKind };
@@ -87,7 +87,7 @@ function context(
     session: meta.session,
     seed: prev.seed,
     build: meta.build,
-    flags: meta.flags,
+    link: meta.link,
     practice: prev.practice,
     drive: { area: drive.area, index: drive.index, kind: drive.kind },
     down: drive.down,

@@ -26,10 +26,15 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - `session` (one per page load) and `seed` (one per run), so one run's
     lines can be picked out;
   - `build`: the commit the game was built from;
-  - `flags`: the link's query string (`aim=2&hard=1&snag=1&tip=1`);
+  - `link`: the link's query string (`aim=2&hard=1&snag=1&tip=1`); lines
+    from before 2026-11-01's review call it `flags` (r6);
   - `practice`: true for Try it's practice;
   - the down as it was played: the drive (area, index, kind), the down,
     the line of scrimmage and the first-down line, and the play called;
+  - `phase`: where the run was just after the event: `setup` before the
+    snap, `play`, a tap test (`breakit`, `snag`, `tip`), `downOver` in the
+    pause after a down, `draft`, `over` or `won` (`Phase` in
+    `sim/types.ts`), which says whether a line came mid-play;
   - the ball and the carrier's spot just after the event;
   - the event itself, as the sim reported it. A `downEnded` line also
     carries where the line of scrimmage moved to (`next.los`), but not the
@@ -89,7 +94,9 @@ next line sent says how many were dropped.
 ## Reading it
 
 `play.jsonl` is one JSON object per line: `grep '"kind":"flag"'` finds the
-flags; `jq` picks out a session or a time window.
+flags; `jq` picks out a session or a time window. The service answers a
+GET with `{"recording":true}`, for checking it by hand (`curl
+https://…ts.net:8443/vox-log/`); the game itself doesn't use it.
 
 ## Tests (scenarios, written first)
 

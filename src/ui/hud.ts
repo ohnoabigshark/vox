@@ -28,8 +28,8 @@ export interface HudHandlers {
   onFlag?(): void;
 }
 
-/** ⚑'s look: hidden (no play log), plain, or red when the log can't be reached. */
-export type FlagLook = 'hidden' | 'plain' | 'off';
+/** ⚑'s look once shown (it starts hidden, and stays so with no play log): plain, or red when the log can't be reached. */
+export type FlagLook = 'plain' | 'off';
 
 /** One of your players on the roster panel. */
 /** One stat as a bar: its value (50 is ordinary), whether the slot leans on it, and a change to preview. */
@@ -340,9 +340,9 @@ export class Hud {
     this.bigTimer = setTimeout(() => (this.bigEl.className = 'hud-big'), 1000);
   }
 
-  /** ⚑: hidden with no play log, red while the log can't be reached. */
+  /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */
   setFlag(look: FlagLook): void {
-    this.flagButton.hidden = look === 'hidden';
+    this.flagButton.hidden = false;
     this.flagButton.classList.toggle('off', look === 'off');
   }
 

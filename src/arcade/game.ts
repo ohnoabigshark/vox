@@ -502,7 +502,7 @@ export class ArcadeGame {
     const meta: LogMeta = {
       session: crypto.randomUUID().slice(0, 8),
       build: BUILD,
-      flags: location.search.replace(/^\?/, ''),
+      link: location.search.replace(/^\?/, ''),
     };
     sender.add([startLine(this.state, meta, now())], { now: true });
     return { meta, sender };
