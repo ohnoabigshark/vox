@@ -363,6 +363,18 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   called "a backdoor way to sharing plays". A real way to share, such as a
   link that opens the play, could grow from Try it's link (e2, e3). _User,
   2026-10-29._
+- **A test bench for one play** (dev): pick a play, set the down, the
+  distance to go and where on the field it starts (an ordinary drive, or a
+  Boss drive's goal to go with its end zone), then run it again and again.
+  It's for exact situations like B6's, a catch in the end zone, which today
+  take a real run to reach. _User, 2026-11-01: "a test bench for an
+  individual play where you can set the down and distance you run the play
+  at and the position on the field."_ Close to Try it's practice (which
+  always plays the Forest's first drive) and to **Choosing the defense in
+  practice**, below; it may grow out of them. Open for its grilling: which
+  defense it lines up (each area's drives, the Boss's), whether the tap
+  tests can be forced as `?snag=1` and `?tip=1` do, and whether it logs
+  each rep as the tap-test bench does (`docs/BENCH.md`).
 - **A team that grows (a big change, not yet broken up).** Your players
   skill up slowly on their own, from the results of each play and what each
   of them did in it, and certain pickups raise a stat for good. The aim is a
