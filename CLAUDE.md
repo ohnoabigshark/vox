@@ -25,5 +25,11 @@ esrauch's roadmap is `MILESTONES.md`.
   hooks after every commit, merge and branch checkout in this checkout, and
   swapped in only if the build passes (`docs/stacks/vox.md` in
   `/root/projects`; log: `/root/.local/share/vox-serve/rebuild.log`).
+- **The play log** (`docs/PLAY_LOG.md`): every game on a tailnet build sends
+  each sim event, timestamped in UTC, to
+  `/root/.local/share/vox-serve/play.jsonl`, through the `vox-log` service.
+  When the user names a time (New York time unless they say otherwise) or
+  says they tapped ⚑, read the lines there (`"kind":"flag"` for the ⚑s)
+  before guessing at a cause.
 - `/root/projects/CLAUDE.md` loads here too: it covers the machine, the ports
   and the config repo.

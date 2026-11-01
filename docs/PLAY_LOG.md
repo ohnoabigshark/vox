@@ -17,7 +17,10 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
 - **What a line holds (l2):** one line per sim event: every event the sim
   reports is a moment (a snap, a throw, a catch, a tap test's start and
   grade, a tackle, a pickup, a field event, the crows, the down's end, a
-  drive won), not a frame. Each line carries:
+  drive won), not a frame. A session opens with a `start` line, sent as the
+  page loads, so ⚑ knows whether the log is there before the first tap
+  (found in the headless check: without it, a first tap said "Flagged" with
+  the log down). Each line carries:
   - `at`: the wall-clock time, from `src/clock`, in UTC (l3);
   - `session` (one per page load) and `seed` (one per run), so one run's
     lines can be picked out;
@@ -50,6 +53,19 @@ about every 2 s, and at once on a down's end or a flag. A failed send keeps
 its lines, turns ⚑ red, and tries again after 2 s, then 4, 8, up to 60
 (the rules: retries back off). The queue holds at most 5000 lines; past
 that the oldest go, and the next line sent says how many were dropped.
+
+## As built
+
+- Checked end to end on 2026-11-01 in a phone-sized headless browser on
+  the served build (an event practice link, since a run waits for its
+  music, which headless Chrome never starts): a `start` line, every event
+  of the down, and a `flag` line reached `play.jsonl` through Tailscale;
+  with the log answering 502, ⚑ was red and a tap said "Not logging".
+- `vox-log` holds about 80 MB, not the 40 the map guessed.
+- ⚑ shows on the start screen too, at the top right.
+- The service runs from vox's main checkout (like `hermit-scheduler` from
+  Hermit's), so a branch there without `tools/playLog/` stops it starting
+  on its next restart, and ⚑ turns red.
 
 ## Reading it
 
