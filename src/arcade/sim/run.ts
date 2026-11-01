@@ -462,14 +462,20 @@ function relineTeam(state: RunState): void {
   );
 }
 
-/** End the down: move the line of scrimmage, and show what happened for a moment. */
+/**
+ * End the down: move the line of scrimmage, and show what happened for a moment.
+ * A carrier down at or past the line has made it, however the down ended: a
+ * tackle, a drag, the slick, an event (B6, review b1). The one place that says so.
+ */
 export function endDown(
   state: RunState,
-  result: DownResult,
+  ended: DownResult,
   newLos: number,
   events: ArcadeEvent[],
 ): void {
   const { drive } = state;
+  const carried = ended === 'tackled' || ended === 'outOfBounds';
+  const result: DownResult = carried && newLos >= drive.firstDown ? 'firstDown' : ended;
   const wanted = result === 'firstDown' ? Math.max(newLos, drive.firstDown) : newLos;
   // Never behind the drive's start (there's no room for the QB).
   const los = Math.max(drive.start, wanted);
