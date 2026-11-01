@@ -24,11 +24,14 @@ const hmrPort = Number(process.env.DEV_HMR_PORT || '') || 443;
 const benchLog = process.env.BENCH_LOG || '';
 
 // The play log (docs/PLAY_LOG.md, l5): where the game sends its lines, on
-// the tailnet's origin. The release (GitHub Pages) gets none, so it sends
-// nothing and shows no flag. These two are the only values this config puts
-// into the game (src/arcade/log/build.ts reads them).
+// the tailnet's origin. Opt-in: only our tailnet builds set PLAY_LOG_URL
+// (vox-rebuild.sh for /vox/, vox-dev.sh for /vox-dev/). Unset, as on GitHub
+// Pages, which builds with plain `npm run build` (review r1), the game sends
+// nothing and shows no flag. This and the commit are the only values this
+// config puts into the game (src/arcade/log/build.ts reads them).
+const playLogUrl = process.env.PLAY_LOG_URL || '';
+// `npm run build:release` leaves the dev tools out (below).
 const release = process.env.RELEASE === '1';
-const playLogUrl = release ? '' : '/vox-log/';
 function commit(): string {
   try {
     return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();

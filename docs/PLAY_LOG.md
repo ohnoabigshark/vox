@@ -41,10 +41,14 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   line with the same context and pops "Flagged 11:21:07" (the phone's own
   time). If the log can't be reached, ⚑ turns red and a tap pops "Not
   logging": a gap in the log is never silent.
-- **Which builds (l5):** every build but the release. `npm run
-  build:release` (GitHub Pages) leaves the log's address out, so it never
-  sends anything and shows no ⚑. The test bench keeps its own log
-  (`docs/BENCH.md`).
+- **Which builds (l5):** only our tailnet builds. The log's address goes
+  into a build only when `PLAY_LOG_URL` is set, and only
+  `.claude/bin/vox-rebuild.sh` (the build at `/vox/`) and `vox-dev.sh` (the
+  hot-reload server) in `/root/projects` set it. Any other build, GitHub
+  Pages included, sends nothing and shows no ⚑. (It first keyed off
+  `build:release`, but the Deploy workflow runs plain `npm run build`, so
+  the release would have logged; review r1.) The test bench keeps its own
+  log (`docs/BENCH.md`).
 - **Keeping it (l6):** `/root/.local/share/vox-serve/play.jsonl`, started
   fresh once past 20 MB, the last three kept as `play.1.jsonl` to
   `play.3.jsonl`.
@@ -91,5 +95,6 @@ flags; `jq` picks out a session or a time window.
   (not JSON, not an array, a line without `at` or `kind`); GET says it's
   recording; a blank `PLAY_LOG` refuses to start, naming it; past the size
   the file is rotated and only three old ones kept.
-- **The build:** after `npm run build`, `dist/` holds `/vox-log/`; after
-  `npm run build:release`, it doesn't (checked by hand, as the rules ask).
+- **The build:** with `PLAY_LOG_URL=/vox-log/`, `dist/` holds `/vox-log/`;
+  with plain `npm run build`, as Pages builds, it doesn't, and still holds
+  the dev tools (checked by hand, as the rules ask).
