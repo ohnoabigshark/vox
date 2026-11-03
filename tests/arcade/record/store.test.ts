@@ -50,6 +50,7 @@ const down: PlayResult = {
   target: null,
   catcher: null,
   carrier: 1,
+  tackledBy: null,
   airYards: null,
   afterCatch: null,
   afterContact: null,

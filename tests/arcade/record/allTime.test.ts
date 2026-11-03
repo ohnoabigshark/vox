@@ -19,6 +19,7 @@ const blank: PlayResult = {
   target: null,
   catcher: null,
   carrier: null,
+  tackledBy: null,
   airYards: null,
   afterCatch: null,
   afterContact: null,

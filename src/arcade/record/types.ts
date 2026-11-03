@@ -4,7 +4,7 @@
  * needs a format step in store.ts.
  */
 import type { Play } from '../content/plays';
-import type { Form, Grade, PickupKind, Position, TipResult } from '../sim/types';
+import type { DefenderKind, Form, Grade, PickupKind, Position, TipResult } from '../sim/types';
 
 /** The saved format's version; store.ts brings older ones up to it. */
 export const RECORD_FORMAT = 1;
@@ -50,6 +50,11 @@ export interface PlayResult {
   readonly catcher: number | null;
   /** Who had the ball last: the catcher, or the Runner on a rush. */
   readonly carrier: number | null;
+  /**
+   * Who tackled the carrier: the defender's kind (a defender is new each
+   * down, so its kind is all there is to keep); null for anything else.
+   */
+  readonly tackledBy: DefenderKind | null;
   /** A completed pass: from the line to the catch, downfield only (p4)… */
   readonly airYards: number | null;
   /** …and from the catch to where the play ended. */

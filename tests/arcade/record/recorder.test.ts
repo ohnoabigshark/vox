@@ -108,6 +108,10 @@ describe('a pass play', () => {
     expect(pass.gained).toBe(11);
   });
 
+  it('who tackled them: the defender’s kind (defenders are new each down)', () => {
+    expect(pass.tackledBy).toBe('cover');
+  });
+
   it('air yards from the line to the catch, then yards after the catch and after contact', () => {
     expect(pass.airYards).toBe(7);
     expect(pass.afterCatch).toBe(4);

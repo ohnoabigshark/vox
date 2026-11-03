@@ -6,7 +6,7 @@
  */
 import { assertNever } from '../../assertNever';
 import { seriesNumber } from '../sim/run';
-import type { ArcadeEvent, Grade, RunState } from '../sim/types';
+import type { ArcadeEvent, DefenderKind, Grade, RunState } from '../sim/types';
 import {
   JACK,
   RECORD_FORMAT,
@@ -54,6 +54,7 @@ interface Draft {
   target: number | null;
   catcher: number | null;
   carrier: number | null;
+  tackledBy: DefenderKind | null;
   catchY: number | null;
   grabY: number | null;
   /** Who Break it! is for, from the grab. */
@@ -229,6 +230,10 @@ export class RunRecorder {
       case 'sacked':
         this.draftOf(prev).sacked = true;
         return;
+      case 'tackled':
+        this.draftOf(prev).tackledBy =
+          next.field.defenders.find((d) => d.id === e.by)?.kind ?? null;
+        return;
       case 'downEnded':
         this.record.downs.push(finished(this.draftOf(prev), next, e.result, e.gained));
         this.draft = null;
@@ -253,7 +258,6 @@ export class RunRecorder {
       case 'banned':
       case 'incomplete':
       case 'brokeTackle':
-      case 'tackled':
       case 'crowsLanded':
       case 'crowsStruck':
       case 'outOfBounds':
@@ -293,6 +297,7 @@ function newDraft(state: RunState): Draft {
     target: null,
     catcher: null,
     carrier: null,
+    tackledBy: null,
     catchY: null,
     grabY: null,
     grabbed: null,
@@ -330,6 +335,7 @@ function finished(
     target: kind === 'pass' ? d.target : null,
     catcher: d.catcher,
     carrier: d.carrier,
+    tackledBy: d.tackledBy,
     airYards: d.catchY === null ? null : Math.max(0, d.catchY - d.los),
     afterCatch: d.catchY === null ? null : end - d.catchY,
     afterContact: d.grabY === null ? null : end - d.grabY,
