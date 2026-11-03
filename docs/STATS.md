@@ -319,9 +319,17 @@ The `stats-screens` branch, 2026-11-03, from q6's scenarios:
 `src/ui/stats.ts` draws it (`stats.css`), and `src/ui/playDrawing.ts`
 draws a play small. Settled while building:
 
-- **The card waits for the run to close,** so its RECORD marks are the
-  all-time records after the run was added; a run that couldn't be kept
-  still gets its card, with no marks.
+- **RECORD marks a record broken:** one there before the run, beaten. A
+  first run in a mode breaks none. The card waits for the run to close
+  and compares it with what was kept before; a run that couldn't be kept
+  still gets its card.
+- **The card also shows** the downs played (beside how far), the run's
+  yards, and a single player's best run as its own row when it broke a
+  record (best receiving, rushing or blocking run).
+- **The stats section says which it is:** loading, can't be read, or no
+  runs yet. A mode that's been won shows Won as its furthest.
+- **A run's tabs** are Team, Players and Plays, Players open (v2's
+  mockup); Players has a row for each who did anything (q6).
 - **The win's card comes up 3.5 s into the dance,** once GOT JACK BACK has
   landed; `?win=1`'s shortcut, which plays no run, goes to the song as
   before.
