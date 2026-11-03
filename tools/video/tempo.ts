@@ -5,8 +5,8 @@
  * and 160 BPM whose beat grid lines up best with it, and that grid's phase.
  *   npx tsx tools/video/tempo.ts [media/weGotJackBack.mp3]
  */
-import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
+import { launchToolBrowser } from '../browser';
 
 const ROOT = new URL('../..', import.meta.url).pathname;
 const file = process.argv[2] ?? 'media/weGotJackBack.mp3';
@@ -22,7 +22,7 @@ const server = await createServer({ root: ROOT, server: { port: 0 }, logLevel: '
 await server.listen();
 const address = server.httpServer?.address();
 const port = typeof address === 'object' && address ? address.port : 5173;
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchToolBrowser([]);
 try {
   const page = await browser.newPage();
   await page.goto(`http://localhost:${port}/dev/index.html`);

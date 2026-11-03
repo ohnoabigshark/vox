@@ -6,12 +6,12 @@
  *   npm run preview-models -- team/walkOn   just these models
  *
  * Writes previews/<id>.png (front, ¾ and side) and previews/sheet-<folder>.png.
- * Uses the system Chrome through playwright-core, so no browser download is needed.
+ * Drives Chrome, or Playwright's cached Chromium where there's no Chrome (tools/browser.ts).
  */
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
+import { launchToolBrowser } from '../browser';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const OUT = join(ROOT, 'previews');
@@ -22,10 +22,11 @@ const address = server.httpServer?.address();
 const port = typeof address === 'object' && address ? address.port : 5173;
 const base = `http://localhost:${port}`;
 
-const browser = await chromium.launch({
-  channel: 'chrome',
-  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
-});
+const browser = await launchToolBrowser([
+  '--use-angle=swiftshader',
+  '--enable-unsafe-swiftshader',
+  '--ignore-gpu-blocklist',
+]);
 try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 400 } });
   page.on('pageerror', (e) => console.error(`page error: ${e.message}`));

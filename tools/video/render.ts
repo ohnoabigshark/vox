@@ -19,8 +19,8 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
+import { launchToolBrowser } from '../browser';
 import { LOOP_BEATS, WIN_TRACK_BEAT as WIN_TRACK } from '../../src/arcade/content/dance';
 
 const ROOT = new URL('../..', import.meta.url).pathname;
@@ -63,10 +63,10 @@ const server = await createServer({ root: ROOT, server: { port: 0 }, logLevel: '
 await server.listen();
 const address = server.httpServer?.address();
 const port = typeof address === 'object' && address ? address.port : 5173;
-const browser = await chromium.launch({
-  channel: 'chrome',
-  args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'],
-});
+const browser = await launchToolBrowser([
+  '--autoplay-policy=no-user-gesture-required',
+  '--mute-audio',
+]);
 
 try {
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });

@@ -6,15 +6,16 @@
  *   npm run render-audio                     the full mix of every song, and every sfx
  *   npm run render-audio -- song:hollowHop stem:hollowHop/theremin sfx:chant
  *
- * Writes previews/audio/<name>.wav and .png. Uses the system Chrome through
- * playwright-core (OfflineAudioContext only exists in browsers).
+ * Writes previews/audio/<name>.wav and .png. Runs in a browser, because
+ * OfflineAudioContext only exists there: Chrome, or Playwright's cached
+ * Chromium where there's no Chrome (tools/browser.ts).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 import { SFX } from '../../src/audio/sfx';
 import { SONGS } from '../../src/audio/songs';
+import { launchToolBrowser } from '../browser';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const OUT = join(ROOT, 'previews', 'audio');
@@ -37,7 +38,7 @@ const server = await createServer({ root: ROOT, server: { port: 0 }, logLevel: '
 await server.listen();
 const address = server.httpServer?.address();
 const port = typeof address === 'object' && address ? address.port : 5173;
-const browser = await chromium.launch({ channel: 'chrome' });
+const browser = await launchToolBrowser([]);
 mkdirSync(OUT, { recursive: true });
 
 try {
