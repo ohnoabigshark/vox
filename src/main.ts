@@ -4,6 +4,7 @@ import { readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
 import { now } from './clock';
 import { browserStorage, inGamePlays, sketchStore } from './dev/playEditor/sketches';
+import { statsStore } from './arcade/record/store';
 import { applyPaletteVars } from './ui/paletteVars';
 
 applyPaletteVars();
@@ -53,6 +54,8 @@ const game = new ArcadeGame(canvas, ui, {
   // AGAIN. If they can't be read the game stays quiet: the editor's list says why (n4).
   sketchesInGame: async () =>
     inGamePlays((await sketchStore(browserStorage(), now).list()).sketches),
+  // The run's record, kept on this phone (docs/STATS.md).
+  stats: statsStore(browserStorage(), now),
 });
 
 // Dev builds expose the game for debugging from the console.

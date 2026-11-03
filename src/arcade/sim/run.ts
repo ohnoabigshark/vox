@@ -367,7 +367,7 @@ function call(state: RunState, hand: number, events: ArcadeEvent[]): void {
     state.field.players.length,
     ...lineUpTeam(state, play, state.flipped, state.series.los, firstId),
   );
-  events.push({ type: 'called', play: play.name, flipped: state.flipped });
+  events.push({ type: 'called', id: play.id, play: play.name, flipped: state.flipped });
 }
 
 /** The hike: the called play starts, Covers pick their marks, and a handoff play gives its Runner the ball. */
@@ -423,6 +423,7 @@ function pick(state: RunState, index: number, events: ArcadeEvent[]): void {
   if (slot !== null) state.roster[slot] = recruit;
   events.push({
     type: 'joined',
+    id: recruit.id,
     name: recruit.name,
     slot: slot ?? -1,
     replaced: replaced?.name ?? null,

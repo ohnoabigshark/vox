@@ -18,6 +18,7 @@ export function startingRoster(): RosterPlayer[] {
   return ROSTER_ROLES.map((role, i) => {
     const preferred = role === 'qb' ? 'catcher' : role;
     return {
+      id: i + 1,
       name: STARTING_NAMES[i] ?? `Player ${i + 1}`,
       kind: 'human',
       preferred,
@@ -101,12 +102,14 @@ export function rollOffer(state: RunState): Perk[] {
     : zone.recruitTotal;
   const first = rng.pick(KINDS);
   const second = rng.pick(KINDS.filter((k) => k !== first));
+  // Whichever is taken is the team's next player (the team only grows).
+  const id = state.roster.length + state.bench.length + 1;
   return [first, second].map((kind) => ({
     rarity: 'common',
     kind: 'recruit',
     player: state.hard
-      ? slowHands(makeRecruit(rng, total, kind), total)
-      : makeRecruit(rng, total, kind),
+      ? slowHands(makeRecruit(rng, id, total, kind), total)
+      : makeRecruit(rng, id, total, kind),
   }));
 }
 
@@ -124,7 +127,7 @@ const RECRUIT_SPREAD = 0.2;
  * the shape of its kind (a Ghost mostly Hands, a Golem mostly Heft; a Human
  * evenly), each share nudged a little at random, in fives.
  */
-function makeRecruit(rng: Rng, total: number, kind: Form): RosterPlayer {
+function makeRecruit(rng: Rng, id: number, total: number, kind: Form): RosterPlayer {
   const shape = plus(BASE_STATS, FORM_STATS[kind]);
   const weight = (k: keyof Stats): number => shape[k] * (1 + RECRUIT_SPREAD * (2 * rng.next() - 1));
   const w = { hustle: weight('hustle'), hands: weight('hands'), heft: weight('heft') };
@@ -137,7 +140,7 @@ function makeRecruit(rng: Rng, total: number, kind: Form): RosterPlayer {
     ...rounded,
     [biggest]: rounded[biggest] + total - (rounded.hustle + rounded.hands + rounded.heft),
   };
-  return { name: rng.pick(RECRUIT_NAMES[kind]), kind, preferred: suits(rng, stats), stats };
+  return { id, name: rng.pick(RECRUIT_NAMES[kind]), kind, preferred: suits(rng, stats), stats };
 }
 
 /**

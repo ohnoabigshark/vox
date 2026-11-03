@@ -56,15 +56,20 @@ the event gains a field; the sim gains no counters. The record is kept apart
 from the play log: the log is for finding bugs, the record is part of the
 game.
 
-Two events gain fields:
+Three events gain fields, and each player an id:
 
 - `called` carries the play's **id** as well as its name (p5). A built-in
   play's id is fixed (`slants`); a sketch's is its sketch key (`s<time>`).
-- `batted` and `incomplete` carry the **target** (t1): for a catch, the
-  catcher; for a pass batted or incomplete, the eligible player nearest
-  where it came down, within catching reach; with nobody there, none (a
-  throwaway). `lobLanding` (`src/arcade/sim/ball.ts`) already finds that
-  player.
+- `batted` carries the **target** (t1): the player who had a hand to it and
+  lost it, or null when none of yours could reach it. A catch's target is
+  the catcher. An `incomplete` never has one: by the sim's own rules
+  (`contact` and `lobLanding` in `src/arcade/sim/ball.ts`) a ball an
+  eligible player can reach is caught or contested, so an incomplete is
+  always a throwaway. (Found building it, 2026-11-03; t1 had `incomplete`
+  gain a target too.)
+- Every `RosterPlayer` has an `id` (y1): the starting seven 1 to 7, then
+  each recruit the team's size as it joins, which `joined` carries. The
+  team only grows, so ids never repeat; names can.
 
 **A play's result** (p1, p3, p4, p9, p10):
 
@@ -231,7 +236,7 @@ Each a branch of its own, reviewed and merged before the next (f1, r3):
    the docs that describe the game as it is (r1, r2), tagged
    `pre-series-rename` before it opens. The user plays some rounds as a smoke
    test before it merges.
-2. **`record`:** the two event fields, the recorder, the store, the run's
+2. **`record`:** the events' new fields and the players' ids, the recorder, the store, the run's
    stats, all-time totals and records. Nothing new on screen but the notice.
    Its scenarios are f2's, below.
 3. **`stats-screens`:** v1–v5.
@@ -242,7 +247,8 @@ The record branch's scenarios (f2), written first and watched go red:
 
 - **A pass play:** the situation, the call by id and flip, kind pass, Jack,
   target and catcher, air yards, yards after the catch, the outcome and
-  yards; an incomplete has no air yards and keeps its target.
+  yards; an incomplete has no air yards and no target; a batted pass keeps
+  its target.
 - **A rush:** the carrier, the yards, yards after contact from the first
   grab; a carrier never grabbed has none.
 - **Sacks and losses:** a sack is its own kind; a rush or a catch brought
@@ -263,6 +269,48 @@ The record branch's scenarios (f2), written first and watched go red:
   unreadable shows a notice, never silence.
 - **What counts:** a real run with link options is recorded with its modes;
   practice, the bench and an event's practice link never are.
+
+## As built
+
+The `record` branch, 2026-11-03. Everything is in `src/arcade/record/`:
+
+- `types.ts`: the record's shape, `RECORD_FORMAT` (1), and Jack's id (0).
+- `recorder.ts`: `RunRecorder`, pure, fed each step's events with the
+  state before and after; `recordable`, the one rule for which runs count.
+- `stats.ts`: `runStats`, `playerStats` and `playsStats`, read from a
+  record whenever wanted, so each stat is defined once.
+- `allTime.ts`: `summaryOf` (what a run keeps past the last 20) and
+  `addRun` (a run added to its mode's all time as it closes).
+- `store.ts`: `statsStore` over the browser's storage, two keys:
+  `getJackBack.stats.open` for the run in progress and `getJackBack.stats`
+  for the closed runs and all time. Older formats come up through
+  `src/upgrade.ts`, shared with the test bench.
+- `keeper.ts`: `StatsKeeper`, the game's side: it starts a recorder for
+  each real run, saves after each down and on hide, and closes at Game
+  Over or a win. `game.ts` calls it; `main.ts` passes the store.
+
+Settled while building, beyond the map:
+
+- **An incomplete has no target.** By the sim's rules (`contact`,
+  `lobLanding`) a ball one of yours can reach is caught or contested, so
+  an incomplete is a throwaway; only `batted` carries a target (t1 had both).
+- **Who tackled them is the defender's kind** (`tackledBy`): a defender is
+  new each down, so there's no one to name.
+- **A tackle for loss is where the ball lay**, behind the line, even when
+  the line can't go back past the series' start and the game counts the
+  loss as 0 yards.
+- **A rush is a handoff with no throw;** a sack is a sack whoever caused it
+  (the pocket, the King's crows).
+- **Yards are kept as the sim measures them,** to the fraction; the screens
+  round them.
+- **A run with no down played isn't a run:** it isn't saved or closed (the
+  start screen, `?win=1`'s shortcut).
+- **Stats that can't be read are never written over:** the notice says so
+  and the run isn't kept. A run left open that can't be read is let go,
+  with a notice.
+- **Each player's stats count what they did as the carrier,** so tackles
+  broken, yards after contact and tackles for loss taken go to whoever
+  had the ball.
 
 ## Parked
 

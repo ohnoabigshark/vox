@@ -37,7 +37,9 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
     pause after a down, `draft`, `over` or `won` (`Phase` in
     `sim/types.ts`), which says whether a line came mid-play;
   - the ball and the carrier's spot just after the event;
-  - the event itself, as the sim reported it. A `downEnded` line also
+  - the event itself, as the sim reported it (since 2026-11-03's record
+    branch, `called` carries the play's id, `batted` its target and
+    `joined` the recruit's id: `docs/STATS.md`). A `downEnded` line also
     carries where the line of scrimmage moved to (`next.los`), but not the
     next down: the game settles that after the pause, so the next down's own
     lines carry it. (A first version logged the series' down there, which

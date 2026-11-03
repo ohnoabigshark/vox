@@ -10,6 +10,34 @@ https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL. An overview of how the game
 is built, checked against the code on 2026-10-28, is at
 https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
 
+## Direction
+
+**A football arcade sim at its core, dressed in many themes.** The main
+theme is holidays: levels and players, on offense and defense, each from a
+holiday (Halloween's _Get Jack Back_ is the first). Beside it go lots of
+**alternative sets**, themed on pop culture, for play outside the main
+theme, to help get people into the game. _User, 2026-11-03: "it's a fun
+football arcade sim at its core, but we come up with tons of pop culture
+related themes and player sets for it to help get people into it. the main
+theme is still going to be all holiday themed levels and players (on
+offense and defense), but we will make lots of alternative sets too for non
+main theme play."_
+
+Open, for when the first new theme or set is planned:
+
+- **What a set is:** its areas, its players and its defenders, or any of
+  them alone; whether sets mix (a pop-culture team in a holiday area); how
+  a player picks one (a menu, unlocks); and its word in `CONTEXT.md`.
+- **The holiday line:** which holiday comes next, and whether each is a
+  run of its own or one run passes through several.
+- **Pop culture and the public build:** characters, names and looks owned
+  by others can't go in the public release as they are, so how close a
+  set comes to its source (an homage in the spirit of it, or original
+  characters) is decided per set.
+- **The art pipeline:** many sets make a set's art (colours, models,
+  props, defender looks) a candidate for data rather than code (art
+  pipeline map p7, https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt).
+
 ## V1: Plays
 
 - **A play editor.** Today a play is TypeScript in
