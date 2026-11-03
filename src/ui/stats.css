@@ -1,0 +1,309 @@
+/* The stats screens (docs/STATS.md, v1–v5): the card at Game Over or a win, a run's stats, and the stats section. */
+
+/* The card, over the dimmed field. */
+.stats-card-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: 18px;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  touch-action: pan-y;
+  background: rgb(20 14 36 / 0.62);
+}
+
+.stats-card-layer[hidden],
+.stats-panel[hidden] {
+  display: none;
+}
+
+.stats-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 14px 16px 16px;
+  border: var(--edge) solid var(--ink);
+  color: var(--ink);
+  background: var(--bone);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.stats-card h2 {
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 400;
+  text-align: center;
+  color: var(--pumpkin);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.stats-sub {
+  margin: 4px 0 12px;
+  font:
+    600 0.9rem/1.3 system-ui,
+    sans-serif;
+  text-align: center;
+}
+
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stats-tile {
+  padding: 6px 4px;
+  border: 3px solid var(--ink);
+  text-align: center;
+  background: white;
+}
+
+.stats-tile b {
+  display: block;
+  font:
+    800 1.4rem/1.1 system-ui,
+    sans-serif;
+}
+
+.stats-tile span {
+  font:
+    600 0.75rem/1.2 system-ui,
+    sans-serif;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-top: 2px dashed rgb(43 33 64 / 0.25);
+  font:
+    600 0.95rem/1.3 system-ui,
+    sans-serif;
+}
+
+.stats-row span:last-child {
+  font-weight: 800;
+  text-align: right;
+}
+
+.stats-new {
+  margin-left: 6px;
+  padding: 1px 5px;
+  font:
+    800 0.65rem/1.2 system-ui,
+    sans-serif;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  color: white;
+  background: var(--danger);
+}
+
+.stats-buttons {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.stats-button {
+  min-width: 120px;
+  height: 56px;
+  padding: 0 16px;
+  border: var(--edge) solid var(--ink);
+  font: inherit;
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--bone);
+  box-shadow:
+    inset 0 4px 0 rgb(255 255 255 / 0.55),
+    inset 0 -6px 0 rgb(0 0 0 / 0.15),
+    5px 5px 0 var(--ink);
+}
+
+.stats-button.main {
+  min-width: 160px;
+  height: 64px;
+  font-size: 1.6rem;
+  color: white;
+  background: var(--candy-purple);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.stats-button:active {
+  translate: 3px 3px;
+}
+
+/* A run's stats, and the stats section: full screen, over everything. */
+.stats-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  color: white;
+  background: var(--scanlines), var(--backdrop);
+}
+
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 6px;
+}
+
+.stats-bar h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 400;
+  text-align: right;
+  color: var(--pumpkin);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.stats-back {
+  padding: 6px 12px;
+  border: 3px solid var(--ink);
+  font: inherit;
+  font-size: 1.1rem;
+  color: var(--ink);
+  background: var(--bone);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.stats-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+}
+
+.stats-tabs button {
+  flex: 1;
+  padding: 7px 4px;
+  border: 3px solid var(--ink);
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--bone);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.stats-tabs button.on {
+  color: var(--ink);
+  background: var(--bone);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.stats-tabs.small button {
+  font-size: 0.9rem;
+  padding: 4px;
+}
+
+.stats-body {
+  flex: 1;
+  overflow-y: auto;
+  touch-action: pan-y;
+  padding: 6px 16px 24px;
+  font:
+    600 0.95rem/1.35 system-ui,
+    sans-serif;
+}
+
+.stats-body h3 {
+  margin: 14px 0 4px;
+  font:
+    400 1.15rem/1.2 'Creepster',
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--pumpkin);
+}
+
+.stats-body .stats-row {
+  border-top-color: rgb(255 255 255 / 0.15);
+}
+
+.stats-item {
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px 10px;
+  border: 3px solid rgb(255 255 255 / 0.3);
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.45);
+}
+
+.stats-item b {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.stats-item i {
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.stats-item small {
+  display: block;
+  opacity: 0.85;
+}
+
+.stats-more {
+  margin: 0 0 8px;
+  padding: 2px 10px 8px;
+  border: 3px solid rgb(255 255 255 / 0.15);
+  border-top: none;
+}
+
+.stats-more svg {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  margin: 8px auto 0;
+}
+
+.stats-key,
+.stats-empty {
+  margin: 10px 0;
+  opacity: 0.8;
+}
+
+.stats-empty {
+  margin-top: 30px;
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+/* STATS under PLAY on the start screen (v4). */
+.start-screen {
+  flex-direction: column;
+  gap: 22px;
+}
+
+.start-stats {
+  min-width: 140px;
+  height: 52px;
+  border: var(--edge) solid var(--ink);
+  font: inherit;
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--bone);
+  box-shadow:
+    inset 0 4px 0 rgb(255 255 255 / 0.55),
+    inset 0 -6px 0 rgb(0 0 0 / 0.15),
+    5px 5px 0 var(--ink);
+}
+
+.start-stats:active {
+  translate: 3px 3px;
+}

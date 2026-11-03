@@ -186,6 +186,17 @@ describe('what the screens need', () => {
     expect(k.saved).toEqual(EMPTY);
   });
 
+  it('whether a played run is being recorded: not before its first down, nor for a drill', () => {
+    const { k } = keeper();
+    const s = createRun(1);
+    k.start(s);
+    expect(k.recording).toBe(false);
+    stepOf(k, s, downEnded);
+    expect(k.recording).toBe(true);
+    k.start({ ...s, practice: true });
+    expect(k.recording).toBe(false);
+  });
+
   it('a closed run is handed on with what’s kept after it, for the card', async () => {
     const { store } = fakeStore();
     const closed: [string, Saved | null][] = [];

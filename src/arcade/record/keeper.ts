@@ -33,6 +33,11 @@ export class StatsKeeper {
 
   constructor(private readonly deps: KeeperDeps) {}
 
+  /** Whether a played run is being recorded (one with a down played): it will close with a card. */
+  get recording(): boolean {
+    return this.recorder !== null && played(this.recorder);
+  }
+
   /** What's kept, as last loaded or closed; null before it's loaded, or if it can't be. */
   get saved(): Saved | null {
     return this.kept;
