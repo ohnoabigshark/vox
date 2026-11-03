@@ -361,6 +361,12 @@ Settled while building:
 - **Flawless Run and Rock Steady need at least one** tap test, or pass:
   a win with none of either would earn them for nothing.
 - **Hard / Normal hides on the Achievements tab:** they're one list (h1).
+- **Pops wait out a play:** held from the snap until the down is over; one
+  cut short shows again after it. One earned on a run's last down (the
+  winning touchdown, or the down that ended it) shows on the card only.
+- **Clean Sheet counts a batted pass as an incomplete,** which it is.
+- **Stats that can't be read pop nothing,** and the card claims nothing
+  earned: nothing would be kept.
 
 ## Parked
 
