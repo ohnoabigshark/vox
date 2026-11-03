@@ -4,6 +4,7 @@
  * Team, Plays), and the stats section (All time and Runs, Hard or Normal).
  * It only draws; what's tapped goes back through the callbacks.
  */
+import type { Achievement } from '../arcade/record/achievements';
 import type { KeptStats } from '../arcade/record/keeper';
 import type { Saved } from '../arcade/record/store';
 import type { Mode } from '../arcade/record/types';
@@ -95,8 +96,11 @@ export class StatsScreens {
   private readonly cardLayer: HTMLElement;
   private readonly panel: HTMLElement;
   private readonly toastEl: HTMLElement;
-  /** Achievements waiting to pop, the first showing: name, and what earned it. */
-  private readonly toasts: [string, string][] = [];
+  /** Achievements waiting to pop, the first showing (or held). */
+  private readonly toasts: { readonly name: string; readonly earns: string }[] = [];
+  /** A play is on: no pop shows until it's over (h2: never mid-play). */
+  private held = false;
+  private toastTimer: number | undefined;
   /** The panel under the one showing (a run opened from the stats section), to go back to. */
   private under: (() => void) | null = null;
 
@@ -193,20 +197,33 @@ export class StatsScreens {
   }
 
   /** An achievement just earned (h2): a pop at the top for about 3 s, one after another, never in the way of a tap. */
-  toast(name: string, earns: string): void {
-    this.toasts.push([name, earns]);
-    if (this.toasts.length === 1) this.nextToast();
+  toast(a: Achievement, hard: boolean): void {
+    this.toasts.push({ name: `${a.name}${hard ? ' · hard' : ''}`, earns: a.earns });
+    if (this.toasts.length === 1 && !this.held) this.nextToast();
+  }
+
+  /**
+   * Holds the pops while a play is on, and lets them go after it: one cut
+   * short by the snap shows again, whole, in the pause after the down.
+   */
+  holdToasts(held: boolean): void {
+    if (held === this.held) return;
+    this.held = held;
+    if (held) {
+      window.clearTimeout(this.toastTimer);
+      this.toastEl.hidden = true;
+    } else this.nextToast();
   }
 
   private nextToast(): void {
     const next = this.toasts[0];
-    if (!next) {
+    if (!next || this.held) {
       this.toastEl.hidden = true;
       return;
     }
-    this.toastEl.replaceChildren(make('b', '', `🏆 ${next[0]}`), make('small', '', next[1]));
+    this.toastEl.replaceChildren(make('b', '', `🏆 ${next.name}`), make('small', '', next.earns));
     this.toastEl.hidden = false;
-    window.setTimeout(() => {
+    this.toastTimer = window.setTimeout(() => {
       this.toasts.shift();
       this.nextToast();
     }, TOAST_MS);

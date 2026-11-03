@@ -101,7 +101,7 @@ const downs = [
 ];
 
 describe('the Game Over card (v1)', () => {
-  const card = cardView(record('a', downs), null);
+  const card = cardView(record('a', downs), null, []);
 
   it('how far: the area’s name and the series, and the downs played', () => {
     expect(card.title).toBe('Game Over!');
@@ -129,7 +129,7 @@ describe('the Game Over card (v1)', () => {
       addRun(emptyAllTime(), record('old', [catchBy(1, 30)])),
       record('older', [rushBy(2, 5, { pancakes: [3] })]),
     );
-    const c = cardView(r, before.records);
+    const c = cardView(r, before.records, []);
     // Yards 38 beat 30; the longest rush 10 beat 5; Mags' 19 and Slab's 2 pancakes beat 5 and 1.
     // No run had broken a tackle or made a first down before, so those aren't records broken.
     expect(c.rows.filter((x) => x.record).map((x) => x.label)).toEqual([
@@ -149,12 +149,16 @@ describe('the Game Over card (v1)', () => {
   });
 
   it('a first run breaks no records: there were none', () => {
-    const c = cardView(record('a', downs), emptyAllTime().records);
+    const c = cardView(record('a', downs), emptyAllTime().records, []);
     expect([...c.tiles, ...c.rows].some((x) => x.record)).toBe(false);
   });
 
   it('hard mode’s second time round says so', () => {
-    const c = cardView(record('a', [], { reached: { area: 4, index: 0, seriesNumber: 17 } }), null);
+    const c = cardView(
+      record('a', [], { reached: { area: 4, index: 0, seriesNumber: 17 } }),
+      null,
+      [],
+    );
     expect(c.sub).toBe('Candy Queendom · round 2 · series 1 · 0 downs');
   });
 
@@ -165,6 +169,7 @@ describe('the Game Over card (v1)', () => {
         modes: { hard: false, twoTap: false, snag: false, tip: false },
       }),
       null,
+      [],
     );
     expect(c.title).toBe('You got Jack back!');
     expect(c.sub).toBe('All 3 areas · 7 downs');
@@ -304,7 +309,7 @@ describe('achievements on the screens (h1, h2, v4, v5)', () => {
       modes: { hard: false, twoTap: false, snag: false, tip: false },
     });
     expect(cardView(normal, null, ['airMail']).achievements).toEqual(['Air Mail']);
-    expect(cardView(normal, null).achievements).toEqual([]);
+    expect(cardView(normal, null, []).achievements).toEqual([]);
   });
 
   it('the tab: earned first with their dates and hard marks, then the rest with what earns them; the count', () => {

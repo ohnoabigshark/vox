@@ -107,6 +107,23 @@ describe('the fourteen', () => {
     );
   });
 
+  it('a drive is one area’s march, its own each lap round in hard mode', () => {
+    // Series 13 is the Forest again (area 3), a drive of its own, not the first one's.
+    const cakes = [3, 3, 3];
+    expect(
+      midRun('pancakeBreakfast', [
+        at(1, rushBy(2, 1, { pancakes: cakes })),
+        at(13, rushBy(2, 1, { pancakes: cakes })),
+      ]),
+    ).toBe(false);
+    expect(
+      midRun('pancakeBreakfast', [
+        at(13, rushBy(2, 1, { pancakes: cakes })),
+        at(16, rushBy(2, 1, { pancakes: cakes })),
+      ]),
+    ).toBe(true);
+  });
+
   it('Spread the Love: a catch or a rush by five different players in one drive, won or not (u6)', () => {
     const five = [catchBy(1, 3), catchBy(2, 3), rushBy(3, 3), rushBy(4, 3), at(4, catchBy(5, 3))];
     expect(midRun('spreadTheLove', five)).toBe(true);
@@ -134,6 +151,14 @@ describe('the fourteen', () => {
       ]),
     ).toBe(false);
     expect(midRun('cleanSheet', clean.slice(0, 2))).toBe(false);
+    // A pass batted down is an incomplete pass.
+    expect(
+      midRun('cleanSheet', [
+        ...clean.slice(0, 2),
+        at(3, { ...blankDown, outcome: 'batted', target: 1 }),
+        clean[2]!,
+      ]),
+    ).toBe(false);
   });
 
   it('Sweet Tooth and Down on the Farm: the first snap in the Candy Queendom, and on the Farm (u7)', () => {
@@ -194,6 +219,16 @@ describe('the four for a win, normal mode only', () => {
     expect(atEnd('rockSteady', [...toGolem, blankDown], { ...won, ...withGolem })).toBe(false);
     expect(atEnd('rockSteady', [...toGolem, catchBy(1, 4)], { ...won, ...withGolem })).toBe(false);
     expect(atEnd('rockSteady', [rushBy(2, 3)], { ...won, ...withGolem })).toBe(false);
+  });
+
+  it('none of the four in hard mode, which never wins', () => {
+    const ids = earnedBy(
+      runOf([catchBy(1, 3), rushBy(2, 1, { tapTests: [great(2)] })], { end: 'won' }),
+      'end',
+    );
+    expect(
+      ids.filter((id) => ['jacksBack', 'homeGrown', 'flawlessRun', 'rockSteady'].includes(id)),
+    ).toEqual([]);
   });
 
   it('none of the four mid-run', () => {

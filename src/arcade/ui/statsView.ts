@@ -5,7 +5,12 @@
  * "Nov 2".
  */
 import { areaAt, AREAS } from '../content/defense';
-import { ACHIEVEMENTS, type AchievementId, type EarnedSet } from '../record/achievements';
+import {
+  achievement,
+  ACHIEVEMENTS,
+  type AchievementId,
+  type EarnedSet,
+} from '../record/achievements';
 import { SERIES_PER_AREA } from '../sim/props';
 import type { Play } from '../content/plays';
 import type { Form, Grade } from '../sim/types';
@@ -150,7 +155,7 @@ const broke = (before: Best | null | undefined, value: number): boolean =>
 export function cardView(
   record: RunRecord,
   before: Records | null,
-  earned: readonly AchievementId[] = [],
+  earned: readonly AchievementId[],
 ): CardView {
   const s = runStats(record);
   const won = record.end === 'won';
@@ -200,25 +205,23 @@ export function cardView(
       ...bestRun('Best rushing run', b?.bestRushing, (p) => p.rushing.yards),
       ...bestRun('Best blocking run', b?.bestPancakes, (p) => p.pancakes),
     ],
-    achievements: earned.map((id) => `${nameOf(id)}${record.modes.hard ? ' · hard' : ''}`),
+    achievements: earned.map(
+      (id) => `${achievement(id).name}${record.modes.hard ? ' · hard' : ''}`,
+    ),
   };
 }
 
-const nameOf = (id: AchievementId): string => ACHIEVEMENTS.find((a) => a.id === id)?.name ?? id;
-
 /** The Achievements tab (v5): earned first, with when and a hard mark (h1); then the rest, with what earns them. */
 export function achievementsView(earned: EarnedSet): AchievementsView {
-  const got = ACHIEVEMENTS.filter((a) => earned[a.id]);
+  const got = ACHIEVEMENTS.flatMap((a) => {
+    const e = earned[a.id];
+    return e
+      ? [{ name: a.name, earns: a.earns, when: `${day(e.at)}${e.hard ? ' · hard' : ''}` }]
+      : [];
+  });
   return {
     count: `🏆 ${got.length} of ${ACHIEVEMENTS.length}`,
-    earned: got.map((a) => {
-      const e = earned[a.id];
-      return {
-        name: a.name,
-        earns: a.earns,
-        when: e ? `${day(e.at)}${e.hard ? ' · hard' : ''}` : '',
-      };
-    }),
+    earned: got,
     rest: ACHIEVEMENTS.filter((a) => !earned[a.id]).map((a) => ({ name: a.name, earns: a.earns })),
   };
 }

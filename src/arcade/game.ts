@@ -64,7 +64,7 @@ import { StatsKeeper } from './record/keeper';
 import type { Saved, StatsStore } from './record/store';
 import { modeOf, type RunRecord } from './record/types';
 import { achievementsView, cardView, runView } from './ui/statsView';
-import { ACHIEVEMENTS, newlyEarned } from './record/achievements';
+import { achievement, newlyEarned } from './record/achievements';
 import { StatsScreens } from '../ui/stats';
 import { eventLines, flagLine, startLine, type LogMeta } from './log/playLog';
 import { PlayLogSender } from './log/playLogSender';
@@ -513,6 +513,9 @@ export class ArcadeGame {
     if (this.state.phase === 'won' && !this.outro) this.startOutro();
     this.react(events, prev);
     this.stats?.step(prev, this.state, events);
+    // Pops wait out a play (h2): they show in the pause after a down, and in setup.
+    const playing = this.state.phase === 'play' || frozenForTest(this.state.phase);
+    this.statsScreens?.holdToasts(playing);
     if (events.length > 0 || this.state.phase !== prev.phase) this.syncHud();
     if (this.playLog && events.length > 0) {
       const lines = eventLines(prev, this.state, events, this.playLog.meta, now());
@@ -532,10 +535,7 @@ export class ArcadeGame {
       onClosed: (record, before) => this.showCard(record, before),
       // Each pops at the top, in the pause after the down that earned it (h2).
       onEarned: (ids) => {
-        for (const id of ids) {
-          const a = ACHIEVEMENTS.find((x) => x.id === id);
-          if (a) this.statsScreens?.toast(a.name, a.earns);
-        }
+        for (const id of ids) this.statsScreens?.toast(achievement(id), this.state.hard);
       },
     });
     this.statsLoaded = keeper.load();
@@ -549,7 +549,8 @@ export class ArcadeGame {
     const view = cardView(
       record,
       before?.allTime[modeOf(record.modes)].records ?? null,
-      newlyEarned(before?.achievements ?? {}, record),
+      // Stats that couldn't be read kept nothing earned: the card claims none.
+      before ? newlyEarned(before.achievements, record) : [],
     );
     const stats = {
       label: 'STATS',

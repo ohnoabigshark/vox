@@ -132,7 +132,14 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
       drives(r).some(
         (downs) =>
           wonDrive(downs) &&
-          !downs.some((d) => d.outcome === 'incomplete' || d.kind === 'sack' || d.tackleForLoss),
+          // A pass batted down is an incomplete pass too.
+          !downs.some(
+            (d) =>
+              d.outcome === 'incomplete' ||
+              d.outcome === 'batted' ||
+              d.kind === 'sack' ||
+              d.tackleForLoss,
+          ),
       ),
   },
   {
@@ -196,6 +203,18 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   },
 ];
 
+/** Every achievement's id, in the list's order. */
+export const ACHIEVEMENT_IDS: readonly AchievementId[] = ACHIEVEMENTS.map((a) => a.id);
+
+const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));
+
+/** An achievement by its id. */
+export function achievement(id: AchievementId): Achievement {
+  const a = BY_ID.get(id);
+  if (!a) throw new Error(`No achievement ${id}`);
+  return a;
+}
+
 /** The achievements a run earns: mid-run (`down`: the ones that can be, so far) or as it ends (`end`: all of them). */
 export function earnedBy(record: RunRecord, when: 'down' | 'end'): AchievementId[] {
   return ACHIEVEMENTS.filter(
@@ -245,7 +264,8 @@ export function newlyEarned(
   when: 'down' | 'end' = 'end',
 ): AchievementId[] {
   const after = earn(earned, record, when);
-  return ACHIEVEMENTS.map((a) => a.id).filter((id) => after[id] !== earned[id]);
+  // earnFrom copies the set and replaces only the entries that change, so a changed one is a new object.
+  return ACHIEVEMENT_IDS.filter((id) => after[id] !== earned[id]);
 }
 
 /**
@@ -254,7 +274,7 @@ export function newlyEarned(
  * (the last 20) can earn one. The same `saved` back if there's nothing new.
  */
 export function catchUp(saved: Saved): Saved {
-  const fresh = ACHIEVEMENTS.map((a) => a.id).filter((id) => !saved.checked.includes(id));
+  const fresh = ACHIEVEMENT_IDS.filter((id) => !saved.checked.includes(id));
   if (fresh.length === 0) return saved;
   let achievements = saved.achievements;
   for (const { record } of [...saved.runs].reverse()) {
@@ -265,5 +285,5 @@ export function catchUp(saved: Saved): Saved {
       earnedBy(record, 'end').filter((id) => fresh.includes(id)),
     );
   }
-  return { ...saved, achievements, checked: ACHIEVEMENTS.map((a) => a.id) };
+  return { ...saved, achievements, checked: ACHIEVEMENT_IDS };
 }

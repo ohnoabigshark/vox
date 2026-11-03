@@ -307,6 +307,29 @@ describe('achievements earned mid-run (h2)', () => {
     expect(earned).toEqual([['airMail']]);
   });
 
+  it('stats that can’t be read: nothing pops, since nothing earned would be kept', async () => {
+    const earned: string[][] = [];
+    const store: StatsStore = {
+      ...fakeStore().store,
+      load: async () => ({ saved: null, problem: 'No.' }),
+    };
+    const k = new StatsKeeper({
+      store,
+      build: 'b',
+      link: '',
+      newId: () => 'r',
+      now: () => 0,
+      notice: () => {},
+      onEarned: (ids) => earned.push([...ids]),
+    });
+    await k.load();
+    const s = createRun(1);
+    k.start(s);
+    airMailDown(k, s);
+    await settled();
+    expect(earned).toEqual([]);
+  });
+
   it('one this phone has already earned says nothing', async () => {
     const earned: string[][] = [];
     const k = await earning({ airMail: { run: 'old', at: 'x', hard: true } }, earned);

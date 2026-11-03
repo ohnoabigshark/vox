@@ -230,6 +230,36 @@ describe('the stats store', () => {
 });
 
 describe('when it can’t keep them, it says so', () => {
+  it('what a new build finds in the saved runs, not written (a full store): the stats still load, and the notice says so', async () => {
+    const storage = fakeStorage();
+    const ended = {
+      ...run('a', { downs: [catchBy(1, 25, 22)] }),
+      endedAt: '2026-11-03T12:00:00.000Z',
+    };
+    const allTime = { hard: addRun(emptyAllTime(), ended), normal: emptyAllTime() };
+    const kept = JSON.stringify({
+      format: 1,
+      runs: [{ summary: summaryOf(ended), record: ended }],
+      allTime,
+    });
+    storage.data.set('getJackBack.stats', kept);
+    storage.fail.write = true;
+    const { saved, problem } = await statsStore(storage, clock).load();
+    expect(problem).toBe("Your stats couldn't be saved (is this browser's storage full?).");
+    expect(saved?.runs).toHaveLength(1);
+    expect(saved?.achievements.airMail?.run).toBe('a');
+    expect(storage.data.get('getJackBack.stats')).toBe(kept);
+  });
+
+  it('nothing new to look for: loading writes nothing', async () => {
+    const storage = fakeStorage();
+    await statsStore(storage, clock).close(run('a'));
+    const before = storage.data.get('getJackBack.stats');
+    storage.fail.write = true;
+    expect((await statsStore(storage, clock).load()).problem).toBeNull();
+    expect(storage.data.get('getJackBack.stats')).toBe(before);
+  });
+
   it('storage that can’t be reached: a notice, and the game plays on', async () => {
     const storage = fakeStorage();
     storage.fail.read = true;

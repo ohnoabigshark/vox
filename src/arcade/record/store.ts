@@ -7,7 +7,7 @@
  */
 import { isRecord } from '../../isRecord';
 import { upgraded, type UpgradeStep } from '../../upgrade';
-import { ACHIEVEMENTS, catchUp, earn, type AchievementId, type EarnedSet } from './achievements';
+import { ACHIEVEMENT_IDS, catchUp, earn, type AchievementId, type EarnedSet } from './achievements';
 import { addRun, emptyAllTime, summaryOf, type AllTime, type RunSummary } from './allTime';
 import { modeOf, RECORD_FORMAT, type RunRecord } from './types';
 
@@ -64,7 +64,7 @@ const empty = (): Saved => ({
   allTime: { hard: emptyAllTime(), normal: emptyAllTime() },
   achievements: {},
   // Nothing saved to look in: every achievement is as good as looked for.
-  checked: ACHIEVEMENTS.map((a) => a.id),
+  checked: ACHIEVEMENT_IDS,
 });
 
 /** A saved blob read and brought up to today's format, or null if it can't be. */
@@ -189,12 +189,20 @@ export function statsStore(
       if (blocked) return { saved: null, problem };
       // Achievements new in this build looked for in the saved runs, once, and written (h3).
       const saved = catchUp(kept);
-      if (saved !== kept) write(KEY, saved);
-      if (!open) return { saved, problem };
+      let notice = problem;
+      if (saved !== kept) {
+        // Best effort: if it can't be written, it's found again next time; the stats still load.
+        try {
+          write(KEY, saved);
+        } catch (e) {
+          notice = e instanceof Error ? e.message : FULL;
+        }
+      }
+      if (!open) return { saved, problem: notice };
       const { record, savedAt } = open;
       const end = record.end === 'open' ? 'unfinished' : record.end;
       // It ended when it was last saved: the game can't know when the tab went away.
-      return { saved: close({ ...record, end }, savedAt ?? now()), problem };
+      return { saved: close({ ...record, end }, savedAt ?? now()), problem: notice };
     },
     async saveOpen(record) {
       if (!blocked) write(OPEN_KEY, { record, savedAt: now() });

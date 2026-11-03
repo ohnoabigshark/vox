@@ -103,7 +103,9 @@ export class StatsKeeper {
 
   /** What the run so far has earned that's new to this phone, once a run each (h2). */
   private pop(record: RunRecord): void {
-    const had = this.stats.kind === 'kept' ? this.stats.saved.achievements : {};
+    // Stats that can't be read keep nothing earned: no pop says otherwise.
+    if (this.stats.kind !== 'kept') return;
+    const had = this.stats.saved.achievements;
     const ids = newlyEarned(had, record, 'down').filter((id) => !this.popped.has(id));
     for (const id of ids) this.popped.add(id);
     if (ids.length > 0) this.deps.onEarned?.(ids);
