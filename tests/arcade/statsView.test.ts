@@ -4,6 +4,7 @@ import type { Saved } from '../../src/arcade/record/store';
 import { JACK, type PlayResult, type RunRecord } from '../../src/arcade/record/types';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import {
+  achievementsView,
   allTimeView,
   cardView,
   runView,
@@ -290,5 +291,37 @@ describe('the stats section (v5)', () => {
   it('nothing yet says so', () => {
     expect(allTimeView(emptyAllTime()).empty).toBe(true);
     expect(runsView({ ...saved, runs: [] }, 'hard')).toEqual([]);
+  });
+});
+
+describe('achievements on the screens (h1, h2, v4, v5)', () => {
+  it('the card lists what the run newly earned, hard ones marked', () => {
+    expect(cardView(record('a', downs), null, ['airMail', 'unbreakable']).achievements).toEqual([
+      'Air Mail · hard',
+      'Unbreakable · hard',
+    ]);
+    const normal = record('a', downs, {
+      modes: { hard: false, twoTap: false, snag: false, tip: false },
+    });
+    expect(cardView(normal, null, ['airMail']).achievements).toEqual(['Air Mail']);
+    expect(cardView(normal, null).achievements).toEqual([]);
+  });
+
+  it('the tab: earned first with their dates and hard marks, then the rest with what earns them; the count', () => {
+    const view = achievementsView({
+      airMail: { run: 'a', at: '2026-11-01T12:00:00.000Z', hard: true },
+      sweetTooth: { run: 'b', at: '2026-11-02T12:00:00.000Z', hard: false },
+    });
+    expect(view.count).toBe('🏆 2 of 14');
+    expect(view.earned).toEqual([
+      {
+        name: 'Air Mail',
+        earns: 'Complete a pass of more than 20 air yards',
+        when: 'Nov 1 · hard',
+      },
+      { name: 'Sweet Tooth', earns: 'Reach the Candy Queendom', when: 'Nov 2' },
+    ]);
+    expect(view.rest).toHaveLength(12);
+    expect(view.rest[0]).toEqual({ name: 'Unbreakable', earns: 'Break two tackles on one play' });
   });
 });
