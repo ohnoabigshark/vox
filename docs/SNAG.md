@@ -16,14 +16,14 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 `tuning.ts` holds each one times 0.8.
 
 **Since the tip drill** (`docs/TIP.md`, 2026-10-31), SNAG IT! is one of two
-**catch tests**: from drive 5 a contested ball picks SNAG IT! or the tip
+**catch tests**: from series 5 a contested ball picks SNAG IT! or the tip
 drill at random, half and half, and `?snag=1` makes every contested ball
 SNAG IT! (with `?tip=1` too, either). What the two share moved to
 `catchTests` in `tuning.ts` and `sim/catchTests.ts`, with SNAG IT! playing
-exactly as before: when they start (`fromDrive`), the dot count
-(`minCount`, `maxCount`, `moreEvery`, `handsGap`), the pace past drive 10
-(now a share of the usual: 5% a drive, down to 62.5%, the same 0.04 s a
-drive and 0.5 s floor for the ring) and the box's linger. Where the
+exactly as before: when they start (`fromSeries`), the dot count
+(`minCount`, `maxCount`, `moreEvery`, `handsGap`), the pace past series 10
+(now a share of the usual: 5% a series, down to 62.5%, the same 0.04 s a
+series and 0.5 s floor for the ring) and the box's linger. Where the
 sections below say "every contested ball", read "every contested ball that
 picks SNAG IT!".
 
@@ -38,12 +38,12 @@ picks SNAG IT!".
   every contested ball goes to the test instead, whichever way today's rule
   would have gone. An uncontested catch, a batted ball nobody of yours could
   reach, and an incomplete are unchanged.
-- **From drive 5.** A level is the drive's number in the run (Froggy's
-  Forest is drives 1–4, the Candy Queendom 5–8, Frederick's Farm 9–12, hard
-  mode's fourth zone 13–16, and so on). From drive 5, in normal and hard
+- **From series 5.** A series number is a series' count in the run (Froggy's
+  Forest is series 1–4, the Candy Queendom 5–8, Frederick's Farm 9–12, hard
+  mode's fourth zone 13–16, and so on). From series 5, in normal and hard
   mode alike; before it, contests are settled as today.
-- **`?snag=1`** turns it on from the first drive, to try it without playing
-  four drives first. It stands in for the dev panel's "force the next
+- **`?snag=1`** turns it on from the first series, to try it without playing
+  four series first. It stands in for the dev panel's "force the next
   contest" button (u1): vox has no dev panel, and its URL options are how it
   forces states (`TECHNICAL.md` §21). Practice follows the same rule, so a
   rep only meets SNAG IT! with `?snag=1`.
@@ -66,9 +66,9 @@ picks SNAG IT!".
   closing. A tap on it earlier is a miss (so mashing every dot as it shows
   fails), and so is no tap by 0.15 s after. A tap on empty grass does
   nothing. A dot goes once it's hit or missed.
-- **Faster later:** past drive 10, the ring closes 0.04 s sooner each drive,
+- **Faster later:** past series 10, the ring closes 0.04 s sooner each series,
   and the gap between dots shrinks in step (it stays five-eighths of the
-  close), down to a floor of 0.5 s to close and 0.3 s apart (drive 18).
+  close), down to a floor of 0.5 s to close and 0.3 s apart (series 18).
 - **The box** sits where the bar test does, a little bigger: a square
   92% of the screen's width (at most 460 pixels, and at most 60% of the
   screen's height, so it fits a phone held sideways or a laptop), centred
@@ -80,14 +80,15 @@ picks SNAG IT!".
 
 ## How many dots (s1)
 
-- **The level:** 2 on drives 5–8, then one more every four drives (an area; `catchTests.moreEvery`, shared with the tip drill): 3 on
+- **The series number:** 2 in series 5–8, then one more every four series (an area; `catchTests.moreEvery`, shared with the tip drill): 3 on
   9–12, 4 on 13–16, 5 from 17.
 - **The crowd:** one more for each defender after the first whose reach
   covers the ball.
 - **Hands:** one fewer when the receiver's Hands beat the best contesting
   defender's by 20 or more; one more when theirs beat the receiver's by 20
   or more.
-- **Always 2 to 5.** Before drive 5 (only with `?snag=1`) the level gives 2.
+- **Always 2 to 5.** Before series 5 (only with `?snag=1`) the series
+  number gives 2.
 
 ## The grade (c4, s4, s7)
 
@@ -95,7 +96,7 @@ picks SNAG IT!".
   knocked flying, so the receiver runs free (a GREAT break's moment where
   nobody can grab it).
 - **OK** (one miss): caught, and tackled on the spot. The yards count; caught
-  past the line, or in the end zone, it wins the drive (B6).
+  past the line, or in the end zone, it wins the series (B6).
 - **BAD** (two or more misses): batted down by the defender: incomplete.
 - Each hit pops its dot green, with the catch sound and a short buzz
   (where the phone can: iPhones can't); each miss cracks it red, with the
@@ -132,15 +133,15 @@ The map's u2 put the test scenarios to the Coach before the tests; the Coach
 handed over the build on 2026-10-30 ("free reign to put together snag it into
 something playable"), so they are recorded here instead.
 
-1. **The count:** 2 dots at drive 5, 3 at drive 9, 5 at drive 17 and after;
+1. **The count:** 2 dots at series 5, 3 at series 9, 5 at series 17 and after;
    one more for a second defender in reach; one fewer when the receiver's
    Hands beat the defender's by 20, one more the other way; never under 2 or
    over 5.
 2. **The timing:** dots appear 0.5 s apart (screen) and close 0.8 s after
-   appearing; past drive 10 both shrink each drive, to the floor.
+   appearing; past series 10 both shrink each series, to the floor.
 3. **When:** a contested bullet and a contested lob each start SNAG IT! from
-   drive 5, whichever way today's rule would have gone; before drive 5, and
-   for uncontested balls, nothing changes; `?snag=1` starts it on drive 1.
+   series 5, whichever way today's rule would have gone; before series 5, and
+   for uncontested balls, nothing changes; `?snag=1` starts it on series 1.
 4. **Hits and misses:** a tap within the window hits; an early tap misses;
    no tap misses once the window has passed; a tap on a dot not yet showing
    does nothing.

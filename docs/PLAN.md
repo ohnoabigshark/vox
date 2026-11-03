@@ -3,7 +3,7 @@
 This is our roadmap for the fork. esrauch's own roadmap is
 [`MILESTONES.md`](../MILESTONES.md), and the game's design is in
 [`GAMEPLAY.md`](../GAMEPLAY.md) and [`TECHNICAL.md`](../TECHNICAL.md). This
-file is ours alone, so pulling upstream never conflicts with it.
+file is ours alone.
 
 Setup decisions (fork, hosting, conventions) are in the decision map
 https://claude.ai/artifact/NPXDWvYYwQKcPhukLtXpnL. An overview of how the game
@@ -123,7 +123,7 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   throw type etc before starting a run."_ Today those options are URL
   flags read once in `src/main.ts` (two-tap throwing and hard mode, on unless
   `?aim=1` or `?hard=0`,
-  `?snag=1` SNAG IT! from the first drive, `?area=N`, `?seed=N`,
+  `?snag=1` SNAG IT! from the first series, `?area=N`, `?seed=N`,
   `?monsters`, `?win`), and Break it! always deals one of its three
   (`bar`, `mash`, `juke`, `BREAK_KINDS` in `sim/breakit.ts`); nothing turns
   one off. It is the dev panel `docs/rules.md` asks for ("Build a dev panel
@@ -215,18 +215,18 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   design is `docs/FIELD_EVENTS.md`. The first of the three branches, field
   events and the editor, built on `field-events`; then the Coach tunes Frog
   Rain with Save, and the taffy flood is next.
-- **Losses move you back past the drive's start** (difficulty), so a sack
+- **Losses move you back past the series' start** (difficulty), so a sack
   or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
-  the line back, but never behind where the drive started (`endDown` in
-  `sim/run.ts`: "Never behind the drive's start (there's no room for the
-  QB)"), so a loss on the drive's first snap leaves 2nd & 10. Open for its
+  the line back, but never behind where the series started (`endDown` in
+  `sim/run.ts`: "Never behind the series' start (there's no room for the
+  QB)"), so a loss on the series' first snap leaves 2nd & 10. Open for its
   grilling: what that "no room" was (the camera, the field behind, the
-  previous drive's props and pickups), and how far back a drive may go.
+  previous series' props and pickups), and how far back a series may go.
   _User, 2026-10-30._
 - **A play clock** (difficulty). Today you can wait forever before
   calling a play and hiking. From some level on, a clock counts down the
   call and the hike, to force a faster choice. _User, 2026-10-30._ Open for
-  its grilling: from which zone or drive, and how long (shrinking as it
+  its grilling: from which zone or series, and how long (shrinking as it
   goes?); what running out costs (delay of game, 5 yards back, or a random
   card called and hiked for you); whether practice has one; how it's shown
   (a countdown in the HUD, the cards flashing).
@@ -293,7 +293,7 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   teach people how to play, esp with the passing mechanic."_ Open for its
   grilling: what it covers beyond the throw (calling a play, Break it!,
   SNAG IT! and the tip drill, pickups and field events); its shape (a
-  scripted first drive, prompts over real play, or a page of its own);
+  scripted first series, prompts over real play, or a page of its own);
   hard mode's two-tap throw against the original one-tap, since the game
   now defaults to two-tap; when it shows (first launch only, and how to
   open it again or skip it); with mockups.
@@ -360,23 +360,23 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   gone into `ourPlays.ts`, or an unchanged copy of a built-in play, is dealt
   as often as two plays. Found in the round 6 review; not decided.
   _2026-10-30._
-- **Choosing the defense in practice** (each area's drives, the decree, the
+- **Choosing the defense in practice** (each area's series, the decree, the
   crows). Offered as t3's alternative; practice always plays the Forest's
-  first drive for now. _2026-10-29._
+  first series for now. _2026-10-29._
 - **Sharing plays.** A Copy code play can be pasted to anyone, which the user
   called "a backdoor way to sharing plays". A real way to share, such as a
   link that opens the play, could grow from Try it's link (e2, e3). _User,
   2026-10-29._
 - **A test bench for one play** (dev): pick a play, set the down, the
-  distance to go and where on the field it starts (an ordinary drive, or a
-  Boss drive's goal to go with its end zone), then run it again and again.
+  distance to go and where on the field it starts (an ordinary series, or a
+  Boss series' goal to go with its end zone), then run it again and again.
   It's for exact situations like B6's, a catch in the end zone, which today
   take a real run to reach. _User, 2026-11-01: "a test bench for an
   individual play where you can set the down and distance you run the play
   at and the position on the field."_ Close to Try it's practice (which
-  always plays the Forest's first drive) and to **Choosing the defense in
+  always plays the Forest's first series) and to **Choosing the defense in
   practice**, below; it may grow out of them. Open for its grilling: which
-  defense it lines up (each area's drives, the Boss's), whether the tap
+  defense it lines up (each area's series, the Boss's), whether the tap
   tests can be forced as `?snag=1` and `?tip=1` do, and whether it logs
   each rep as the tap-test bench does (`docs/BENCH.md`).
 - **A team that grows (a big change, not yet broken up).** Your players
@@ -408,7 +408,7 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     the roster screen as it is.
   - **Draw up a play** (below), with the play editor showing the defense
     as it lines up for that down.
-  - **Balance:** a squad that grows across a run makes later drives
+  - **Balance:** a squad that grows across a run makes later areas
     easier, so the defense's growth by area and hard mode's second lap may
     need tuning to match.
 - **Plays as rewards.** TRICK OR TREAT! offers a new play, not only a new
@@ -420,7 +420,7 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     beat it. The play editor opens, and the play drawn is the one called
     for that down. _User, 2026-10-31: "you get to see what the defense is
     using and then can draw up the perfect play."_ Open for its grilling:
-    how it's earned and how often (once a run, once a drive, a TRICK OR
+    how it's earned and how often (once a run, once a series, a TRICK OR
     TREAT! pick); what the Coach sees of the defense (the line-up, their
     assignments, coverage); whether the editor opens in the game or as the
     dev page, and what it allows (every slot, or routes only); whether the
@@ -446,11 +446,11 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   The record is ready for it: each run has a random id, the build and its
   format version (stats map k1, k4, 2026-11-02).
 - **Stats during a run:** the run's stats so far, from the pause menu or
-  between drives. Left out of the first screens (stats map, 2026-11-02).
-- **Achievements for a team of one kind:** a drive won with all seven of
+  between series. Left out of the first screens (stats map, 2026-11-02).
+- **Achievements for a team of one kind:** a series won with all seven of
   one kind, Golems, Ghosts or Werewolves (x1, Not now, 2026-11-03: "it
   depends on core game changes").
-- **Achievements for one way only:** a drive won without a pass, or
+- **Achievements for one way only:** a series won without a pass, or
   without a rush (x9, Not now, 2026-11-03): a down doesn't always offer
   both. It comes back if Jack can run, or a handoff can be forced on a pass
   play.

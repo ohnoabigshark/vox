@@ -7,9 +7,11 @@ This doc covers what the player *does*: the pillars, the run, a down, the contro
 Items marked **▲** are recommendations or details still open to change. Every number is a starting value, to tune by playtesting and by the headless balance runs (TECHNICAL.md).
 
 **Words used here:**
-- **Area:** a themed place (Froggy's Forest first). Each area is four drives.
-- **Drive:** four downs to gain 10 yards. **Down:** one play, a few seconds long.
-- **Line of scrimmage:** where the current down starts. **First-down line:** 10 yards past where the drive started.
+- **Area:** a themed place (Froggy's Forest first). Each area is four series.
+- **Series:** four downs to gain 10 yards. Winning one is a **first down**; winning the Boss's is a **touchdown**. **Down:** one play, a few seconds long.
+- **Drive:** an area's whole march up the field, its four series ending in the end zone.
+- **Series number:** a series' count in the run, from 1 (the Candy Queendom's first series is 5).
+- **Line of scrimmage:** where the current down starts. **First-down line:** 10 yards past where the series started.
 - **Your team:** **eight on the field**: the QB plus seven players, each a **Blocker**, a **Runner** or a **Catcher**. *The QB is the pumpkin ball itself, **Jack**: there's no QB player on the field, Jack throws himself (THEME.md, The ball).*
 - **Carrier:** whoever has the ball after a catch or a handoff. It runs on its own.
 - **Heft, Hustle, Hands:** your players' (and defenders') three stats. They're physics, not dice: weight, speed and reach.
@@ -36,30 +38,30 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 
 ---
 
-## The Run: Areas of Four Drives
+## The Run: Areas of Four Series
 
-- **A run is a series of themed areas** (Froggy's Forest first). **Each area is four drives**, *Balatro*-style: **Intro**, **Challenge**, **Gimmick** (a twist) and **Boss**. **Every run is the same twelve drives:**
+- **A run is a string of themed areas** (Froggy's Forest first). **Each area is four series**, *Balatro*-style: **Intro**, **Challenge**, **Gimmick** (a twist) and **Boss**. **Every run is the same twelve series:**
 
   | | Intro | Challenge | Gimmick | Boss |
   |---|---|---|---|---|
   | **Froggy's Forest** | A Quiet Clearing | Gnome Country | Bat Cave | Mister Frog's Pond |
   | **The Candy Queendom** | Gumdrop Lane | Gingerbread Row | Broomstick Alley | The Queen's Court |
   | **Frederick's Farm** | The Back Forty | The Cornrows | A Murder of Crows | The King's Patch |
-- **The main game is three areas: 12 drives and three Bosses**, on the way to Jack's pumpkin patch (THEME.md). **Each Boss has one gimmick that attacks one thing you do:**
+- **The main game is three areas: 12 series and three Bosses**, on the way to Jack's pumpkin patch (THEME.md). **Each Boss has one gimmick that attacks one thing you do:**
 
   | Area | Boss | Gimmick | Attacks |
   |---|---|---|---|
   | **Froggy's Forest** | **Mister Frog** (top hat) | **Frog Rain:** before the snap a lane lights up on the turf, in from one sideline 40% of the way across. A moment into the down (2 seconds on screen) its shadows fill in and **the frogs all come down at once**, a shower over the whole lane: a carrier in it is tackled there (**FROGGED!**), anyone else in it is flattened for a moment. Once a down. You see the lane while choosing a card, so you pick a play, or **Flip** it, to keep your routes out. | Where your routes go |
   | **The Candy Queendom** | **The Queen** (a witch, double size, in a crown) | **Royal Decree:** each down one of your three play cards, at random, is stamped **BANNED** with her red seal, and can't be called (tapping it: BY ROYAL DECREE!). You make do with the other two. | Your play call |
-  | **Frederick's Farm** | **The King** (a giant scarecrow in a crown) *(beating his drive gets Jack home: the end)* | **SHOO CROWS!** Two pairs of crows sit on him, one on his arms, one on his shoulders. Half a second after the snap the first pair swoops at whoever has the ball (while a pass is in the air, at where it's going), at half a bullet's speed. When they land on the holder a big **SHOO CROWS!** button pops up, with no freeze: tap it within about half a second and they're gone; too late and they knock the holder down (a sack if Jack still has it, a tackle if a carrier does). If the ball leaves the holder first they miss, so **a quick deep pass leaves them behind**. **A moment after the first pair is done** (shooed or missed), **the second pair comes**, the same way. SHOO isn't a Break it!: it doesn't count toward the two a down. The King himself is only a prop: he stands guard, still, just past the first-down line in front of the pumpkin patch. | Your nerve: hold the ball and they come for it |
+  | **Frederick's Farm** | **The King** (a giant scarecrow in a crown) *(beating his series gets Jack home: the end)* | **SHOO CROWS!** Two pairs of crows sit on him, one on his arms, one on his shoulders. Half a second after the snap the first pair swoops at whoever has the ball (while a pass is in the air, at where it's going), at half a bullet's speed. When they land on the holder a big **SHOO CROWS!** button pops up, with no freeze: tap it within about half a second and they're gone; too late and they knock the holder down (a sack if Jack still has it, a tackle if a carrier does). If the ball leaves the holder first they miss, so **a quick deep pass leaves them behind**. **A moment after the first pair is done** (shooed or missed), **the second pair comes**, the same way. SHOO isn't a Break it!: it doesn't count toward the two a down. The King himself is only a prop: he stands guard, still, just past the first-down line in front of the pumpkin patch. | Your nerve: hold the ball and they come for it |
 
 - **The story is two tiny cutscenes:** at the start (after PLAY, with the music already going), Jack asks a football team "Can you help me get back to my patch?", one says "Ok", they carry him off, and the title slams in: GET JACK BACK (it plays through: it's short); at the end, in front of the King and the patch, your whole roster (field and bench) dances around Jack: GOT JACK BACK. That's the end: the game goes straight to the sing-along video of the win song on YouTube (if the browser blocks that, a **Listen to 'We Got Jack Back' on YouTube** button shows instead, and the roster dances on). There's no AGAIN (a Game Over still offers AGAIN).
 
-- **The four drives are one continuous march up the field**, with no break between them: the camera follows the play up to the next defense, TRICK OR TREAT! takes a moment, and play carries on. The Boss drive goes for the end zone, and getting there clears the area: **Froggy's Forest Cleared!** (and, the third time, Jack is home).
-- **There are no lives. Losing a drive is game over.** Four downs, and every one counts.
-- **The forest scales up as you do:** the first drive is a handful of sleepy defenders, the area III Boss is the whole forest at full strength (see *The Defense*).
+- **The four series are one continuous drive up the field**, with no break between them: the camera follows the play up to the next defense, TRICK OR TREAT! takes a moment, and play carries on. The Boss's series goes for the end zone, and getting there (a touchdown) clears the area: **Froggy's Forest Cleared!** (and, the third time, Jack is home).
+- **There are no lives. Losing a series is game over.** Four downs, and every one counts.
+- **The forest scales up as you do:** the first series is a handful of sleepy defenders, the area III Boss is the whole forest at full strength (see *The Defense*).
 
-## A Drive: Four Downs to Gain 10 Yards
+## A Series: Four Downs to Gain 10 Yards
 
 - **Four downs to get the ball over the first-down line.** Each down starts where the last one ended.
 - **How a down ends:**
@@ -69,7 +71,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
   | **Tackled** | The next down starts where the carrier went down. |
   | **Incomplete or batted down** | The down is used, no gain. |
   | **Sacked** (a rusher reaches the QB holding the ball) | The down is used, and you lose ground. |
-  | **Over the line** | The drive is won. |
+  | **Over the line** | A first down: the series is won (in the Boss's series, a touchdown). |
   | **4th down fails** | Game over. |
 
 - **No interceptions, no fumbles.** A bad pass costs a down, never the run.
@@ -123,23 +125,23 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 ### Catching
 
 - **A catch is reach.** The bullet is caught by the first of your players whose reach it passes through, and **Hands is reach**: better Hands catch a bullet that would have gone by.
-- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from drive 5 (the Candy Queendom's first), a contested ball is a catch test instead**, whichever way that rule would go: **SNAG IT! or the tip drill**, picked at random, half and half (below).
+- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from series 5 (the Candy Queendom's first), a contested ball is a catch test instead**, whichever way that rule would go: **SNAG IT! or the tip drill**, picked at random, half and half (below).
 
 ### SNAG IT! *(fork: the contested-catch test, `docs/SNAG.md`)*
 
-**From drive 5, a contested ball that picks SNAG IT! freezes the play** with Jack hanging a yard short of the receiver's hands, and opens with **the same two-second countdown as Break it!** ("GET READY TO SNAG IT! 2… 1…"). As it ends, **dots pop up in a box** titled SNAG IT!, where the Break it! panel sits, one every half second, **each with a ring closing onto it** in 0.8 s. **Tap each dot as its ring closes** (within 0.15 s): a tap too early, or none, misses it. **Every dot hit is a GREAT** (caught, and the defenders reaching for it go flying, so the receiver runs free), **one miss an OK** (caught and tackled on the spot), **more a BAD** (batted down).
+**From series 5, a contested ball that picks SNAG IT! freezes the play** with Jack hanging a yard short of the receiver's hands, and opens with **the same two-second countdown as Break it!** ("GET READY TO SNAG IT! 2… 1…"). As it ends, **dots pop up in a box** titled SNAG IT!, where the Break it! panel sits, one every half second, **each with a ring closing onto it** in 0.8 s. **Tap each dot as its ring closes** (within 0.15 s): a tap too early, or none, misses it. **Every dot hit is a GREAT** (caught, and the defenders reaching for it go flying, so the receiver runs free), **one miss an OK** (caught and tackled on the spot), **more a BAD** (batted down).
 
-- **How many dots:** 2 on drives 5–8, one more each zone after (5 from drive 17), one more for each extra defender reaching for the ball, one fewer when the receiver's Hands beat the best defender's by 20 (one more the other way); always 2 to 5.
-- **Faster later:** past drive 10 the rings close 0.04 s sooner each drive, to a floor of 0.5 s.
+- **How many dots:** 2 in series 5–8, one more each zone after (5 from series 17), one more for each extra defender reaching for the ball, one fewer when the receiver's Hands beat the best defender's by 20 (one more the other way); always 2 to 5.
+- **Faster later:** past series 10 the rings close 0.04 s sooner each series, to a floor of 0.5 s.
 - **It isn't a Break it!:** it doesn't count toward the two a down, and Second Wind doesn't save it.
-- **`?snag=1`** makes every contested ball SNAG IT!, from the first drive, for trying it.
+- **`?snag=1`** makes every contested ball SNAG IT!, from the first series, for trying it.
 
 ### The tip drill *(fork: the other catch test, `docs/TIP.md`)*
 
 **The other half of contested balls freeze the same way**, with the same countdown ("GET READY FOR THE TIP DRILL! 2… 1…"). In SNAG IT!'s box, **the ball pops straight up off a bar of the receiver's hands** and falls back, its shadow growing on them. **Tap anywhere in the box as it lands** (or press Space): within 0.07 s is **clean**, within 0.14 s a **bobble** (the ball wobbles), and anything else, early or late or no tap, a **drop**. The next pop leaves the hands at your tap, in the air 0.8 times as long as the last (1.0 s, then 0.8, 0.64…), so the rhythm quickens as the ball settles. **Every pop clean is a GREAT, a bobble an OK, a drop a BAD**, ending it at once; each does what SNAG IT!'s does.
 
-- **How many pops:** one more than SNAG IT! would have dots in the same spot (3 at drive 5), always 2 to 5; past drive 10 every pop is shorter by the same share as SNAG IT!'s rings.
-- **It isn't a Break it!** either, and **`?tip=1`** makes every contested ball a tip drill from the first drive; with `?snag=1` too, each picks at random.
+- **How many pops:** one more than SNAG IT! would have dots in the same spot (3 at series 5), always 2 to 5; past series 10 every pop is shorter by the same share as SNAG IT!'s rings.
+- **It isn't a Break it!** either, and **`?tip=1`** makes every contested ball a tip drill from the first series; with `?snag=1` too, each picks at random.
 - **It goes past the scrum:** your Blockers never touch the ball (linemen aren't eligible), and a Rhino Beetle locked up with one of your players can't get a hand to it.
 - **Throwing lanes matter:** a bullet passes every defender between the QB and the receiver, and any of them that can reach it bats it down. **A Scarecrow's wide ring blocks a whole lane.** So the timing is: when the line is over an open receiver *and* the lane to it is clear.
 
@@ -154,11 +156,11 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Before the snap** | **HIKE!** | Start the called play. |
 | **Pass play** | **THROW** | Fire a bullet along the sweeping line. |
 | **Grabbed** | **Tap** anywhere (a juke: its ◀ or ▶ button) | Break it! |
-| **A contested ball** *(fork, from drive 5)* | **Tap each dot** as its ring closes | SNAG IT! |
-| **A contested ball** *(fork, from drive 5)* | **Tap** anywhere in the box as the ball lands on the hands | The tip drill |
+| **A contested ball** *(fork, from series 5)* | **Tap each dot** as its ring closes | SNAG IT! |
+| **A contested ball** *(fork, from series 5)* | **Tap** anywhere in the box as the ball lands on the hands | The tip drill |
 | **The King's crows land** | **SHOO CROWS!** | Drive them off. |
-| **Between drives** | **Tap a card** | Take one of the two new players. |
-| **Between drives** | **Tap a New Player! card** | Take that player (it goes where it helps most). |
+| **Between series** | **Tap a card** | Take one of the two new players. |
+| **Between series** | **Tap a New Player! card** | Take that player (it goes where it helps most). |
 
 **One thumb, portrait, no aiming.** Everything is a tap at the right moment.
 
@@ -197,21 +199,21 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
   | **Werewolf** | -- | ++ | = | Runner |
 
   **The kind is a shape, not a total:** a recruit's stats add up to its zone's total (200, 250, 300; TRICK OR TREAT!), shared out in its kind's shape and nudged a little, so no two are alike (your starting seven are the plain 50s). **A new kind should follow the same rule:** one stat up, one down, a total of 150 for its shape, and a position it suits.
-- **Everyone starts human and plain.** A fresh team is a bit slow, a bit light, a bit clumsy: good enough for the sleepy first drive, not for the Boss.
+- **Everyone starts human and plain.** A fresh team is a bit slow, a bit light, a bit clumsy: good enough for the sleepy first series, not for the Boss.
 - **Any player can play any position** (2 Blocker slots, 2 Runner slots, 3 Catcher slots). The plays only ever talk to the slots, so the team always lines up 2 / 2 / 3; who you put where is up to you, and their stats decide how well it works. A Golem in a Catcher slot is a slow Catcher nobody can tackle.
-- **The numbers live on the roster screen** (between drives). On the field, the stats only show through what happens.
+- **The numbers live on the roster screen** (between series). On the field, the stats only show through what happens.
 
 ---
 
 ## Building Up: TRICK OR TREAT!
 
-**After every won drive: TRICK OR TREAT!** Under the heading it says plainly **"Choose a player to join your team"**, over two **New Player!** cards: take one and play goes straight on. **On the same screen is your roster, to look at: the seven on the field down the left, by position, and the bench down the right.** *(Setting the lineup yourself, tapping any two players to swap them and then Done, is built but turned off for now: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first drive**: you start with what you've got.
+**After every won series: TRICK OR TREAT!** Under the heading it says plainly **"Choose a player to join your team"**, over two **New Player!** cards: take one and play goes straight on. **On the same screen is your roster, to look at: the seven on the field down the left, by position, and the bench down the right.** *(Setting the lineup yourself, tapping any two players to swap them and then Done, is built but turned off for now: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got.
 
 ### The offer
 
 **Two new players, never of the same kind, and you take one:** there's no skipping (a new player can always sit on the bench). Each card is the player itself, drawn like a roster card: its photo, name and kind, its **Heft / Hustle / Hands** bars, and its **preferred position** (the one its best stat suits: Heft → Blocker, Hustle → Runner, Hands → Catcher).
 
-**A new player's stats add up to the zone's total:** **200** in Froggy's Forest, **250** in the Candy Queendom, **300** on Frederick's Farm, shared out in its kind's shape (a Ghost mostly Hands, a Golem mostly Heft, a Human evenly) and nudged a little, so no two are alike. The zone is the one of the drive about to be played, so the offer after Froggy's Forest's Boss is already the Candy Queendom's.
+**A new player's stats add up to the zone's total:** **200** in Froggy's Forest, **250** in the Candy Queendom, **300** on Frederick's Farm, shared out in its kind's shape (a Ghost mostly Hands, a Golem mostly Heft, a Human evenly) and nudged a little, so no two are alike. The zone is the one of the series about to be played, so the offer after Froggy's Forest's Boss is already the Candy Queendom's.
 
 **Take one and it goes straight in:** into the field slot whose player it beats by the most total stats (on a tie, a slot of the position it prefers), and whoever was there sits on the bench. If it beats nobody, it sits on the bench itself. Positions are picked for you, and play goes on. Only the seven on the field play.
 
@@ -238,9 +240,9 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Crow** *(Frederick's Farm)* | Crow | Like a Bat, it swats passes that fly through it; it flies a lane up and down the field (8 yards) instead of looping a square, and **leaves it to dive at a carrier who comes within 4 yards** (a Bat dives from 3). |
 
 - **Each area has its own set:** Froggy's Forest adds Frogs; the Candy Queendom swaps the Owl for Witches and adds Gingerbread Men; Frederick's Farm adds Crows and rows of Scarecrows, and its props are pumpkins and hay bales. Older kinds keep their rules wherever they appear.
-- **The Bosses aren't defenders:** each stands in the middle of its drive's end zone, just past the first-down line, drawn twice a player's size, and never moves, tackles or defends (a prop). Its ability is the whole fight. Mister Frog is a Frog in a top hat, the Queen a Witch in a crown, the King a Scarecrow in a crown.
+- **The Bosses aren't defenders:** each stands in the middle of the end zone its series goes for, just past the first-down line, drawn twice a player's size, and never moves, tackles or defends (a prop). Its ability is the whole fight. Mister Frog is a Frog in a top hat, the Queen a Witch in a crown, the King a Scarecrow in a crown.
 - **Props on the field:** two or three to every 10 yards, from the area's own set (Froggy's Forest: trees, stumps and toadstools; the Candy Queendom: gumdrops, lollipops and candy canes). They're solid: everyone, yours and theirs, has to go around them, and carriers pick lanes clear of them. The ball flies over them. They never stand in the middle lane (the pumpkin's, and the handoffs'), never against a sideline, and always leave room to pass between.
-- **Scaling, the lever behind the whole run:** the first drive of area I is **four slow defenders** (Intro 4, Challenge 5, Gimmicks 5 or 6, the Boss a full 8); every drive adds defenders or stats, and later areas bring more rushers and heavier, faster, grabbier versions of everyone. ▲ *Numbers to come from the balance runs: the target is that a team that never upgrades loses in area II, a decent build reaches the last Boss, and a strong one beats it.*
+- **Scaling, the lever behind the whole run:** the first series of area I is **four slow defenders** (Intro 4, Challenge 5, Gimmicks 5 or 6, the Boss a full 8); every series adds defenders or stats, and later areas bring more rushers and heavier, faster, grabbier versions of everyone. ▲ *Numbers to come from the balance runs: the target is that a team that never upgrades loses in area II, a decent build reaches the last Boss, and a strong one beats it.*
 - **The defense always shows its intent:** rushers lean toward the QB, Covers face their Catcher, the Owl tracks the ball.
 
 ---
@@ -269,7 +271,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **The carrier** | Holds the ball high, with a gold ring underfoot. |
 | **What the defense will do** | Their facing: rushers toward the QB, Covers toward their Catcher. |
 | **Tricks and treats** *(fork)* | A gold lightning bolt, hovering and turning, and a black oil slick with a purple sheen, one of each every 10 yards, out of the middle lane. Run one of your players through a bolt and it's half as fast again for 3 seconds, trailing sparks; through a slick and it slips and lies down a moment, and a carrier is tackled there (**SLIPPED!**). Each is taken once and gone; defenders run over them. See `docs/PICKUPS.md`. |
-| **Down and distance** | "3rd & 4" and the gold first-down line. There's no drive name or number on screen; the run's tally of drives won shows once it's over. |
+| **Down and distance** | "3rd & 4" and the gold first-down line. There's no series name or number on screen; the run's tally shows once it's over ("3 drives won": it counts series). |
 
 **Indicators stay small:** the voxel field and the bodies flying around it are the show.
 
@@ -282,7 +284,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 
 ## Score and Meta
 
-- **The score is how far you got**: area, drive, and yards. ▲
+- **The score is how far you got**: area, series, and yards. ▲
 - **Light meta progression** for variety, never power: new plays in the random pool, new areas, team looks.
 - ▲ *Daily runs with a shared seed.*
 
@@ -291,12 +293,12 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 ## Scope: First Playable
 
 The smallest version that proves the fun, most of it built:
-- **One area of four drives**, played three times with the defense scaling up.
+- **One area of four series**, played three times with the defense scaling up.
 - **The QB (the pumpkin) and seven players** in three positions, starting all human.
 - **A down:** three random play cards with Flip and HIKE!, the sweep and THROW, handoffs with the play fake, Break it!.
 - **The third-person camera** behind and above the QB, following the play.
-- **The defense:** Rushers, Covers, Safeties, Scarecrows, Bats and Crows, scaling by drive and area.
-- **TRICK OR TREAT!** after each won drive: two new players to choose from, the roster and bench.
+- **The defense:** Rushers, Covers, Safeties, Scarecrows, Bats and Crows, scaling by series and area.
+- **TRICK OR TREAT!** after each won series: two new players to choose from, the roster and bench.
 - **Impact:** hit-pause, shake, flying bodies, the catch slow-mo, sound on every contact.
 
 **Then:** real levels, defenders and Bosses; a second area.

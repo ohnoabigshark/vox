@@ -14,15 +14,15 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## When (t2, t3, g5)
 
-- **A contested ball** (`docs/SNAG.md`, When) from drive 5 picks SNAG IT!
+- **A contested ball** (`docs/SNAG.md`, When) from series 5 picks SNAG IT!
   or the tip drill at random, half and half, from the run's seeded random
-  numbers, as Break it! picks among its three kinds. Before drive 5,
+  numbers, as Break it! picks among its three kinds. Before series 5,
   contests are settled as they always were.
-- **One setting says when both start:** `catchTests.fromDrive` (was
+- **One setting says when both start:** `catchTests.fromSeries` (was
   `snag.fromDrive`).
-- **`?tip=1`** makes every contested ball a tip drill from the first drive,
+- **`?tip=1`** makes every contested ball a tip drill from the first series,
   as `?snag=1` does for SNAG IT!; with both, each picks at random from the
-  first drive. The parked dev setup mode will replace these with switches.
+  first series. The parked dev setup mode will replace these with switches.
 
 ## The drill (t1, t5, u1)
 
@@ -50,14 +50,14 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## How many, and how fast (g3)
 
-- **The count** is SNAG IT!'s dot rule plus one, held to 2 to 5: the level
-  (one more every four drives from drive 5), one more for each defender
+- **The count** is SNAG IT!'s dot rule plus one, held to 2 to 5: the series
+  number (one more every four series from series 5), one more for each defender
   after the first reaching for the ball, one fewer or more for a 20-point
-  Hands gap. So 3 pops at drive 5, 2 when the receiver's Hands beat the
-  defender's by 20, 4 with two defenders in reach or at drive 9, 5 from
-  drive 13.
-- **The pace:** past drive 10 every pop is shorter by the same share as
-  SNAG IT!'s rings close quicker, down to the same floor, reached at drive
+  Hands gap. So 3 pops at series 5, 2 when the receiver's Hands beat the
+  defender's by 20, 4 with two defenders in reach or at series 9, 5 from
+  series 13.
+- **The pace:** past series 10 every pop is shorter by the same share as
+  SNAG IT!'s rings close quicker, down to the same floor, reached at series
   18 (the first pop 0.625 s there).
 - **Both rules are written once,** in `catchTests` in `tuning.ts`, and
   SNAG IT! plays exactly as before the move.
@@ -67,7 +67,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 - **GREAT** (every tap clean): caught, and every contesting defender is
   knocked flying, as SNAG IT!'s GREAT.
 - **OK** (a bobble, no drop): caught, and tackled on the spot; caught past the
-  line, or in the end zone, it wins the drive (B6).
+  line, or in the end zone, it wins the series (B6).
 - **BAD** (a drop): the drill ends at once, and the ball is batted down.
 - **It is harsher than SNAG IT!,** which forgives one miss: a bot that
   drops one tap in twenty and bobbles one in five gets BAD on about 14% of
@@ -83,7 +83,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 A **TIP DRILL!** tab with five sliders, in order: the countdown, the first
 pop's time in the air, each pop's share of the last, the clean window and
-the bobble window. Its situation sliders are SNAG IT!'s (the drive, the
+the bobble window. Its situation sliders are SNAG IT!'s (the series number, the
 defenders in reach, the Hands gap), which set the pops. Behind More: when
 the catch tests start and the box's linger. The count and pace rules stay
 on SNAG IT!'s tab, where they're tuned for both.
@@ -99,7 +99,7 @@ same seeds; the runs are slow here, so they're small):
 
 | | Normal, 12 runs, before | after | Hard, 6 runs, before | after |
 | --- | --- | --- | --- | --- |
-| Drives won (normal: of 12; hard: median) | 11.6 | 11.6 | 11 | 9 |
+| Series won (normal: of 12; hard: median) | 11.6 | 11.6 | 11 | 9 |
 | Contested balls | 4 | 4 | 9 | 7 |
 | SNAG IT! (GREAT / OK / BAD) | 4: 1 / 3 / 0 | 1: 1 / 0 / 0 | 9: 6 / 3 / 0 | 2: 1 / 1 / 0 |
 | Tip drill (GREAT / OK / BAD) | | 3: 3 / 0 / 0 | | 5: 2 / 2 / 1 |
@@ -117,15 +117,15 @@ same seeds; the runs are slow here, so they're small):
 
 ## Tests, written first (u2)
 
-1. **The pick:** from drive 5 a contested ball starts SNAG IT! or the tip
+1. **The pick:** from series 5 a contested ball starts SNAG IT! or the tip
    drill; the same seed always gives the same pick, and over many seeds
-   about half are each. Before drive 5, neither. `?snag=1` alone always
-   gives SNAG IT! from drive 1, `?tip=1` alone the tip drill, both either.
-2. **The count:** 3 pops at drive 5; 2 with the receiver's Hands 20
-   better; 4 with two defenders in reach; 4 at drive 9, 5 from 13; never
+   about half are each. Before series 5, neither. `?snag=1` alone always
+   gives SNAG IT! from series 1, `?tip=1` alone the tip drill, both either.
+2. **The count:** 3 pops at series 5; 2 with the receiver's Hands 20
+   better; 4 with two defenders in reach; 4 at series 9, 5 from 13; never
    under 2 or over 5.
-3. **The pace:** pops of 1.0, 0.8 and 0.64 s on screen; past drive 10
-   each shorter by SNAG IT!'s share, the first 0.625 s from drive 18.
+3. **The pace:** pops of 1.0, 0.8 and 0.64 s on screen; past series 10
+   each shorter by SNAG IT!'s share, the first 0.625 s from series 18.
    SNAG IT!'s own timings are unchanged by the move to shared settings.
 4. **The countdown:** the first pop starts as `countdown.ready` ends; a
    tap during the countdown does nothing.

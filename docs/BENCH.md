@@ -62,12 +62,12 @@ something, the old text is marked _replaced_.
   - the tip drill (docs/TIP.md, g6): the countdown, the first pop's time in
     the air (`tip.firstPop`), each pop's share of the last (`shrink`), the
     clean and bobble windows (`clean`, `bobble`); behind More, when the
-    catch tests start and the box's linger (`catchTests.fromDrive`,
+    catch tests start and the box's linger (`catchTests.fromSeries`,
     `linger`, the same sliders as SNAG IT!'s). The count and the pace are
     tuned on SNAG IT!'s tab, for both;
   - SHOO CROWS!: the time to shoo (`crows.window`).
 - **By-area values** (the sweet spot, fill per tap, juke window) edit the
-  entry for the area of the picked drive; past the Farm, the Farm's (hard
+  entry for the area of the picked series; past the Farm, the Farm's (hard
   mode tightens it from there).
 - **Live:** the sim keeps a reference to each tuning block and reads its
   fields as it goes, so the bench sets the field and the next rep uses it.
@@ -76,10 +76,10 @@ something, the old text is marked _replaced_.
   times 1/0.8); the log and the saved file write the `tuning.ts` number.
 - **Reach (k5):** half the default to double it. Counts move in whole
   numbers; shares never pass 1.
-- **The situation (k2):** the drive (1 to 20), the tacklers (1 to 3, Break
-  it!), the crowd (1 to 3 defenders reaching) and the Hands gap (−40 to
-  +40, SNAG IT! and the tip drill). A line sums them up, such as "drive 7
-  · 3 dots · ring 0.80 s" or "drive 5 · 3 pops · first 1.00 s in the air".
+- **The situation (k2):** the series number (1 to 20), the tacklers (1 to
+  3, Break it!), the crowd (1 to 3 defenders reaching) and the Hands gap
+  (−40 to +40, SNAG IT! and the tip drill). A line sums them up, such as "series 7
+  · 3 dots · ring 0.80 s" or "series 5 · 3 pops · first 1.00 s in the air".
 - **Toggles (k3):** Again (on: the next rep a second after the grade, if
   the Coach tapped in that one, so a bench left alone stops rather than
   logging reps nobody played; found driving the page, 2026-10-31, and
@@ -181,8 +181,8 @@ The knobs
    countdown and the extra tackler.
 3. Moving a slider changes the next rep: the ring at 1.00 s on screen
    closes 1.00 s after its dot shows. Back at its default, it drops out.
-4. A by-area slider edits the picked drive's area: drive 7 the Candy
-   Queendom's sweet spot, drive 2 the Forest's.
+4. A by-area slider edits the picked series' area: series 7 the Candy
+   Queendom's sweet spot, series 2 the Forest's.
 5. Seconds show screen time: `snag.close` 0.64 shows 0.80 s; 1.00 s stores
    0.8.
 6. SNAG IT!'s sizes, now in `tuning.ts`: at the defaults the box draws
@@ -191,8 +191,8 @@ The knobs
 
 The situation
 
-7. The dot count follows it: drive 17 gives 5; drive 5 with a crowd of 2
-   gives 3; drive 5 with Hands +20 stays 2; drive 9 with Hands −20 gives 4.
+7. The dot count follows it: series 17 gives 5; series 5 with a crowd of 2
+   gives 3; series 5 with Hands +20 stays 2; series 9 with Hands −20 gives 4.
    The summary line says the same.
 8. Two tacklers make the bar's sweet spot 0.6 of its size, as in the game.
 
@@ -330,8 +330,8 @@ the bench like this:
 - **SNAG IT!'s last dot is seen:** the box stays `catchTests.linger` after the
   grade, timed by the bench (a1); `catchTests.linger` has a slider behind More.
 - **Shared with the game:** the next dot to tap (`nextDot`, a5), a drive's
-  area (`driveAt`, a7), and the grade words, a Break it! outcome's grade
-  and the tap tests' sounds (`ui/tapTestCalls.ts`, b8).
+  area (`driveAt`, a7; now `seriesAt`), and the grade words, a Break it!
+  outcome's grade and the tap tests' sounds (`ui/tapTestCalls.ts`, b8).
 - **Tidier:** the slider widget in `slider.ts` (b12), `Bench` changes its
   own settings (b12), the situation's ranges in one table (b7), the tests'
   time zone and locale pinned in the test script.

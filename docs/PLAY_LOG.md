@@ -17,7 +17,7 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
 - **What a line holds (l2):** one line per sim event: every event the sim
   reports is a moment (a snap, a throw, a catch, a tap test's start and
   grade, a tackle, a pickup, a field event, the crows, the down's end, a
-  drive won), not a frame. A session opens with a `start` line, sent as the
+  series won), not a frame. A session opens with a `start` line, sent as the
   page loads, so ⚑ turns red at once if the log isn't there, before you've
   played a down (found in the headless check: without it, a first tap said
   "Flagged" with the log down, which r5 has since ruled out on its own).
@@ -29,8 +29,9 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - `link`: the link's query string (`aim=2&hard=1&snag=1&tip=1`); lines
     from before 2026-11-01's review call it `flags` (r6);
   - `practice`: true for Try it's practice;
-  - the down as it was played: the drive (area, index, kind), the down,
+  - the down as it was played: `series` (area, index, kind), the down,
     the line of scrimmage and the first-down line, and the play called;
+    lines from before 2026-11-03's series-rename branch call it `drive`;
   - `phase`: where the run was just after the event: `setup` before the
     snap, `play`, a tap test (`breakit`, `snag`, `tip`), `downOver` in the
     pause after a down, `draft`, `over` or `won` (`Phase` in
@@ -39,7 +40,7 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - the event itself, as the sim reported it. A `downEnded` line also
     carries where the line of scrimmage moved to (`next.los`), but not the
     next down: the game settles that after the pause, so the next down's own
-    lines carry it. (A first version logged the drive's down there, which
+    lines carry it. (A first version logged the series' down there, which
     was still the down just played; found reading the first real session.)
 - **Times (l3):** UTC in the file. Times the user gives are read as New
   York time unless they say otherwise.
