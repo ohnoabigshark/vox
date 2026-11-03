@@ -210,13 +210,13 @@ whole run shows on the run's card (h2).
 | --- | --- | --- |
 | Air Mail (x3) | completing a pass of more than 20 air yards | both |
 | Unbreakable (x15) | breaking two tackles on one play, the most a down allows | both |
-| Do or Die (x10) | a first down on fourth down | both |
+| Do or Die (x10) | a first down or a touchdown on fourth down (u5) | both |
 | Pancake Breakfast (x8) | five pancakes in one drive | both |
 | Perfect Drive (x4) | GREAT on every tap test in a drive won, at least three | both |
-| Spread the Love (x18) | a catch or a rush by five different players in one drive | both |
+| Spread the Love (x18) | a catch or a rush by five different players in one drive, won or not (u6) | both |
 | Clean Sheet (x17) | winning a drive without an incomplete, a sack or a tackle for loss | both |
 | Stone Hands (x14) | every pass to a Golem in one run caught, at least five | both |
-| (x6, names to come) | reaching the second area; reaching the third | both |
+| Sweet Tooth, Down on the Farm (x6, u7) | reaching the Candy Queendom; reaching Frederick's Farm (on the first snap there) | both |
 | Jack's Back (x5) | winning a run | normal |
 | Home Grown (x2) | winning a run without taking a TRICK OR TREAT! player (perks allowed) | normal |
 | Flawless Run (x4) | GREAT on every tap test in a run won | normal |
@@ -224,9 +224,10 @@ whole run shows on the run's card (h2).
 
 Only normal mode wins: hard mode goes round the areas again until Game Over
 (`run.ts`, `!state.hard`). The four "win a run" achievements stay
-normal-mode only, since more levels will come (e2's note). The rule for each
-edge (does a touchdown on fourth down count for Do or Die; does Spread the
-Love need the drive won) is settled in the achievements branch's scenarios.
+normal-mode only, since more levels will come (e2's note). Do or Die counts a
+touchdown on fourth down (u5), and Spread the Love any drive, won or not
+(u6), decided 2026-11-03. The achievements branch's scenarios are u4 on
+the map.
 
 ## Order of work
 
