@@ -197,38 +197,41 @@ describe('what the screens need', () => {
     expect(k.recording).toBe(false);
   });
 
-  it('a closed run is handed on with what’s kept after it, for the card', async () => {
-    const { store } = fakeStore();
-    const closed: [string, Saved | null][] = [];
-    const k = new StatsKeeper({
+  /** A keeper whose store is `store`, its closed runs handed on to `closed`. */
+  const handingOn = (store: StatsStore, closed: [string, Saved | null][]) =>
+    new StatsKeeper({
       store,
       build: 'b',
       link: '',
       newId: () => 'r1',
       now: () => 0,
       notice: () => {},
-      onClosed: (record, saved) => closed.push([record.id, saved]),
+      onClosed: (record, before) => closed.push([record.id, before]),
     });
+
+  it('a closed run is handed on with what was kept before it, so the card knows which records it broke', async () => {
+    const before: Saved = { ...EMPTY, runs: [] };
+    const after: Saved = { ...EMPTY, runs: [{ summary: {} as never, record: null }] };
+    const store: StatsStore = {
+      load: async () => ({ saved: before, problem: null }),
+      saveOpen: async () => {},
+      close: async () => after,
+    };
+    const closed: [string, Saved | null][] = [];
+    const k = handingOn(store, closed);
+    await k.load();
     const s = createRun(1);
     k.start(s);
     stepOf(k, s, downEnded);
     stepOf(k, s, [{ type: 'gameOver', seriesWon: 0, yards: 0 }], 'over');
     await settled();
-    expect(closed).toEqual([['r1', EMPTY]]);
+    expect(closed).toEqual([['r1', before]]);
+    expect(k.saved).toBe(after);
   });
 
-  it('a close that fails still hands the run on, with nothing kept', async () => {
-    const { store } = fakeStore({ save: 'Storage full.' });
+  it('a close that fails still hands the run on', async () => {
     const closed: [string, Saved | null][] = [];
-    const k = new StatsKeeper({
-      store,
-      build: 'b',
-      link: '',
-      newId: () => 'r1',
-      now: () => 0,
-      notice: () => {},
-      onClosed: (record, saved) => closed.push([record.id, saved]),
-    });
+    const k = handingOn(fakeStore({ save: 'Storage full.' }).store, closed);
     const s = createRun(1);
     k.start(s);
     stepOf(k, s, downEnded);

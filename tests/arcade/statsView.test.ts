@@ -122,24 +122,34 @@ describe('the Game Over card (v1)', () => {
     ]);
   });
 
-  it('RECORD on each all-time record this run set', () => {
+  it('RECORD on each all-time record this run broke: one there before it, beaten', () => {
     const r = record('a', downs);
-    const all = addRun(addRun(emptyAllTime(), record('old', [catchBy(1, 30)])), r);
-    const c = cardView(r, all.records);
+    const before = addRun(
+      addRun(emptyAllTime(), record('old', [catchBy(1, 30)])),
+      record('older', [rushBy(2, 5, { pancakes: [3] })]),
+    );
+    const c = cardView(r, before.records);
+    // Yards 38 beat 30; the longest rush 10 beat 5; Mags' 19 and Slab's 2 pancakes beat 5 and 1.
+    // No run had broken a tackle or made a first down before, so those aren't records broken.
     expect(c.rows.filter((x) => x.record).map((x) => x.label)).toEqual([
       'Yards',
       'Longest rush',
-      'Tackles broken',
       'Best rushing run',
       'Best blocking run',
     ]);
-    expect(c.tiles.find((t) => t.label === 'first down')?.record).toBe(true);
-    // A single player's best run: its own row, only when it's a record.
+    expect(c.tiles.some((t) => t.record)).toBe(false);
+    // A single player's best run: its own row, only when it broke a record.
     expect(c.rows.find((x) => x.label === 'Best rushing run')).toEqual({
       label: 'Best rushing run',
       value: 'Mags 19',
       record: true,
     });
+    expect(c.rows.some((x) => x.label === 'Best receiving run')).toBe(false);
+  });
+
+  it('a first run breaks no records: there were none', () => {
+    const c = cardView(record('a', downs), emptyAllTime().records);
+    expect([...c.tiles, ...c.rows].some((x) => x.record)).toBe(false);
   });
 
   it('hard mode’s second time round says so', () => {

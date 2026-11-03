@@ -8,7 +8,7 @@
 import { isRecord } from '../../isRecord';
 import { upgraded, type UpgradeStep } from '../../upgrade';
 import { addRun, emptyAllTime, summaryOf, type AllTime, type RunSummary } from './allTime';
-import { RECORD_FORMAT, type RunRecord } from './types';
+import { modeOf, RECORD_FORMAT, type RunRecord } from './types';
 
 /** Every play of the last this-many runs; older ones keep their summary (k3). */
 export const KEPT_RUNS = 20;
@@ -63,7 +63,7 @@ function parsed(raw: string): Record<string, unknown> | null {
 /** The run ended: kept newest first (every play for the last KEPT_RUNS), and added to its mode's all time; once. */
 function closed(saved: Saved, record: RunRecord): Saved {
   if (saved.runs.some((r) => r.summary.id === record.id)) return saved;
-  const mode = record.modes.hard ? 'hard' : 'normal';
+  const mode = modeOf(record.modes);
   const runs = [{ summary: summaryOf(record), record }, ...saved.runs].map((r, i) =>
     i < KEPT_RUNS ? r : { ...r, record: null },
   );

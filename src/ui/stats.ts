@@ -5,6 +5,7 @@
  * It only draws; what's tapped goes back through the callbacks.
  */
 import type { Saved } from '../arcade/record/store';
+import type { Mode } from '../arcade/record/types';
 import {
   allTimeView,
   runsView,
@@ -23,8 +24,6 @@ export interface CardButton {
   readonly main?: boolean;
   readonly onTap: () => void;
 }
-
-type Mode = 'hard' | 'normal';
 
 const make = <K extends keyof HTMLElementTagNameMap>(
   tag: K,

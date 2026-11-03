@@ -8,7 +8,13 @@ import { areaAt, AREAS } from '../content/defense';
 import { SERIES_PER_AREA } from '../sim/props';
 import type { Play } from '../content/plays';
 import type { Form, Grade } from '../sim/types';
-import type { AllTime, Best, Records, RunSummary } from '../record/allTime';
+import {
+  COMPLETION_PASSES,
+  type AllTime,
+  type Best,
+  type Records,
+  type RunSummary,
+} from '../record/allTime';
 import {
   completionRate,
   playerStats,
@@ -18,7 +24,14 @@ import {
   type RunStats,
 } from '../record/stats';
 import type { Saved } from '../record/store';
-import { JACK, type RecordPlayer, type RunRecord, type TapTestKind } from '../record/types';
+import {
+  JACK,
+  modeOf,
+  type Mode,
+  type RecordPlayer,
+  type RunRecord,
+  type TapTestKind,
+} from '../record/types';
 
 export interface Row {
   readonly label: string;
@@ -111,17 +124,33 @@ function where(reached: RunRecord['reached']): string {
   ].join(' · ');
 }
 
-/** Whether this run set the record. */
-const set = (best: Best | null | undefined, run: string): boolean => best?.run === run;
+/** Whether a run's value broke a record: there was one before it, and it's beaten (a first run breaks none). */
+const broke = (before: Best | null | undefined, value: number): boolean =>
+  before != null && value > before.value;
 
-/** The card at Game Over (v1) or a win (v3). `records`: the run's mode's, after it was added. */
-export function cardView(record: RunRecord, records: Records | null): CardView {
+/**
+ * The card at Game Over (v1) or a win (v3). `before`: the run's mode's
+ * records as they were before it, so RECORD marks each one it broke.
+ */
+export function cardView(record: RunRecord, before: Records | null): CardView {
   const s = runStats(record);
-  const id = record.id;
   const won = record.end === 'won';
-  const r = records;
-  const best = (label: string, b: Best | null | undefined, name?: string): Row[] =>
-    b && set(b, id) ? [row(label, `${name ?? ''} ${yds(b.value)}`.trim(), true)] : [];
+  const b = before;
+  const players = [...playerStats(record)].filter(([id]) => id !== JACK);
+  const name = (id: number): string => record.team.find((p) => p.id === id)?.name ?? `player ${id}`;
+  /** A player's best this run, as its own row only when it broke the record. */
+  const bestRun = (
+    label: string,
+    was: Best | null | undefined,
+    of: (p: PlayerStats) => number,
+  ): Row[] => {
+    const top = players.reduce<[number, number] | null>(
+      (m, [id, p]) => (m === null || of(p) > m[1] ? [id, of(p)] : m),
+      null,
+    );
+    return top && broke(was, top[1]) ? [row(label, `${name(top[0])} ${yds(top[1])}`, true)] : [];
+  };
+  const rate = completionRate(s.passing);
   return {
     title: won ? 'You got Jack back!' : 'Game Over!',
     sub: `${won ? `All ${AREAS.length} areas` : where(record.reached)} · ${count(s.downs, 'down')}`,
@@ -129,20 +158,28 @@ export function cardView(record: RunRecord, records: Records | null): CardView {
       row(
         s.firstDowns === 1 ? 'first down' : 'first downs',
         s.firstDowns,
-        set(r?.mostFirstDowns, id),
+        broke(b?.mostFirstDowns, s.firstDowns),
       ),
       row(s.touchdowns === 1 ? 'touchdown' : 'touchdowns', s.touchdowns),
-      row('passing', `${s.passing.completions}/${s.passing.passes}`, set(r?.bestCompletion, id)),
+      row(
+        'passing',
+        `${s.passing.completions}/${s.passing.passes}`,
+        rate !== null && s.passing.passes >= COMPLETION_PASSES && broke(b?.bestCompletion, rate),
+      ),
       row('rushes · yards', `${s.rushing.rushes} · ${yds(s.rushing.yards)}`),
     ],
     rows: [
-      row('Yards', yds(s.yards), set(r?.mostYards, id)),
-      row('Longest pass', yds(s.passing.longest), set(r?.longestPass, id)),
-      row('Longest rush', yds(s.rushing.longest), set(r?.longestRush, id)),
-      row('Tackles broken', s.contact.tacklesBroken, set(r?.mostTacklesBroken, id)),
-      ...best('Best receiving run', r?.bestReceiving, r?.bestReceiving?.name),
-      ...best('Best rushing run', r?.bestRushing, r?.bestRushing?.name),
-      ...best('Best blocking run', r?.bestPancakes, r?.bestPancakes?.name),
+      row('Yards', yds(s.yards), broke(b?.mostYards, s.yards)),
+      row('Longest pass', yds(s.passing.longest), broke(b?.longestPass, s.passing.longest)),
+      row('Longest rush', yds(s.rushing.longest), broke(b?.longestRush, s.rushing.longest)),
+      row(
+        'Tackles broken',
+        s.contact.tacklesBroken,
+        broke(b?.mostTacklesBroken, s.contact.tacklesBroken),
+      ),
+      ...bestRun('Best receiving run', b?.bestReceiving, (p) => p.catching.yards),
+      ...bestRun('Best rushing run', b?.bestRushing, (p) => p.rushing.yards),
+      ...bestRun('Best blocking run', b?.bestPancakes, (p) => p.pancakes),
     ],
   };
 }
@@ -331,9 +368,9 @@ function teamSections(
 }
 
 /** The stats section's Runs (v5): one mode's, newest first. */
-export function runsView(saved: Saved, mode: 'hard' | 'normal'): readonly RunsRow[] {
+export function runsView(saved: Saved, mode: Mode): readonly RunsRow[] {
   return saved.runs
-    .filter((r) => r.summary.modes.hard === (mode === 'hard'))
+    .filter((r) => modeOf(r.summary.modes) === mode)
     .map(({ summary, record }) => {
       const s = summary.stats;
       const at = summary.end === 'won' ? 'Won' : where(summary.reached);

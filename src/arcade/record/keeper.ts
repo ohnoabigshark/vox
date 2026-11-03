@@ -17,8 +17,11 @@ export interface KeeperDeps {
   readonly now: () => number;
   /** Shows a problem to the Coach (the HUD's notice). */
   readonly notice: (text: string) => void;
-  /** A run closed, with what's kept after it (null if it couldn't be kept): the card shows it. */
-  readonly onClosed?: (record: RunRecord, saved: Saved | null) => void;
+  /**
+   * A run closed, with what was kept before it (null if nothing could be
+   * had): the card shows the run, and marks each record it broke.
+   */
+  readonly onClosed?: (record: RunRecord, before: Saved | null) => void;
 }
 
 export class StatsKeeper {
@@ -80,13 +83,12 @@ export class StatsKeeper {
 
   /** The run closed and kept; handed on either way, for the card. */
   private async close(record: RunRecord): Promise<void> {
+    const before = this.kept;
     try {
       this.kept = await this.deps.store.close(record);
-    } catch (e) {
-      this.deps.onClosed?.(record, null);
-      throw e;
+    } finally {
+      this.deps.onClosed?.(record, before);
     }
-    this.deps.onClosed?.(record, this.kept);
   }
 
   private save(rec: RunRecorder): void {

@@ -62,7 +62,7 @@ import { now } from '../clock';
 import { BUILD, PLAY_LOG_URL } from './log/build';
 import { StatsKeeper } from './record/keeper';
 import type { Saved, StatsStore } from './record/store';
-import type { RunRecord } from './record/types';
+import { modeOf, type RunRecord } from './record/types';
 import { cardView, runView } from './ui/statsView';
 import { StatsScreens } from '../ui/stats';
 import { eventLines, flagLine, startLine, type LogMeta } from './log/playLog';
@@ -514,18 +514,17 @@ export class ArcadeGame {
       newId: () => crypto.randomUUID(),
       now,
       notice: (text) => this.hud.notice(text),
-      onClosed: (record, saved) => this.showCard(record, saved),
+      onClosed: (record, before) => this.showCard(record, before),
     });
     void keeper.load();
     return keeper;
   }
 
-  /** The card at Game Over (v1) or a win (v3): the run's stats, its records, and STATS for the rest. */
-  private showCard(record: RunRecord, saved: Saved | null): void {
+  /** The card at Game Over (v1) or a win (v3): the run's stats, the records it broke, and STATS for the rest. */
+  private showCard(record: RunRecord, before: Saved | null): void {
     const screens = this.statsScreens;
     if (!screens) return;
-    const records = saved?.allTime[record.modes.hard ? 'hard' : 'normal'].records ?? null;
-    const view = cardView(record, records);
+    const view = cardView(record, before?.allTime[modeOf(record.modes)].records ?? null);
     const stats = {
       label: 'STATS',
       onTap: () => {
