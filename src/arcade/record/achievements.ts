@@ -6,6 +6,7 @@
  * four series (series 1–4 are the first drive, 5–8 the second).
  */
 import { SERIES_PER_AREA } from '../sim/props';
+import type { Saved } from './store';
 import type { PlayResult, RunRecord } from './types';
 
 export type AchievementId =
@@ -203,4 +204,55 @@ export function earnedBy(record: RunRecord, when: 'down' | 'end'): AchievementId
       !(a.normalOnly && record.modes.hard) &&
       a.check(record),
   ).map((a) => a.id);
+}
+
+/** An achievement earned on this phone (h1): the run that first earned it and when, and whether hard mode has. */
+export interface Earned {
+  readonly run: string;
+  readonly at: string;
+  readonly hard: boolean;
+}
+
+export type EarnedSet = Readonly<Partial<Record<AchievementId, Earned>>>;
+
+/** What `record` adds to what's earned: each it earns, kept from the first run; earned in hard mode, the mark. */
+export function earn(earned: EarnedSet, record: RunRecord): EarnedSet {
+  return earnFrom(earned, record, earnedBy(record, 'end'));
+}
+
+function earnFrom(earned: EarnedSet, record: RunRecord, ids: readonly AchievementId[]): EarnedSet {
+  const out: Partial<Record<AchievementId, Earned>> = { ...earned };
+  const hard = record.modes.hard;
+  for (const id of ids) {
+    const had = out[id];
+    if (!had) out[id] = { run: record.id, at: record.endedAt ?? record.startedAt, hard };
+    else if (hard && !had.hard) out[id] = { ...had, hard: true };
+  }
+  return out;
+}
+
+/** What a run newly earned, for its card: achievements new to this phone, or newly marked hard. */
+export function newlyEarned(earned: EarnedSet, record: RunRecord): AchievementId[] {
+  const after = earn(earned, record);
+  return ACHIEVEMENTS.map((a) => a.id).filter((id) => after[id] !== earned[id]);
+}
+
+/**
+ * Achievements not yet looked for in the saved runs (new in this build),
+ * looked for once, oldest run first (h3). Only runs that kept their plays
+ * (the last 20) can earn one. The same `saved` back if there's nothing new.
+ */
+export function catchUp(saved: Saved): Saved {
+  const fresh = ACHIEVEMENTS.map((a) => a.id).filter((id) => !saved.checked.includes(id));
+  if (fresh.length === 0) return saved;
+  let achievements = saved.achievements;
+  for (const { record } of [...saved.runs].reverse()) {
+    if (!record) continue;
+    achievements = earnFrom(
+      achievements,
+      record,
+      earnedBy(record, 'end').filter((id) => fresh.includes(id)),
+    );
+  }
+  return { ...saved, achievements, checked: ACHIEVEMENTS.map((a) => a.id) };
 }

@@ -7,6 +7,7 @@
  */
 import { isRecord } from '../../isRecord';
 import { upgraded, type UpgradeStep } from '../../upgrade';
+import { ACHIEVEMENTS, catchUp, earn, type AchievementId, type EarnedSet } from './achievements';
 import { addRun, emptyAllTime, summaryOf, type AllTime, type RunSummary } from './allTime';
 import { modeOf, RECORD_FORMAT, type RunRecord } from './types';
 
@@ -23,6 +24,10 @@ export interface Saved {
   /** Newest first. */
   readonly runs: readonly SavedRun[];
   readonly allTime: { readonly hard: AllTime; readonly normal: AllTime };
+  /** The achievements earned on this phone (h1). */
+  readonly achievements: EarnedSet;
+  /** The achievements already looked for in the saved runs (h3): a new one isn't, until it is. */
+  readonly checked: readonly AchievementId[];
 }
 
 export interface StatsStore {
@@ -40,8 +45,14 @@ export interface StatsStore {
 const KEY = 'getJackBack.stats';
 const OPEN_KEY = 'getJackBack.stats.open';
 
-/** Each older format brought up to the next (`UPGRADES[n]`: n to n + 1). None yet: format 1 is the first. */
-const UPGRADES: Readonly<Record<number, UpgradeStep>> = {};
+/**
+ * Each older format brought up to the next (`UPGRADES[n]`: n to n + 1).
+ * 1 → 2 (2026-11-03): achievements earned, none yet, and none looked for in
+ * the saved runs, so loading looks for them all (h3).
+ */
+const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
+  1: (saved) => ({ ...saved, format: 2, achievements: {}, checked: [] }),
+};
 
 const UNAVAILABLE = "This browser isn't keeping your stats (private browsing?).";
 const UNREADABLE = "Your saved stats can't be read, so this run's won't be kept.";
@@ -51,6 +62,9 @@ const LOST_OPEN = "Your last run's stats can't be read, so it isn't counted.";
 const empty = (): Saved => ({
   runs: [],
   allTime: { hard: emptyAllTime(), normal: emptyAllTime() },
+  achievements: {},
+  // Nothing saved to look in: every achievement is as good as looked for.
+  checked: ACHIEVEMENTS.map((a) => a.id),
 });
 
 /** A saved blob read and brought up to today's format, or null if it can't be. */
@@ -73,6 +87,8 @@ function closed(saved: Saved, record: RunRecord): Saved {
   return {
     runs,
     allTime: { ...saved.allTime, [mode]: addRun(saved.allTime[mode], record) },
+    achievements: earn(saved.achievements, record),
+    checked: saved.checked,
   };
 }
 
@@ -81,7 +97,9 @@ const isSaved = (x: Record<string, unknown>): boolean =>
   Array.isArray(x.runs) &&
   isRecord(x.allTime) &&
   isRecord(x.allTime.hard) &&
-  isRecord(x.allTime.normal);
+  isRecord(x.allTime.normal) &&
+  isRecord(x.achievements) &&
+  Array.isArray(x.checked);
 
 /** Whether a saved run in progress has a record's shape. */
 const isRunRecord = (x: unknown): x is RunRecord =>
@@ -132,7 +150,12 @@ export function statsStore(
       blocked = true;
       return { saved: empty(), open: null, problem: UNREADABLE };
     }
-    const saved = { runs: kept.runs, allTime: kept.allTime } as Saved;
+    const saved = {
+      runs: kept.runs,
+      allTime: kept.allTime,
+      achievements: kept.achievements,
+      checked: kept.checked,
+    } as Saved;
     if (openRaw === null) return { saved, open: null, problem: null };
     const open = parsed(openRaw);
     if (!open || !isRunRecord(open.record)) {
@@ -162,8 +185,11 @@ export function statsStore(
 
   return {
     async load() {
-      const { saved, open, problem } = read();
+      const { saved: kept, open, problem } = read();
       if (blocked) return { saved: null, problem };
+      // Achievements new in this build looked for in the saved runs, once, and written (h3).
+      const saved = catchUp(kept);
+      if (saved !== kept) write(KEY, saved);
       if (!open) return { saved, problem };
       const { record, savedAt } = open;
       const end = record.end === 'open' ? 'unfinished' : record.end;

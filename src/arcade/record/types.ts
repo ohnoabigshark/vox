@@ -7,7 +7,7 @@ import type { Play } from '../content/plays';
 import type { DefenderKind, Form, Grade, PickupKind, Position, TipResult } from '../sim/types';
 
 /** The saved format's version; store.ts brings older ones up to it. */
-export const RECORD_FORMAT = 1;
+export const RECORD_FORMAT = 2;
 
 /** Jack's id in the record: he throws every pass, and isn't on the roster (y2). */
 export const JACK = 0;

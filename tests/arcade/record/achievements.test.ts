@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   ACHIEVEMENTS,
+  catchUp,
+  earn,
   earnedBy,
+  newlyEarned,
   type AchievementId,
 } from '../../../src/arcade/record/achievements';
+import { emptyAllTime, summaryOf } from '../../../src/arcade/record/allTime';
+import type { Saved } from '../../../src/arcade/record/store';
 import type { PlayResult, RunRecord } from '../../../src/arcade/record/types';
 import { blankDown, catchBy, NORMAL, runOf, rushBy, STARTERS } from './fixtures';
 
@@ -196,5 +201,66 @@ describe('the four for a win, normal mode only', () => {
     expect(
       ids.filter((id) => ['jacksBack', 'homeGrown', 'flawlessRun', 'rockSteady'].includes(id)),
     ).toEqual([]);
+  });
+});
+
+describe('kept once a phone, for good (h1)', () => {
+  const airMail = (id: string, more: Partial<RunRecord> = {}) =>
+    runOf([catchBy(1, 25, 22)], { id, ...more });
+
+  it('the first run to earn one keeps it, with its date; a later run doesn’t take it', () => {
+    const once = earn({}, airMail('a', { modes: NORMAL }));
+    expect(once.airMail).toEqual({ run: 'a', at: '2026-11-03T12:10:00.000Z', hard: false });
+    expect(earn(once, airMail('b', { modes: NORMAL }))).toEqual(once);
+  });
+
+  it('earned again in hard mode, it gains the hard mark', () => {
+    const once = earn({}, airMail('a', { modes: NORMAL }));
+    expect(earn(once, airMail('b')).airMail).toEqual({
+      run: 'a',
+      at: '2026-11-03T12:10:00.000Z',
+      hard: true,
+    });
+    expect(earn({}, airMail('c')).airMail?.hard).toBe(true);
+  });
+
+  it('what a run newly earned, for its card: new ones, and a hard mark added', () => {
+    const once = earn({}, airMail('a', { modes: NORMAL }));
+    expect(newlyEarned({}, airMail('a', { modes: NORMAL }))).toEqual(['airMail']);
+    expect(newlyEarned(once, airMail('b', { modes: NORMAL }))).toEqual([]);
+    expect(newlyEarned(once, airMail('b'))).toEqual(['airMail']);
+  });
+});
+
+describe('a new achievement checks the saved runs once (h3)', () => {
+  const saved = (runs: RunRecord[], checked: AchievementId[]): Saved => ({
+    runs: runs.map((r) => ({ summary: summaryOf(r), record: r })),
+    allTime: { hard: emptyAllTime(), normal: emptyAllTime() },
+    achievements: {},
+    checked,
+  });
+
+  it('one not yet checked is looked for in the saved runs, oldest first; then it’s checked', () => {
+    const older = runOf([catchBy(1, 25, 22)], { id: 'older', endedAt: '2026-11-01T12:00:00.000Z' });
+    const newer = runOf([catchBy(1, 25, 22)], { id: 'newer' });
+    const after = catchUp(saved([newer, older], []));
+    expect(after.achievements.airMail).toEqual({
+      run: 'older',
+      at: '2026-11-01T12:00:00.000Z',
+      hard: true,
+    });
+    expect(after.checked).toEqual(ACHIEVEMENTS.map((a) => a.id));
+  });
+
+  it('one already checked isn’t looked for again', () => {
+    const run = runOf([catchBy(1, 25, 22)]);
+    expect(catchUp(saved([run], ['airMail'])).achievements.airMail).toBeUndefined();
+  });
+
+  it('a run kept only as its summary can’t earn one: it has no plays', () => {
+    const run = runOf([catchBy(1, 25, 22)]);
+    const s = saved([run], []);
+    const summaryOnly: Saved = { ...s, runs: [{ summary: summaryOf(run), record: null }] };
+    expect(catchUp(summaryOnly).achievements.airMail).toBeUndefined();
   });
 });

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { ACHIEVEMENTS } from '../../../src/arcade/record/achievements';
 import { addRun, emptyAllTime, summaryOf } from '../../../src/arcade/record/allTime';
+import { catchBy } from './fixtures';
 import {
   KEPT_RUNS,
   statsStore,
@@ -98,7 +100,12 @@ const run = (id: string, more: Partial<RunRecord> = {}): RunRecord => ({
 describe('the stats store', () => {
   it('nothing kept yet: no runs, empty all-time stats, no problem', async () => {
     expect(await statsStore(fakeStorage(), clock).load()).toEqual({
-      saved: { runs: [], allTime: { hard: emptyAllTime(), normal: emptyAllTime() } },
+      saved: {
+        runs: [],
+        allTime: { hard: emptyAllTime(), normal: emptyAllTime() },
+        achievements: {},
+        checked: ACHIEVEMENTS.map((a) => a.id),
+      },
       problem: null,
     });
   });
@@ -185,9 +192,22 @@ describe('the stats store', () => {
     );
   });
 
-  it('what’s saved carries its format; a format-1 save loads as it is', async () => {
+  it('a closed run’s achievements are kept with it', async () => {
+    const store = statsStore(fakeStorage(), clock);
+    const saved = await store.close(run('a', { downs: [catchBy(1, 25, 22)] }));
+    expect(saved.achievements.airMail).toEqual({
+      run: 'a',
+      at: '2026-11-03T12:30:00.000Z',
+      hard: true,
+    });
+  });
+
+  it('a format-1 save is brought up to format 2, its runs checked for achievements (h3)', async () => {
     const storage = fakeStorage();
-    const ended = { ...run('a'), endedAt: '2026-11-03T12:00:00.000Z' };
+    const ended = {
+      ...run('a', { downs: [catchBy(1, 25, 22)] }),
+      endedAt: '2026-11-03T12:00:00.000Z',
+    };
     const allTime = { hard: addRun(emptyAllTime(), ended), normal: emptyAllTime() };
     storage.data.set(
       'getJackBack.stats',
@@ -196,8 +216,16 @@ describe('the stats store', () => {
     const { saved, problem } = await loaded(statsStore(storage, clock));
     expect(problem).toBeNull();
     expect(saved.runs[0]!.record).toEqual(ended);
-    await statsStore(storage, clock).close(run('b'));
-    expect(JSON.parse(storage.data.get('getJackBack.stats')!).format).toBe(1);
+    expect(saved.achievements.airMail).toEqual({
+      run: 'a',
+      at: '2026-11-03T12:00:00.000Z',
+      hard: true,
+    });
+    expect(saved.checked).toEqual(ACHIEVEMENTS.map((a) => a.id));
+    // What it found is written, so it isn't looked for again.
+    const written = JSON.parse(storage.data.get('getJackBack.stats')!);
+    expect(written.format).toBe(2);
+    expect(written.achievements.airMail.run).toBe('a');
   });
 });
 

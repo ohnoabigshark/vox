@@ -249,6 +249,8 @@ describe('the stats section (v5)', () => {
       { summary: summaryOf(r1), record: r1 },
     ],
     allTime: { hard: addRun(addRun(emptyAllTime(), r1), r3), normal: addRun(emptyAllTime(), r2) },
+    achievements: {},
+    checked: [],
   };
 
   it('Runs: newest first, one mode at a time', () => {

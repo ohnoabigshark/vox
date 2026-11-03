@@ -13,7 +13,12 @@ import type { ArcadeEvent, RunState } from '../../../src/arcade/sim/types';
  * store that fails says so.
  */
 
-const EMPTY: Saved = { runs: [], allTime: { hard: emptyAllTime(), normal: emptyAllTime() } };
+const EMPTY: Saved = {
+  runs: [],
+  allTime: { hard: emptyAllTime(), normal: emptyAllTime() },
+  achievements: {},
+  checked: [],
+};
 
 /** A store that remembers what it was asked, and can be made to fail. */
 function fakeStore(fail: { load?: string; save?: string } = {}) {

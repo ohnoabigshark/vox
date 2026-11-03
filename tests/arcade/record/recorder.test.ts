@@ -468,7 +468,7 @@ describe('the run', () => {
     });
     const { rec } = feed(s, []);
     expect(rec.record).toMatchObject({
-      format: 1,
+      format: 2,
       id: 'run-1',
       build: 'abc123',
       link: 'snag=1',
