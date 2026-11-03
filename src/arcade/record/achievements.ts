@@ -216,8 +216,12 @@ export interface Earned {
 export type EarnedSet = Readonly<Partial<Record<AchievementId, Earned>>>;
 
 /** What `record` adds to what's earned: each it earns, kept from the first run; earned in hard mode, the mark. */
-export function earn(earned: EarnedSet, record: RunRecord): EarnedSet {
-  return earnFrom(earned, record, earnedBy(record, 'end'));
+export function earn(
+  earned: EarnedSet,
+  record: RunRecord,
+  when: 'down' | 'end' = 'end',
+): EarnedSet {
+  return earnFrom(earned, record, earnedBy(record, when));
 }
 
 function earnFrom(earned: EarnedSet, record: RunRecord, ids: readonly AchievementId[]): EarnedSet {
@@ -231,9 +235,16 @@ function earnFrom(earned: EarnedSet, record: RunRecord, ids: readonly Achievemen
   return out;
 }
 
-/** What a run newly earned, for its card: achievements new to this phone, or newly marked hard. */
-export function newlyEarned(earned: EarnedSet, record: RunRecord): AchievementId[] {
-  const after = earn(earned, record);
+/**
+ * What a run newly earned: achievements new to this phone, or newly marked
+ * hard. As it ends, for its card; mid-run (`down`), for the pop.
+ */
+export function newlyEarned(
+  earned: EarnedSet,
+  record: RunRecord,
+  when: 'down' | 'end' = 'end',
+): AchievementId[] {
+  const after = earn(earned, record, when);
   return ACHIEVEMENTS.map((a) => a.id).filter((id) => after[id] !== earned[id]);
 }
 

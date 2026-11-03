@@ -263,6 +263,61 @@ describe('what the screens need', () => {
   });
 });
 
+describe('achievements earned mid-run (h2)', () => {
+  /** A keeper whose phone has already earned `had`, telling `earned` what each down newly earns. */
+  async function earning(had: Saved['achievements'], earned: string[][]): Promise<StatsKeeper> {
+    const store: StatsStore = {
+      ...fakeStore().store,
+      load: async () => ({ saved: { ...EMPTY, achievements: had }, problem: null }),
+    };
+    const k = new StatsKeeper({
+      store,
+      build: 'b',
+      link: '',
+      newId: () => 'r',
+      now: () => 0,
+      notice: () => {},
+      onEarned: (ids) => earned.push([...ids]),
+    });
+    await k.load();
+    return k;
+  }
+
+  /** A down: a catch 22 yards past the line (Air Mail), tackled at 25. */
+  function airMailDown(k: StatsKeeper, s: RunState): void {
+    const prev = structuredClone(s);
+    prev.phase = 'play';
+    const next = structuredClone(prev);
+    const catcher = next.field.players.find((p) => p.slot === 4)!;
+    catcher.pos = { x: 0, y: 22 };
+    k.step(prev, next, [{ type: 'caught', id: catcher.id, contested: false }]);
+    const tackled = structuredClone(next);
+    tackled.field.ball = { at: 'dead', pos: { x: 0, y: 25 }, how: 'tackled' };
+    k.step(next, tackled, [{ type: 'downEnded', result: 'tackled', gained: 25 }]);
+  }
+
+  it('a down that earns one new to this phone says so, once a run', async () => {
+    const earned: string[][] = [];
+    const k = await earning({}, earned);
+    const s = createRun(1);
+    k.start(s);
+    airMailDown(k, s);
+    airMailDown(k, s);
+    await settled();
+    expect(earned).toEqual([['airMail']]);
+  });
+
+  it('one this phone has already earned says nothing', async () => {
+    const earned: string[][] = [];
+    const k = await earning({ airMail: { run: 'old', at: 'x', hard: true } }, earned);
+    const s = createRun(1);
+    k.start(s);
+    airMailDown(k, s);
+    await settled();
+    expect(earned).toEqual([]);
+  });
+});
+
 describe('a store that fails says so', () => {
   it('the store’s problem on loading is the notice', async () => {
     const { k, notices } = keeper({ load: 'No stats here.' });
