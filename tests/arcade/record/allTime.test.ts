@@ -109,6 +109,18 @@ describe('all time', () => {
     expect(all.totals.downs).toBe(3);
   });
 
+  it('totals kept before a stat was added take it up from 0', () => {
+    const was = emptyAllTime();
+    const older: Record<string, unknown> = { ...was.totals };
+    delete older.pancakes;
+    const all = addRun(
+      { ...was, totals: older as unknown as typeof was.totals },
+      record('a', [{ ...rushBy(2, 1), pancakes: [3] }]),
+    );
+    expect(all.totals.pancakes).toBe(1);
+    expect(all.totals.rushing).toEqual({ rushes: 1, yards: 1 });
+  });
+
   it('a record keeps the run it came from; a tie keeps the first', () => {
     const all = after(
       record('a', [catchBy(1, 30)], { endedAt: '2026-11-01T10:00:00.000Z' }),

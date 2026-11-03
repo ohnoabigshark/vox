@@ -114,12 +114,15 @@ export function emptyAllTime(): AllTime {
   };
 }
 
-/** The totals' numbers added up, key by key: `b` has every key `a` has. */
-function added<T>(a: T, b: T): T {
-  if (typeof a === 'number') return (a + (b as number)) as T;
+/**
+ * The run's totals added to those kept, key by key over the run's (today's
+ * shape): a total kept before a stat was added takes it up from 0.
+ */
+function added<T>(kept: T | undefined, run: T): T {
+  if (typeof run === 'number') return ((typeof kept === 'number' ? kept : 0) + run) as T;
   const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(a as Record<string, unknown>)) {
-    out[k] = added(v, (b as Record<string, unknown>)[k]);
+  for (const [k, v] of Object.entries(run as Record<string, unknown>)) {
+    out[k] = added((kept as Record<string, unknown> | undefined)?.[k], v);
   }
   return out as T;
 }
