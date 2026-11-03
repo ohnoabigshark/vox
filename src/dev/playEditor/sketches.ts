@@ -51,14 +51,14 @@ interface Saved {
 }
 
 /** The browser's localStorage, or, where even reaching it throws, a stand-in that always refuses. */
-export function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
+export function browserStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> {
   try {
     return localStorage;
   } catch {
     const refuse = (): never => {
       throw new Error('localStorage is unavailable');
     };
-    return { getItem: refuse, setItem: refuse };
+    return { getItem: refuse, setItem: refuse, removeItem: refuse };
   }
 }
 

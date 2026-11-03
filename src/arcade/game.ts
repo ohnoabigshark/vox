@@ -59,6 +59,8 @@ import { nextDot } from './sim/snag';
 import { canThrow, step } from './sim/step';
 import { now } from '../clock';
 import { BUILD, PLAY_LOG_URL } from './log/build';
+import { StatsKeeper } from './record/keeper';
+import type { StatsStore } from './record/store';
 import { eventLines, flagLine, startLine, type LogMeta } from './log/playLog';
 import { PlayLogSender } from './log/playLogSender';
 import type {
@@ -138,6 +140,8 @@ export interface ArcadeOptions {
    * when each run starts and dealt alongside the play pool.
    */
   sketchesInGame?: () => Promise<readonly Play[]>;
+  /** Where the run's record is kept (docs/STATS.md); none, and nothing is recorded. */
+  stats?: StatsStore;
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -193,6 +197,8 @@ export class ArcadeGame {
     | null;
   /** Reads the play editor's sketches in the game; none without it. */
   private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
+  /** The run's record: kept as it's played, closed at Game Over or a win (docs/STATS.md). */
+  private readonly stats: StatsKeeper | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -312,6 +318,7 @@ export class ArcadeGame {
       onFlag: () => this.flag(),
     });
     this.playLog = PLAY_LOG_URL ? this.startPlayLog(PLAY_LOG_URL) : null;
+    this.stats = options.stats ? this.startStats(options.stats) : null;
     if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
     if (tryEvent && !tryEvent.event.ok)
       this.hud.notice(`${tryEvent.event.reason} Playing without it.`);
@@ -343,6 +350,7 @@ export class ArcadeGame {
       this.pause();
       // A phone may freeze or close a hidden page: send what's queued now (review r4).
       void this.playLog?.sender.sendNow();
+      this.stats?.hidden();
     });
 
     this.bodies.sync(this.state);
@@ -473,11 +481,27 @@ export class ArcadeGame {
     }
     if (this.state.phase === 'won' && !this.outro) this.startOutro();
     this.react(events, prev);
+    this.stats?.step(prev, this.state, events);
     if (events.length > 0 || this.state.phase !== prev.phase) this.syncHud();
     if (this.playLog && events.length > 0) {
       const lines = eventLines(prev, this.state, events, this.playLog.meta, now());
       this.playLog.sender.add(lines, { now: events.some((e) => e.type === 'downEnded') });
     }
+  }
+
+  /** The run's record (docs/STATS.md): what's kept read in, and this run recorded from its first down. */
+  private startStats(store: StatsStore): StatsKeeper {
+    const keeper = new StatsKeeper({
+      store,
+      build: BUILD,
+      link: location.search.replace(/^\?/, ''),
+      newId: () => crypto.randomUUID(),
+      now,
+      notice: (text) => this.hud.notice(text),
+    });
+    void keeper.load();
+    keeper.start(this.state);
+    return keeper;
   }
 
   /** The play log: sent where the build says (l1), its status shown on ⚑ (l4). */
@@ -814,6 +838,7 @@ export class ArcadeGame {
   private async freshRun(): Promise<void> {
     const sketches = this.sketchesInGame ? await this.sketchesInGame().catch(unreadSketches) : [];
     this.state = this.newRun(sketches);
+    this.stats?.start(this.state);
     this.origin = this.startOrigin();
     this.bodies.sync(this.state);
   }
