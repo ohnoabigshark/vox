@@ -56,15 +56,20 @@ the event gains a field; the sim gains no counters. The record is kept apart
 from the play log: the log is for finding bugs, the record is part of the
 game.
 
-Two events gain fields:
+Three events gain fields, and each player an id:
 
 - `called` carries the play's **id** as well as its name (p5). A built-in
   play's id is fixed (`slants`); a sketch's is its sketch key (`s<time>`).
-- `batted` and `incomplete` carry the **target** (t1): for a catch, the
-  catcher; for a pass batted or incomplete, the eligible player nearest
-  where it came down, within catching reach; with nobody there, none (a
-  throwaway). `lobLanding` (`src/arcade/sim/ball.ts`) already finds that
-  player.
+- `batted` carries the **target** (t1): the player who had a hand to it and
+  lost it, or null when none of yours could reach it. A catch's target is
+  the catcher. An `incomplete` never has one: by the sim's own rules
+  (`contact` and `lobLanding` in `src/arcade/sim/ball.ts`) a ball an
+  eligible player can reach is caught or contested, so an incomplete is
+  always a throwaway. (Found building it, 2026-11-03; t1 had `incomplete`
+  gain a target too.)
+- Every `RosterPlayer` has an `id` (y1): the starting seven 1 to 7, then
+  each recruit the team's size as it joins, which `joined` carries. The
+  team only grows, so ids never repeat; names can.
 
 **A play's result** (p1, p3, p4, p9, p10):
 
@@ -242,7 +247,8 @@ The record branch's scenarios (f2), written first and watched go red:
 
 - **A pass play:** the situation, the call by id and flip, kind pass, Jack,
   target and catcher, air yards, yards after the catch, the outcome and
-  yards; an incomplete has no air yards and keeps its target.
+  yards; an incomplete has no air yards and no target; a batted pass keeps
+  its target.
 - **A rush:** the carrier, the yards, yards after contact from the first
   grab; a carrier never grabbed has none.
 - **Sacks and losses:** a sack is its own kind; a rush or a catch brought

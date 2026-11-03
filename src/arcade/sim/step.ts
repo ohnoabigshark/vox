@@ -314,7 +314,7 @@ function catchGraded(
   const first = defenders[0];
   if (grade === 'bad' || !receiver) {
     const at = first?.pos ?? receiver?.pos ?? v(0, state.series.los);
-    events.push({ type: 'batted', by: first?.id ?? -1, at, contested: true });
+    events.push({ type: 'batted', by: first?.id ?? -1, at, contested: true, target: t.receiver });
     state.field.ball = { at: 'dead', pos: at, how: 'batted' };
     endDown(state, 'batted', state.series.los, events);
     return;
@@ -527,6 +527,7 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
       by: outcome.by,
       at: outcome.at,
       contested: outcome.contest !== undefined,
+      target: outcome.contest?.receiver.id ?? null,
     });
     state.field.ball = { at: 'dead', pos: outcome.at, how: 'batted' };
     endDown(state, 'batted', state.series.los, events);

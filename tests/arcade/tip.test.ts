@@ -246,7 +246,7 @@ describe('6. the grade (t4, g1)', () => {
     expect(ofType(r.events, 'tipPop').map((e) => e.result)).toEqual(['clean', 'drop']);
     expect(ofType(r.events, 'tipResult')).toEqual([{ type: 'tipResult', grade: 'bad' }]);
     expect(ofType(r.events, 'batted')).toEqual([
-      { type: 'batted', by: 100, at: expect.anything(), contested: true },
+      { type: 'batted', by: 100, at: expect.anything(), contested: true, target: 2 },
     ]);
     expect(ofType(r.events, 'caught')).toEqual([]);
     expect(r.state.tip).toBeNull();

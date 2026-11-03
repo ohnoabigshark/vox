@@ -326,6 +326,12 @@ export type Position = 'blocker' | 'runner' | 'catcher';
  * any player can play any position.
  */
 export interface RosterPlayer {
+  /**
+   * Who it is for the run (the record's stats are by it: docs/STATS.md): the
+   * starting seven 1 to 7, then each recruit the team's size as it joins.
+   * Names can repeat; ids don't.
+   */
+  readonly id: number;
   readonly name: string;
   readonly kind: Form;
   readonly preferred: Position;
@@ -491,15 +497,30 @@ export type Action =
 
 export type ArcadeEvent =
   | { readonly type: 'downStarted'; readonly down: number; readonly toGo: number }
-  | { readonly type: 'called'; readonly play: string; readonly flipped: boolean }
+  | {
+      readonly type: 'called';
+      readonly id: string;
+      readonly play: string;
+      readonly flipped: boolean;
+    }
   /** A card banned by the Queen's Royal Decree was tapped: it can't be called. */
   | { readonly type: 'banned' }
   | { readonly type: 'snapped' }
   | { readonly type: 'handoff'; readonly id: number }
   | { readonly type: 'thrown'; readonly target: Vec; readonly landsAt: number }
   | { readonly type: 'caught'; readonly id: number; readonly contested: boolean }
-  /** A pass knocked down: `contested` when your player had a hand to it too and lost it. */
-  | { readonly type: 'batted'; readonly by: number; readonly at: Vec; readonly contested: boolean }
+  /**
+   * A pass knocked down: `contested` when your player had a hand to it too and
+   * lost it. `target`: who it was meant for, that player, or null when none of
+   * yours could reach it (docs/STATS.md, t1).
+   */
+  | {
+      readonly type: 'batted';
+      readonly by: number;
+      readonly at: Vec;
+      readonly contested: boolean;
+      readonly target: number | null;
+    }
   | { readonly type: 'incomplete'; readonly at: Vec }
   | { readonly type: 'pancake'; readonly blocker: number; readonly defender: number }
   /** A defender grabbed the carrier: Break it! starts. */
@@ -535,6 +556,7 @@ export type ArcadeEvent =
   | { readonly type: 'perk'; readonly perk: Perk }
   | {
       readonly type: 'joined';
+      readonly id: number;
       readonly name: string;
       /** The field slot it took (-1: it sat on the bench), and who it put on the bench, if anyone. */
       readonly slot: number;

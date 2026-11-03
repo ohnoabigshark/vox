@@ -102,6 +102,7 @@ describe('TRICK OR TREAT!', () => {
   });
 
   const boo = {
+    id: 8,
     name: 'Boo Radish',
     kind: 'ghost' as const,
     preferred: 'catcher' as const,
