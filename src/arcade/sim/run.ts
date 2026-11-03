@@ -238,15 +238,15 @@ export function setUpSeries(
       ? []
       : pickupsForSeries(state.seed, area, index).filter((p) => !state.taken.includes(p.id)),
   };
-  events.push({ type: 'seriesStarted', series: index, name: spec.name });
+  events.push({ type: 'seriesStarted', index, name: spec.name });
   setUpDown(state, events);
   if (!ready) state.phase = 'draft';
 }
 
 /** This down's field event: the one practice tries, or else the series' own (Frog Rain), placed. */
-function placedEvent(state: RunState, series: DefaultEventId | undefined): FieldEventOn | null {
+function placedEvent(state: RunState, id: DefaultEventId | undefined): FieldEventOn | null {
   if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
-  return series ? placeEvent(state, fieldEventById(series)) : null;
+  return id ? placeEvent(state, fieldEventById(id)) : null;
 }
 
 /** The King's crows, back on his arms for a new down (he stands at BOSS_SPOT). */
@@ -500,7 +500,7 @@ export function nextDown(state: RunState, events: ArcadeEvent[]): void {
   }
   if (result?.result === 'firstDown') {
     state.seriesWon++;
-    events.push({ type: 'seriesWon', series: series.index });
+    events.push({ type: 'seriesWon', index: series.index });
     const lastSeries = series.index >= SERIES_KINDS.length - 1;
     if (lastSeries) events.push({ type: 'areaCleared', area: series.area });
     // The run is won after the last area (hard mode goes round again).

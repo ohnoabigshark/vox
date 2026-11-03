@@ -895,7 +895,7 @@ describe('the play fake', () => {
     expect(coverX(true)).toBeGreaterThan(coverX(false) + 0.5);
   });
 
-  it('on a handoff a Blocker series its man back, further the more Heft it has on him', () => {
+  it('on a handoff a Blocker drives its man back, further the more Heft it has on him', () => {
     const pushedTo = (heft: number) => {
       const s = playState(
         [

@@ -531,7 +531,7 @@ export type ArcadeEvent =
   | { readonly type: 'crowsStruck'; readonly on: number }
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
-  | { readonly type: 'seriesWon'; readonly series: number }
+  | { readonly type: 'seriesWon'; readonly index: number }
   | { readonly type: 'perk'; readonly perk: Perk }
   | {
       readonly type: 'joined';
@@ -558,7 +558,7 @@ export type ArcadeEvent =
     }
   /** A carrier slipped on an oil slick and is down there: SLIPPED! */
   | { readonly type: 'slipped'; readonly id: number }
-  | { readonly type: 'seriesStarted'; readonly series: number; readonly name: string }
+  | { readonly type: 'seriesStarted'; readonly index: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
   | { readonly type: 'gameOver'; readonly seriesWon: number; readonly yards: number };
 
