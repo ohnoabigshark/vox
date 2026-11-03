@@ -1,6 +1,6 @@
 /**
  * Render voxel models to PNGs headlessly, so they can be looked at without
- * running the game (TECHNICAL.md §11, the preview loop).
+ * running the game (docs/ART.md, previewing).
  *
  *   npm run preview-models              every model, plus a contact sheet per folder
  *   npm run preview-models -- team/walkOn   just these models

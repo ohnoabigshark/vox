@@ -1,7 +1,7 @@
 /**
  * Dev page for voxel models (M1.4). Interactive: pick a model and it spins on
  * a field tile. Render modes produce fixed images for the headless preview
- * script, so Claude can look at a model and iterate (TECHNICAL.md §11).
+ * script, so Claude can look at a model and iterate (docs/ART.md).
  */
 import * as THREE from 'three';
 import { common, hexToNumber } from '../content/palettes';

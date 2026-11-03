@@ -1,5 +1,5 @@
 /**
- * MagicaVoxel (.vox) import (TECHNICAL.md §11). A .vox file is converted into
+ * MagicaVoxel (.vox) import (docs/ART.md). A .vox file is converted into
  * .voxt text, with every color snapped to the nearest named palette color, so
  * imported models share the game's palette and live in the same format as
  * hand-written ones.

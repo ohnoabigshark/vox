@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { launchChrome, newestCachedChromium } from '../../tools/browser';
 
-/** TECHNICAL.md §11: the tools that drive a browser use Chrome, or the newest Chromium Playwright cached. */
+/** TECHNICAL.md §21 (Environment): the tools that drive a browser use Chrome, or the newest Chromium Playwright cached. */
 
 const NOT_FOUND = new Error(
   "browserType.launch: Chromium distribution 'chrome' is not found at /opt/google/chrome/chrome",

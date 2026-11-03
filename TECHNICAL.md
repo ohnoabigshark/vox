@@ -218,48 +218,13 @@ src/content/
 
 ## 11. Asset Pipeline: Voxel Models
 
-### The text voxel format (`.voxt`), written by Claude
-
-A plain-text format that Claude can write, read and diff: a size, a voxel scale, a color legend, then slices or boxes.
-
-```
-# example.voxt
-size 5 5 7
-voxel 0.1
-colors
-  w bone       # names resolve to palettes.ts `voxel`
-  k ink
-slice 0
-  .....
-  .w.w.
-  ...
-```
-
-- Colors are **named palette entries**, never raw hex, so changing a palette recolors everything.
-- Helpers: `mirror x`, inclusive `box x0 y0 z0 x1 y1 z1 c` (`.` clears). The full format is at the top of `src/voxel/voxt.ts`.
-
-### MagicaVoxel (`.vox`) imports
-
-`npm run import-vox -- model.vox <folder/name>` converts a `.vox` into `.voxt`, snapping every color to the nearest named palette color, so everything in the game is one format.
-
-### Build and runtime
-
-- **`.voxt` is the runtime format.** Vite loads every `.voxt` under `assets-src/voxels/` as text (so edits hot-reload); it's parsed and greedy-meshed once at load into cached geometry (`src/voxel/`).
-- **Model ids are paths:** `forest/chaser` is `assets-src/voxels/forest/chaser.voxt`. Folders: `team/` (our players, the ball), `forest/` (defenders and the Witch), `candy/` (the Candy Kingdom's defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses), `forestProps/`, `candyProps/` and `farmProps/` (scenery).
-- **Orientation:** a model's front (slice 0) faces +z. In play, bodies turn to face where they're going.
-
-### Preview loop (how Claude sees its work)
-
-- **`npm run preview-models [ids…]`** (`tools/voxels/preview.ts`) renders each model headlessly to **PNG turntables** in `previews/`, plus a **contact sheet** per folder seen from the game camera's pitch.
-- **`/dev/models.html`** does the same interactively in the browser. **Game light** shows a model under the game's light (the pumpkin's lamp, the moon, the dusk fill; `src/render/gameLight.ts`) on an area's turf instead of the studio's white light, and `&light=game&area=candy` does it for the render modes too. Judge colours there: the same model reads warmer and darker on the field.
+In [`docs/ART.md`](docs/ART.md): what a voxel is here and how a model goes from a `.voxt` text file to the screen, the look and its rules, sizes, the format, the two ways a model is made (written by Claude, or sculpted in a voxel editor and imported), previewing, and what a new area needs.
 
 ---
 
 ## 12. Asset Pipeline: 2D Art
 
-- **SVG written by Claude** for icons and UI art: tiny, scales perfectly, themed from the palette. The kinds' pixel portraits are generated as SVG from 12×12 character grids (`kindIcons.ts`).
-- **Public-domain or CC0 sources** when needed: Kenney.nl, OpenGameArt.org and itch.io (filtered to CC0 or public domain), Google Fonts (OFL). Anything brought in is recolored into our palette.
-- **Raster art** (if ever unavoidable) goes in atlases, served as WebP with PNG fallback.
+In [`docs/ART.md`](docs/ART.md), under 2D art.
 
 ---
 
@@ -395,29 +360,7 @@ Everything a future session (human or Claude) needs to carry on without the orig
 
 ### How to make a voxel model
 
-1. **Write `assets-src/voxels/<folder>/<name>.voxt`** (format in §11 and `src/voxel/voxt.ts`):
-   - `size W H D`, then `voxel <units per voxel>`, then `colors` (one character per named color from `palettes.ts`'s `voxel` table; add new colors there, never inline hex).
-   - `slice` grids are **front views**: slice 0 is the front (+z); rows run top to bottom, columns left to right. `mirror x` means each row gives the left half *including* the centre column.
-   - `box` is inclusive, with y up from 0 and z from the front.
-2. **Register it** in `assets/manifest.json` (`source: "Original voxel model (…), written by Claude"`, `author: "Claude"`, `license: "original"`).
-3. **Preview it** (`npm run preview-models -- <id>`) and look at both the turntable and the folder's contact sheet; iterate until it reads.
-4. **Use it:** `getGeometry(id)` with `voxelMaterial`; a player kind goes in `KIND_MODEL`, a defender in `DEFENDER_MODEL` (`render/bodies.ts`).
-
-**Sizing** (one unit is a yard; a body's collision radius is about 0.4–0.6):
-
-| Kind | Typical size | Example |
-|---|---|---|
-| Players | 9×14×5 at 0.08 → ~0.7 wide, 1.1 tall | `team/walkOn`, `team/ghost`, `team/werewolf`; `team/golem` at 0.09, drawn 1.45× wide |
-| Defenders | 0.6–0.9 wide, 0.6–1.1 tall | `forest/*` |
-| Bosses | twice a player: 17×27×9 at 0.085 (Mister Frog 17×27×17, a square footprint) → ~1.45 wide, 2.3 tall, **drawn at 2×** in play (~2.9 wide, 4.6 tall; their bodies' radius 1.45 to match) | `bosses/misterFrog`, `bosses/queen`, `bosses/king` |
-| Ball | the round jack-o'-lantern at 0.15 | `team/ball` |
-| Scenery props | up to 2–3 units tall | `forestProps/pine` |
-
-**Readability rules:**
-- **Judge every model from the game camera** (32° pitch, behind the play) at phone size. One shape, one rule, one telegraph: a kind should read from its silhouette alone.
-- **Thin parts vanish:** make wings and similar at least 2 voxels deep.
-- **Faces:** simple and spaced out; prefer a few bold blocks (two eyes, a wide grin).
-- **Color rules:** **our team is gold and orange in helmets**; **every opponent is candy purple and never helmeted**. Never reuse the field's greens on anything that moves.
+[`docs/ART.md`](docs/ART.md), "Making a model, step by step": write or import the `.voxt`, register it in the manifest, preview it (`npm run preview-models -- <id>`, or `/dev/models.html` in the game's light), and use it.
 
 ### How to make audio
 
