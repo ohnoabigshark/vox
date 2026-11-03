@@ -89,7 +89,9 @@ something, the old text is marked _replaced_.
 - **Kept on the phone (k4):** the situation, the toggles and the open tab.
   _Replaced (r-s5):_ the sliders were kept there too; now the bench opens
   at what the game plays, and moves not saved are gone on leaving (the page
-  asks first where the browser lets it).
+  asks first where the browser lets it). Kept as version 2 since
+  2026-11-03, when the situation's `drive` became `series`; a version 1
+  is brought up on the way in (`UPGRADES` in `src/dev/bench/keep.ts`).
 - **Default** is the word for a `tuning.ts` value, on screen and in
   `CONTEXT.md` (r-u4); it was "shipped".
 
@@ -166,7 +168,9 @@ on and written in the rep's log line:
   when it doesn't.
 - **Two kinds of line** (r-l3): a rep line with the test, the situation,
   the timing, the grade, and the tab's settings off default, so every rep
-  says what it was played at; a save line with what was saved. _Replaced:_
+  says what it was played at; a save line with what was saved. The
+  situation's series is `series` in lines from 2026-11-03 on, `drive` in
+  older ones. _Replaced:_
   a settings line on every slider let go.
 - **Into the game:** Save (above). _Replaced:_ "apply the bench", which
   brought the logged settings back as a decision map.

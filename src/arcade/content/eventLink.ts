@@ -34,7 +34,8 @@ export function readEventPractice(search: string): EventPractice | null {
   const params = new URLSearchParams(search);
   const text = params.get('event');
   if (text === null) return null;
-  const n = Math.round(Number(params.get('series')));
+  // Links from before 2026-11-03's rename name the series `drive`.
+  const n = Math.round(Number(params.get('series') ?? params.get('drive')));
   const series = Number.isFinite(n) ? Math.max(1, Math.min(MAX_SERIES, n)) : 1;
   let parsed: unknown;
   try {

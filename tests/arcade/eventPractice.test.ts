@@ -55,6 +55,11 @@ describe('the Try it link (test 8)', () => {
     expect(q('40')).toBe(12);
   });
 
+  it('a link from before the rename says drive, and plays that series', () => {
+    const old = new URLSearchParams({ event: JSON.stringify(made), drive: '7' });
+    expect(readEventPractice(`?${old}`)?.series).toBe(7);
+  });
+
   it('‹ Events goes back to the editor with the event open', () => {
     expect(eventEditorLink('https://x.ts.net:8443/vox-dev/?event=…', 'graveyardRain')).toBe(
       'https://x.ts.net:8443/vox-dev/dev/events.html#graveyardRain',

@@ -50,6 +50,16 @@ describe('the settings kept on the phone', () => {
     expect(storage.data.get('getJackBack.testBench')).not.toContain('settings');
   });
 
+  it('a situation kept before the rename says drive, and comes back as the series', async () => {
+    const storage = memoryStorage();
+    const { series, ...rest } = kept.situation;
+    storage.data.set(
+      'getJackBack.testBench',
+      JSON.stringify({ version: 1, ...kept, situation: { ...rest, drive: series } }),
+    );
+    expect(await benchStore(storage).load()).toEqual({ kept, problem: null });
+  });
+
   it("start afresh, and say why, when storage can't be read", async () => {
     const garbled = memoryStorage();
     garbled.data.set('getJackBack.testBench', '{nope');
