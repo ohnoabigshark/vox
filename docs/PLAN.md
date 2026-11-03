@@ -323,6 +323,21 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   `PickupKind` `'gravestone'`), nothing left saying slick; and _"Can we
   make the trigger area a little larger as part of this work."_ (how much
   larger, its radius against the slick's today, decided then).
+- **The art pipeline** (`docs/ART.md`; map round 1,
+  https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
+  - **Proving the editor path** (p3): the user makes a small gravestone in
+    Goxel's Android app and saves it as `.vox` to Google Drive; Claude
+    imports it (`npm run import-vox`) and reports what broke. Whether the
+    Android app saves `.vox` is unchecked, so the first step is a look at
+    its export menu.
+  - **A `.voxt` → `.vox` exporter** (p4), so a model Claude wrote opens in
+    the editor for touch-ups and comes back through the importer. Parked
+    until p3 shows importing works.
+  - **An area's art as data** (p7): the first step of building the first
+    new area or set is moving what an area looks like (mood colours,
+    defender looks, props, their scatter) and the team's models into one
+    data file per area or set, with the three areas moved over, so the
+    shape comes from a real second example.
 - **"Either side" drawn on both sides** of the event editor's field, the
   right solid and the left dashed, so an event that picks a side each down
   doesn't read as flipped in play. Field events map round 4, e5, Not now

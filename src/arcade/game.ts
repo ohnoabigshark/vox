@@ -15,6 +15,7 @@
 import * as THREE from 'three';
 import type { SfxId } from '../audio/sfx';
 import { Conductor } from '../game/conductor';
+import { GAME_LIGHT, setLights } from '../render/gameLight';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
@@ -160,9 +161,6 @@ function firstRoster(monsters: boolean): RosterPlayer[] {
 const CAMERA_PITCH = 32;
 /** The intro's crossfade into the first series (seconds). */
 const INTRO_FADE = 1;
-/** With the pumpkin ball as the light, the moon and the sky are only a dim fill, so the field stays readable. */
-const MOON_FILL = 0.45;
-const SKY_FILL = 0.75;
 const LOOK_AHEAD = 7;
 /** The win song's sing-along video: the win screen goes there. */
 const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
@@ -277,7 +275,7 @@ export class ArcadeGame {
     this.view = new View(canvas, { fov: 50 });
     const { scene } = this.view;
     scene.add(createArcadeTurf());
-    const scenery = new ForestScenery(scene, this.view, {
+    const scenery = new ForestScenery(scene, {
       halfWidth: arcadeTuning.field.halfWidth,
       nearZ: FIELD_BEHIND,
       farZ: -FIELD_AHEAD,
@@ -285,9 +283,7 @@ export class ArcadeGame {
     });
     scene.add(scenery.group);
     // The pumpkin ball is the light (render/ball.ts): the moon is only a dim fill, with no shadows.
-    this.view.sun.castShadow = false;
-    this.view.sun.intensity = MOON_FILL;
-    this.view.hemi.intensity = SKY_FILL;
+    setLights(this.view.hemi, this.view.sun, GAME_LIGHT);
     this.lines = new ArcadeLines(scene);
     this.routes = new ArcadeRoutes(scene);
     this.eventLooks = {

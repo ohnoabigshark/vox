@@ -10,6 +10,7 @@
  * lamp inside it.
  */
 import * as THREE from 'three';
+import { PUMPKIN_LAMP } from '../../render/gameLight';
 import { getGeometry } from '../../voxel/models';
 import type { RunState } from '../sim/types';
 import { lerp } from '../sim/vec';
@@ -17,12 +18,6 @@ import type { ArcadeBodies } from './bodies';
 import { Embers } from './embers';
 import { toWorld } from './world';
 
-/** The lamp inside the pumpkin. */
-const LIGHT_COLOR = 0xffa64d;
-const LIGHT_INTENSITY = 60;
-/** How far its light reaches (yards), and how it falls off. */
-const LIGHT_RANGE = 22;
-const LIGHT_DECAY = 1.6;
 /** Where a dead ball hovers (the bottom of the pumpkin, above the turf): clear of a pile. */
 const DEAD_HEIGHT = 1.6;
 /** The lamp sits this far above the ball's bottom, inside it. */
@@ -33,11 +28,12 @@ export class ArcadeBall {
     getGeometry('team/ball'),
     new THREE.MeshBasicMaterial({ vertexColors: true }),
   );
+  /** The lamp inside the pumpkin (render/gameLight.ts, shared with the model viewer). */
   private readonly light = new THREE.PointLight(
-    LIGHT_COLOR,
-    LIGHT_INTENSITY,
-    LIGHT_RANGE,
-    LIGHT_DECAY,
+    PUMPKIN_LAMP.color,
+    PUMPKIN_LAMP.intensity,
+    PUMPKIN_LAMP.range,
+    PUMPKIN_LAMP.decay,
   );
   private readonly landing: THREE.Mesh;
   private readonly embers: Embers;
@@ -48,7 +44,7 @@ export class ArcadeBall {
     this.light.castShadow = true;
     this.light.shadow.mapSize.set(512, 512);
     this.light.shadow.bias = -0.002;
-    Object.assign(this.light.shadow.camera, { near: 0.2, far: LIGHT_RANGE });
+    Object.assign(this.light.shadow.camera, { near: 0.2, far: PUMPKIN_LAMP.range });
     scene.add(this.light);
     this.embers = new Embers(scene);
     this.landing = new THREE.Mesh(
@@ -124,6 +120,6 @@ export class ArcadeBall {
     this.embers.update(dt);
     // A little flicker, like a candle.
     this.light.intensity =
-      LIGHT_INTENSITY * (0.92 + 0.08 * Math.sin(clock * 23) * Math.sin(clock * 7));
+      PUMPKIN_LAMP.intensity * (0.92 + 0.08 * Math.sin(clock * 23) * Math.sin(clock * 7));
   }
 }

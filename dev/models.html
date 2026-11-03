@@ -20,13 +20,15 @@
       header a {
         color: #8fd3ff;
       }
-      #list {
+      #list,
+      #light {
         display: flex;
         flex-wrap: wrap;
         gap: 0.4rem;
         padding: 0 0.75rem 0.5rem;
       }
-      #list button {
+      #list button,
+      #light button {
         font: inherit;
         font-size: 0.85rem;
         padding: 0.3rem 0.7rem;
@@ -35,7 +37,8 @@
         background: #4a3d66;
         color: white;
       }
-      #list button.on {
+      #list button.on,
+      #light button.on {
         background: #a259ff;
       }
       #info {
@@ -48,6 +51,7 @@
       }
       body.render header,
       body.render #list,
+      body.render #light,
       body.render #info {
         display: none;
       }
@@ -57,11 +61,13 @@
   <body>
     <!-- Dev tool (M1.4): look at voxel models. Excluded by `npm run build:release`.
          ?render=turntable&model=<id>  front, ¾ and side views (used by `npm run preview-models`)
-         ?render=sheet&group=<folder>  every model in a folder side by side, to compare scale -->
+         ?render=sheet&group=<folder>  every model in a folder side by side, to compare scale
+         &light=game&turf=<forest|candy|farm>  in the game's light on that area's turf (any mode) -->
     <header>
       <a href="./">← dev</a>
       <strong>Models</strong>
     </header>
+    <div id="light"></div>
     <div id="list"></div>
     <div id="info"></div>
     <canvas id="view"></canvas>

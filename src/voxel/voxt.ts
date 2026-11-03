@@ -1,5 +1,5 @@
 /**
- * The .voxt text voxel format (TECHNICAL.md §11): voxel models written as
+ * The .voxt text voxel format (docs/ART.md): voxel models written as
  * plain text, so they can be authored, read and diffed like code.
  *
  *   # A comment.
