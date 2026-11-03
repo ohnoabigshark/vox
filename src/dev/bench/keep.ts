@@ -6,6 +6,7 @@
  * out of range is pulled inside it, sliders kept before the rework are
  * ignored, and storage that can't be read starts afresh and says so.
  */
+import { upgraded, type UpgradeStep } from '../../upgrade';
 import { clamp, isRecord } from './checks';
 import { BENCH_TESTS, type BenchTest } from './knobs';
 import { FIRST_SITUATION, SITUATION_SLIDERS, type Situation } from './reps';
@@ -42,9 +43,7 @@ const VERSION = 2;
  * Each older version brought up to the next: `UPGRADES[n]` turns version n
  * into n + 1. 1 → 2: the situation's `drive` became `series` (2026-11-03).
  */
-const UPGRADES: Readonly<
-  Record<number, (saved: Record<string, unknown>) => Record<string, unknown>>
-> = {
+const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
   1: (saved) => {
     if (!isRecord(saved.situation) || !('drive' in saved.situation))
       return { ...saved, version: 2 };
@@ -53,16 +52,6 @@ const UPGRADES: Readonly<
   },
 };
 
-/** What was kept, brought up to today's version, or null if it's no version this bench knows. */
-function upgraded(saved: Record<string, unknown>): Record<string, unknown> | null {
-  let at = saved;
-  while (typeof at.version === 'number' && at.version < VERSION) {
-    const step = UPGRADES[at.version];
-    if (!step) return null;
-    at = step(at);
-  }
-  return at.version === VERSION ? at : null;
-}
 const UNAVAILABLE = "This browser isn't keeping the bench's settings (private browsing?).";
 const UNREADABLE = "The bench's kept tab and situation can't be read, so it starts afresh.";
 
@@ -83,7 +72,7 @@ export function benchStore(storage: Pick<Storage, 'getItem' | 'setItem'>): Bench
       if (!raw) return { kept: FIRST_KEPT, problem: null };
       try {
         const saved: unknown = JSON.parse(raw);
-        const current = isRecord(saved) ? upgraded(saved) : null;
+        const current = isRecord(saved) ? upgraded(saved, 'version', VERSION, UPGRADES) : null;
         if (!current) throw new Error('unreadable');
         return { kept: readKept(current), problem: null };
       } catch {
