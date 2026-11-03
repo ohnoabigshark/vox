@@ -245,7 +245,7 @@ slice 0
 ### Build and runtime
 
 - **`.voxt` is the runtime format.** Vite loads every `.voxt` under `assets-src/voxels/` as text (so edits hot-reload); it's parsed and greedy-meshed once at load into cached geometry (`src/voxel/`).
-- **Model ids are paths:** `forest/chaser` is `assets-src/voxels/forest/chaser.voxt`. Folders: `team/` (our players, the ball), `forest/` (defenders and the Witch), `candy/` (the Candy Kingdom's defenders), `bosses/` (the three Bosses), `forestProps/` and `candyProps/` (scenery).
+- **Model ids are paths:** `forest/chaser` is `assets-src/voxels/forest/chaser.voxt`. Folders: `team/` (our players, the ball), `forest/` (defenders and the Witch), `candy/` (the Candy Kingdom's defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses), `forestProps/`, `candyProps/` and `farmProps/` (scenery).
 - **Orientation:** a model's front (slice 0) faces +z. In play, bodies turn to face where they're going.
 
 ### Preview loop (how Claude sees its work)
