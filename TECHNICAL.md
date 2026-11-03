@@ -122,7 +122,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 ## 5. 3D Rendering
 
 - **Camera:** third person, behind and above the play, pitched **32°** with a 50° field of view, **pulled back exactly far enough to show both sidelines** at the row it follows, whatever the screen's shape (`game.ts`, `follow`). It follows the QB, the ball in flight and the carrier upfield, easing in during Break it!.
-- **Lighting: the pumpkin is the light.** A warm point light inside the pumpkin ball casts the shadows, so they swing as it flies; the moon (`View.sun`) and the sky (`View.hemi`) are only dim fills. Fog thickens past the play.
+- **Lighting: the pumpkin is the light.** A warm point light inside the pumpkin ball casts the shadows, so they swing as it flies; the moon (`View.sun`) and the sky (`View.hemi`) are only dim fills. Their colours and strengths are in `src/render/gameLight.ts`, shared with the model viewer's game light. Fog thickens past the play.
 - **Materials:** flat-shaded with **vertex colors**; no textures on voxel models. Ghosts use an unlit material so their white sheet reads in any light.
 - **Voxel meshes:** greedy meshing keeps only visible faces as a few big quads; repeated models share geometry (`getGeometry` caches it), and many copies of a static prop go through an `InstancedMesh`. The turf strip is one instanced mesh.
 - **What's drawn** (`src/arcade/render/`):
@@ -251,7 +251,7 @@ slice 0
 ### Preview loop (how Claude sees its work)
 
 - **`npm run preview-models [ids…]`** (`tools/voxels/preview.ts`) renders each model headlessly to **PNG turntables** in `previews/`, plus a **contact sheet** per folder seen from the game camera's pitch.
-- **`/dev/models.html`** does the same interactively in the browser.
+- **`/dev/models.html`** does the same interactively in the browser. **Game light** shows a model under the game's light (the pumpkin's lamp, the moon, the dusk fill; `src/render/gameLight.ts`) on an area's turf instead of the studio's white light, and `&light=game&area=candy` does it for the render modes too. Judge colours there: the same model reads warmer and darker on the field.
 
 ---
 

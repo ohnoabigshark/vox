@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { common, hexToNumber } from '../content/palettes';
 import { greedyMesh } from '../voxel/mesh';
 import { MODEL_IDS, getGeometry, getModel, voxelMaterial } from '../voxel/models';
+import { BIOMES, readViewerLight, viewerLight, type ViewerLightChoice } from './viewerLight';
 
 const params = new URLSearchParams(location.search);
 const renderMode = params.get('render'); // 'turntable' | 'sheet' | null
@@ -25,20 +26,46 @@ renderer.shadowMap.enabled = true;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(hexToNumber(common.backdrop));
-scene.add(new THREE.HemisphereLight(0xffffff, hexToNumber(common.grassDark), 1.3));
-const sun = new THREE.DirectionalLight(0xffffff, 1.8);
+const hemi = new THREE.HemisphereLight();
+const sun = new THREE.DirectionalLight();
 sun.position.set(-4, 8, 6);
-sun.castShadow = true;
-scene.add(sun);
+// The pumpkin's lamp, in the game's light: in front of the model and off to one side, about
+// where the ball floats from a player near it, so the back of a model goes dark as in play.
+const lamp = new THREE.PointLight();
+lamp.position.set(1.2, 2.2, 3.2);
+lamp.castShadow = true;
+lamp.shadow.mapSize.set(512, 512);
+lamp.shadow.bias = -0.002;
+scene.add(hemi, sun, lamp);
+/** The tiles under the models, recoloured with the light (each area's turf in the game's light). */
+const tileMaterial = new THREE.MeshLambertMaterial({ color: hexToNumber(common.grass) });
+
+let lightChoice: ViewerLightChoice = readViewerLight(params);
+function applyLight(choice: ViewerLightChoice): void {
+  lightChoice = choice;
+  const light = viewerLight(choice);
+  hemi.color.set(light.hemi.sky);
+  hemi.groundColor.set(light.hemi.ground);
+  hemi.intensity = light.hemi.intensity;
+  sun.color.set(light.sun.color);
+  sun.intensity = light.sun.intensity;
+  sun.castShadow = light.sun.castShadow;
+  lamp.visible = light.lamp !== null;
+  if (light.lamp) {
+    lamp.color.set(light.lamp.color);
+    lamp.intensity = light.lamp.intensity;
+    lamp.distance = light.lamp.range;
+    lamp.decay = light.lamp.decay;
+  }
+  tileMaterial.color.set(light.tile);
+}
+applyLight(lightChoice);
 
 const camera = new THREE.PerspectiveCamera(24, 1, 0.05, 100);
 
 /** A 1 × 1 field tile, to show scale against the game grid. */
 function tile(x: number): THREE.Mesh {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 0.1, 1),
-    new THREE.MeshLambertMaterial({ color: hexToNumber(common.grass) }),
-  );
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 1), tileMaterial);
   mesh.position.set(x, -0.05, 0);
   mesh.receiveShadow = true;
   return mesh;
@@ -129,8 +156,47 @@ function interactive(): void {
       `${(m.width * m.scale).toFixed(2)} × ${(m.height * m.scale).toFixed(2)} × ` +
       `${(m.depth * m.scale).toFixed(2)} units · ${quads.quads} quads`;
     [...list.children].forEach((b) => b.classList.toggle('on', b.textContent === id));
-    history.replaceState(null, '', `?model=${encodeURIComponent(id)}`);
+    shown = id;
+    remember();
   };
+  let shown = '';
+  /** The model and the light in the address, so a reload or a shared link shows the same. */
+  const remember = (): void => {
+    const query = new URLSearchParams({ model: shown });
+    if (lightChoice.mode === 'game') {
+      query.set('light', 'game');
+      query.set('area', lightChoice.biome);
+    }
+    history.replaceState(null, '', `?${query}`);
+  };
+  const lightBar = $<HTMLDivElement>('#light');
+  const choose = (choice: ViewerLightChoice): void => {
+    applyLight(choice);
+    drawLightBar();
+    remember();
+  };
+  const drawLightBar = (): void => {
+    const button = (label: string, on: boolean, pick: () => void): HTMLButtonElement => {
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.classList.toggle('on', on);
+      b.addEventListener('click', pick);
+      return b;
+    };
+    const { mode, biome } = lightChoice;
+    lightBar.replaceChildren(
+      button('Studio light', mode === 'studio', () => choose({ mode: 'studio', biome })),
+      button('Game light', mode === 'game', () => choose({ mode: 'game', biome })),
+      ...(mode === 'game'
+        ? BIOMES.map((b) =>
+            button(b.charAt(0).toUpperCase() + b.slice(1), b === biome, () =>
+              choose({ mode: 'game', biome: b }),
+            ),
+          )
+        : []),
+    );
+  };
+  drawLightBar();
   for (const id of MODEL_IDS) {
     const button = document.createElement('button');
     button.textContent = id;
