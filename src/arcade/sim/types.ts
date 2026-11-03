@@ -525,6 +525,8 @@ export type ArcadeEvent =
   | { readonly type: 'pancake'; readonly blocker: number; readonly defender: number }
   /** A defender grabbed the carrier: Break it! starts. */
   | { readonly type: 'grabbed'; readonly id: number; readonly by: readonly number[] }
+  /** Second Wind (a perk) turned this Break it!'s BAD into a drag: the breakResult that follows says drag. */
+  | { readonly type: 'secondWind' }
   /** How a Break it! went: a break, a drag, or a tackle. */
   | { readonly type: 'breakResult'; readonly outcome: 'break' | 'drag' | 'tackle' }
   /** A contested ball: SNAG IT! starts. */

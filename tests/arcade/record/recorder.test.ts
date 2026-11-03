@@ -256,6 +256,16 @@ describe('tap tests', () => {
     ]);
   });
 
+  it('a BAD that Second Wind turned into a drag is still the Coach’s BAD', () => {
+    const r = only([
+      { events: [{ type: 'handoff', id: 3 }] },
+      { events: [{ type: 'grabbed', id: 3, by: [100] }], set: breakIt('bar') },
+      { events: [{ type: 'secondWind' }, { type: 'breakResult', outcome: 'drag' }] },
+      { events: [{ type: 'downEnded', result: 'tackled', gained: 3 }], set: deadAt(3) },
+    ]);
+    expect(r.tapTests).toEqual([{ test: 'bar', player: 2, grade: 'bad', taps: [] }]);
+  });
+
   it('the tip drill’s pops are its taps', () => {
     const r = only([
       thrown,

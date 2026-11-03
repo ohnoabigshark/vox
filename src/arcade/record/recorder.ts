@@ -59,6 +59,8 @@ interface Draft {
   grabY: number | null;
   /** Who Break it! is for, from the grab. */
   grabbed: number | null;
+  /** Second Wind turned the coming Break it!'s BAD into a drag: the grade is still BAD. */
+  secondWind: boolean;
   tacklesBroken: number;
   drags: number;
   pancakes: number[];
@@ -175,13 +177,17 @@ export class RunRecorder {
           d.tapTests.push({
             test: kind,
             player: d.grabbed,
-            grade: BREAK_GRADE[e.outcome],
+            grade: d.secondWind ? 'bad' : BREAK_GRADE[e.outcome],
             taps: [],
           });
         }
+        d.secondWind = false;
         if (e.outcome === 'break') d.tacklesBroken++;
         return;
       }
+      case 'secondWind':
+        this.draftOf(prev).secondWind = true;
+        return;
       case 'dragged':
         this.draftOf(prev).drags++;
         return;
@@ -301,6 +307,7 @@ function newDraft(state: RunState): Draft {
     catchY: null,
     grabY: null,
     grabbed: null,
+    secondWind: false,
     tacklesBroken: 0,
     drags: 0,
     pancakes: [],

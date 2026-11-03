@@ -282,6 +282,10 @@ describe('the perks in play', () => {
     const r = tapAt(g, 0.02);
     forceBreakKind(undefined);
     expect(ofType(r.events, 'breakResult')[0]?.outcome).toBe('drag');
+    // It says so first, so the record keeps the Coach's own BAD (docs/STATS.md, p2).
+    expect(
+      r.events.map((e) => e.type).filter((t) => t === 'secondWind' || t === 'breakResult'),
+    ).toEqual(['secondWind', 'breakResult']);
     expect(r.state.perks.secondWindUsed).toBe(true);
     expect(arcadeTuning.countdown.ready).toBeGreaterThan(0);
   });

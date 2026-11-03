@@ -240,6 +240,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
   if (outcome === 'tackle' && state.perks.secondWind && !state.perks.secondWindUsed) {
     state.perks.secondWindUsed = true;
     outcome = 'drag';
+    events.push({ type: 'secondWind' });
   }
   events.push({ type: 'breakResult', outcome });
   state.field.lastBreak = state.time;
