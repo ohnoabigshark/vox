@@ -147,6 +147,8 @@ export class StatsScreens {
   /** The stats section (v5): All time and Runs, Hard first. */
   section(saved: Saved | null, onBack: () => void): void {
     let mode: Mode = 'hard';
+    // The tab open, kept when Hard / Normal (or ‹ Back from a run) draws the section again.
+    let open = 'All time';
     const draw = (): void => {
       const modes = tabbed(
         (['hard', 'normal'] as const).map((m) => ({
@@ -161,10 +163,10 @@ export class StatsScreens {
       );
       const { bar, body } = tabbed(
         [
-          { name: 'All time', content: () => this.allTime(saved, mode) },
-          { name: 'Runs', content: () => this.runs(saved, mode, draw, onBack) },
+          { name: 'All time', content: () => ((open = 'All time'), this.allTime(saved, mode)) },
+          { name: 'Runs', content: () => ((open = 'Runs'), this.runs(saved, mode, draw, onBack)) },
         ],
-        'All time',
+        open,
       );
       // Hard / Normal redraws the section in that mode.
       for (const b of modes.bar.querySelectorAll('button')) b.addEventListener('click', draw);
