@@ -179,11 +179,28 @@ describe('the stats keeper', () => {
 });
 
 describe('what the screens need', () => {
-  it('what’s kept, once loaded, and again after a run closes', async () => {
+  it('what’s kept: loading, then kept', async () => {
     const { k } = keeper();
-    expect(k.saved).toBeNull();
+    expect(k.kept).toEqual({ kind: 'loading' });
     await k.load();
-    expect(k.saved).toEqual(EMPTY);
+    expect(k.kept).toEqual({ kind: 'kept', saved: EMPTY });
+  });
+
+  it('what’s kept can’t be had: the store couldn’t reach or read it', async () => {
+    const store: StatsStore = {
+      ...fakeStore().store,
+      load: async () => ({ saved: null, problem: 'No.' }),
+    };
+    const k = new StatsKeeper({
+      store,
+      build: 'b',
+      link: '',
+      newId: () => 'r',
+      now: () => 0,
+      notice: () => {},
+    });
+    await k.load();
+    expect(k.kept).toEqual({ kind: 'unreadable' });
   });
 
   it('whether a played run is being recorded: not before its first down, nor for a drill', () => {
@@ -226,7 +243,7 @@ describe('what the screens need', () => {
     stepOf(k, s, [{ type: 'gameOver', seriesWon: 0, yards: 0 }], 'over');
     await settled();
     expect(closed).toEqual([['r1', before]]);
-    expect(k.saved).toBe(after);
+    expect(k.kept).toEqual({ kind: 'kept', saved: after });
   });
 
   it('a close that fails still hands the run on', async () => {
@@ -261,6 +278,7 @@ describe('a store that fails says so', () => {
     });
     await k.load();
     expect(notices).toEqual(['Storage full.']);
+    expect(k.kept).toEqual({ kind: 'unreadable' });
   });
 
   it('a save that fails is the notice, and the game plays on', async () => {

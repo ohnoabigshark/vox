@@ -4,6 +4,7 @@
  * Team, Plays), and the stats section (All time and Runs, Hard or Normal).
  * It only draws; what's tapped goes back through the callbacks.
  */
+import type { KeptStats } from '../arcade/record/keeper';
 import type { Saved } from '../arcade/record/store';
 import type { Mode } from '../arcade/record/types';
 import {
@@ -132,50 +133,55 @@ export class StatsScreens {
     this.cardLayer.replaceChildren();
   }
 
-  /** A run's stats (v2): Players first; a run kept only as its summary has Team alone. */
+  /** A run's stats (v2): Team, Players, Plays, Players open; a run kept only as its summary has Team alone. */
   run(view: RunView, onBack: () => void): void {
     const tabs = [
-      ...(view.players.length > 0 ? [{ name: 'Players', content: () => this.players(view) }] : []),
       { name: 'Team', content: () => sectionEls(view.team) },
+      ...(view.players.length > 0 ? [{ name: 'Players', content: () => this.players(view) }] : []),
       ...(view.plays.length > 0 ? [{ name: 'Plays', content: () => this.plays(view) }] : []),
     ];
-    const { bar, body } = tabbed(tabs, tabs[0]?.name ?? 'Team');
+    const { bar, body } = tabbed(tabs, view.players.length > 0 ? 'Players' : 'Team');
     this.showPanel(view.heading, onBack, bar, body);
   }
 
   /** The stats section (v5): All time and Runs, Hard first. */
-  section(saved: Saved | null, onBack: () => void): void {
+  section(kept: KeptStats, onBack: () => void): void {
     let mode: Mode = 'hard';
     // The tab open, kept when Hard / Normal (or ‹ Back from a run) draws the section again.
     let open = 'All time';
     const draw = (): void => {
-      const modes = tabbed(
-        (['hard', 'normal'] as const).map((m) => ({
-          name: m === 'hard' ? 'Hard' : 'Normal',
-          content: () => {
-            mode = m;
-            return [];
-          },
-        })),
-        mode === 'hard' ? 'Hard' : 'Normal',
-        'stats-tabs small',
-      );
+      const modes = make('div', 'stats-tabs small');
+      for (const m of ['hard', 'normal'] as const) {
+        const b = make(
+          'button',
+          `interactive${m === mode ? ' on' : ''}`,
+          m === 'hard' ? 'Hard' : 'Normal',
+        );
+        b.addEventListener('click', () => {
+          mode = m;
+          draw();
+        });
+        modes.append(b);
+      }
+      const shown = (name: string, content: () => HTMLElement[]) => () => {
+        open = name;
+        return content();
+      };
       const { bar, body } = tabbed(
         [
-          { name: 'All time', content: () => ((open = 'All time'), this.allTime(saved, mode)) },
-          { name: 'Runs', content: () => ((open = 'Runs'), this.runs(saved, mode, draw, onBack)) },
+          { name: 'All time', content: shown('All time', () => this.allTime(kept, mode)) },
+          { name: 'Runs', content: shown('Runs', () => this.runs(kept, mode, draw, onBack)) },
         ],
         open,
       );
-      // Hard / Normal redraws the section in that mode.
-      for (const b of modes.bar.querySelectorAll('button')) b.addEventListener('click', draw);
-      this.showPanel('Stats', onBack, bar, modes.bar, body);
+      this.showPanel('Stats', onBack, bar, modes, body);
     };
     draw();
   }
 
-  /** Closes the panel showing, back to what was under it. */
+  /** Closes the panel showing, and forgets what was under it. */
   closePanel(): void {
+    this.under = null;
     this.panel.hidden = true;
     this.panel.replaceChildren();
   }
@@ -211,27 +217,32 @@ export class StatsScreens {
       ...view.plays.flatMap((p) =>
         opening(
           [make('b', '', p.name), make('small', '', `${p.line}${p.mark ? mark[p.mark] : ''}`)],
-          () => (p.play ? [playDrawing(p.play) as unknown as HTMLElement] : []),
+          () => (p.play ? [playDrawing(p.play)] : []),
         ),
       ),
       make('p', 'stats-key', '★ most successful · ● most used'),
     ];
   }
 
-  private allTime(saved: Saved | null, mode: Mode): HTMLElement[] {
-    if (!saved) return [make('p', 'stats-empty', "Your stats can't be read on this phone.")];
+  /** What's kept, or why there's nothing to show yet. */
+  private saved(kept: KeptStats): Saved | HTMLElement[] {
+    if (kept.kind === 'loading') return [make('p', 'stats-empty', 'Your stats are loading…')];
+    if (kept.kind === 'unreadable')
+      return [make('p', 'stats-empty', "Your stats can't be read on this phone.")];
+    return kept.saved;
+  }
+
+  private allTime(kept: KeptStats, mode: Mode): HTMLElement[] {
+    const saved = this.saved(kept);
+    if (Array.isArray(saved)) return saved;
     const view = allTimeView(saved.allTime[mode]);
     if (view.empty) return [make('p', 'stats-empty', 'No runs yet. Play one!')];
     return sectionEls(view.sections);
   }
 
-  private runs(
-    saved: Saved | null,
-    mode: Mode,
-    back: () => void,
-    onBack: () => void,
-  ): HTMLElement[] {
-    if (!saved) return [make('p', 'stats-empty', "Your stats can't be read on this phone.")];
+  private runs(kept: KeptStats, mode: Mode, back: () => void, onBack: () => void): HTMLElement[] {
+    const saved = this.saved(kept);
+    if (Array.isArray(saved)) return saved;
     const rows = runsView(saved, mode);
     if (rows.length === 0) return [make('p', 'stats-empty', 'No runs yet. Play one!')];
     return rows.map((r) => {

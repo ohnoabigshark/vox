@@ -26,8 +26,11 @@ export interface Saved {
 }
 
 export interface StatsStore {
-  /** What's kept, closing a run left open as unfinished; `problem` says why it may be empty. */
-  load(): Promise<{ saved: Saved; problem: string | null }>;
+  /**
+   * What's kept, closing a run left open as unfinished; null when it can't
+   * be reached or read. `problem` says what went wrong, for the notice.
+   */
+  load(): Promise<{ saved: Saved | null; problem: string | null }>;
   /** The run in progress, as it now stands. */
   saveOpen(record: RunRecord): Promise<void>;
   /** The run ended: kept, counted, and no longer open. */
@@ -160,6 +163,7 @@ export function statsStore(
   return {
     async load() {
       const { saved, open, problem } = read();
+      if (blocked) return { saved: null, problem };
       if (!open) return { saved, problem };
       const { record, savedAt } = open;
       const end = record.end === 'open' ? 'unfinished' : record.end;

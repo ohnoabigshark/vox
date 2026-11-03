@@ -83,6 +83,7 @@ describe('whole runs, recorded', () => {
       expect(['over', 'won']).toContain(state.phase);
 
       const { saved } = await store.load();
+      if (!saved) throw new Error('nothing kept');
       expect(saved.runs).toHaveLength(1);
       const record = saved.runs[0]!.record!;
       const stats = runStats(record);

@@ -24,6 +24,12 @@ export interface KeeperDeps {
   readonly onClosed?: (record: RunRecord, before: Saved | null) => void;
 }
 
+/** What's kept, for the stats section: still loading, not to be had (the notice said why), or kept. */
+export type KeptStats =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'unreadable' }
+  | { readonly kind: 'kept'; readonly saved: Saved };
+
 export class StatsKeeper {
   /** The run being recorded, or null (a drill, or none since the last one closed). */
   private recorder: RunRecorder | null = null;
@@ -32,7 +38,7 @@ export class StatsKeeper {
    * time's run), so nothing this run saves can go in before it.
    */
   private queue: Promise<void> = Promise.resolve();
-  private kept: Saved | null = null;
+  private stats: KeptStats = { kind: 'loading' };
 
   constructor(private readonly deps: KeeperDeps) {}
 
@@ -41,17 +47,22 @@ export class StatsKeeper {
     return this.recorder !== null && played(this.recorder);
   }
 
-  /** What's kept, as last loaded or closed; null before it's loaded, or if it can't be. */
-  get saved(): Saved | null {
-    return this.kept;
+  /** What's kept, as last loaded or closed: or still loading, or not to be had. */
+  get kept(): KeptStats {
+    return this.stats;
   }
 
   /** What's kept read in, closing a run left open last time; any problem shown. */
   load(): Promise<void> {
     return this.then(async () => {
-      const { saved, problem } = await this.deps.store.load();
-      this.kept = saved;
-      if (problem) this.deps.notice(problem);
+      try {
+        const { saved, problem } = await this.deps.store.load();
+        this.stats = saved ? { kind: 'kept', saved } : { kind: 'unreadable' };
+        if (problem) this.deps.notice(problem);
+      } catch (e) {
+        this.stats = { kind: 'unreadable' };
+        throw e;
+      }
     });
   }
 
@@ -83,9 +94,11 @@ export class StatsKeeper {
 
   /** The run closed and kept; handed on either way, for the card. */
   private async close(record: RunRecord): Promise<void> {
-    const before = this.kept;
+    const before = this.stats.kind === 'kept' ? this.stats.saved : null;
     try {
-      this.kept = await this.deps.store.close(record);
+      const saved = await this.deps.store.close(record);
+      // What can't be read stays that way: the store kept nothing new over it.
+      if (this.stats.kind === 'kept') this.stats = { kind: 'kept', saved };
     } finally {
       this.deps.onClosed?.(record, before);
     }

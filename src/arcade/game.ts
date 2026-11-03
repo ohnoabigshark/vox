@@ -356,7 +356,7 @@ export class ArcadeGame {
       stats.textContent = 'STATS';
       stats.addEventListener('click', () => {
         this.conductor.play('uiClick');
-        screens.section(this.stats?.saved ?? null, () => {});
+        screens.section(this.stats?.kept ?? { kind: 'unreadable' }, () => {});
       });
       this.startScreen.append(stats);
     }
