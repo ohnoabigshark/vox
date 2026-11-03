@@ -300,8 +300,8 @@ Open, for when the first new theme or set is planned:
   each quick time event. the reason being I want to add achievements and
   stats."_ **Planned** by grilling, seven rounds, 2026-11-02 to 2026-11-03,
   on the map https://claude.ai/artifact/1jesxDVCarUMEPTMDcwqfR; the design
-  is [`docs/STATS.md`](STATS.md). Four branches, each reviewed and merged
-  before the next:
+  is [`docs/STATS.md`](STATS.md). **Built** 2026-11-03 in four branches,
+  each reviewed and merged before the next (PRs #20, #22, #23, #24):
   - **`series-rename`:** football's words for the game as it is (w1, w3):
     an area's march is a **drive** of four **series**, won series are
     **first downs** and the Boss's a **touchdown**. esrauch's `drive`
