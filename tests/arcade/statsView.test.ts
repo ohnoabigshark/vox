@@ -169,7 +169,7 @@ describe('a run’s stats (v2)', () => {
 
   it('Players: Jack first, then each who did anything, a recruit by its own name, by what they did', () => {
     expect(view.players.map((p) => [p.name, p.kind, p.line])).toEqual([
-      ['Jack', 'Jack', '2/3 · 21 yds · 1 sack'],
+      ['Jack', '', '2/3 · 21 yds · 1 sack'],
       ['Gourdon', 'Human', '1 catch · 12 yds · 6 after'],
       ['Mags', 'Human', '3 rushes · 19 yds · 1 broken'],
       ['Slab', 'Human', '2 pancakes'],

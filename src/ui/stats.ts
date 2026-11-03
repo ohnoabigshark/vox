@@ -198,8 +198,8 @@ export class StatsScreens {
 
   private players(view: RunView): HTMLElement[] {
     return view.players.flatMap((p) => {
-      const name = make('b', '', `${p.name} `);
-      name.append(make('i', '', p.kind));
+      const name = make('b', '', p.name);
+      if (p.kind) name.append(' ', make('i', '', p.kind));
       return opening([name, make('small', '', p.line)], () => p.details.map(rowEl));
     });
   }

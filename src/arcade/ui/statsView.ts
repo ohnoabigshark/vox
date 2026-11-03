@@ -39,6 +39,7 @@ export interface CardView {
 export interface PlayerRow {
   readonly id: number;
   readonly name: string;
+  /** Their kind, as a word; empty for Jack. */
   readonly kind: string;
   /** What they did, in a line. */
   readonly line: string;
@@ -73,7 +74,8 @@ export interface AllTimeView {
 }
 
 const KIND: Readonly<Record<Form | 'jack', string>> = {
-  jack: 'Jack',
+  // Jack is his own kind: his name says it.
+  jack: '',
   human: 'Human',
   ghost: 'Ghost',
   golem: 'Golem',
