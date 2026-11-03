@@ -12,6 +12,8 @@ export interface RunStats {
   readonly reached: RunRecord['reached'];
   readonly won: boolean;
   readonly downs: number;
+  /** Net yards: every down's gain, sacks' losses too. */
+  readonly yards: number;
   readonly firstDowns: number;
   readonly touchdowns: number;
   /** A pass is a play Jack threw (a sack isn't one); its yards are a completion's. */
@@ -113,6 +115,7 @@ export function runStats(record: RunRecord): RunStats {
     reached: record.reached,
     won: record.end === 'won',
     downs: downs.length,
+    yards: sum(downs, (d) => d.gained),
     firstDowns: downs.filter((d) => d.outcome === 'firstDown').length,
     touchdowns: downs.filter((d) => d.outcome === 'touchdown').length,
     passing: passing(downs),
