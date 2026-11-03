@@ -5,7 +5,8 @@
  */
 import type { ArcadeEvent, RunState } from '../sim/types';
 import { RunRecorder, recordable } from './recorder';
-import type { StatsStore } from './store';
+import type { Saved, StatsStore } from './store';
+import type { RunRecord } from './types';
 
 export interface KeeperDeps {
   readonly store: StatsStore;
@@ -16,6 +17,8 @@ export interface KeeperDeps {
   readonly now: () => number;
   /** Shows a problem to the Coach (the HUD's notice). */
   readonly notice: (text: string) => void;
+  /** A run closed, with what's kept after it (null if it couldn't be kept): the card shows it. */
+  readonly onClosed?: (record: RunRecord, saved: Saved | null) => void;
 }
 
 export class StatsKeeper {
@@ -26,13 +29,20 @@ export class StatsKeeper {
    * time's run), so nothing this run saves can go in before it.
    */
   private queue: Promise<void> = Promise.resolve();
+  private kept: Saved | null = null;
 
   constructor(private readonly deps: KeeperDeps) {}
+
+  /** What's kept, as last loaded or closed; null before it's loaded, or if it can't be. */
+  get saved(): Saved | null {
+    return this.kept;
+  }
 
   /** What's kept read in, closing a run left open last time; any problem shown. */
   load(): Promise<void> {
     return this.then(async () => {
-      const { problem } = await this.deps.store.load();
+      const { saved, problem } = await this.deps.store.load();
+      this.kept = saved;
       if (problem) this.deps.notice(problem);
     });
   }
@@ -52,7 +62,7 @@ export class StatsKeeper {
     rec.step(prev, next, events);
     if (rec.record.end === 'over' || rec.record.end === 'won') {
       this.recorder = null;
-      if (played(rec)) void this.then(() => this.deps.store.close(rec.record));
+      if (played(rec)) void this.then(() => this.close(rec.record));
       return;
     }
     if (events.some((e) => e.type === 'downEnded')) this.save(rec);
@@ -61,6 +71,17 @@ export class StatsKeeper {
   /** The page was hidden: the last chance to save before a phone freezes or closes it. */
   hidden(): void {
     if (this.recorder) this.save(this.recorder);
+  }
+
+  /** The run closed and kept; handed on either way, for the card. */
+  private async close(record: RunRecord): Promise<void> {
+    try {
+      this.kept = await this.deps.store.close(record);
+    } catch (e) {
+      this.deps.onClosed?.(record, null);
+      throw e;
+    }
+    this.deps.onClosed?.(record, this.kept);
   }
 
   private save(rec: RunRecorder): void {

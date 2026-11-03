@@ -3,7 +3,13 @@ import { addRun, emptyAllTime, summaryOf } from '../../src/arcade/record/allTime
 import type { Saved } from '../../src/arcade/record/store';
 import { JACK, type PlayResult, type RunRecord } from '../../src/arcade/record/types';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
-import { allTimeView, cardView, runView, runsView } from '../../src/arcade/ui/statsView';
+import {
+  allTimeView,
+  cardView,
+  runView,
+  runsView,
+  summaryView,
+} from '../../src/arcade/ui/statsView';
 
 /** docs/STATS.md, the screens (v1–v5) and their scenarios (stats map q6): what each shows, from the record. */
 
@@ -206,6 +212,17 @@ describe('a run’s stats (v2)', () => {
       ['Slants', '1 call · 20.0 yds a call', null],
     ]);
     expect(runView(r).plays[0]!.play).toEqual(dive);
+  });
+});
+
+describe('a run past the last 20 (k3)', () => {
+  it('its Team tab only, from its summary, the same as the full run’s', () => {
+    const r = record('a', downs);
+    const view = summaryView(summaryOf(r));
+    expect(view.players).toEqual([]);
+    expect(view.plays).toEqual([]);
+    expect(view.team).toEqual(runView(r).team);
+    expect(view.heading).toBe('Run · Nov 2');
   });
 });
 

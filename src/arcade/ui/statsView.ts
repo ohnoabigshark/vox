@@ -8,13 +8,14 @@ import { areaAt, AREAS } from '../content/defense';
 import { SERIES_PER_AREA } from '../sim/props';
 import type { Play } from '../content/plays';
 import type { Form, Grade } from '../sim/types';
-import type { AllTime, Best, Records } from '../record/allTime';
+import type { AllTime, Best, Records, RunSummary } from '../record/allTime';
 import {
   completionRate,
   playerStats,
   playsStats,
   runStats,
   type PlayerStats,
+  type RunStats,
 } from '../record/stats';
 import type { Saved } from '../record/store';
 import { JACK, type RecordPlayer, type RunRecord, type TapTestKind } from '../record/types';
@@ -217,11 +218,10 @@ export function runView(record: RunRecord): RunView {
     ];
   });
   const plays = playsStats(record);
-  const rate = completionRate(s.passing);
   return {
     heading: `Run · ${day(record.startedAt)}`,
     players,
-    team: teamSections(s, rate, record),
+    team: teamSections(s, record.end, record.reached),
     plays: [...plays.byPlay]
       .sort(([, a], [, b]) => b.calls - a.calls)
       .map(([id, p]): PlayRow => {
@@ -245,16 +245,27 @@ export function runView(record: RunRecord): RunView {
   };
 }
 
+/** A run past the last 20 (k3): only its summary is kept, so only its Team tab. */
+export function summaryView(summary: RunSummary): RunView {
+  return {
+    heading: `Run · ${day(summary.startedAt)}`,
+    players: [],
+    team: teamSections(summary.stats, summary.end, summary.reached),
+    plays: [],
+  };
+}
+
 function teamSections(
-  s: ReturnType<typeof runStats>,
-  rate: number | null,
-  record: RunRecord,
+  s: RunStats,
+  end: RunRecord['end'],
+  reached: RunRecord['reached'],
 ): Section[] {
+  const rate = completionRate(s.passing);
   return [
     {
       title: 'How far',
       rows: [
-        row('Reached', record.end === 'won' ? 'Won' : where(record.reached)),
+        row('Reached', end === 'won' ? 'Won' : where(reached)),
         row('Downs', s.downs),
         row('First downs', s.firstDowns),
         row('Touchdowns', s.touchdowns),

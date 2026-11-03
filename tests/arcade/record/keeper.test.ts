@@ -178,6 +178,55 @@ describe('the stats keeper', () => {
   });
 });
 
+describe('what the screens need', () => {
+  it('what’s kept, once loaded, and again after a run closes', async () => {
+    const { k } = keeper();
+    expect(k.saved).toBeNull();
+    await k.load();
+    expect(k.saved).toEqual(EMPTY);
+  });
+
+  it('a closed run is handed on with what’s kept after it, for the card', async () => {
+    const { store } = fakeStore();
+    const closed: [string, Saved | null][] = [];
+    const k = new StatsKeeper({
+      store,
+      build: 'b',
+      link: '',
+      newId: () => 'r1',
+      now: () => 0,
+      notice: () => {},
+      onClosed: (record, saved) => closed.push([record.id, saved]),
+    });
+    const s = createRun(1);
+    k.start(s);
+    stepOf(k, s, downEnded);
+    stepOf(k, s, [{ type: 'gameOver', seriesWon: 0, yards: 0 }], 'over');
+    await settled();
+    expect(closed).toEqual([['r1', EMPTY]]);
+  });
+
+  it('a close that fails still hands the run on, with nothing kept', async () => {
+    const { store } = fakeStore({ save: 'Storage full.' });
+    const closed: [string, Saved | null][] = [];
+    const k = new StatsKeeper({
+      store,
+      build: 'b',
+      link: '',
+      newId: () => 'r1',
+      now: () => 0,
+      notice: () => {},
+      onClosed: (record, saved) => closed.push([record.id, saved]),
+    });
+    const s = createRun(1);
+    k.start(s);
+    stepOf(k, s, downEnded);
+    stepOf(k, s, [{ type: 'gameOver', seriesWon: 0, yards: 0 }], 'over');
+    await settled();
+    expect(closed).toEqual([['r1', null]]);
+  });
+});
+
 describe('a store that fails says so', () => {
   it('the store’s problem on loading is the notice', async () => {
     const { k, notices } = keeper({ load: 'No stats here.' });
