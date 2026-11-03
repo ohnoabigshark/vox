@@ -11,13 +11,13 @@ import { JACK, type PlayResult, type RunRecord } from '../../../src/arcade/recor
 
 type Fake = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> & {
   data: Map<string, string>;
-  /** What fails: reading anything, or writing (a full store). */
-  fail: { read: boolean; write: boolean };
+  /** What fails: reading anything, writing (a full store), or removing. */
+  fail: { read: boolean; write: boolean; remove: boolean };
 };
 
 const fakeStorage = (): Fake => {
   const data = new Map<string, string>();
-  const fail = { read: false, write: false };
+  const fail = { read: false, write: false, remove: false };
   return {
     data,
     fail,
@@ -29,7 +29,10 @@ const fakeStorage = (): Fake => {
       if (fail.write) throw new Error('QuotaExceededError');
       data.set(k, v);
     },
-    removeItem: (k) => void data.delete(k),
+    removeItem: (k) => {
+      if (fail.remove) throw new Error('SecurityError');
+      data.delete(k);
+    },
   };
 };
 
@@ -123,6 +126,29 @@ describe('the stats store', () => {
     expect((await statsStore(storage, clock).load()).saved.runs).toHaveLength(1);
   });
 
+  it('an unfinished run ended when it was last saved, not when the game opened again', async () => {
+    const storage = fakeStorage();
+    await statsStore(storage, () => Date.UTC(2026, 10, 3, 12, 5)).saveOpen(
+      run('a', { end: 'open' }),
+    );
+    const { saved } = await statsStore(storage, clock).load();
+    expect(saved.runs[0]!.summary.endedAt).toBe('2026-11-03T12:05:00.000Z');
+  });
+
+  it('a run is counted once, even if its saved progress couldn’t be cleared', async () => {
+    const storage = fakeStorage();
+    const store = statsStore(storage, clock);
+    await store.saveOpen(run('a', { end: 'open' }));
+    storage.fail.remove = true;
+    await store.close(run('a'));
+    storage.fail.remove = false;
+    const { saved, problem } = await statsStore(storage, clock).load();
+    expect(problem).toBeNull();
+    expect(saved.runs.map((r) => r.summary.id)).toEqual(['a']);
+    expect(saved.allTime.hard.runs).toBe(1);
+    expect(storage.data.has('getJackBack.stats.open')).toBe(false);
+  });
+
   it('a run saved again replaces what was saved of it, and closing it clears it', async () => {
     const storage = fakeStorage();
     const store = statsStore(storage, clock);
@@ -173,7 +199,12 @@ describe('when it can’t keep them, it says so', () => {
   });
 
   it('what’s kept can’t be read: a notice, and it isn’t written over', async () => {
-    for (const kept of ['{nope', JSON.stringify({ format: 99, runs: [] })]) {
+    for (const kept of [
+      '{nope',
+      JSON.stringify({ format: 99, runs: [] }),
+      JSON.stringify({ format: 1 }),
+      JSON.stringify({ format: 1, runs: 'x', allTime: {} }),
+    ]) {
       const storage = fakeStorage();
       storage.data.set('getJackBack.stats', kept);
       const store = statsStore(storage, clock);

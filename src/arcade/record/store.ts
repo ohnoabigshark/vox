@@ -5,6 +5,7 @@
  * is hidden; and the closed runs with the all-time stats, written as a run
  * closes.
  */
+import { isRecord } from '../../isRecord';
 import { upgraded, type UpgradeStep } from '../../upgrade';
 import { addRun, emptyAllTime, summaryOf, type AllTime, type RunSummary } from './allTime';
 import { RECORD_FORMAT, type RunRecord } from './types';
@@ -49,21 +50,19 @@ const empty = (): Saved => ({
   allTime: { hard: emptyAllTime(), normal: emptyAllTime() },
 });
 
-const isObject = (x: unknown): x is Record<string, unknown> =>
-  typeof x === 'object' && x !== null && !Array.isArray(x);
-
 /** A saved blob read and brought up to today's format, or null if it can't be. */
 function parsed(raw: string): Record<string, unknown> | null {
   try {
     const x: unknown = JSON.parse(raw);
-    return isObject(x) ? upgraded(x, 'format', RECORD_FORMAT, UPGRADES) : null;
+    return isRecord(x) ? upgraded(x, 'format', RECORD_FORMAT, UPGRADES) : null;
   } catch {
     return null;
   }
 }
 
-/** The run ended: kept newest first (every play for the last KEPT_RUNS), and added to its mode's all time. */
+/** The run ended: kept newest first (every play for the last KEPT_RUNS), and added to its mode's all time; once. */
 function closed(saved: Saved, record: RunRecord): Saved {
+  if (saved.runs.some((r) => r.summary.id === record.id)) return saved;
   const mode = record.modes.hard ? 'hard' : 'normal';
   const runs = [{ summary: summaryOf(record), record }, ...saved.runs].map((r, i) =>
     i < KEPT_RUNS ? r : { ...r, record: null },
@@ -74,15 +73,48 @@ function closed(saved: Saved, record: RunRecord): Saved {
   };
 }
 
+/** Whether a saved blob has the closed runs' shape (its format says what's in it; this checks it's there). */
+const isSaved = (x: Record<string, unknown>): boolean =>
+  Array.isArray(x.runs) &&
+  isRecord(x.allTime) &&
+  isRecord(x.allTime.hard) &&
+  isRecord(x.allTime.normal);
+
+/** Whether a saved run in progress has a record's shape. */
+const isRunRecord = (x: unknown): x is RunRecord =>
+  isRecord(x) &&
+  typeof x.id === 'string' &&
+  Array.isArray(x.downs) &&
+  Array.isArray(x.team) &&
+  isRecord(x.modes) &&
+  isRecord(x.reached);
+
 export function statsStore(
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>,
   now: () => number,
 ): StatsStore {
   /** Set when what's kept can't be reached or read: nothing is written over it, and the notice has said so. */
   let blocked = false;
+  const iso = (ms: number): string => new Date(ms).toISOString();
+
+  /**
+   * Let go of the run in progress. A failure here is safe to leave: a run
+   * is counted once, by its id, so finding it again next time only clears it.
+   */
+  const clearOpen = (): void => {
+    try {
+      storage.removeItem(OPEN_KEY);
+    } catch {
+      // See above.
+    }
+  };
 
   /** What's kept, or why it can't be had. */
-  const read = (): { saved: Saved; open: RunRecord | null; problem: string | null } => {
+  const read = (): {
+    saved: Saved;
+    open: { record: RunRecord; savedAt: number | null } | null;
+    problem: string | null;
+  } => {
     let raw: string | null;
     let openRaw: string | null;
     try {
@@ -93,18 +125,19 @@ export function statsStore(
       return { saved: empty(), open: null, problem: UNAVAILABLE };
     }
     const kept = raw === null ? { format: RECORD_FORMAT, ...empty() } : parsed(raw);
-    if (!kept) {
+    if (!kept || !isSaved(kept)) {
       blocked = true;
       return { saved: empty(), open: null, problem: UNREADABLE };
     }
     const saved = { runs: kept.runs, allTime: kept.allTime } as Saved;
     if (openRaw === null) return { saved, open: null, problem: null };
-    const open = parsed(openRaw)?.record;
-    if (!isObject(open)) {
-      storage.removeItem(OPEN_KEY);
+    const open = parsed(openRaw);
+    if (!open || !isRunRecord(open.record)) {
+      clearOpen();
       return { saved, open: null, problem: LOST_OPEN };
     }
-    return { saved, open: open as unknown as RunRecord, problem: null };
+    const savedAt = typeof open.savedAt === 'number' ? open.savedAt : null;
+    return { saved, open: { record: open.record, savedAt }, problem: null };
   };
 
   const write = (key: string, value: object): void => {
@@ -115,12 +148,12 @@ export function statsStore(
     }
   };
 
-  const close = (record: RunRecord): Saved => {
+  const close = (record: RunRecord, endedAt: number): Saved => {
     const { saved } = read();
-    const next = closed(saved, { ...record, endedAt: new Date(now()).toISOString() });
+    const next = closed(saved, { ...record, endedAt: iso(endedAt) });
     if (blocked) return next;
-    write(KEY, next);
-    storage.removeItem(OPEN_KEY);
+    if (next !== saved) write(KEY, next);
+    clearOpen();
     return next;
   };
 
@@ -128,16 +161,16 @@ export function statsStore(
     async load() {
       const { saved, open, problem } = read();
       if (!open) return { saved, problem };
-      return {
-        saved: close({ ...open, end: open.end === 'open' ? 'unfinished' : open.end }),
-        problem,
-      };
+      const { record, savedAt } = open;
+      const end = record.end === 'open' ? 'unfinished' : record.end;
+      // It ended when it was last saved: the game can't know when the tab went away.
+      return { saved: close({ ...record, end }, savedAt ?? now()), problem };
     },
     async saveOpen(record) {
-      if (!blocked) write(OPEN_KEY, { record });
+      if (!blocked) write(OPEN_KEY, { record, savedAt: now() });
     },
     async close(record) {
-      return close(record);
+      return close(record, now());
     },
   };
 }
