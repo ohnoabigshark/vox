@@ -90,9 +90,7 @@ describe('whole runs, recorded', () => {
       expect(record.end).toBe(state.phase);
       expect(record.downs).toHaveLength(ended.length);
       expect(stats.yards).toBe(state.yards);
-      expect(stats.firstDowns + stats.touchdowns).toBe(
-        state.seriesWon + (state.phase === 'over' ? 0 : 0),
-      );
+      expect(stats.firstDowns + stats.touchdowns).toBe(state.seriesWon);
       expect(stats.touchdowns).toBe(events.filter((e) => e.type === 'areaCleared').length);
       expect(stats.against.sacks).toBe(events.filter((e) => e.type === 'sacked').length);
       expect(stats.contact.tacklesBroken).toBe(

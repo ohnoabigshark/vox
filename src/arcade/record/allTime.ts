@@ -4,7 +4,14 @@
  * run's stats; and the records, each kept with the run it came from. A
  * run is added once, as it closes, from its full record (store.ts).
  */
-import { playerStats, runStats, type PlayerStats, type RunStats } from './stats';
+import {
+  completionRate,
+  noGrades,
+  playerStats,
+  runStats,
+  type PlayerStats,
+  type RunStats,
+} from './stats';
 import { JACK, type RunRecord } from './types';
 
 /** What every run keeps, past the last 20 too (k3): how far, its stats, its team, and when. */
@@ -80,8 +87,6 @@ export function summaryOf(record: RunRecord): RunSummary {
   };
 }
 
-const grades = () => ({ great: 0, ok: 0, bad: 0 });
-
 export function emptyAllTime(): AllTime {
   return {
     runs: 0,
@@ -95,9 +100,15 @@ export function emptyAllTime(): AllTime {
       passing: { passes: 0, completions: 0, yards: 0, airYards: 0 },
       rushing: { rushes: 0, yards: 0 },
       contact: { tacklesBroken: 0, afterContact: 0 },
-      against: { sacks: 0, lossTackles: 0, incompletes: 0, batted: 0 },
+      against: { sacks: 0, tacklesForLoss: 0, incompletes: 0, batted: 0 },
       pancakes: 0,
-      tapTests: { bar: grades(), mash: grades(), juke: grades(), snag: grades(), tip: grades() },
+      tapTests: {
+        bar: noGrades(),
+        mash: noGrades(),
+        juke: noGrades(),
+        snag: noGrades(),
+        tip: noGrades(),
+      },
       rest: { pickups: 0, fieldEvents: 0, crowsShooed: 0 },
     },
     records: {
@@ -146,9 +157,9 @@ function totalsOf(s: RunStats): Totals {
 }
 
 /** The better of the record so far and this run's value: only a value past it, and above 0, beats it. */
-function better<B extends Best>(was: B | null, now: B): B | null {
-  if (now.value <= 0) return was;
-  return was === null || now.value > was.value ? now : was;
+function better<B extends Best>(was: B | null, run: B): B | null {
+  if (run.value <= 0) return was;
+  return was === null || run.value > was.value ? run : was;
 }
 
 /** The completion rate's minimum passes (s3). */
@@ -167,7 +178,7 @@ export function addRun(all: AllTime, record: RunRecord): AllTime {
     let out = was;
     for (const [id, p] of players) {
       if (id === JACK) continue;
-      const name = record.team.find((t) => t.id === id)?.name ?? '';
+      const name = record.team.find((t) => t.id === id)?.name ?? `player ${id}`;
       out = better(out, { ...best(of(p)), name });
     }
     return out;
@@ -189,7 +200,7 @@ export function addRun(all: AllTime, record: RunRecord): AllTime {
       mostTacklesBroken: better(r.mostTacklesBroken, best(s.contact.tacklesBroken)),
       bestCompletion:
         s.passing.passes >= COMPLETION_PASSES
-          ? better(r.bestCompletion, best(s.passing.completions / s.passing.passes))
+          ? better(r.bestCompletion, best(completionRate(s.passing) ?? 0))
           : r.bestCompletion,
       bestReceiving: bestPlayer(r.bestReceiving, (p) => p.catching.yards),
       bestRushing: bestPlayer(r.bestRushing, (p) => p.rushing.yards),

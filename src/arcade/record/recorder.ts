@@ -6,7 +6,7 @@
  */
 import { assertNever } from '../../assertNever';
 import { seriesNumber } from '../sim/run';
-import type { ArcadeEvent, DefenderKind, Grade, RunState } from '../sim/types';
+import type { ArcadeEvent, DefenderKind, DownResult, Grade, RunState } from '../sim/types';
 import {
   JACK,
   RECORD_FORMAT,
@@ -319,12 +319,7 @@ function newDraft(state: RunState): Draft {
   };
 }
 
-function finished(
-  d: Draft,
-  next: RunState,
-  result: PlayResult['outcome'] | 'firstDown',
-  gained: number,
-): PlayResult {
+function finished(d: Draft, next: RunState, result: DownResult, gained: number): PlayResult {
   const outcome: Outcome = result === 'firstDown' && d.boss ? 'touchdown' : result;
   const kind: PlayKind = d.sacked ? 'sack' : d.handedOff && !d.thrown ? 'rush' : 'pass';
   const end = endSpot(next, d);
@@ -346,7 +341,7 @@ function finished(
     airYards: d.catchY === null ? null : Math.max(0, d.catchY - d.los),
     afterCatch: d.catchY === null ? null : end - d.catchY,
     afterContact: d.grabY === null ? null : end - d.grabY,
-    lossTackle: kind !== 'sack' && d.carrier !== null && outcome === 'tackled' && end < d.los,
+    tackleForLoss: kind !== 'sack' && d.carrier !== null && outcome === 'tackled' && end < d.los,
     tacklesBroken: d.tacklesBroken,
     drags: d.drags,
     pancakes: d.pancakes,

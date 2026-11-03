@@ -62,7 +62,7 @@ export interface PlayResult {
   /** From where the carrier was first grabbed to where the play ended; null if never grabbed (p9). */
   readonly afterContact: number | null;
   /** A rush or a catch brought down behind the line (p10). */
-  readonly lossTackle: boolean;
+  readonly tackleForLoss: boolean;
   /** Break it!s won: one per BREAK, however many it sent flying (d1). */
   readonly tacklesBroken: number;
   readonly drags: number;

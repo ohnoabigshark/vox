@@ -28,7 +28,7 @@ const blank: PlayResult = {
   airYards: null,
   afterCatch: null,
   afterContact: null,
-  lossTackle: false,
+  tackleForLoss: false,
   tacklesBroken: 0,
   drags: 0,
   pancakes: [],
@@ -92,7 +92,7 @@ describe('the run’s stats (s1)', () => {
       tapTests: [{ test: 'bar', player: 2, grade: 'great', taps: [] }],
     }),
     rushBy(3, 6, { afterContact: 2, pancakes: [4, 4, 5] }),
-    rushBy(3, 0, { lossTackle: true }),
+    rushBy(3, 0, { tackleForLoss: true }),
     sack,
     { ...blank, outcome: 'batted' as const, target: 1 },
     catchBy(1, 10, 3, {
@@ -125,7 +125,7 @@ describe('the run’s stats (s1)', () => {
 
   it('contact, against you, blocking', () => {
     expect(s.contact).toEqual({ tacklesBroken: 1, afterContact: 3 });
-    expect(s.against).toEqual({ sacks: 1, lossTackles: 1, incompletes: 1, batted: 1 });
+    expect(s.against).toEqual({ sacks: 1, tacklesForLoss: 1, incompletes: 1, batted: 1 });
     expect(s.pancakes).toBe(3);
   });
 
@@ -152,7 +152,7 @@ describe('each player’s stats (s2)', () => {
       tapTests: [{ test: 'mash', player: 1, grade: 'great', taps: [] }],
     }),
     { ...blank, target: 1 },
-    catchBy(1, -1, 0, { lossTackle: true }),
+    catchBy(1, -1, 0, { tackleForLoss: true }),
     rushBy(2, 9, { pancakes: [3] }),
     sack,
   ];
@@ -176,7 +176,7 @@ describe('each player’s stats (s2)', () => {
     const c = p.get(1)!;
     expect(c.catching).toEqual({ targets: 3, catches: 2, yards: 11, afterCatch: 3, longest: 12 });
     expect(c.firstDowns).toBe(1);
-    expect(c.contact).toEqual({ tacklesBroken: 1, afterContact: 2, lossTackles: 1 });
+    expect(c.contact).toEqual({ tacklesBroken: 1, afterContact: 2, tacklesForLoss: 1 });
     expect(c.tapTests).toEqual({ great: 1, ok: 0, bad: 0 });
   });
 

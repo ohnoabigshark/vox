@@ -23,7 +23,7 @@ const blank: PlayResult = {
   airYards: null,
   afterCatch: null,
   afterContact: null,
-  lossTackle: false,
+  tackleForLoss: false,
   tacklesBroken: 0,
   drags: 0,
   pancakes: [],

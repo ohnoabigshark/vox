@@ -28,7 +28,7 @@ export interface RunStats {
   readonly contact: { readonly tacklesBroken: number; readonly afterContact: number };
   readonly against: {
     readonly sacks: number;
-    readonly lossTackles: number;
+    readonly tacklesForLoss: number;
     readonly incompletes: number;
     readonly batted: number;
   };
@@ -55,7 +55,7 @@ export interface PlayerStats {
   readonly contact: {
     readonly tacklesBroken: number;
     readonly afterContact: number;
-    readonly lossTackles: number;
+    readonly tacklesForLoss: number;
   };
   readonly pancakes: number;
   readonly tapTests: Grades;
@@ -70,7 +70,11 @@ export interface PlaysStats {
   readonly mostSuccessful: string | null;
 }
 
-const noGrades = (): Grades => ({ great: 0, ok: 0, bad: 0 });
+export const noGrades = (): Grades => ({ great: 0, ok: 0, bad: 0 });
+
+/** Completions a pass, or null with no passes. */
+export const completionRate = (p: RunStats['passing']): number | null =>
+  p.passes === 0 ? null : p.completions / p.passes;
 
 /** A pass is a play Jack threw: not a sack, not a rush. */
 const isPass = (d: PlayResult): boolean => d.kind === 'pass';
@@ -126,7 +130,7 @@ export function runStats(record: RunRecord): RunStats {
     },
     against: {
       sacks: downs.filter((d) => d.kind === 'sack').length,
-      lossTackles: downs.filter((d) => d.lossTackle).length,
+      tacklesForLoss: downs.filter((d) => d.tackleForLoss).length,
       incompletes: downs.filter((d) => d.outcome === 'incomplete').length,
       batted: downs.filter((d) => d.outcome === 'batted').length,
     },
@@ -170,7 +174,7 @@ export function playerStats(record: RunRecord): ReadonlyMap<number, PlayerStats>
       contact: {
         tacklesBroken: sum(carried, (d) => d.tacklesBroken),
         afterContact: sum(carried, (d) => d.afterContact ?? 0),
-        lossTackles: carried.filter((d) => d.lossTackle).length,
+        tacklesForLoss: carried.filter((d) => d.tackleForLoss).length,
       },
       pancakes: sum(downs, (d) => d.pancakes.filter((p) => p === id).length),
       tapTests,

@@ -118,6 +118,16 @@ describe('a pass play', () => {
     expect(pass.afterContact).toBe(2);
   });
 
+  it('a catch behind the line has no air yards: downfield only', () => {
+    const r = only([
+      thrown,
+      { events: [{ type: 'caught', id: 2, contested: false }], set: at(2, -2) },
+      { events: [{ type: 'downEnded', result: 'tackled', gained: 3 }], set: deadAt(3) },
+    ]);
+    expect(r.airYards).toBe(0);
+    expect(r.afterCatch).toBe(5);
+  });
+
   it('an incomplete has no air yards and no target', () => {
     const r = only([
       called,
@@ -184,7 +194,7 @@ describe('a rush', () => {
       { events: [{ type: 'downEnded', result: 'outOfBounds', gained: 5 }], set: at(3, 5) },
     ]);
     expect(r.afterContact).toBeNull();
-    expect(r.lossTackle).toBe(false);
+    expect(r.tackleForLoss).toBe(false);
   });
 });
 
@@ -199,7 +209,7 @@ describe('sacks and losses', () => {
     ]);
     expect(r.kind).toBe('sack');
     expect(r.passer).toBe(JACK);
-    expect(r.lossTackle).toBe(false);
+    expect(r.tackleForLoss).toBe(false);
   });
 
   it('a rush brought down behind the line is a tackle for loss, even where the line can’t go back', () => {
@@ -207,7 +217,7 @@ describe('sacks and losses', () => {
       { events: [{ type: 'handoff', id: 3 }] },
       { events: [{ type: 'downEnded', result: 'tackled', gained: 0 }], set: deadAt(-2) },
     ]);
-    expect(r.lossTackle).toBe(true);
+    expect(r.tackleForLoss).toBe(true);
   });
 
   it('a catch brought down behind the line is a tackle for loss', () => {
@@ -223,7 +233,7 @@ describe('sacks and losses', () => {
       },
     ]);
     expect(r.kind).toBe('pass');
-    expect(r.lossTackle).toBe(true);
+    expect(r.tackleForLoss).toBe(true);
   });
 });
 

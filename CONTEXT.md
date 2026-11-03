@@ -162,14 +162,15 @@ Decided on the stats map (`docs/STATS.md`), 2026-11-02 to 2026-11-03.
 - **Rush:** a play where a Runner carries the ball from the handoff. The
   carrier's run after a catch belongs to the pass. _Avoid:_ "run" for a
   play, since a run is a whole game (the play cards keep "Run" and "Pass").
-- **Target:** who a pass was meant for: the catcher, or for a pass batted
-  or incomplete, the eligible player nearest where it came down, within
-  catching reach; none for a throwaway.
+- **Target:** who a pass was meant for: the catcher, or for a pass batted,
+  the player who had a hand to it and lost it. An incomplete never has
+  one: a ball any of yours could reach is caught or contested, so an
+  incomplete is a throwaway.
 - **Air yards:** from the line of scrimmage to where a pass was caught,
   downfield only. **Yards after the catch:** from there to where the play
   ended. **Yards after contact:** from where the carrier was first grabbed
   to where the play ended.
-- **Tackle for loss:** a rush or a catch brought down behind the line of
+- **Tackle for loss** (`tackleForLoss` in code): a rush or a catch brought down behind the line of
   scrimmage, however it happened. A **sack** (Jack brought down holding the
   ball) is never also a tackle for loss.
 - **Tackle broken:** one BREAK in Break it!, however many tacklers it sent

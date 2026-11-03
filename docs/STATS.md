@@ -236,7 +236,7 @@ Each a branch of its own, reviewed and merged before the next (f1, r3):
    the docs that describe the game as it is (r1, r2), tagged
    `pre-series-rename` before it opens. The user plays some rounds as a smoke
    test before it merges.
-2. **`record`:** the two event fields, the recorder, the store, the run's
+2. **`record`:** the events' new fields and the players' ids, the recorder, the store, the run's
    stats, all-time totals and records. Nothing new on screen but the notice.
    Its scenarios are f2's, below.
 3. **`stats-screens`:** v1–v5.
