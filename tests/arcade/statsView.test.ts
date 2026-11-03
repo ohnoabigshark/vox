@@ -237,47 +237,52 @@ describe('a run past the last 20 (k3)', () => {
 });
 
 describe('the stats section (v5)', () => {
+  const NORMAL = { hard: false, twoTap: false, snag: false, tip: false };
   const r1 = { ...record('a', downs), endedAt: '2026-11-01T20:00:00.000Z' };
-  const r2 = record('b', [catchBy(1, 30)], { end: 'won' });
-  const r3 = record('c', [], {
-    end: 'unfinished',
-    modes: { hard: false, twoTap: true, snag: false, tip: false },
-  });
+  // Only normal mode wins.
+  const r2 = record('b', [catchBy(1, 30)], { end: 'won', modes: NORMAL });
+  const r3 = record('c', [], { end: 'unfinished' });
   const saved: Saved = {
     runs: [
       { summary: summaryOf(r3), record: r3 },
       { summary: summaryOf(r2), record: null },
       { summary: summaryOf(r1), record: r1 },
     ],
-    allTime: { hard: addRun(addRun(emptyAllTime(), r1), r2), normal: addRun(emptyAllTime(), r3) },
+    allTime: { hard: addRun(addRun(emptyAllTime(), r1), r3), normal: addRun(emptyAllTime(), r2) },
   };
 
-  it('Runs: newest first, one mode at a time; past the last 20, its Team tab only', () => {
-    expect(runsView(saved, 'hard').map((r) => [r.id, r.date, r.where, r.line, r.full])).toEqual([
-      ['b', 'Nov 2', 'Won', '30 yds · 0 first downs', false],
-      ['a', 'Nov 2', 'Candy Queendom · series 3', '38 yds · 1 first down', true],
+  it('Runs: newest first, one mode at a time', () => {
+    expect(runsView(saved, 'hard').map((r) => [r.id, r.date, r.where, r.line])).toEqual([
+      ['c', 'Nov 2', 'Candy Queendom · series 3 · unfinished', '0 yds · 0 first downs'],
+      ['a', 'Nov 2', 'Candy Queendom · series 3', '38 yds · 1 first down'],
     ]);
-    expect(runsView(saved, 'normal').map((r) => r.where)).toEqual([
-      'Candy Queendom · series 3 · unfinished',
-    ]);
+    expect(runsView(saved, 'normal').map((r) => [r.id, r.where])).toEqual([['b', 'Won']]);
   });
 
   it('All time: runs, records with their dates, best single-player runs, totals', () => {
     const all = allTimeView(saved.allTime.hard);
     expect(all.empty).toBe(false);
-    const titles = all.sections.map((s) => s.title);
-    expect(titles).toEqual(['Runs', 'Records', 'Best runs by a player', 'Totals']);
-    const runs = all.sections[0]!.rows;
-    expect(runs.map((r) => [r.label, r.value])).toEqual([
+    expect(all.sections.map((s) => s.title)).toEqual([
+      'Runs',
+      'Records',
+      'Best runs by a player',
+      'Totals',
+    ]);
+    expect(all.sections[0]!.rows.map((r) => [r.label, r.value])).toEqual([
       ['Played', '2'],
-      ['Won', '1'],
+      ['Won', '0'],
       ['Furthest', 'Candy Queendom · series 3'],
     ]);
     expect(all.sections[1]!.rows).toContainEqual({
       label: 'Longest pass',
-      value: '30 · Nov 2',
+      value: '12 · Nov 1',
       record: false,
     });
+  });
+
+  it('a mode with a win: the furthest is the win', () => {
+    const runs = allTimeView(saved.allTime.normal).sections[0]!.rows;
+    expect(runs.find((r) => r.label === 'Furthest')?.value).toBe('Won');
   });
 
   it('nothing yet says so', () => {

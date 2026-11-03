@@ -78,8 +78,6 @@ export interface RunsRow {
   readonly date: string;
   readonly where: string;
   readonly line: string;
-  /** Every play kept (the last 20 runs); else only its summary, the Team tab. */
-  readonly full: boolean;
 }
 export interface AllTimeView {
   readonly empty: boolean;
@@ -371,7 +369,7 @@ function teamSections(
 export function runsView(saved: Saved, mode: Mode): readonly RunsRow[] {
   return saved.runs
     .filter((r) => modeOf(r.summary.modes) === mode)
-    .map(({ summary, record }) => {
+    .map(({ summary }) => {
       const s = summary.stats;
       const at = summary.end === 'won' ? 'Won' : where(summary.reached);
       return {
@@ -379,7 +377,6 @@ export function runsView(saved: Saved, mode: Mode): readonly RunsRow[] {
         date: day(summary.startedAt),
         where: summary.end === 'unfinished' ? `${at} · unfinished` : at,
         line: `${yds(s.yards)} yds · ${count(s.firstDowns, 'first down')}`,
-        full: record !== null,
       };
     });
 }
@@ -400,7 +397,7 @@ export function allTimeView(all: AllTime): AllTimeView {
         rows: [
           row('Played', all.runs),
           row('Won', all.won),
-          row('Furthest', all.furthest ? where(all.furthest) : '–'),
+          row('Furthest', all.won > 0 ? 'Won' : all.furthest ? where(all.furthest) : '–'),
         ],
       },
       {
