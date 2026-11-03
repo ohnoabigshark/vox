@@ -17,7 +17,8 @@
 }
 
 .stats-card-layer[hidden],
-.stats-panel[hidden] {
+.stats-panel[hidden],
+.stats-tabs[hidden] {
   display: none;
 }
 
@@ -311,4 +312,54 @@
 
 .start-stats:active {
   translate: 3px 3px;
+}
+
+/* An achievement on the card (v1), and its pop at the top just after the down that earned it (h2). */
+.stats-ach {
+  margin-top: 8px;
+  padding: 5px 8px;
+  border: 3px solid var(--ink);
+  font:
+    800 0.95rem/1.3 system-ui,
+    sans-serif;
+  background: #ffe7b8;
+}
+
+.stats-toast {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 58px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 6;
+  width: min(340px, calc(100% - 32px));
+  padding: 8px 12px;
+  border: var(--edge) solid var(--ink);
+  color: var(--ink);
+  background: #ffe7b8;
+  box-shadow: 4px 4px 0 var(--ink);
+  pointer-events: none;
+  font:
+    600 0.85rem/1.3 system-ui,
+    sans-serif;
+}
+
+.stats-toast[hidden] {
+  display: none;
+}
+
+.stats-toast b {
+  display: block;
+  font:
+    400 1.25rem/1.2 'Creepster',
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.start-count {
+  min-height: 1.4em;
+  font:
+    700 1rem/1.4 system-ui,
+    sans-serif;
+  color: var(--bone);
 }

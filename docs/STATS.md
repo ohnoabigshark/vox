@@ -210,13 +210,13 @@ whole run shows on the run's card (h2).
 | --- | --- | --- |
 | Air Mail (x3) | completing a pass of more than 20 air yards | both |
 | Unbreakable (x15) | breaking two tackles on one play, the most a down allows | both |
-| Do or Die (x10) | a first down on fourth down | both |
+| Do or Die (x10) | a first down or a touchdown on fourth down (u5) | both |
 | Pancake Breakfast (x8) | five pancakes in one drive | both |
 | Perfect Drive (x4) | GREAT on every tap test in a drive won, at least three | both |
-| Spread the Love (x18) | a catch or a rush by five different players in one drive | both |
+| Spread the Love (x18) | a catch or a rush by five different players in one drive, won or not (u6) | both |
 | Clean Sheet (x17) | winning a drive without an incomplete, a sack or a tackle for loss | both |
 | Stone Hands (x14) | every pass to a Golem in one run caught, at least five | both |
-| (x6, names to come) | reaching the second area; reaching the third | both |
+| Sweet Tooth, Down on the Farm (x6, u7) | reaching the Candy Queendom; reaching Frederick's Farm (on the first snap there) | both |
 | Jack's Back (x5) | winning a run | normal |
 | Home Grown (x2) | winning a run without taking a TRICK OR TREAT! player (perks allowed) | normal |
 | Flawless Run (x4) | GREAT on every tap test in a run won | normal |
@@ -224,9 +224,10 @@ whole run shows on the run's card (h2).
 
 Only normal mode wins: hard mode goes round the areas again until Game Over
 (`run.ts`, `!state.hard`). The four "win a run" achievements stay
-normal-mode only, since more levels will come (e2's note). The rule for each
-edge (does a touchdown on fourth down count for Do or Die; does Spread the
-Love need the drive won) is settled in the achievements branch's scenarios.
+normal-mode only, since more levels will come (e2's note). Do or Die counts a
+touchdown on fourth down (u5), and Spread the Love any drive, won or not
+(u6), decided 2026-11-03. The achievements branch's scenarios are u4 on
+the map.
 
 ## Order of work
 
@@ -285,6 +286,8 @@ The `record` branch, 2026-11-03. Everything is in `src/arcade/record/`:
   `getJackBack.stats.open` for the run in progress and `getJackBack.stats`
   for the closed runs and all time. Older formats come up through
   `src/upgrade.ts`, shared with the test bench.
+- `achievements.ts`: the achievements, `earnedBy`, and what's earned
+  (`earn`, `newlyEarned`, `catchUp`).
 - `keeper.ts`: `StatsKeeper`, the game's side: it starts a recorder for
   each real run, saves after each down and on hide, and closes at Game
   Over or a win. `game.ts` calls it; `main.ts` passes the store.
@@ -338,6 +341,32 @@ draws a play small. Settled while building:
 - **Plays are listed most called first;** Jack's row shows his name alone.
 - **The stats section keeps its tab** when switching Hard and Normal.
 - **"N drives won" is gone** from the top of the screen (z2).
+
+### Achievements
+
+The `achievements` branch, 2026-11-03, from u4's scenarios.
+`src/arcade/record/achievements.ts` defines the fourteen, each a check
+over the record, either for mid-run (`down`: checked after each down, and
+popped) or for the whole run (`run`: checked as it closes, on the card).
+Settled while building:
+
+- **They're kept in the saved stats,** whose format is 2: the earned ones
+  (the first run to earn each and when, and the hard mark) and which
+  achievements have been looked for in the saved runs. Format 1 comes up
+  through the first real upgrade step, so a phone with saved runs earns
+  from its last 20 on its first load of this build.
+- **A pop is for what's new to this phone,** or newly earned in hard mode,
+  once a run each; the card lists everything the run newly earned, popped
+  or not.
+- **Flawless Run and Rock Steady need at least one** tap test, or pass:
+  a win with none of either would earn them for nothing.
+- **Hard / Normal hides on the Achievements tab:** they're one list (h1).
+- **Pops wait out a play:** held from the snap until the down is over; one
+  cut short shows again after it. One earned on a run's last down (the
+  winning touchdown, or the down that ended it) shows on the card only.
+- **Clean Sheet counts a batted pass as an incomplete,** which it is.
+- **Stats that can't be read pop nothing,** and the card claims nothing
+  earned: nothing would be kept.
 
 ## Parked
 

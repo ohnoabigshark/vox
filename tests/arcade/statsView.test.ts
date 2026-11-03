@@ -4,6 +4,7 @@ import type { Saved } from '../../src/arcade/record/store';
 import { JACK, type PlayResult, type RunRecord } from '../../src/arcade/record/types';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import {
+  achievementsView,
   allTimeView,
   cardView,
   runView,
@@ -100,7 +101,7 @@ const downs = [
 ];
 
 describe('the Game Over card (v1)', () => {
-  const card = cardView(record('a', downs), null);
+  const card = cardView(record('a', downs), null, []);
 
   it('how far: the area’s name and the series, and the downs played', () => {
     expect(card.title).toBe('Game Over!');
@@ -128,7 +129,7 @@ describe('the Game Over card (v1)', () => {
       addRun(emptyAllTime(), record('old', [catchBy(1, 30)])),
       record('older', [rushBy(2, 5, { pancakes: [3] })]),
     );
-    const c = cardView(r, before.records);
+    const c = cardView(r, before.records, []);
     // Yards 38 beat 30; the longest rush 10 beat 5; Mags' 19 and Slab's 2 pancakes beat 5 and 1.
     // No run had broken a tackle or made a first down before, so those aren't records broken.
     expect(c.rows.filter((x) => x.record).map((x) => x.label)).toEqual([
@@ -148,12 +149,16 @@ describe('the Game Over card (v1)', () => {
   });
 
   it('a first run breaks no records: there were none', () => {
-    const c = cardView(record('a', downs), emptyAllTime().records);
+    const c = cardView(record('a', downs), emptyAllTime().records, []);
     expect([...c.tiles, ...c.rows].some((x) => x.record)).toBe(false);
   });
 
   it('hard mode’s second time round says so', () => {
-    const c = cardView(record('a', [], { reached: { area: 4, index: 0, seriesNumber: 17 } }), null);
+    const c = cardView(
+      record('a', [], { reached: { area: 4, index: 0, seriesNumber: 17 } }),
+      null,
+      [],
+    );
     expect(c.sub).toBe('Candy Queendom · round 2 · series 1 · 0 downs');
   });
 
@@ -164,6 +169,7 @@ describe('the Game Over card (v1)', () => {
         modes: { hard: false, twoTap: false, snag: false, tip: false },
       }),
       null,
+      [],
     );
     expect(c.title).toBe('You got Jack back!');
     expect(c.sub).toBe('All 3 areas · 7 downs');
@@ -249,6 +255,8 @@ describe('the stats section (v5)', () => {
       { summary: summaryOf(r1), record: r1 },
     ],
     allTime: { hard: addRun(addRun(emptyAllTime(), r1), r3), normal: addRun(emptyAllTime(), r2) },
+    achievements: {},
+    checked: [],
   };
 
   it('Runs: newest first, one mode at a time', () => {
@@ -288,5 +296,37 @@ describe('the stats section (v5)', () => {
   it('nothing yet says so', () => {
     expect(allTimeView(emptyAllTime()).empty).toBe(true);
     expect(runsView({ ...saved, runs: [] }, 'hard')).toEqual([]);
+  });
+});
+
+describe('achievements on the screens (h1, h2, v4, v5)', () => {
+  it('the card lists what the run newly earned, hard ones marked', () => {
+    expect(cardView(record('a', downs), null, ['airMail', 'unbreakable']).achievements).toEqual([
+      'Air Mail · hard',
+      'Unbreakable · hard',
+    ]);
+    const normal = record('a', downs, {
+      modes: { hard: false, twoTap: false, snag: false, tip: false },
+    });
+    expect(cardView(normal, null, ['airMail']).achievements).toEqual(['Air Mail']);
+    expect(cardView(normal, null, []).achievements).toEqual([]);
+  });
+
+  it('the tab: earned first with their dates and hard marks, then the rest with what earns them; the count', () => {
+    const view = achievementsView({
+      airMail: { run: 'a', at: '2026-11-01T12:00:00.000Z', hard: true },
+      sweetTooth: { run: 'b', at: '2026-11-02T12:00:00.000Z', hard: false },
+    });
+    expect(view.count).toBe('🏆 2 of 14');
+    expect(view.earned).toEqual([
+      {
+        name: 'Air Mail',
+        earns: 'Complete a pass of more than 20 air yards',
+        when: 'Nov 1 · hard',
+      },
+      { name: 'Sweet Tooth', earns: 'Reach the Candy Queendom', when: 'Nov 2' },
+    ]);
+    expect(view.rest).toHaveLength(12);
+    expect(view.rest[0]).toEqual({ name: 'Unbreakable', earns: 'Break two tackles on one play' });
   });
 });

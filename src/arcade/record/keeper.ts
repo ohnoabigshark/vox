@@ -4,6 +4,7 @@
  * at Game Over or a win. A store that fails says so through `notice`.
  */
 import type { ArcadeEvent, RunState } from '../sim/types';
+import { newlyEarned, type AchievementId } from './achievements';
 import { RunRecorder, recordable } from './recorder';
 import type { Saved, StatsStore } from './store';
 import type { RunRecord } from './types';
@@ -22,6 +23,8 @@ export interface KeeperDeps {
    * had): the card shows the run, and marks each record it broke.
    */
   readonly onClosed?: (record: RunRecord, before: Saved | null) => void;
+  /** A down earned these, new to this phone (or newly in hard mode): they pop in the pause after it (h2). */
+  readonly onEarned?: (ids: readonly AchievementId[]) => void;
 }
 
 /** What's kept, for the stats section: still loading, not to be had (the notice said why), or kept. */
@@ -39,6 +42,8 @@ export class StatsKeeper {
    */
   private queue: Promise<void> = Promise.resolve();
   private stats: KeptStats = { kind: 'loading' };
+  /** What this run has popped already: once a run each. */
+  private popped = new Set<AchievementId>();
 
   constructor(private readonly deps: KeeperDeps) {}
 
@@ -54,7 +59,7 @@ export class StatsKeeper {
 
   /** What's kept read in, closing a run left open last time; any problem shown. */
   load(): Promise<void> {
-    return this.then(async () => {
+    return this.queued(async () => {
       try {
         const { saved, problem } = await this.deps.store.load();
         this.stats = saved ? { kind: 'kept', saved } : { kind: 'unreadable' };
@@ -69,6 +74,7 @@ export class StatsKeeper {
   /** A new run: recorded if it's a real one (c1). */
   start(state: RunState): void {
     const { build, link, newId, now } = this.deps;
+    this.popped = new Set();
     this.recorder = recordable(state)
       ? new RunRecorder(state, { id: newId(), build, link, now: now() })
       : null;
@@ -81,15 +87,28 @@ export class StatsKeeper {
     rec.step(prev, next, events);
     if (rec.record.end === 'over' || rec.record.end === 'won') {
       this.recorder = null;
-      if (played(rec)) void this.then(() => this.close(rec.record));
+      if (played(rec)) void this.queued(() => this.close(rec.record));
       return;
     }
-    if (events.some((e) => e.type === 'downEnded')) this.save(rec);
+    if (events.some((e) => e.type === 'downEnded')) {
+      this.save(rec);
+      this.pop(rec.record);
+    }
   }
 
   /** The page was hidden: the last chance to save before a phone freezes or closes it. */
   hidden(): void {
     if (this.recorder) this.save(this.recorder);
+  }
+
+  /** What the run so far has earned that's new to this phone, once a run each (h2). */
+  private pop(record: RunRecord): void {
+    // Stats that can't be read keep nothing earned: no pop says otherwise.
+    if (this.stats.kind !== 'kept') return;
+    const had = this.stats.saved.achievements;
+    const ids = newlyEarned(had, record, 'down').filter((id) => !this.popped.has(id));
+    for (const id of ids) this.popped.add(id);
+    if (ids.length > 0) this.deps.onEarned?.(ids);
   }
 
   /** The run closed and kept; handed on either way, for the card. */
@@ -105,11 +124,14 @@ export class StatsKeeper {
   }
 
   private save(rec: RunRecorder): void {
-    if (played(rec)) void this.then(() => this.deps.store.saveOpen(rec.record));
+    if (played(rec)) void this.queued(() => this.deps.store.saveOpen(rec.record));
   }
 
-  /** A store call, queued after the others; its failure shown, never silent. */
-  private then(op: () => Promise<unknown>): Promise<void> {
+  /**
+   * A store call, queued after the others; its failure shown, never silent.
+   * (Not named `then`: that would make the keeper a thenable, and `await` on it would hang.)
+   */
+  private queued(op: () => Promise<unknown>): Promise<void> {
     this.queue = this.queue
       .then(op)
       .then(() => undefined)

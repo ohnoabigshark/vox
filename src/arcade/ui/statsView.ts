@@ -5,6 +5,12 @@
  * "Nov 2".
  */
 import { areaAt, AREAS } from '../content/defense';
+import {
+  achievement,
+  ACHIEVEMENTS,
+  type AchievementId,
+  type EarnedSet,
+} from '../record/achievements';
 import { SERIES_PER_AREA } from '../sim/props';
 import type { Play } from '../content/plays';
 import type { Form, Grade } from '../sim/types';
@@ -50,6 +56,19 @@ export interface CardView {
   readonly sub: string;
   readonly tiles: readonly Row[];
   readonly rows: readonly Row[];
+  /** What the run newly earned, by name ("Air Mail · hard"). */
+  readonly achievements: readonly string[];
+}
+
+/** The Achievements tab (v5) and the count under STATS (v4). */
+export interface AchievementsView {
+  readonly count: string;
+  readonly earned: readonly {
+    readonly name: string;
+    readonly earns: string;
+    readonly when: string;
+  }[];
+  readonly rest: readonly { readonly name: string; readonly earns: string }[];
 }
 export interface PlayerRow {
   readonly id: number;
@@ -133,7 +152,11 @@ const broke = (before: Best | null | undefined, value: number): boolean =>
  * The card at Game Over (v1) or a win (v3). `before`: the run's mode's
  * records as they were before it, so RECORD marks each one it broke.
  */
-export function cardView(record: RunRecord, before: Records | null): CardView {
+export function cardView(
+  record: RunRecord,
+  before: Records | null,
+  earned: readonly AchievementId[],
+): CardView {
   const s = runStats(record);
   const won = record.end === 'won';
   const b = before;
@@ -182,6 +205,24 @@ export function cardView(record: RunRecord, before: Records | null): CardView {
       ...bestRun('Best rushing run', b?.bestRushing, (p) => p.rushing.yards),
       ...bestRun('Best blocking run', b?.bestPancakes, (p) => p.pancakes),
     ],
+    achievements: earned.map(
+      (id) => `${achievement(id).name}${record.modes.hard ? ' · hard' : ''}`,
+    ),
+  };
+}
+
+/** The Achievements tab (v5): earned first, with when and a hard mark (h1); then the rest, with what earns them. */
+export function achievementsView(earned: EarnedSet): AchievementsView {
+  const got = ACHIEVEMENTS.flatMap((a) => {
+    const e = earned[a.id];
+    return e
+      ? [{ name: a.name, earns: a.earns, when: `${day(e.at)}${e.hard ? ' · hard' : ''}` }]
+      : [];
+  });
+  return {
+    count: `🏆 ${got.length} of ${ACHIEVEMENTS.length}`,
+    earned: got,
+    rest: ACHIEVEMENTS.filter((a) => !earned[a.id]).map((a) => ({ name: a.name, earns: a.earns })),
   };
 }
 
