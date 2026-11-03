@@ -8,6 +8,7 @@ import type { KeptStats } from '../arcade/record/keeper';
 import type { Saved } from '../arcade/record/store';
 import type { Mode } from '../arcade/record/types';
 import {
+  achievementsView,
   allTimeView,
   runsView,
   runView,
@@ -19,6 +20,9 @@ import {
 } from '../arcade/ui/statsView';
 import { playDrawing } from './playDrawing';
 import './stats.css';
+
+/** How long each achievement's pop stays (h2: about 3 s). */
+const TOAST_MS = 3000;
 
 export interface CardButton {
   readonly label: string;
@@ -90,6 +94,9 @@ function tabbed(
 export class StatsScreens {
   private readonly cardLayer: HTMLElement;
   private readonly panel: HTMLElement;
+  private readonly toastEl: HTMLElement;
+  /** Achievements waiting to pop, the first showing: name, and what earned it. */
+  private readonly toasts: [string, string][] = [];
   /** The panel under the one showing (a run opened from the stats section), to go back to. */
   private under: (() => void) | null = null;
 
@@ -98,7 +105,9 @@ export class StatsScreens {
     this.cardLayer.hidden = true;
     this.panel = make('div', 'stats-panel interactive');
     this.panel.hidden = true;
-    root.append(this.cardLayer, this.panel);
+    this.toastEl = make('div', 'stats-toast');
+    this.toastEl.hidden = true;
+    root.append(this.cardLayer, this.panel, this.toastEl);
   }
 
   /** The card at Game Over or a win (v1, v3), with its buttons below it. */
@@ -117,6 +126,7 @@ export class StatsScreens {
       make('p', 'stats-sub', view.sub),
       tiles,
       ...view.rows.map(rowEl),
+      ...view.achievements.map((name) => make('div', 'stats-ach', `🏆 ${name}`)),
     );
     const row = make('div', 'stats-buttons');
     for (const b of buttons) {
@@ -165,18 +175,41 @@ export class StatsScreens {
       }
       const shown = (name: string, content: () => HTMLElement[]) => () => {
         open = name;
+        // Hard / Normal is for All time and Runs; achievements are one list (h1).
+        modes.hidden = name === 'Achievements';
         return content();
       };
       const { bar, body } = tabbed(
         [
           { name: 'All time', content: shown('All time', () => this.allTime(kept, mode)) },
           { name: 'Runs', content: shown('Runs', () => this.runs(kept, mode, draw, onBack)) },
+          { name: 'Achievements', content: shown('Achievements', () => this.achievements(kept)) },
         ],
         open,
       );
       this.showPanel('Stats', onBack, bar, modes, body);
     };
     draw();
+  }
+
+  /** An achievement just earned (h2): a pop at the top for about 3 s, one after another, never in the way of a tap. */
+  toast(name: string, earns: string): void {
+    this.toasts.push([name, earns]);
+    if (this.toasts.length === 1) this.nextToast();
+  }
+
+  private nextToast(): void {
+    const next = this.toasts[0];
+    if (!next) {
+      this.toastEl.hidden = true;
+      return;
+    }
+    this.toastEl.replaceChildren(make('b', '', `🏆 ${next[0]}`), make('small', '', next[1]));
+    this.toastEl.hidden = false;
+    window.setTimeout(() => {
+      this.toasts.shift();
+      this.nextToast();
+    }, TOAST_MS);
   }
 
   /** Closes the panel showing, and forgets what was under it. */
@@ -230,6 +263,23 @@ export class StatsScreens {
     if (kept.kind === 'unreadable')
       return [make('p', 'stats-empty', "Your stats can't be read on this phone.")];
     return kept.saved;
+  }
+
+  private achievements(kept: KeptStats): HTMLElement[] {
+    const saved = this.saved(kept);
+    if (Array.isArray(saved)) return saved;
+    const view = achievementsView(saved.achievements);
+    const item = (name: string, small: string): HTMLElement => {
+      const div = make('div', 'stats-item');
+      div.append(make('b', '', name), make('small', '', small));
+      return div;
+    };
+    return [
+      make('p', 'stats-key', view.count),
+      ...view.earned.map((a) => item(`✓ ${a.name}`, `${a.earns} · ${a.when}`)),
+      ...(view.rest.length > 0 ? [make('h3', '', 'Still to earn')] : []),
+      ...view.rest.map((a) => item(a.name, a.earns)),
+    ];
   }
 
   private allTime(kept: KeptStats, mode: Mode): HTMLElement[] {

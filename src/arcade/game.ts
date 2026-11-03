@@ -63,7 +63,8 @@ import { BUILD, PLAY_LOG_URL } from './log/build';
 import { StatsKeeper } from './record/keeper';
 import type { Saved, StatsStore } from './record/store';
 import { modeOf, type RunRecord } from './record/types';
-import { cardView, runView } from './ui/statsView';
+import { achievementsView, cardView, runView } from './ui/statsView';
+import { ACHIEVEMENTS, newlyEarned } from './record/achievements';
 import { StatsScreens } from '../ui/stats';
 import { eventLines, flagLine, startLine, type LogMeta } from './log/playLog';
 import { PlayLogSender } from './log/playLogSender';
@@ -204,6 +205,8 @@ export class ArcadeGame {
   private readonly stats: StatsKeeper | null;
   /** The stats screens (docs/STATS.md, v1-v5), with the record. */
   private readonly statsScreens: StatsScreens | null;
+  /** What's kept, read in (the count under STATS waits for it). */
+  private statsLoaded: Promise<void> | null = null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -360,7 +363,15 @@ export class ArcadeGame {
         this.conductor.play('uiClick');
         screens.section(this.stats?.kept ?? { kind: 'unreadable' }, () => {});
       });
-      this.startScreen.append(stats);
+      // How many achievements you've earned (v4), once what's kept is read.
+      const count = document.createElement('div');
+      count.className = 'start-count';
+      void this.statsLoaded?.then(() => {
+        const kept = this.stats?.kept;
+        if (kept?.kind === 'kept')
+          count.textContent = achievementsView(kept.saved.achievements).count;
+      });
+      this.startScreen.append(stats, count);
     }
     if (!this.practice) uiRoot.append(this.startScreen);
     document.addEventListener('visibilitychange', () => {
@@ -519,8 +530,15 @@ export class ArcadeGame {
       now,
       notice: (text) => this.hud.notice(text),
       onClosed: (record, before) => this.showCard(record, before),
+      // Each pops at the top, in the pause after the down that earned it (h2).
+      onEarned: (ids) => {
+        for (const id of ids) {
+          const a = ACHIEVEMENTS.find((x) => x.id === id);
+          if (a) this.statsScreens?.toast(a.name, a.earns);
+        }
+      },
     });
-    void keeper.load();
+    this.statsLoaded = keeper.load();
     return keeper;
   }
 
@@ -528,7 +546,11 @@ export class ArcadeGame {
   private showCard(record: RunRecord, before: Saved | null): void {
     const screens = this.statsScreens;
     if (!screens) return;
-    const view = cardView(record, before?.allTime[modeOf(record.modes)].records ?? null);
+    const view = cardView(
+      record,
+      before?.allTime[modeOf(record.modes)].records ?? null,
+      newlyEarned(before?.achievements ?? {}, record),
+    );
     const stats = {
       label: 'STATS',
       onTap: () => {
