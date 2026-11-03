@@ -107,9 +107,9 @@ export class StatsScreens {
     const tiles = make('div', 'stats-tiles');
     for (const t of view.tiles) {
       const tile = make('div', 'stats-tile');
-      const b = make('b', '', t.value);
-      if (t.record) b.append(make('em', 'stats-new', 'RECORD'));
-      tile.append(b, make('span', '', t.label));
+      // RECORD on a line of its own above the number, so the number stays centred (u1's note).
+      if (t.record) tile.append(make('em', 'stats-new', 'RECORD'));
+      tile.append(make('b', '', t.value), make('span', '', t.label));
       tiles.append(tile);
     }
     card.append(

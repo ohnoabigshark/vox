@@ -69,6 +69,11 @@
     sans-serif;
 }
 
+.stats-tile .stats-new {
+  display: table;
+  margin: 0 auto 3px;
+}
+
 .stats-tile span {
   font:
     600 0.75rem/1.2 system-ui,
