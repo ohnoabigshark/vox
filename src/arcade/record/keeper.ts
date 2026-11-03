@@ -5,7 +5,8 @@
  */
 import type { ArcadeEvent, RunState } from '../sim/types';
 import { RunRecorder, recordable } from './recorder';
-import type { StatsStore } from './store';
+import type { Saved, StatsStore } from './store';
+import type { RunRecord } from './types';
 
 export interface KeeperDeps {
   readonly store: StatsStore;
@@ -16,7 +17,18 @@ export interface KeeperDeps {
   readonly now: () => number;
   /** Shows a problem to the Coach (the HUD's notice). */
   readonly notice: (text: string) => void;
+  /**
+   * A run closed, with what was kept before it (null if nothing could be
+   * had): the card shows the run, and marks each record it broke.
+   */
+  readonly onClosed?: (record: RunRecord, before: Saved | null) => void;
 }
+
+/** What's kept, for the stats section: still loading, not to be had (the notice said why), or kept. */
+export type KeptStats =
+  | { readonly kind: 'loading' }
+  | { readonly kind: 'unreadable' }
+  | { readonly kind: 'kept'; readonly saved: Saved };
 
 export class StatsKeeper {
   /** The run being recorded, or null (a drill, or none since the last one closed). */
@@ -26,14 +38,31 @@ export class StatsKeeper {
    * time's run), so nothing this run saves can go in before it.
    */
   private queue: Promise<void> = Promise.resolve();
+  private stats: KeptStats = { kind: 'loading' };
 
   constructor(private readonly deps: KeeperDeps) {}
+
+  /** Whether a played run is being recorded (one with a down played): it will close with a card. */
+  get recording(): boolean {
+    return this.recorder !== null && played(this.recorder);
+  }
+
+  /** What's kept, as last loaded or closed: or still loading, or not to be had. */
+  get kept(): KeptStats {
+    return this.stats;
+  }
 
   /** What's kept read in, closing a run left open last time; any problem shown. */
   load(): Promise<void> {
     return this.then(async () => {
-      const { problem } = await this.deps.store.load();
-      if (problem) this.deps.notice(problem);
+      try {
+        const { saved, problem } = await this.deps.store.load();
+        this.stats = saved ? { kind: 'kept', saved } : { kind: 'unreadable' };
+        if (problem) this.deps.notice(problem);
+      } catch (e) {
+        this.stats = { kind: 'unreadable' };
+        throw e;
+      }
     });
   }
 
@@ -52,7 +81,7 @@ export class StatsKeeper {
     rec.step(prev, next, events);
     if (rec.record.end === 'over' || rec.record.end === 'won') {
       this.recorder = null;
-      if (played(rec)) void this.then(() => this.deps.store.close(rec.record));
+      if (played(rec)) void this.then(() => this.close(rec.record));
       return;
     }
     if (events.some((e) => e.type === 'downEnded')) this.save(rec);
@@ -61,6 +90,18 @@ export class StatsKeeper {
   /** The page was hidden: the last chance to save before a phone freezes or closes it. */
   hidden(): void {
     if (this.recorder) this.save(this.recorder);
+  }
+
+  /** The run closed and kept; handed on either way, for the card. */
+  private async close(record: RunRecord): Promise<void> {
+    const before = this.stats.kind === 'kept' ? this.stats.saved : null;
+    try {
+      const saved = await this.deps.store.close(record);
+      // What can't be read stays that way: the store kept nothing new over it.
+      if (this.stats.kind === 'kept') this.stats = { kind: 'kept', saved };
+    } finally {
+      this.deps.onClosed?.(record, before);
+    }
   }
 
   private save(rec: RunRecorder): void {

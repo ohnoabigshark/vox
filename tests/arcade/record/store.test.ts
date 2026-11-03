@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { addRun, emptyAllTime, summaryOf } from '../../../src/arcade/record/allTime';
-import { KEPT_RUNS, statsStore } from '../../../src/arcade/record/store';
+import {
+  KEPT_RUNS,
+  statsStore,
+  type Saved,
+  type StatsStore,
+} from '../../../src/arcade/record/store';
 import { JACK, type PlayResult, type RunRecord } from '../../../src/arcade/record/types';
 
 /**
@@ -37,6 +42,13 @@ const fakeStorage = (): Fake => {
 };
 
 const NOW = Date.UTC(2026, 10, 3, 12, 30);
+
+/** What a store loads, which these tests expect it can: no problem reaching or reading it. */
+async function loaded(store: StatsStore): Promise<{ saved: Saved; problem: string | null }> {
+  const { saved, problem } = await store.load();
+  if (!saved) throw new Error(`nothing kept: ${problem}`);
+  return { saved, problem };
+}
 const clock = () => NOW;
 
 const down: PlayResult = {
@@ -116,14 +128,14 @@ describe('the stats store', () => {
   it('a run saved as it goes, never closed, is closed on the next start: unfinished, and counted', async () => {
     const storage = fakeStorage();
     await statsStore(storage, clock).saveOpen(run('a', { end: 'open' }));
-    const { saved, problem } = await statsStore(storage, clock).load();
+    const { saved, problem } = await loaded(statsStore(storage, clock));
     expect(problem).toBeNull();
     expect(saved.runs.map((r) => [r.summary.id, r.summary.end, r.summary.endedAt])).toEqual([
       ['a', 'unfinished', '2026-11-03T12:30:00.000Z'],
     ]);
     expect(saved.allTime.hard.runs).toBe(1);
     // …once: the next start finds nothing open.
-    expect((await statsStore(storage, clock).load()).saved.runs).toHaveLength(1);
+    expect((await loaded(statsStore(storage, clock))).saved.runs).toHaveLength(1);
   });
 
   it('an unfinished run ended when it was last saved, not when the game opened again', async () => {
@@ -131,7 +143,7 @@ describe('the stats store', () => {
     await statsStore(storage, () => Date.UTC(2026, 10, 3, 12, 5)).saveOpen(
       run('a', { end: 'open' }),
     );
-    const { saved } = await statsStore(storage, clock).load();
+    const { saved } = await loaded(statsStore(storage, clock));
     expect(saved.runs[0]!.summary.endedAt).toBe('2026-11-03T12:05:00.000Z');
   });
 
@@ -142,7 +154,7 @@ describe('the stats store', () => {
     storage.fail.remove = true;
     await store.close(run('a'));
     storage.fail.remove = false;
-    const { saved, problem } = await statsStore(storage, clock).load();
+    const { saved, problem } = await loaded(statsStore(storage, clock));
     expect(problem).toBeNull();
     expect(saved.runs.map((r) => r.summary.id)).toEqual(['a']);
     expect(saved.allTime.hard.runs).toBe(1);
@@ -155,7 +167,7 @@ describe('the stats store', () => {
     await store.saveOpen(run('a', { end: 'open', downs: [] }));
     await store.saveOpen(run('a', { end: 'open' }));
     await store.close(run('a'));
-    const { saved } = await statsStore(storage, clock).load();
+    const { saved } = await loaded(statsStore(storage, clock));
     expect(saved.runs).toHaveLength(1);
     expect(saved.allTime.hard.totals.downs).toBe(1);
   });
@@ -181,7 +193,7 @@ describe('the stats store', () => {
       'getJackBack.stats',
       JSON.stringify({ format: 1, runs: [{ summary: summaryOf(ended), record: ended }], allTime }),
     );
-    const { saved, problem } = await statsStore(storage, clock).load();
+    const { saved, problem } = await loaded(statsStore(storage, clock));
     expect(problem).toBeNull();
     expect(saved.runs[0]!.record).toEqual(ended);
     await statsStore(storage, clock).close(run('b'));
@@ -195,7 +207,7 @@ describe('when it can’t keep them, it says so', () => {
     storage.fail.read = true;
     const { saved, problem } = await statsStore(storage, clock).load();
     expect(problem).toBe("This browser isn't keeping your stats (private browsing?).");
-    expect(saved.runs).toEqual([]);
+    expect(saved).toBeNull();
   });
 
   it('what’s kept can’t be read: a notice, and it isn’t written over', async () => {
@@ -208,9 +220,10 @@ describe('when it can’t keep them, it says so', () => {
       const storage = fakeStorage();
       storage.data.set('getJackBack.stats', kept);
       const store = statsStore(storage, clock);
-      expect((await store.load()).problem).toBe(
-        "Your saved stats can't be read, so this run's won't be kept.",
-      );
+      expect(await store.load()).toEqual({
+        saved: null,
+        problem: "Your saved stats can't be read, so this run's won't be kept.",
+      });
       await store.saveOpen(run('a', { end: 'open' }));
       await store.close(run('a'));
       expect(storage.data.get('getJackBack.stats')).toBe(kept);

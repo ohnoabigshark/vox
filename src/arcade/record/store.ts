@@ -8,7 +8,7 @@
 import { isRecord } from '../../isRecord';
 import { upgraded, type UpgradeStep } from '../../upgrade';
 import { addRun, emptyAllTime, summaryOf, type AllTime, type RunSummary } from './allTime';
-import { RECORD_FORMAT, type RunRecord } from './types';
+import { modeOf, RECORD_FORMAT, type RunRecord } from './types';
 
 /** Every play of the last this-many runs; older ones keep their summary (k3). */
 export const KEPT_RUNS = 20;
@@ -26,8 +26,11 @@ export interface Saved {
 }
 
 export interface StatsStore {
-  /** What's kept, closing a run left open as unfinished; `problem` says why it may be empty. */
-  load(): Promise<{ saved: Saved; problem: string | null }>;
+  /**
+   * What's kept, closing a run left open as unfinished; null when it can't
+   * be reached or read. `problem` says what went wrong, for the notice.
+   */
+  load(): Promise<{ saved: Saved | null; problem: string | null }>;
   /** The run in progress, as it now stands. */
   saveOpen(record: RunRecord): Promise<void>;
   /** The run ended: kept, counted, and no longer open. */
@@ -63,7 +66,7 @@ function parsed(raw: string): Record<string, unknown> | null {
 /** The run ended: kept newest first (every play for the last KEPT_RUNS), and added to its mode's all time; once. */
 function closed(saved: Saved, record: RunRecord): Saved {
   if (saved.runs.some((r) => r.summary.id === record.id)) return saved;
-  const mode = record.modes.hard ? 'hard' : 'normal';
+  const mode = modeOf(record.modes);
   const runs = [{ summary: summaryOf(record), record }, ...saved.runs].map((r, i) =>
     i < KEPT_RUNS ? r : { ...r, record: null },
   );
@@ -160,6 +163,7 @@ export function statsStore(
   return {
     async load() {
       const { saved, open, problem } = read();
+      if (blocked) return { saved: null, problem };
       if (!open) return { saved, problem };
       const { record, savedAt } = open;
       const end = record.end === 'open' ? 'unfinished' : record.end;

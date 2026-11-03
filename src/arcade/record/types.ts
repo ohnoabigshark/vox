@@ -95,6 +95,10 @@ export interface RunModes {
   readonly tip: boolean;
 }
 
+/** Which of the all-time stats a run counts in: hard mode and normal are kept apart (c1). */
+export type Mode = 'hard' | 'normal';
+export const modeOf = (modes: RunModes): Mode => (modes.hard ? 'hard' : 'normal');
+
 export interface RunRecord {
   readonly format: number;
   /** A random id (k4). */

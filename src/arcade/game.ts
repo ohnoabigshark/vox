@@ -61,7 +61,10 @@ import { canThrow, step } from './sim/step';
 import { now } from '../clock';
 import { BUILD, PLAY_LOG_URL } from './log/build';
 import { StatsKeeper } from './record/keeper';
-import type { StatsStore } from './record/store';
+import type { Saved, StatsStore } from './record/store';
+import { modeOf, type RunRecord } from './record/types';
+import { cardView, runView } from './ui/statsView';
+import { StatsScreens } from '../ui/stats';
 import { eventLines, flagLine, startLine, type LogMeta } from './log/playLog';
 import { PlayLogSender } from './log/playLogSender';
 import type {
@@ -170,6 +173,8 @@ const LOOK_AHEAD = 7;
 const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
 /** If the redirect hasn't taken the page away by now, it was blocked: show the button. */
 const SONG_LINK_DELAY_MS = 3000;
+/** The win's card comes up once GOT JACK BACK has landed (the cutscene's words, render/outro.ts), over the dance. */
+const WIN_CARD_DELAY_MS = 3500;
 const WIDTH_MARGIN = 1.06;
 
 export class ArcadeGame {
@@ -197,6 +202,8 @@ export class ArcadeGame {
   private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
   /** The run's record: kept as it's played, closed at Game Over or a win (docs/STATS.md). */
   private readonly stats: StatsKeeper | null;
+  /** The stats screens (docs/STATS.md, v1-v5), with the record. */
+  private readonly statsScreens: StatsScreens | null;
   /** Each area's song (the Farm's is one of its candidates). */
   private readonly areaSongs: readonly Song[];
   private readonly conductor = new Conductor();
@@ -245,6 +252,8 @@ export class ArcadeGame {
   private renewing = false;
   /** The win cutscene, after the last Boss: the end (it dances on, with no AGAIN). */
   private outro: ArcadeOutro | null = null;
+  /** The way to the song if going there is blocked (toTheSong), once made. */
+  private songLink: HTMLAnchorElement | null = null;
   /** The opening cutscene, while it plays (after the first PLAY). */
   private intro: ArcadeIntro | null = null;
   /** Where the camera looks (field yards, smoothed). */
@@ -314,6 +323,7 @@ export class ArcadeGame {
       onFlag: () => this.flag(),
     });
     this.playLog = PLAY_LOG_URL ? this.startPlayLog(PLAY_LOG_URL) : null;
+    this.statsScreens = options.stats ? new StatsScreens(uiRoot) : null;
     this.stats = options.stats ? this.startStats(options.stats) : null;
     if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
     if (tryEvent && !tryEvent.event.ok)
@@ -340,6 +350,18 @@ export class ArcadeGame {
     play.textContent = 'PLAY';
     play.addEventListener('click', () => void this.onAction());
     this.startScreen.append(play);
+    // STATS under PLAY (v4): the stats section, over the start screen.
+    const screens = this.statsScreens;
+    if (screens) {
+      const stats = document.createElement('button');
+      stats.className = 'start-stats';
+      stats.textContent = 'STATS';
+      stats.addEventListener('click', () => {
+        this.conductor.play('uiClick');
+        screens.section(this.stats?.kept ?? { kind: 'unreadable' }, () => {});
+      });
+      this.startScreen.append(stats);
+    }
     if (!this.practice) uiRoot.append(this.startScreen);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'hidden') return;
@@ -475,6 +497,8 @@ export class ArcadeGame {
     if (events.some((e) => e.type === 'seriesWon') && this.state.phase !== 'won') {
       this.origin = this.originOf(this.state.series);
     }
+    // The outro asks the keeper whether a played run is being recorded (its card comes, or the
+    // song at once), so it starts before the keeper sees the win and closes the run.
     if (this.state.phase === 'won' && !this.outro) this.startOutro();
     this.react(events, prev);
     this.stats?.step(prev, this.state, events);
@@ -494,9 +518,30 @@ export class ArcadeGame {
       newId: () => crypto.randomUUID(),
       now,
       notice: (text) => this.hud.notice(text),
+      onClosed: (record, before) => this.showCard(record, before),
     });
     void keeper.load();
     return keeper;
+  }
+
+  /** The card at Game Over (v1) or a win (v3): the run's stats, the records it broke, and STATS for the rest. */
+  private showCard(record: RunRecord, before: Saved | null): void {
+    const screens = this.statsScreens;
+    if (!screens) return;
+    const view = cardView(record, before?.allTime[modeOf(record.modes)].records ?? null);
+    const stats = {
+      label: 'STATS',
+      onTap: () => {
+        this.conductor.play('uiClick');
+        screens.run(runView(record), () => {});
+      },
+    };
+    if (record.end === 'won') {
+      const song = { label: '♪ THE SONG', main: true, onTap: () => this.toTheSong() };
+      window.setTimeout(() => screens.card(view, [stats, song]), WIN_CARD_DELAY_MS);
+      return;
+    }
+    screens.card(view, [stats, { label: 'AGAIN', main: true, onTap: () => void this.onAction() }]);
   }
 
   /** The play log: sent where the build says (l1), its status shown on ⚑ (l4). */
@@ -736,7 +781,7 @@ export class ArcadeGame {
   private syncHud(): void {
     if (this.outro) {
       // Nothing over the win: it's the end.
-      this.hud.setTop('', null);
+      this.hud.setDowns(null);
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
       this.hud.setPrompt(null, null);
@@ -744,21 +789,16 @@ export class ArcadeGame {
     }
     if (this.intro) {
       // Nothing over the intro.
-      this.hud.setTop('', null);
+      this.hud.setDowns(null);
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
       this.hud.setPrompt(null, null);
       return;
     }
-    const { phase, seriesWon, hand, flipped, called, banned } = this.state;
-    // No series name during play: only the tally once the run is over. It still
-    // says "drives" for series won, until the Game Over card replaces it (docs/STATS.md).
-    const banner =
-      phase === 'over' || phase === 'won'
-        ? `${seriesWon} ${seriesWon === 1 ? 'drive' : 'drives'} won`
-        : '';
+    const { phase, hand, flipped, called, banned } = this.state;
+    // No series name during play, and no tally after: the card says how the run went (docs/STATS.md, z2).
     const live = downOn(phase);
-    this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
+    this.hud.setDowns(live ? downAndDistance(this.state) : null);
     const ready = this.live && !this.paused;
     // Practice: ‹ Sketch between reps (map item t4), not mid-play.
     if (this.practice) this.hud.setBack(phase === 'setup' || phase === 'downOver');
@@ -778,6 +818,8 @@ export class ArcadeGame {
     else if (this.paused) this.hud.setPrompt('Paused', 'RESUME');
     else if (phase === 'setup')
       this.hud.setPrompt(called === null ? 'Pick a play' : null, called === null ? null : 'HIKE!');
+    // With the stats screens, Game Over is their card (v1), and its AGAIN.
+    else if (phase === 'over' && this.statsScreens) this.hud.setPrompt(null, null);
     else if (phase === 'over') this.hud.setPrompt('Game Over!', 'AGAIN');
     else if (phase === 'won') this.hud.setPrompt(null, null);
     else this.hud.setPrompt(null, null);
@@ -825,6 +867,8 @@ export class ArcadeGame {
         this.renewing = false;
       }
       this.focus = v(0, -4);
+      this.statsScreens?.hideCard();
+      this.statsScreens?.closePanel();
     }
     this.syncHud();
   }
@@ -920,7 +964,8 @@ export class ArcadeGame {
         },
       });
     } else {
-      this.toTheSong();
+      // A played run's win shows its card, with the song a tap away (v3); ?win=1's shortcut has none.
+      if (!this.stats?.recording) this.toTheSong();
     }
   }
 
@@ -929,7 +974,13 @@ export class ArcadeGame {
    * here a moment later (the redirect was blocked), show a button for it.
    */
   private toTheSong(): void {
+    // Once is enough for the button: ♪ THE SONG can be tapped again.
+    if (this.songLink) {
+      this.songLink.hidden = false;
+      return;
+    }
     const link = document.createElement('a');
+    this.songLink = link;
     link.className = 'song-link interactive';
     link.href = WIN_SONG_URL;
     link.textContent = "Listen to 'We Got Jack Back' on YouTube";

@@ -1,5 +1,5 @@
 /**
- * The DOM HUD over the canvas (TECHNICAL.md §6): the banner and down
+ * The DOM HUD over the canvas (TECHNICAL.md §6): down
  * and distance at the top; the hand of play cards, Flip and the context button
  * (PLAY, HIKE!, RESUME, AGAIN) at the bottom; message pops and the big
  * GREAT/OK/BAD; and the TRICK OR TREAT! overlay (the offer and the roster).
@@ -105,7 +105,6 @@ export interface CardFace {
 
 export class Hud {
   private readonly top: HTMLElement;
-  private readonly banner: HTMLElement;
   private readonly downs: HTMLElement;
   private readonly message: HTMLElement;
   private readonly bottom: HTMLElement;
@@ -130,7 +129,6 @@ export class Hud {
     root.innerHTML = `
       <div class="hud-top">
         <button class="hud-back interactive" hidden>‹ Sketch</button>
-        <div class="hud-banner"></div>
         <div class="hud-right">
           <button class="hud-flag interactive" aria-label="Flag this moment in the play log" hidden>⚑</button>
           <div class="hud-downs"></div>
@@ -154,7 +152,6 @@ export class Hud {
       return el;
     };
     this.top = q('.hud-top');
-    this.banner = q('.hud-banner');
     this.downs = q('.hud-downs');
     this.message = q('.hud-message');
     this.bottom = q('.hud-bottom');
@@ -176,10 +173,8 @@ export class Hud {
   }
 
   /** Space the HUD takes at the top and bottom, so the camera can fit the field between. */
-  /** The banner (the tally of series won, once the run is over) and down and distance ("3rd & 4"). */
-  setTop(banner: string, downs: string | null): void {
-    this.banner.textContent = banner;
-    this.banner.hidden = !banner;
+  /** Down and distance ("3rd & 4"); null hides it. */
+  setDowns(downs: string | null): void {
     this.downs.textContent = downs ?? '';
     this.downs.hidden = !downs;
   }
