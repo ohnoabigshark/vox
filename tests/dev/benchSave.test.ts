@@ -39,13 +39,13 @@ describe('Save', () => {
     expect(savedAfter(savedAfter(saved, {}, 'snag'), {}, 'shoo')).toEqual({});
   });
 
-  it("D: a by-area slider saves every area's value it has, not just the picked drive's", () => {
+  it("D: a by-area slider saves every area's value it has, not just the picked series'", () => {
     const current = { 'breakit.byArea.0.sweet': 0.1, 'breakit.byArea.2.sweet': 0.05 };
     expect(savedAfter({}, current, 'bar')).toEqual(current);
   });
 
   it('D: saved entries no slider edits are left as they are', () => {
-    expect(savedAfter({ 'drive.pause': 1 }, {}, 'snag')).toEqual({ 'drive.pause': 1 });
+    expect(savedAfter({ 'series.pause': 1 }, {}, 'snag')).toEqual({ 'series.pause': 1 });
   });
 
   it('E: the countdown saved on Bar shows saved on Mash and Juke, and Restore on Juke resets it everywhere', () => {
@@ -87,7 +87,7 @@ describe('Restore defaults', () => {
 
 describe('what the page says', () => {
   it("b10: unsaved values not on screen (another area's) are listed by slider and area", () => {
-    // Drive 2 shows the Forest's sweet spot; the Candy Queendom's was moved on drive 7.
+    // Series 2 shows the Forest's sweet spot; the Candy Queendom's was moved on series 7.
     const current = { 'breakit.byArea.1.sweet': 0.1, 'breakit.byArea.0.sweet': 0.08 };
     expect(unsavedOffScreen({}, current, 'bar', 2)).toEqual(['Sweet spot (Candy Queendom)']);
     expect(unsavedOffScreen({}, current, 'bar', 7)).toEqual(["Sweet spot (Froggy's Forest)"]);

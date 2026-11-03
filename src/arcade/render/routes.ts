@@ -49,7 +49,7 @@ export class ArcadeRoutes {
     this.group.visible = show;
     if (!show) return;
     // Every down lines up with new ids, so they (and where the field is) say when to redraw.
-    const key = `${origin}|${state.drive.los}|${players.map((p) => `${p.slot}:${p.job.kind === 'route' ? p.job.to.map((w) => `${w.x},${w.y}`).join(';') : ''}`).join('|')}`;
+    const key = `${origin}|${state.series.los}|${players.map((p) => `${p.slot}:${p.job.kind === 'route' ? p.job.to.map((w) => `${w.x},${w.y}`).join(';') : ''}`).join('|')}`;
     if (key === this.key) return;
     this.key = key;
     this.group.clear();

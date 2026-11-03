@@ -1,5 +1,5 @@
 /**
- * The King's crows (his drive): two pairs, perched on him before the snap
+ * The King's crows (his series): two pairs, perched on him before the snap
  * (one pair on the ends of his arms, the other on his shoulders); each pair
  * in turn flies at the ball, then flaps over whoever it's landed on while
  * you SHOO! it (sim/step.ts, royalCrows). A pair is gone once it's shooed

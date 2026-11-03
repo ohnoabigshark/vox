@@ -29,16 +29,16 @@ export function unsaved(saved: Settings, current: Settings, test: BenchTest): st
 
 /**
  * The tab's unsaved values that no row on screen shows: a by-area slider
- * shows the picked drive's area, but Save saves every area's (r-s8). Each is
+ * shows the picked series' area, but Save saves every area's (r-s8). Each is
  * its slider's name and the area: "Sweet spot (Candy Queendom)".
  */
 export function unsavedOffScreen(
   saved: Settings,
   current: Settings,
   test: BenchTest,
-  drive: number,
+  series: number,
 ): string[] {
-  const shown = new Set(knobsFor(test).map((k) => pathOf(k, drive)));
+  const shown = new Set(knobsFor(test).map((k) => pathOf(k, series)));
   return unsaved(saved, current, test)
     .filter((p) => !shown.has(p))
     .map((p) => {

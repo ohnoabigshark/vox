@@ -5,7 +5,7 @@
  * about rendering or audio.
  *
  * Coordinates are yards: x across the field (0 is the middle, negative is
- * left), y upfield. Each drive starts its line of scrimmage at y = 0 and its
+ * left), y upfield. Each series starts its line of scrimmage at y = 0 and its
  * first-down line at y = 10. Times are seconds.
  */
 import type { EventLook, FieldEvent } from '../content/fieldEvents';
@@ -120,7 +120,7 @@ export interface FieldProp extends PropKind {
 /** A trick or a treat (docs/PICKUPS.md): the lightning bolt speeds up whoever takes it, the oil slick trips them. */
 export type PickupKind = 'bolt' | 'slick';
 
-/** A pickup on the field (sim/pickups.ts), in the drive's own coordinates; the first of your players to run through it takes it. */
+/** A pickup on the field (sim/pickups.ts), in the series' own coordinates; the first of your players to run through it takes it. */
 export interface Pickup {
   /** Unique in the run, so one taken stays gone (RunState.taken). */
   readonly id: number;
@@ -161,7 +161,7 @@ export interface FieldEventOn {
 }
 
 /**
- * A pair of the King's crows (his drive): they sit on him, swoop at
+ * A pair of the King's crows (his series): they sit on him, swoop at
  * whoever has the ball, and land on them for the SHOO! test. He has two
  * pairs a down: the second goes once the first is done.
  */
@@ -180,13 +180,13 @@ export interface RoyalCrows {
 export interface Field {
   readonly players: Player[];
   readonly defenders: Defender[];
-  /** This drive's props on the field (and the stretches either side of it). */
+  /** This series' props on the field (and the stretches either side of it). */
   props: readonly FieldProp[];
   /** The pickups lying there, not yet taken (none in practice). */
   pickups: readonly Pickup[];
-  /** This down's field event (Frog Rain, on Mister Frog's drive), shown from before the snap, or null. */
+  /** This down's field event (Frog Rain, on Mister Frog's series), shown from before the snap, or null. */
   fieldEvent: FieldEventOn | null;
-  /** The King's two pairs of crows (his drive), in the order they go, or null. */
+  /** The King's two pairs of crows (his series), in the order they go, or null. */
   crows: RoyalCrows[] | null;
   ball: Ball;
   /** Two-tap throwing: the line, stopped by the first tap (its angle, and when), or null while it sweeps. */
@@ -296,15 +296,15 @@ export type TipResult = 'clean' | 'bobble' | 'drop';
 /** A tap test's grade, as Break it!, SNAG IT! and the tip drill all grade. */
 export type Grade = 'great' | 'ok' | 'bad';
 
-export type DriveKind = 'intro' | 'challenge' | 'gimmick' | 'boss';
+export type SeriesKind = 'intro' | 'challenge' | 'gimmick' | 'boss';
 
-export interface Drive {
+export interface Series {
   readonly area: number;
   /** 0-3: Intro, Challenge, Gimmick, Boss. */
   readonly index: number;
-  readonly kind: DriveKind;
+  readonly kind: SeriesKind;
   readonly name: string;
-  /** Where the drive started (always 0) and the line it has to cross (10). */
+  /** Where the series started (always 0) and the line it has to cross (10). */
   readonly start: number;
   readonly firstDown: number;
   down: number;
@@ -362,9 +362,9 @@ export interface Perks {
   extraScans: number;
   /** The sweep's speed is multiplied by this (Slow-Mo Sweep: ×0.75 each). */
   sweepScale: number;
-  /** Second Wind: once a drive, a BAD Break it! counts as OK… */
+  /** Second Wind: once a series, a BAD Break it! counts as OK… */
   secondWind: boolean;
-  /** …and whether it's been used this drive. */
+  /** …and whether it's been used this series. */
   secondWindUsed: boolean;
   /** Candy Corn Magnet: a ball that would fall incomplete gets twice the reach. */
   magnet: boolean;
@@ -395,15 +395,15 @@ export interface RunState {
   readonly hard: boolean;
   /** Two-tap throwing (a link's default: `readModes`): the first THROW stops the line, the second lobs it as far as the marker. */
   readonly twoTapAim: boolean;
-  /** ?snag=1: SNAG IT! from the first drive, not only from drive 5 (docs/SNAG.md). */
+  /** ?snag=1: SNAG IT! from the first series, not only from series 5 (docs/SNAG.md). */
   readonly snagAlways: boolean;
-  /** ?tip=1: the tip drill from the first drive (docs/TIP.md); with ?snag=1 too, either at random. */
+  /** ?tip=1: the tip drill from the first series (docs/TIP.md); with ?snag=1 too, either at random. */
   readonly tipAlways: boolean;
   /** Fixed steps since the run began, and the time they add up to. */
   step: number;
   time: number;
   phase: Phase;
-  drive: Drive;
+  series: Series;
   /**
    * The plays this run can deal (CONTEXT.md, playbook). The play pool unless the
    * run was started with its own; plays as rewards will grow it.
@@ -421,7 +421,7 @@ export interface RunState {
   /** The three play cards on offer this down (indices into the playbook), which one is called (null until one is), and whether Flip is on. */
   hand: number[];
   called: number | null;
-  /** The Queen's Royal Decree (her drive): the card in the hand that's banned this down, or null. */
+  /** The Queen's Royal Decree (her series): the card in the hand that's banned this down, or null. */
   banned: number | null;
   flipped: boolean;
   /** The play called (or, before the call, the first card's), and whether it's mirrored. */
@@ -454,7 +454,7 @@ export interface RunState {
   /** Seconds left before the next down (in downOver). */
   pause: number;
   result: { readonly result: DownResult; readonly gained: number } | null;
-  drivesWon: number;
+  seriesWon: number;
   /** Net yards over the run. */
   yards: number;
   nextId: number;
@@ -486,7 +486,7 @@ export type Action =
   | { readonly type: 'skipDraft' }
   /** TRICK OR TREAT!: take one of the perks on offer. */
   | { readonly type: 'pick'; readonly offer: number }
-  /** Swap two players' spots, field or bench (between drives). Spots: 0-6 are the field slots, 7 up the bench seats. */
+  /** Swap two players' spots, field or bench (between series). Spots: 0-6 are the field slots, 7 up the bench seats. */
   | { readonly type: 'swap'; readonly a: number; readonly b: number };
 
 export type ArcadeEvent =
@@ -531,7 +531,7 @@ export type ArcadeEvent =
   | { readonly type: 'crowsStruck'; readonly on: number }
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
-  | { readonly type: 'driveWon'; readonly drive: number }
+  | { readonly type: 'seriesWon'; readonly index: number }
   | { readonly type: 'perk'; readonly perk: Perk }
   | {
       readonly type: 'joined';
@@ -558,9 +558,9 @@ export type ArcadeEvent =
     }
   /** A carrier slipped on an oil slick and is down there: SLIPPED! */
   | { readonly type: 'slipped'; readonly id: number }
-  | { readonly type: 'driveStarted'; readonly drive: number; readonly name: string }
+  | { readonly type: 'seriesStarted'; readonly index: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
-  | { readonly type: 'gameOver'; readonly drivesWon: number; readonly yards: number };
+  | { readonly type: 'gameOver'; readonly seriesWon: number; readonly yards: number };
 
 export interface ArcadeResult {
   readonly state: RunState;

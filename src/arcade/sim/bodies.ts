@@ -16,7 +16,7 @@ import {
 import { even, plus } from './stats';
 import { playerStats } from './team';
 import type { Play } from '../content/plays';
-import type { Defender, Drive, Player, RunState, Stats } from './types';
+import type { Defender, Series, Player, RunState, Stats } from './types';
 import { add, v } from './vec';
 
 /** A stat in steps away from ordinary (50 is 0, 60 is 1, 30 is -2). */
@@ -102,17 +102,17 @@ export function lineUpTeam(
 }
 
 /**
- * A drive's defense against the line of scrimmage, `boost` added to every
+ * A series' defense against the line of scrimmage, `boost` added to every
  * defender's stats. The Owl hangs past the first-down line; on the Boss
- * drive nobody lines up past the back of the end zone.
+ * series nobody lines up past the back of the end zone.
  */
 export function lineUpDefense(
   spec: DefenseSpec,
-  drive: Drive,
+  series: Series,
   boost: number,
   firstId: number,
 ): Defender[] {
-  const { los, firstDown, kind } = drive;
+  const { los, firstDown, kind } = series;
   const loop = arcadeTuning.defense.batLoop;
   return spec.defenders.map((spot, i): Defender => {
     const def = DEFENDERS[spot.kind];

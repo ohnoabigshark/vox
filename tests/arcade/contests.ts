@@ -1,7 +1,7 @@
 /**
  * Contested balls for the catch tests' tests (docs/SNAG.md, docs/TIP.md):
  * a bullet or a lob that one of your players and a defender both get to.
- * From drive 5 a contested ball picks SNAG IT! or the tip drill at random;
+ * From series 5 a contested ball picks SNAG IT! or the tip drill at random;
  * `force` picks one, as ?snag=1 or ?tip=1 does.
  */
 import { v } from '../../src/arcade/sim/vec';
@@ -10,10 +10,10 @@ import { playState, run, stand, throwAt } from './helpers';
 
 export type Force = 'snag' | 'tip';
 
-/** Put a down on the given drive of the run (1-based: drive 5 is the Candy Queendom's first). */
-export function onDrive(state: RunState, drive: number): RunState {
-  const area = Math.floor((drive - 1) / 4);
-  state.drive = { ...state.drive, area, index: (drive - 1) % 4 };
+/** Put a down on the given series of the run (1-based: series 5 is the Candy Queendom's first). */
+export function onSeries(state: RunState, series: number): RunState {
+  const area = Math.floor((series - 1) / 4);
+  state.series = { ...state.series, area, index: (series - 1) % 4 };
   return state;
 }
 
@@ -32,7 +32,7 @@ export function forced(state: RunState, force: Force | undefined): RunState {
  * Hands on the Cover, today's rule gives it the ball.
  */
 export function bulletContest(
-  drive: number,
+  series: number,
   catcherHands = 60,
   covers: readonly { hands: number; along?: number }[] = [{ hands: 60 }],
   force?: Force,
@@ -53,17 +53,17 @@ export function bulletContest(
     const off = Math.sqrt(d.reach ** 2 - (entry + along) ** 2);
     d.pos = v(4 + dir.x * along - right.x * off, 6 + dir.y * along - right.y * off);
   });
-  forced(onDrive(s, drive), force);
+  forced(onSeries(s, series), force);
   return run(s, 2, throwAt(s, v(4, 6))).state;
 }
 
 /** A lob coming down at (0.4, 10) between a Catcher and a Cover at x `cover` (the nearer wins today). */
-export function lobContest(drive: number, force?: Force, cover = -0.2): RunState {
+export function lobContest(series: number, force?: Force, cover = -0.2): RunState {
   const s = playState(
     [{ pos: v(2.2, 10), job: stand(v(2.2, 10)) }],
     [{ kind: 'cover', pos: v(cover, 10) }],
   );
-  forced(onDrive(s, drive), force);
+  forced(onSeries(s, series), force);
   s.field.ball = {
     at: 'flight',
     from: v(0, -4),

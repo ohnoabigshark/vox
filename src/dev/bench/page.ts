@@ -244,7 +244,7 @@ async function main(): Promise<void> {
     savedEl.textContent = text;
     savedEl.classList.toggle('off', bad);
     // Unsaved values no row on screen shows (another area's, b10).
-    const also = unsavedOffScreen(saved, settings, test(), kept.situation.drive);
+    const also = unsavedOffScreen(saved, settings, test(), kept.situation.series);
     alsoEl.hidden = also.length === 0;
     alsoEl.textContent = `Also unsaved: ${also.join(', ')}`;
     renderTabs();
@@ -294,8 +294,8 @@ async function main(): Promise<void> {
           kept = { ...kept, situation };
           bench.setSituation(situation);
           show();
-          // A by-area slider edits the new drive's area, so what's off screen changes too.
-          if (sit.key === 'drive') {
+          // A by-area slider edits the new series' area, so what's off screen changes too.
+          if (sit.key === 'series') {
             renderKnobs();
             renderSave();
           }
@@ -317,7 +317,7 @@ async function main(): Promise<void> {
   let moreOpen = false;
   const renderKnobs = (): void => {
     knobsEl.innerHTML = '';
-    const drive = kept.situation.drive;
+    const series = kept.situation.series;
     const behind = knobsFor(test()).filter((k) => k.more);
     const moreButton = document.createElement('button');
     moreButton.className = 'b-more';
@@ -325,7 +325,7 @@ async function main(): Promise<void> {
     moreEl.className = 'b-knobs-more';
     const showMore = (): void => {
       const changed = behind.filter(
-        (k) => rowView(k, pathOf(k, drive), saved, settings).unsaved,
+        (k) => rowView(k, pathOf(k, series), saved, settings).unsaved,
       ).length;
       moreButton.textContent = moreOpen
         ? 'Fewer'
@@ -338,7 +338,7 @@ async function main(): Promise<void> {
       showMore();
     });
     for (const knob of knobsFor(test())) {
-      const path = pathOf(knob, drive);
+      const path = pathOf(knob, series);
       const reach = reachOf(knob, path);
       const range = {
         min: toScreen(knob, reach.min),

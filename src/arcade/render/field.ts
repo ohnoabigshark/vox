@@ -1,12 +1,12 @@
 /**
  * The arcade field: one long strip of pixel turf (mowing stripes every
  * yard, a lighter band every five, flecks of grass; each area in its own
- * colours), and the lines that move with the drive.
+ * colours), and the lines that move with the series.
  */
 import * as THREE from 'three';
 import { biomes, hexToNumber, team } from '../../content/palettes';
 import { arcadeTuning } from '../content/tuning';
-import type { Drive } from '../sim/types';
+import type { Series } from '../sim/types';
 import { createRng } from '../../sim/rng';
 import { FIELD_AHEAD, FIELD_BEHIND, biomeAtYard } from './world';
 
@@ -116,7 +116,7 @@ export function createArcadeTurf(): THREE.Group {
   return group;
 }
 
-/** The line of scrimmage (white), the first-down line (gold), and the end zone on the Boss drive. */
+/** The line of scrimmage (white), the first-down line (gold), and the end zone on the Boss series. */
 export class ArcadeLines {
   private readonly scrimmage: THREE.Mesh;
   private readonly firstDown: THREE.Mesh;
@@ -137,10 +137,10 @@ export class ArcadeLines {
     this.endZone = plane(hexToNumber(team.jersey), 0.28, 10);
   }
 
-  update(drive: Drive, origin: number): void {
-    this.scrimmage.position.set(0, 0.008, -(origin + drive.los));
-    this.firstDown.position.set(0, 0.009, -(origin + drive.firstDown));
-    this.endZone.visible = drive.kind === 'boss';
-    this.endZone.position.set(0, 0.007, -(origin + drive.firstDown + 5));
+  update(series: Series, origin: number): void {
+    this.scrimmage.position.set(0, 0.008, -(origin + series.los));
+    this.firstDown.position.set(0, 0.009, -(origin + series.firstDown));
+    this.endZone.visible = series.kind === 'boss';
+    this.endZone.position.set(0, 0.007, -(origin + series.firstDown + 5));
   }
 }

@@ -51,7 +51,7 @@ export function startBreakIt(
   // How many steps (10 points) of Heft the carrier has over its heaviest tackler (for the drag).
   const step = arcadeTuning.body.statStep;
   const heftGap = (carrier.stats.heft - Math.max(...grabbers.map((d) => d.stats.heft))) / step;
-  const level = breakHardness(state.drive.area);
+  const level = breakHardness(state.series.area);
   const pile = b.perExtraTackler ** (tacklers.length - 1);
   const rng = rngFor(state.seed, 'break', state.step);
   const last = state.field.lastBreak;

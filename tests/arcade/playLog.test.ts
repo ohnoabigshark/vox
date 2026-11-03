@@ -13,7 +13,7 @@ const NOW = Date.UTC(2026, 10, 1, 16, 21, 7, 512);
 /** A Catcher (id 2) carrying at (3.14159, 11.4567), on the 4 with the line at 10. */
 function carrying(): RunState {
   const s = carry(playState([{ pos: v(3.14159, 11.4567) }]), 2);
-  s.drive = { ...s.drive, los: 4, firstDown: 10, down: 2 };
+  s.series = { ...s.series, los: 4, firstDown: 10, down: 2 };
   return s;
 }
 
@@ -40,12 +40,12 @@ describe('the play log: its lines (l2)', () => {
   it('the down comes from the state the step started in; the carrier from the state after', () => {
     const before = carrying();
     const after = structuredClone(before);
-    after.drive = { ...after.drive, los: 11.4567, down: 3 };
+    after.series = { ...after.series, los: 11.4567, down: 3 };
     const [line] = eventLines(before, after, [{ type: 'tackled', id: 2, by: 100 }], meta, NOW);
-    expect(line?.drive).toEqual({
-      area: before.drive.area,
-      index: before.drive.index,
-      kind: before.drive.kind,
+    expect(line?.series).toEqual({
+      area: before.series.area,
+      index: before.series.index,
+      kind: before.series.kind,
     });
     expect(line?.down).toBe(2);
     expect(line?.los).toBe(4);
@@ -56,7 +56,7 @@ describe('the play log: its lines (l2)', () => {
 
   it("a down's end says where the line moved to, and not the next down, which comes after the pause", () => {
     // The next down is settled by nextDown once the pause is over, so in the
-    // step a down ends, the drive still shows the down just played.
+    // step a down ends, the series still shows the down just played.
     const before = carrying();
     const after = structuredClone(before);
     const events: ArcadeEvent[] = [];

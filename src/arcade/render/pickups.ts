@@ -103,7 +103,7 @@ export class ArcadePickups {
     }
   }
 
-  /** Lay the pickups where the sim has them; rebuilt when one is taken or a new drive lays them. */
+  /** Lay the pickups where the sim has them; rebuilt when one is taken or a new series lays them. */
   update(state: RunState, origin: number): void {
     const pickups = state.field.pickups;
     const key = `${origin}:${pickups.map((p) => p.id).join(',')}`;

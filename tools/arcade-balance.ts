@@ -23,7 +23,7 @@
  * five, and drops one in twenty.
  *
  * BALANCE_SCENARIO='{"name": "Hard", "hard": true, "perks": true}' plays
- * hard mode (until the run is lost) and reports how many drives runs win.
+ * hard mode (until the run is lost) and reports how many series runs win.
  *
  * BOT='{"predict": false}' reads the field off the screen instead (lit,
  * green, deep), BOT='{"predict": false, "read": false}' throws at the first
@@ -31,7 +31,7 @@
  * older, weaker bots. See BOT below for every knob.
  */
 import { pocketTime } from '../src/arcade/sim/ball';
-import { DRIVE_KINDS, createRun, dispatch, startingRoster } from '../src/arcade/sim/run';
+import { SERIES_KINDS, createRun, dispatch, startingRoster } from '../src/arcade/sim/run';
 import { FORM_STATS } from '../src/arcade/content/team';
 import { rngFor } from '../src/arcade/sim/random';
 import { plus } from '../src/arcade/sim/stats';
@@ -105,9 +105,9 @@ interface Scenario {
   readonly training?: Partial<Stats>;
   /** …or only to one role's. */
   readonly roleTraining?: Partial<Record<Role, Partial<Stats>>>;
-  /** Take one of TRICK OR TREAT!'s two new players (at random) after each won drive, or skip. */
+  /** Take one of TRICK OR TREAT!'s two new players (at random) after each won series, or skip. */
   readonly perks?: boolean;
-  /** Hard mode: the zones go round until the run is lost (reported as drives won per run). */
+  /** Hard mode: the zones go round until the run is lost (reported as series won per run). */
   readonly hard?: boolean;
 }
 
@@ -132,8 +132,8 @@ const SCENARIOS: readonly Scenario[] = custom
 
 interface Tally {
   runs: number;
-  drivesWon: number;
-  /** Each run's drives won, for hard mode's spread. */
+  seriesWon: number;
+  /** Each run's series won, for hard mode's spread. */
   perRun: number[];
   fullWins: number;
   attempts: Map<string, number>;
@@ -218,7 +218,7 @@ function readsOpen(state: RunState, left: number): boolean {
 
 /** The depth it wants a catch at: the first-down line early in the pocket, the line of scrimmage at the end. */
 function wantedDepth(state: RunState, left: number): number {
-  const { los, firstDown } = state.drive;
+  const { los, firstDown } = state.series;
   return los + (firstDown - los) * Math.min(1, left / 0.6);
 }
 
@@ -338,7 +338,7 @@ function count(
         if (ran.now && !ran.grabbed) {
           ran.grabbed = true;
           const c = state.field.players.find((p) => p.id === e.id);
-          if (c) t.runGrabs.push(c.pos.y - state.drive.los);
+          if (c) t.runGrabs.push(c.pos.y - state.series.los);
           for (const id of e.by) {
             const d = state.field.defenders.find((x) => x.id === id);
             bump(t.runGrabbers, d?.kind ?? '?');
@@ -434,11 +434,11 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     tipPlan: [],
   };
   const ran = { now: false, grabbed: false };
-  let driveKey = '';
+  let seriesKey = '';
   for (let guard = 0; guard < 200000 && state.phase !== 'over' && state.phase !== 'won'; guard++) {
-    const key = `${state.drive.area}:${state.drive.kind}`;
-    if (key !== driveKey) {
-      driveKey = key;
+    const key = `${state.series.area}:${state.series.kind}`;
+    if (key !== seriesKey) {
+      seriesKey = key;
       bump(t.attempts, key);
     }
     if (state.phase === 'draft') {
@@ -466,13 +466,13 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       continue;
     }
     const r = step(state, botInput(state, rng, plan));
-    if (r.events.some((e) => e.type === 'driveWon')) bump(t.wins, key);
+    if (r.events.some((e) => e.type === 'seriesWon')) bump(t.wins, key);
     count(t, r.events, state, ran);
     state = r.state;
   }
   t.runs++;
-  t.drivesWon += state.drivesWon;
-  t.perRun.push(state.drivesWon);
+  t.seriesWon += state.seriesWon;
+  t.perRun.push(state.seriesWon);
   if (state.phase === 'won') t.fullWins++;
 }
 
@@ -505,7 +505,7 @@ function gradeLine(name: string, grades: ReadonlyMap<string, number>): void {
 function report(scenario: Scenario, t: Tally): void {
   console.log(`\n## ${scenario.name}  (${t.runs} runs)`);
   console.log(
-    `  drives won ${(t.drivesWon / t.runs).toFixed(1)} of 12 · beat the game ${pct(t.fullWins, t.runs)} · ` +
+    `  series won ${(t.seriesWon / t.runs).toFixed(1)} of 12 · beat the game ${pct(t.fullWins, t.runs)} · ` +
       `yards/down ${(t.yards / t.downs).toFixed(1)} · down length ${(t.downTime / t.downs).toFixed(1)}s`,
   );
   if (scenario.hard) {
@@ -513,7 +513,7 @@ function report(scenario: Scenario, t: Tally): void {
     const at = (q: number): number =>
       sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
     console.log(
-      `  hard mode: drives won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (${DRIVE_KINDS.length} drives a zone)`,
+      `  hard mode: series won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (${SERIES_KINDS.length} series a zone)`,
     );
   }
   const results = [...t.results.entries()]
@@ -556,7 +556,7 @@ function report(scenario: Scenario, t: Tally): void {
     );
   }
   [0, 1, 2].forEach((area) => {
-    const row = DRIVE_KINDS.map((k) => {
+    const row = SERIES_KINDS.map((k) => {
       const key = `${area}:${k}`;
       return `${k.padEnd(9)} ${pct(t.wins.get(key) ?? 0, t.attempts.get(key) ?? 0)}`;
     }).join('  ');
@@ -568,7 +568,7 @@ console.log(`Arcade balance runs: ${RUNS} per scenario.`);
 for (const scenario of SCENARIOS) {
   const t: Tally = {
     runs: 0,
-    drivesWon: 0,
+    seriesWon: 0,
     perRun: [],
     fullWins: 0,
     attempts: new Map(),

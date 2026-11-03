@@ -16,9 +16,9 @@ import { dist, v } from './vec';
  * seeded run places it where it always did).
  */
 export function placeArea(state: RunState, area: EventArea): PlacedArea {
-  const { los } = state.drive;
+  const { los } = state.series;
   const side = sideOf(area.across, () => {
-    const rng = rngFor(state.seed, 'frogLane', state.drivesWon, state.drive.down, state.nextId);
+    const rng = rngFor(state.seed, 'frogLane', state.seriesWon, state.series.down, state.nextId);
     return rng.next() < 0.5 ? -1 : 1;
   });
   if (area.shape === 'circle') {

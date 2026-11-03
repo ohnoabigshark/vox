@@ -9,7 +9,7 @@ import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
 import { BASE_STATS } from '../../arcade/content/team';
 import { qbOf } from '../../arcade/sim/ai';
 import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
-import { createRun, driveAt } from '../../arcade/sim/run';
+import { createRun, seriesAt } from '../../arcade/sim/run';
 import { catchCount } from '../../arcade/sim/catchTests';
 import { snagPace, startSnag } from '../../arcade/sim/snag';
 import { startTip, tipLanding, tipPops, tipTimes } from '../../arcade/sim/tip';
@@ -27,10 +27,10 @@ import type {
 import { breakGrade } from '../../arcade/ui/tapTestCalls';
 import type { BenchTest } from './knobs';
 
-/** Where a rep is played (k2): the drive, and who's in on it. */
+/** Where a rep is played (k2): the series, and who's in on it. */
 export interface Situation {
   /** 1 to 20. */
-  readonly drive: number;
+  readonly series: number;
   /** Break it!: defenders on the carrier, 1 to 3. */
   readonly tacklers: number;
   /** SNAG IT!: defenders reaching for the ball, 1 to 3… */
@@ -39,7 +39,7 @@ export interface Situation {
   readonly handsGap: number;
 }
 
-export const FIRST_SITUATION: Situation = { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 };
+export const FIRST_SITUATION: Situation = { series: 5, tacklers: 1, crowd: 1, handsGap: 0 };
 
 /** The situation's sliders (k2): which tests each is for, and its range. */
 export const SITUATION_SLIDERS: readonly {
@@ -51,8 +51,8 @@ export const SITUATION_SLIDERS: readonly {
   tests: readonly BenchTest[];
 }[] = [
   {
-    key: 'drive',
-    label: 'Drive',
+    key: 'series',
+    label: 'Series',
     min: 1,
     max: 20,
     step: 1,
@@ -139,7 +139,7 @@ export interface Rep {
 /** Start a rep of `test` in `situation`; `seed` varies where the sweet spot, the arrow and the dots fall. */
 export function startRep(test: BenchTest, situation: Situation, seed: number): Rep {
   const state = createRun(seed, startingRoster(), 0, { snagAlways: true });
-  state.drive = { ...state.drive, ...driveAt(situation.drive) };
+  state.series = { ...state.series, ...seriesAt(situation.series) };
   state.phase = 'play';
   state.snappedAt = state.time;
   state.field.pickups = [];
@@ -358,8 +358,8 @@ export function timingText(timing: Timing): string {
 
 /** What the situation adds up to for this test (k2), in screen seconds. */
 export function summary(test: BenchTest, situation: Situation): string {
-  const { drive } = situation;
-  const { area } = driveAt(drive);
+  const { series } = situation;
+  const { area } = seriesAt(series);
   const b = arcadeTuning.breakit;
   const pile = b.perExtraTackler ** (situation.tacklers - 1);
   const level = breakHardness(area);
@@ -367,7 +367,7 @@ export function summary(test: BenchTest, situation: Situation): string {
   const tacklers = `${situation.tacklers} tackler${situation.tacklers === 1 ? '' : 's'}`;
   switch (test) {
     case 'bar':
-      return `drive ${drive} · sweet spot ${+(level.sweet * pile * 100).toFixed(1)}% of the meter · ${tacklers}`;
+      return `series ${series} · sweet spot ${+(level.sweet * pile * 100).toFixed(1)}% of the meter · ${tacklers}`;
     case 'mash': {
       // Counted as the game fills it, tap by tap.
       let fill = 0;
@@ -376,18 +376,18 @@ export function summary(test: BenchTest, situation: Situation): string {
         fill += level.mashPerTap * pile;
         taps++;
       }
-      return `drive ${drive} · ${taps} taps in ${s(b.mashSeconds)} · ${tacklers}`;
+      return `series ${series} · ${taps} taps in ${s(b.mashSeconds)} · ${tacklers}`;
     }
     case 'juke':
-      return `drive ${drive} · window ${s(level.jukeWindow * pile)} · ${tacklers}`;
+      return `series ${series} · window ${s(level.jukeWindow * pile)} · ${tacklers}`;
     case 'snag': {
-      const count = catchCount({ drive, crowd: situation.crowd, handsGap: situation.handsGap });
-      const pace = snagPace(drive);
-      return `drive ${drive} · ${count} dots · ring ${s(pace.close)} · ${s(pace.gap)} apart`;
+      const count = catchCount({ series, crowd: situation.crowd, handsGap: situation.handsGap });
+      const pace = snagPace(series);
+      return `series ${series} · ${count} dots · ring ${s(pace.close)} · ${s(pace.gap)} apart`;
     }
     case 'tip': {
-      const pops = tipPops({ drive, crowd: situation.crowd, handsGap: situation.handsGap });
-      return `drive ${drive} · ${pops} pops · first ${s(tipTimes(drive, 1)[0] ?? 0)} in the air`;
+      const pops = tipPops({ series, crowd: situation.crowd, handsGap: situation.handsGap });
+      return `series ${series} · ${pops} pops · first ${s(tipTimes(series, 1)[0] ?? 0)} in the air`;
     }
     case 'shoo':
       return `${s(arcadeTuning.crows.window)} to shoo`;

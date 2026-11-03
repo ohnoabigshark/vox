@@ -14,13 +14,13 @@ import {
   endDown,
   frozenForTest,
   nextDown,
-  setUpDrive,
+  setUpSeries,
   startingRoster,
 } from '../../src/arcade/sim/run';
 import { breakMarker, countdownLeft, jukeGrade, jukeShowing } from '../../src/arcade/sim/breakit';
 import { canThrow, forceBreakKind, step } from '../../src/arcade/sim/step';
 import { pathXAt } from '../../src/arcade/sim/ai';
-import { propsForDrive } from '../../src/arcade/sim/props';
+import { propsForSeries } from '../../src/arcade/sim/props';
 import { DT } from '../../src/arcade/content/tuning';
 import type { ArcadeEvent, Phase, RunState } from '../../src/arcade/sim/types';
 import { dist, v } from '../../src/arcade/sim/vec';
@@ -36,15 +36,15 @@ import {
   untilGrabbed,
 } from './helpers';
 
-const PAUSE = arcadeTuning.drive.pause;
+const PAUSE = arcadeTuning.series.pause;
 const passCard = (s: RunState) => s.hand.findIndex((i) => PLAYS[i]?.handoff === undefined);
 const runCard = (s: RunState) => s.hand.findIndex((i) => PLAYS[i]?.handoff !== undefined);
 
 describe('a run', () => {
-  it('starts on the first drive: 1st & 10, eight a side, three play cards, no draft', () => {
+  it('starts on the first series: 1st & 10, eight a side, three play cards, no draft', () => {
     const s = createRun(1);
     expect(s.phase).toBe('setup');
-    expect(s.drive).toMatchObject({ index: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
+    expect(s.series).toMatchObject({ index: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
     expect(downAndDistance(s)).toBe('1st & 10');
     expect(s.field.players).toHaveLength(8);
     expect(s.hand).toHaveLength(3);
@@ -256,8 +256,8 @@ describe('the sweep and the pocket', () => {
 
   it('it sweeps faster in later areas, and on the Boss', () => {
     const s = playState([]);
-    const at = (area: number, kind: RunState['drive']['kind']) =>
-      sweepSpeed({ ...s, drive: { ...s.drive, area, kind } });
+    const at = (area: number, kind: RunState['series']['kind']) =>
+      sweepSpeed({ ...s, series: { ...s.series, area, kind } });
     expect(at(1, 'intro')).toBeGreaterThan(at(0, 'intro'));
     expect(at(0, 'boss')).toBeGreaterThan(at(0, 'intro'));
   });
@@ -343,7 +343,7 @@ describe('throwing: a bullet along the line', () => {
     const s = playState([{ pos: v(4, 6), job: stand(v(4, 6)) }]);
     const r = run(s, 3, throwAt(s, v(-6, 8)));
     expect(ofType(r.events, 'incomplete')).toHaveLength(1);
-    expect(run(r.state, PAUSE + 0.1).state.drive.down).toBe(2);
+    expect(run(r.state, PAUSE + 0.1).state.series.down).toBe(2);
   });
 });
 
@@ -371,7 +371,7 @@ describe('the carrier, and Break it! (the bar)', () => {
       2,
     );
     s.field.lane = 0;
-    s.drive = { ...s.drive, area };
+    s.series = { ...s.series, area };
     return untilGrabbed(s);
   };
 
@@ -456,10 +456,10 @@ describe('the carrier, and Break it! (the bar)', () => {
     expect(dragged?.yards).toBeGreaterThan(0);
     const end = run(r.state, 4);
     expect(ofType(end.events, 'tackled')).toHaveLength(1);
-    expect(end.state.drive.los).toBeGreaterThan(body(g, 2).pos.y + 0.3);
+    expect(end.state.series.los).toBeGreaterThan(body(g, 2).pos.y + 0.3);
   });
 
-  it('a drag that ends in the step the carrier crosses the line still wins the drive (B6, review b1)', () => {
+  it('a drag that ends in the step the carrier crosses the line still wins the series (B6, review b1)', () => {
     const g = grabbed().state;
     const t = bar(g);
     const close = t.sweet.from > t.near ? t.sweet.from - t.near / 2 : t.sweet.to + t.near / 2;
@@ -467,7 +467,7 @@ describe('the carrier, and Break it! (the bar)', () => {
     const drag = r.state.field.drag;
     if (!drag) throw new Error('no drag');
     // The line where the drag ends: it's crossed in the step the drag is done.
-    const s = { ...r.state, drive: { ...r.state.drive, firstDown: drag.to } };
+    const s = { ...r.state, series: { ...r.state.series, firstDown: drag.to } };
     const end = run(s, 4);
     expect(ofType(end.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
   });
@@ -544,7 +544,7 @@ describe('the carrier, and Break it! (the bar)', () => {
     expect(ofType(run(s, 0.2).events, 'outOfBounds')).toHaveLength(1);
   });
 
-  it('over the first-down line wins the drive', () => {
+  it('over the first-down line wins the series', () => {
     const s = carry(playState([{ pos: v(0, 8) }]), 2);
     expect(ofType(run(s, 1.5).events, 'downEnded')[0]?.result).toBe('firstDown');
   });
@@ -574,7 +574,7 @@ describe('Break it!: the mash and the juke', () => {
       2,
     );
     s.field.lane = 0;
-    s.drive = { ...s.drive, area };
+    s.series = { ...s.series, area };
     return untilGrabbed(s).state;
   };
   /** Tap on every `every`-th step until it's decided. */
@@ -693,52 +693,52 @@ describe('Break it!: the mash and the juke', () => {
   });
 });
 
-describe('drives and the run', () => {
-  const winDrive = (s: RunState): RunState => {
+describe('series and the run', () => {
+  const winSeries = (s: RunState): RunState => {
     const t = structuredClone(s);
     const events: ArcadeEvent[] = [];
-    endDown(t, 'firstDown', t.drive.firstDown, events);
+    endDown(t, 'firstDown', t.series.firstDown, events);
     nextDown(t, events);
     return t;
   };
 
-  it('a won drive lines up the next one, waiting for the move on', () => {
-    const s = winDrive(createRun(3));
+  it('a won series lines up the next one, waiting for the move on', () => {
+    const s = winSeries(createRun(3));
     expect(s.phase).toBe('draft');
-    expect(s.drive).toMatchObject({ index: 1, kind: 'challenge', down: 1, los: 0 });
+    expect(s.series).toMatchObject({ index: 1, kind: 'challenge', down: 1, los: 0 });
     expect(dispatch(s, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 
   it('failing on 4th down is game over', () => {
     const s = playState([]);
-    s.drive.down = 4;
+    s.series.down = 4;
     const r = run(run(s, pocketTime(s) + 0.5).state, PAUSE + 0.1);
     expect(r.state.phase).toBe('over');
     expect(ofType(r.events, 'gameOver')).toHaveLength(1);
   });
 
-  it('the main game is three areas of four drives, each area stiffer; the last Boss wins it', () => {
+  it('the main game is three areas of four series, each area stiffer; the last Boss wins it', () => {
     let s = createRun(7);
-    const drives: string[] = [];
+    const series: string[] = [];
     const coverHeft: number[] = [];
     for (let i = 0; i < 12; i++) {
-      drives.push(`${s.drive.area}:${s.drive.kind}`);
+      series.push(`${s.series.area}:${s.series.kind}`);
       const cover = s.field.defenders.find((d) => d.kind === 'cover');
-      if (s.drive.kind === 'intro' && cover) coverHeft.push(cover.stats.heft);
-      s = winDrive(s);
+      if (s.series.kind === 'intro' && cover) coverHeft.push(cover.stats.heft);
+      s = winSeries(s);
       if (s.phase === 'draft') s = dispatch(s, { type: 'skipDraft' }).state;
     }
     const area = (a: number) => ['intro', 'challenge', 'gimmick', 'boss'].map((k) => `${a}:${k}`);
-    expect(drives).toEqual([...area(0), ...area(1), ...area(2)]);
+    expect(series).toEqual([...area(0), ...area(1), ...area(2)]);
     expect(s.phase).toBe('won');
     expect(coverHeft).toEqual([30, 40, 50]);
   });
 
-  it('a down ended at or past the line wins the drive, however it ended (B6, review b1)', () => {
+  it('a down ended at or past the line wins the series, however it ended (B6, review b1)', () => {
     const ended = (result: 'tackled' | 'outOfBounds', at: number) => {
       const s = createRun(1);
       const events: ArcadeEvent[] = [];
-      endDown(s, result, s.drive.firstDown + at, events);
+      endDown(s, result, s.series.firstDown + at, events);
       return { result: s.result?.result, events: ofType(events, 'downEnded').map((e) => e.result) };
     };
     for (const how of ['tackled', 'outOfBounds'] as const) {
@@ -748,9 +748,9 @@ describe('drives and the run', () => {
     }
   });
 
-  it('the Boss drive goes for the end zone: "& Goal"', () => {
+  it('the Boss series goes for the end zone: "& Goal"', () => {
     const s = createRun(1);
-    s.drive = { ...s.drive, kind: 'boss', down: 3 };
+    s.series = { ...s.series, kind: 'boss', down: 3 };
     expect(downAndDistance(s)).toBe('3rd & Goal');
   });
 });
@@ -916,17 +916,17 @@ describe("Mister Frog's Frog Rain", () => {
   /** The lane these tests use: down the right side, x 1.9 to 9.1, a yard behind the line to 16 ahead. */
   const RIGHT_LANE = { shape: 'rect', x0: 1.9, x1: 9.1, y0: -1, y1: 16 } as const;
 
-  it('his drive shows a lane each down, never over the pumpkin; he stands in the end zone', () => {
+  it('his series shows a lane each down, never over the pumpkin; he stands in the end zone', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = createRun(seed);
-      setUpDrive(s, 0, 3, [], true);
-      expect(s.drive.kind).toBe('boss');
+      setUpSeries(s, 0, 3, [], true);
+      expect(s.series.kind).toBe('boss');
       expect(s.field.props.some((p) => p.model === 'bosses/misterFrog')).toBe(true);
       const lane = s.field.fieldEvent!.area;
       if (lane.shape !== 'rect') throw new Error('a lane is a rectangle');
       expect(Math.min(Math.abs(lane.x0), Math.abs(lane.x1))).toBeGreaterThan(1);
     }
-    // Other drives have none.
+    // Other series have none.
     const s = createRun(1);
     expect(s.field.fieldEvent).toBeNull();
   });
@@ -969,7 +969,7 @@ describe("Mister Frog's Frog Rain", () => {
 
   it('they come a moment after the snap, and only once', () => {
     const s = createRun(3);
-    setUpDrive(s, 0, 3, [], true);
+    setUpSeries(s, 0, 3, [], true);
     let st = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
     expect(st.field.fieldEvent?.left).toBe(FROG_RAIN.goesOff);
     let dumps = 0;
@@ -1000,30 +1000,30 @@ describe("Mister Frog's Frog Rain", () => {
 describe('the Candy Kingdom', () => {
   it('a run can start there (?area=2), as if the Forest were won', () => {
     const s = createRun(3, startingRoster(), 1);
-    expect(s.drive.area).toBe(1);
-    expect(s.drive.index).toBe(0);
-    expect(s.drive.name).toBe('Gumdrop Lane');
-    expect(s.drivesWon).toBe(4);
+    expect(s.series.area).toBe(1);
+    expect(s.series.index).toBe(0);
+    expect(s.series.name).toBe('Gumdrop Lane');
+    expect(s.seriesWon).toBe(4);
     expect(s.phase).toBe('setup');
   });
 
-  it('is the second area: its own drives, and the Queen on its Boss drive', () => {
+  it('is the second area: its own series, and the Queen on its Boss series', () => {
     const s = createRun(3);
-    setUpDrive(s, 1, 0, [], true);
-    expect(s.drive.name).toBe('Gumdrop Lane');
-    setUpDrive(s, 1, 3, [], true);
-    expect(s.drive.name).toBe("The Queen's Court");
+    setUpSeries(s, 1, 0, [], true);
+    expect(s.series.name).toBe('Gumdrop Lane');
+    setUpSeries(s, 1, 3, [], true);
+    expect(s.series.name).toBe("The Queen's Court");
     expect(s.field.props.some((p) => p.model === 'bosses/queen')).toBe(true);
     expect(s.banned).not.toBeNull();
     expect(s.field.fieldEvent).toBeNull();
-    // The Forest's Boss drive has no Decree.
-    setUpDrive(s, 0, 3, [], true);
+    // The Forest's Boss series has no Decree.
+    setUpSeries(s, 0, 3, [], true);
     expect(s.banned).toBeNull();
   });
 
   it("the Queen's Royal Decree bans a card each down: tapping it calls nothing", () => {
     const s = createRun(3);
-    setUpDrive(s, 1, 3, [], true);
+    setUpSeries(s, 1, 3, [], true);
     const banned = s.banned!;
     expect(PLAYS[s.play.index]).toBe(PLAYS[s.hand[banned === 0 ? 1 : 0]!]);
     const r = dispatch(s, { type: 'call', hand: banned });
@@ -1039,8 +1039,8 @@ describe('props on the field', () => {
 
   it('are laid the same for a seed, out of the middle lane, in from the sidelines, with room between', () => {
     for (let seed = 1; seed <= 30; seed++) {
-      const props = propsForDrive(seed, seed % 2, seed % 4);
-      expect(propsForDrive(seed, seed % 2, seed % 4)).toEqual(props);
+      const props = propsForSeries(seed, seed % 2, seed % 4);
+      expect(propsForSeries(seed, seed % 2, seed % 4)).toEqual(props);
       expect(props.length).toBeGreaterThan(0);
       for (const p of props) {
         expect(Math.abs(p.x) - p.radius).toBeGreaterThanOrEqual(
@@ -1050,8 +1050,8 @@ describe('props on the field', () => {
       }
     }
     // Each area lays its own along its own stretch: the Candy Kingdom's first ten yards are candy,
-    // and the stretch behind its first drive is still the Forest's.
-    const first = propsForDrive(1, 1, 0);
+    // and the stretch behind its first series is still the Forest's.
+    const first = propsForSeries(1, 1, 0);
     const own = first.filter((p) => p.y >= 0 && p.y < 10);
     expect(own.length).toBeGreaterThan(0);
     expect(own.every((p) => p.model.startsWith('candyProps/'))).toBe(true);
@@ -1086,29 +1086,29 @@ describe('props on the field', () => {
 });
 
 describe('the Farm', () => {
-  it('is the third area, and the run ends on its last drive', () => {
+  it('is the third area, and the run ends on its last series', () => {
     const s = createRun(5, startingRoster(), 2);
-    expect(s.drive.name).toBe('The Back Forty');
-    setUpDrive(s, 2, 3, [], true);
-    expect(s.drive.name).toBe("The King's Patch");
+    expect(s.series.name).toBe('The Back Forty');
+    setUpSeries(s, 2, 3, [], true);
+    expect(s.series.name).toBe("The King's Patch");
   });
 
-  it('the King stands guard on the last drive: a prop, not a defender, past the first-down line', () => {
+  it('the King stands guard on the last series: a prop, not a defender, past the first-down line', () => {
     const s = createRun(5, startingRoster(), 2);
-    setUpDrive(s, 2, 3, [], true);
+    setUpSeries(s, 2, 3, [], true);
     const king = s.field.props.find((p) => p.model === 'bosses/king');
     expect(king).toBeDefined();
     expect(king!.x).toBe(0);
-    expect(king!.y).toBeGreaterThan(s.drive.firstDown);
+    expect(king!.y).toBeGreaterThan(s.series.firstDown);
     expect(s.field.defenders.some((d) => (d.kind as string) === 'king')).toBe(false);
-    // Only on the last drive.
-    setUpDrive(s, 2, 2, [], true);
+    // Only on the last series.
+    setUpSeries(s, 2, 2, [], true);
     expect(s.field.props.some((p) => p.model === 'bosses/king')).toBe(false);
   });
 
   it('a Crow patrols a lane up and down the field', () => {
     const s = createRun(5, startingRoster(), 2);
-    setUpDrive(s, 2, 1, [], true);
+    setUpSeries(s, 2, 1, [], true);
     const crow = s.field.defenders.find((d) => d.kind === 'crow')!;
     expect(crow.patrol).toHaveLength(2);
     expect(crow.patrol![1]!.x).toBe(crow.patrol![0]!.x);
@@ -1117,7 +1117,7 @@ describe('the Farm', () => {
 });
 
 describe("the King's crows (SHOO!)", () => {
-  /** A down on the King's drive, just snapped, the QB holding the ball with one Catcher deep. */
+  /** A down on the King's series, just snapped, the QB holding the ball with one Catcher deep. */
   const kingDown = () => {
     const s = playState([{ pos: v(0, 9), job: stand(v(0, 9)) }]);
     s.field.crows = [0, 1].map(() => ({
@@ -1247,7 +1247,7 @@ describe('Crows and Safeties', () => {
     for (let seed = 1; seed <= 5; seed++) {
       const s = createRun(seed);
       for (const d of s.field.defenders.filter((x) => x.kind === 'safety')) {
-        expect(d.pos.y - s.drive.los).toBeGreaterThanOrEqual(arcadeTuning.defense.safetyDepth);
+        expect(d.pos.y - s.series.los).toBeGreaterThanOrEqual(arcadeTuning.defense.safetyDepth);
       }
     }
   });

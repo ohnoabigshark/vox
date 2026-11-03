@@ -17,11 +17,11 @@ import { dist, lerp, v } from './vec';
 
 const { sweep, throw: t, field } = arcadeTuning;
 
-/** How fast the line sweeps this drive (degrees a second): faster each area, and on the Boss. */
+/** How fast the line sweeps this series (degrees a second): faster each area, and on the Boss. */
 export function sweepSpeed(state: RunState): number {
-  const { kind } = state.drive;
+  const { kind } = state.series;
   // No faster after the last area (hard mode's zones go on for ever).
-  const area = Math.min(state.drive.area, arcadeTuning.run.areas - 1);
+  const area = Math.min(state.series.area, arcadeTuning.run.areas - 1);
   const base =
     sweep.degreesPerSecond * (1 + sweep.perArea * area + (kind === 'boss' ? sweep.boss : 0));
   // Slow-Mo Sweep (a perk) slows it.
@@ -33,7 +33,7 @@ export function scanTime(state: RunState): number {
   return (2 * sweep.halfAngle) / sweepSpeed(state);
 }
 
-/** How long the pocket holds this drive: its sweeps. */
+/** How long the pocket holds this series: its sweeps. */
 export function pocketTime(state: RunState): number {
   // Extra Sweep (a perk) holds it longer.
   return (sweep.scans + state.perks.extraScans) * scanTime(state);
@@ -121,7 +121,7 @@ export function reachingDefenders(state: RunState, at: Vec): Defender[] {
 export function bulletEnd(state: RunState, from: Vec, angle: number): Vec {
   const dx = Math.sin(angle);
   const dy = Math.cos(angle);
-  const ahead = (state.drive.los + t.maxAhead - from.y) / Math.max(1e-6, dy);
+  const ahead = (state.series.los + t.maxAhead - from.y) / Math.max(1e-6, dy);
   const across = dx === 0 ? Infinity : (field.halfWidth - Math.sign(dx) * from.x) / Math.abs(dx);
   const length = Math.max(0, Math.min(ahead, across));
   return v(from.x + dx * length, from.y + dy * length);

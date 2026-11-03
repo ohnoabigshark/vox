@@ -72,8 +72,8 @@ describe('practice (Try it): one sketch, rep after rep', () => {
   /** Where a rep lines up: the down, the line, the hand, the call and the mirror. */
   const lineUp = (s: RunState) => ({
     phase: s.phase,
-    down: s.drive.down,
-    los: s.drive.los,
+    down: s.series.down,
+    los: s.series.los,
     hand: handIds(s),
     called: s.called,
     play: s.play,
@@ -113,7 +113,7 @@ describe('practice (Try it): one sketch, rep after rep', () => {
         const before = lineUp(s);
         const beforeJobs = jobs(s);
         s = dispatch(s, { type: 'hike' }).state;
-        s.drive.down = down;
+        s.series.down = down;
         endDown(s, result, at, []);
         const events: ArcadeEvent[] = [];
         nextDown(s, events);

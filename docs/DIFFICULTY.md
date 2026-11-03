@@ -7,10 +7,10 @@ the item numbers below are the map's.
 
 ## What changes (hard mode: the default; `?hard=0` turns it off)
 
-- **Each drive's own line-up stays** (d1): the hand-made defenses of 4 to 9
+- **Each series' own line-up stays** (d1): the hand-made defenses of 4 to 9
   defenders are esrauch's design. Only hard mode's extra defenders change.
 - **One extra defender a zone, at most 12 on the field** (d2), instead of
-  two a zone without limit. The busiest drive of each zone:
+  two a zone without limit. The busiest series of each zone:
 
   | Zone | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
   | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -62,8 +62,8 @@ pin, and the runs are seeded), so its all-human run was skipped.
 
 | Hard mode, 20 runs | Before | Stats +15 | Stats +20 (shipped) |
 | --- | --- | --- | --- |
-| Drives won, median | 9 | 11 | 10 |
-| Drives won, top tenth | 14 | 19 | 15 |
+| Series won, median | 9 | 11 | 10 |
+| Series won, top tenth | 14 | 19 | 15 |
 | Best run | 15 | 21 | 16 |
 | Passes batted | 1% | 3% | 4% |
 | Break it!: broke free | 24% | 20% | 22% |

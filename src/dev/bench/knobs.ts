@@ -1,14 +1,14 @@
 /**
  * The test bench's sliders (docs/BENCH.md, k1 and k5): one per value in
  * tuning.ts that a tap test uses. A knob's key is that value's path, with
- * `{area}` for the values set by area (the slider edits the picked drive's).
+ * `{area}` for the values set by area (the slider edits the picked series').
  * The bench sets the live tuning object, which the sim reads as it goes, so
  * the next rep plays at the new value; `applySettings({})` puts every value
  * back to their defaults.
  */
 import { numberAt } from '../../arcade/content/savedTuning';
 import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
-import { driveAt } from '../../arcade/sim/run';
+import { seriesAt } from '../../arcade/sim/run';
 
 /** The tap tests, one tab each (b1; the tip drill's from docs/TIP.md, g6). */
 export type BenchTest = 'bar' | 'mash' | 'juke' | 'snag' | 'tip' | 'shoo';
@@ -83,13 +83,13 @@ export const KNOBS: readonly Knob[] = [
   snagMore('box', 'Box at most', 'px'),
   // What SNAG IT! shares with the tip drill (docs/TIP.md, g3): tuned here for both,
   // and when they start and the box's linger on the tip drill's tab too (g6).
-  catchMore('fromDrive', 'Catch tests from drive', 'count', ['snag', 'tip']),
-  catchMore('fasterAfter', 'Quicker after drive', 'count'),
-  catchMore('perDrive', 'Quicker each drive by', 'share'),
+  catchMore('fromSeries', 'Catch tests from series', 'count', ['snag', 'tip']),
+  catchMore('fasterAfter', 'Quicker after series', 'count'),
+  catchMore('perSeries', 'Quicker each series by', 'share'),
   catchMore('floor', 'No quicker than', 'share'),
   catchMore('minCount', 'Fewest dots', 'count'),
   catchMore('maxCount', 'Most dots', 'count'),
-  catchMore('moreEvery', 'One more dot every … drives', 'count'),
+  catchMore('moreEvery', 'One more dot every … series', 'count'),
   catchMore('handsGap', 'Hands gap for a dot more or less', 'count'),
   catchMore('linger', 'Box stays after the grade', 'seconds', ['snag', 'tip']),
   // The tip drill: its five (g6).
@@ -106,14 +106,14 @@ export function knobsFor(test: BenchTest): Knob[] {
 
 const AREAS = arcadeTuning.breakit.byArea.length;
 
-/** The area a drive (1-based) is in, as a by-area value counts it: past the Farm, the Farm's. */
-function areaOf(drive: number): number {
-  return Math.min(AREAS - 1, Math.max(0, driveAt(drive).area));
+/** The area a series (1-based) is in, as a by-area value counts it: past the Farm, the Farm's. */
+function areaOf(series: number): number {
+  return Math.min(AREAS - 1, Math.max(0, seriesAt(series).area));
 }
 
-/** The value a knob edits at this drive. */
-export function pathOf(knob: Knob, drive: number): string {
-  return knob.key.replace('{area}', String(areaOf(drive)));
+/** The value a knob edits at this series. */
+export function pathOf(knob: Knob, series: number): string {
+  return knob.key.replace('{area}', String(areaOf(series)));
 }
 
 /** Every value a knob can edit (one for each area, for a by-area knob). */

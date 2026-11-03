@@ -58,10 +58,10 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## In a run (f4, n1, n2)
 
-- **Frog Rain stays Mister Frog's** (f4), on every down of his drive.
-- **Generic events** (n1, n2): from drive 2, about one ordinary drive in
+- **Frog Rain stays Mister Frog's** (f4), on every down of his series.
+- **Generic events** (n1, n2): from series 2, about one ordinary series in
   three (never a Boss's) gets one, picked from the run's seed, on every
-  down of that drive. Wisps and the taffy flood are generic. _User: "We will
+  down of that series. Wisps and the taffy flood are generic. _User: "We will
   have generic ones and boss specific ones eventually."_ This comes with
   the taffy branch, when the generic pool gets its first event (x1).
 
@@ -100,9 +100,9 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   until it's given art of its own.
 - **Try it** (f3, x2) opens practice, as the play editor's does: rep after
   rep from the same spot, the usual three cards to pick from each time,
-  against the defense of a drive you choose, with the event going off every
+  against the defense of a series you choose, with the event going off every
   down; ‹ Events goes back between reps. The link carries the event itself,
-  so it plays what's on the editor before Save, and the drive and the
+  so it plays what's on the editor before Save, and the series number and the
   throwing (Try with two-tap or one).
 
 ## The new events (f6, f7, w1, t1, o1)
@@ -145,8 +145,8 @@ This branch (u2):
 7. **The editor:** dragging moves the area and its handles size it,
    snapping to the half yard, with the yards shown; each change one step
    for Undo; changing the shape keeps the area where it was.
-8. **Try it:** the link carries the event, the drive and the throwing;
-   practice deals three cards each rep, plays that drive's defense, sets
+8. **Try it:** the link carries the event, the series number and the throwing;
+   practice deals three cards each rep, plays that series' defense, sets
    the event off every down, and ‹ Events opens the editor on it.
 
 Checked by hand too, in a phone-sized browser: the editor drawn, a drag,
@@ -156,9 +156,9 @@ The later branches (u4):
 
 - **Taffy:** a spell holds whoever is in it while it lasts and lets go as
   they leave; slow moves them at the share set, yours and theirs; it shows
-  before the snap; from drive 2, about one ordinary drive in three gets a
+  before the snap; from series 2, about one ordinary series in three gets a
   generic event from the seed, the same for the same seed, never a Boss's
-  drive, every down of it; the editor offers Spell and Slow.
+  series, every down of it; the editor offers Spell and Slow.
 - **Wisps:** your players in it are ethereal: no defender grabs them (no
   Break it!), defenders pass through without a shove, a ball still reaches
   them; one already grabbed stays grabbed; leaving the circle ends it;
@@ -191,7 +191,7 @@ On `field-events`, one commit each, typecheck and tests after every step:
 - **The editor's page scrolls:** its parts don't fit under a field the play
   editor's size, so the field keeps 60% of the screen's height (about 14 px
   a yard on a phone) and the parts follow below it.
-- **Try it** plays at a drive picked on the editor (Mister Frog's 4 for
+- **Try it** plays at a series picked on the editor (Mister Frog's 4 for
   Frog Rain, 2 for an event of your own), with Two-tap remembered. It
   ignores hard mode, as the play editor's practice does. The event tried is
   kept in the browser's session, so ‹ Events reopens it as it was tried,
@@ -217,9 +217,10 @@ changed:
   went off, so the game doesn't read the field for the frogs' hop (r3).
 - **Written once:** where an area sits across the field is the sim's
   `sideOf`, `rectXs` and `circleX`, which the editor draws through (r4);
-  `sameEvent` (r5); the drive count, `DRIVES` (r7); `Yards`, in
-  `fieldSvg.ts` (r8); a Boss's drive, `bossDrive` (r9); each look's drawing
-  and sounds, one record in the game (r15).
+  `sameEvent` (r5); the drive count, `DRIVES` (r7; now `MAX_SERIES`);
+  `Yards`, in `fieldSvg.ts` (r8); a Boss's drive, `bossDrive` (r9; now
+  `bossSeries`); each look's drawing and sounds, one record in the game
+  (r15).
 - **Tidier:** comments on the right code (r10), "Goes off as" for burst
   and spell (r11), names (r16), the save status told its page by every
   caller (r17), a drive's event a typed id (r18), and more.

@@ -1,5 +1,5 @@
 /**
- * The DOM HUD over the canvas (TECHNICAL.md §6): the drive banner and down
+ * The DOM HUD over the canvas (TECHNICAL.md §6): the banner and down
  * and distance at the top; the hand of play cards, Flip and the context button
  * (PLAY, HIKE!, RESUME, AGAIN) at the bottom; message pops and the big
  * GREAT/OK/BAD; and the TRICK OR TREAT! overlay (the offer and the roster).
@@ -176,7 +176,7 @@ export class Hud {
   }
 
   /** Space the HUD takes at the top and bottom, so the camera can fit the field between. */
-  /** The drive banner ("Drive 2 of 4 · Challenge") and down and distance ("3rd & 4"). */
+  /** The banner (the tally of series won, once the run is over) and down and distance ("3rd & 4"). */
   setTop(banner: string, downs: string | null): void {
     this.banner.textContent = banner;
     this.banner.hidden = !banner;
@@ -246,7 +246,7 @@ export class Hud {
   }
 
   /**
-   * The draft after a won drive: the offers to take (or skip), and the
+   * The draft after a won series: the offers to take (or skip), and the
    * roster panel with your players' numbers and your team's hand. Null hides it.
    */
   setDraft(draft: DraftView | null): void {

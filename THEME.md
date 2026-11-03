@@ -8,7 +8,7 @@ This document is about who, where and what it feels like. It does not cover rule
 
 ## The Pitch in One Breath
 
-**Arcade Halloween Football.** **Jack**, a jack-o'-lantern, has lost his way home to the pumpkin patch, and he's asked a football team to help. They play through a haunted forest, a candy kingdom and a farm, one drive at a time, past gnomes, scarecrows, owls and bats that don't want them there. You call the play, time the throw and break the tackles; everything else crashes together on its own. You start as seven plain, keen humans; drive by drive, the forest sends you recruits: a Golem built like a linebacker, a Werewolf that won't stop running, a Ghost that plucks passes out of the air. Keep going until a 4th down goes wrong.
+**Arcade Halloween Football.** **Jack**, a jack-o'-lantern, has lost his way home to the pumpkin patch, and he's asked a football team to help. They play through a haunted forest, a candy kingdom and a farm, one series at a time, past gnomes, scarecrows, owls and bats that don't want them there. You call the play, time the throw and break the tackles; everything else crashes together on its own. You start as seven plain, keen humans; series by series, the forest sends you recruits: a Golem built like a linebacker, a Werewolf that won't stop running, a Ghost that plucks passes out of the air. Keep going until a 4th down goes wrong.
 
 **The feel:** snappy, fast, silly, and above all *physical*: every play ends in a pile-up. It's closer to *Crossy Road* and *Retro Bowl* than to *Blood Bowl*: pick it up in seconds, laugh every few seconds, one more go. **It's a portrait, one-thumb phone game in voxels**, to a cheerful Halloween soundtrack.
 
@@ -28,7 +28,7 @@ The way home crosses three places, each with a Boss in a hat of its own: **Miste
 - **You call the play and make the throw.** You're Jack, the pumpkin who's also the quarterback: you read the defense, pick the play, and let yourself fly at the right moment.
 - **You're getting Jack home.** Every Boss beaten is a step closer to the patch.
 - **A plain team becomes a monster team.** You start with seven ordinary humans. By the end of a good run your lineup is a pack of misfits, each a trade-off: the Golem nobody can move, the Werewolf nobody can catch, the Ghost who catches everything.
-- **Every recruit is a little story.** The Werewolf you picked up after the second drive, who broke three tackles against Mister Frog, is *your* Werewolf.
+- **Every recruit is a little story.** The Werewolf you picked up after the second series, who broke three tackles against Mister Frog, is *your* Werewolf.
 - **Chaos you can read.** The defense is all on show, but four downs go fast. You call the play and adapt as it falls apart.
 
 ## Tone
@@ -100,7 +100,7 @@ The Queen's gingerbread realm: pink-and-white turf, gingerbread houses, candy ca
 ### Frederick's Farm
 A tilled farm field (brown soil, furrows running up the field, green sprouts) with dark soil beyond, fences and glowing jack-o'-lanterns along the sidelines, pumpkins and hay bales. Rows of scarecrows, and **Crows** (black, with dark purple feathers) flying lanes up and down the field. **The pumpkin patch is the last end zone**, and **the King**, a giant scarecrow in a crown, stands guard in front of it, never moving.
 
-Each area has its own locals, hazards and look, and a Boss defense at the end of its four drives. It's always the same team, growing as it goes.
+Each area has its own locals, hazards and look, and a Boss defense at the end of its four series. It's always the same team, growing as it goes.
 
 ---
 

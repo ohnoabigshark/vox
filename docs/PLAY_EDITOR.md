@@ -46,11 +46,11 @@ it was "draft" when built). Words are as in [`CONTEXT.md`](../CONTEXT.md).
   cards. The sketch is the only card, already called, so its routes show;
   HIKE runs a **rep**. When the play ends, the result shows for the usual
   moment, then the next rep lines up at the same spot: 1st & 10 from the same
-  line, the same defense, the sketch called, Flip as it was left. No drives,
-  no TRICK OR TREAT!, no Game Over. A browser plays no sound until the page is
+  line, the same defense, the sketch called, Flip as it was left. No next
+  series, no TRICK OR TREAT!, no Game Over. A browser plays no sound until the page is
   tapped, so the first tap (HIKE, Flip or the card) starts the sound and the
   music; t1 said the first HIKE, and any first tap does the same job.
-- **The defense** (t3) is Froggy's Forest's first drive, the one a run
+- **The defense** (t3) is Froggy's Forest's first series, the one a run
   starts against. Hard mode changes nothing there, so "Try with" has only
   Two-tap.
 - **‹ Sketch** (t4), top left between reps (before HIKE and while a result

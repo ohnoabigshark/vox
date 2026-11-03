@@ -16,12 +16,12 @@
  *   6. The pocket: once its sweeps are done with the QB still holding the
  *      ball, it's a sack.
  *   7. The bullet in the air (ball.ts).
- *   8. The carrier over the first-down line wins the drive; over the
+ *   8. The carrier over the first-down line wins the series; over the
  *      sideline, it's down there.
  * In Break it! the play is frozen until it's decided (sim/breakit.ts), and
  * so it is in the catch tests on a contested ball, SNAG IT! (sim/snag.ts)
  * and the tip drill (sim/tip.ts).
- * Before the snap and between drives only the Bats move.
+ * Before the snap and between series only the Bats move.
  */
 import { assertNever } from '../../assertNever';
 import { arcadeTuning, DT } from '../content/tuning';
@@ -236,7 +236,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
   }
   let outcome = judgeBreakIt(state, input);
   if (!outcome) return;
-  // Second Wind (a perk): once a drive, a BAD one counts as OK.
+  // Second Wind (a perk): once a series, a BAD one counts as OK.
   if (outcome === 'tackle' && state.perks.secondWind && !state.perks.secondWindUsed) {
     state.perks.secondWindUsed = true;
     outcome = 'drag';
@@ -300,7 +300,7 @@ function tipDrill(state: RunState, input: StepInput, events: ArcadeEvent[]): voi
  * A catch test's grade, the same for both (docs/TIP.md, t4). GREAT: caught,
  * and the defenders reaching for it go flying, so the receiver runs free.
  * OK: caught, and tackled on the spot, unless caught past the line, which wins
- * the drive (B6). BAD: batted down by the first of them.
+ * the series (B6). BAD: batted down by the first of them.
  */
 function catchGraded(
   state: RunState,
@@ -313,16 +313,16 @@ function catchGraded(
   const defenders = state.field.defenders.filter((d) => t.defenders.includes(d.id));
   const first = defenders[0];
   if (grade === 'bad' || !receiver) {
-    const at = first?.pos ?? receiver?.pos ?? v(0, state.drive.los);
+    const at = first?.pos ?? receiver?.pos ?? v(0, state.series.los);
     events.push({ type: 'batted', by: first?.id ?? -1, at, contested: true });
     state.field.ball = { at: 'dead', pos: at, how: 'batted' };
-    endDown(state, 'batted', state.drive.los, events);
+    endDown(state, 'batted', state.series.los, events);
     return;
   }
   giveBall(state, receiver);
   events.push({ type: 'caught', id: receiver.id, contested: true });
   if (grade === 'ok') {
-    // Caught past the line (or in the end zone) wins the drive before anyone tackles (B6).
+    // Caught past the line (or in the end zone) wins the series before anyone tackles (B6).
     if (!checkCarrier(state, events)) tackle(state, receiver, first?.id ?? -1, events);
     return;
   }
@@ -432,11 +432,11 @@ function sack(state: RunState, qb: Player, events: ArcadeEvent[]): void {
   events.push({ type: 'sacked' });
   qb.down = 1;
   state.field.ball = { at: 'dead', pos: qb.pos, how: 'sacked' };
-  endDown(state, 'sacked', state.drive.los - arcadeTuning.drive.sackLoss, events);
+  endDown(state, 'sacked', state.series.los - arcadeTuning.series.sackLoss, events);
 }
 
 /**
- * The King's crows (his drive): shortly after the snap they leave his arms
+ * The King's crows (his series): shortly after the snap they leave his arms
  * and fly at whoever has the ball (while a pass is in the air, at where it's
  * going); when they reach the holder they land on it, and SHOO! has a moment
  * to drive them off. Too late, and they knock it down: a sack if the QB
@@ -505,7 +505,7 @@ function royalCrows(state: RunState, input: StepInput, events: ArcadeEvent[]): b
 function flight(state: RunState, events: ArcadeEvent[]): boolean {
   const outcome = resolveFlight(state);
   if (!outcome) return false;
-  // A catch test: a contested ball, from drive 5, is the Coach's to win (docs/SNAG.md, docs/TIP.md).
+  // A catch test: a contested ball, from series 5, is the Coach's to win (docs/SNAG.md, docs/TIP.md).
   const ball = state.field.ball;
   if (
     outcome.kind !== 'incomplete' &&
@@ -529,20 +529,20 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
       contested: outcome.contest !== undefined,
     });
     state.field.ball = { at: 'dead', pos: outcome.at, how: 'batted' };
-    endDown(state, 'batted', state.drive.los, events);
+    endDown(state, 'batted', state.series.los, events);
     return true;
   }
   events.push({ type: 'incomplete', at: outcome.at });
   state.field.ball = { at: 'dead', pos: outcome.at, how: 'incomplete' };
-  endDown(state, 'incomplete', state.drive.los, events);
+  endDown(state, 'incomplete', state.series.los, events);
   return true;
 }
 
-/** The carrier over the first-down line wins the drive; over the sideline, it's down there. */
+/** The carrier over the first-down line wins the series; over the sideline, it's down there. */
 function checkCarrier(state: RunState, events: ArcadeEvent[]): boolean {
   const carrier = carrierOf(state);
   if (!carrier) return false;
-  if (carrier.pos.y >= state.drive.firstDown) {
+  if (carrier.pos.y >= state.series.firstDown) {
     for (const d of state.field.defenders) d.latch = null;
     state.field.drag = null;
     endDown(state, 'firstDown', carrier.pos.y, events);

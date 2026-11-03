@@ -5,7 +5,7 @@ import { step } from '../../src/arcade/sim/step';
 import { tipCountdownLeft, tipLanding, tipPops, tipTimes } from '../../src/arcade/sim/tip';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
-import { bulletContest, forced, onDrive, type Force } from './contests';
+import { bulletContest, forced, onSeries, type Force } from './contests';
 import { ofType, playState, run, stand } from './helpers';
 import { tipView } from '../../src/arcade/ui/testViews';
 
@@ -51,12 +51,12 @@ function play(state: RunState, taps: readonly TapAt[]): { state: RunState; event
  * The lob of `lobContest`, in a run with this seed, as it arrives: the pick
  * is made then, from the seed. `flags` turns on ?snag=1 and ?tip=1.
  */
-function lobArrives(seed: number, drive: number, flags: readonly Force[] = []): RunState {
+function lobArrives(seed: number, series: number, flags: readonly Force[] = []): RunState {
   const s = playState(
     [{ pos: v(2.2, 10), job: stand(v(2.2, 10)) }],
     [{ kind: 'cover', pos: v(-0.2, 10) }],
   );
-  const seeded = onDrive({ ...s, seed }, drive);
+  const seeded = onSeries({ ...s, seed }, series);
   for (const f of flags) forced(seeded, f);
   seeded.field.ball = {
     at: 'flight',
@@ -70,7 +70,7 @@ function lobArrives(seed: number, drive: number, flags: readonly Force[] = []): 
 }
 
 describe('1. the pick (t2, t3, g5)', () => {
-  it('from drive 5 a contested ball starts SNAG IT! or the tip drill, the same for the same seed', () => {
+  it('from series 5 a contested ball starts SNAG IT! or the tip drill, the same for the same seed', () => {
     const s = bulletContest(5);
     expect(['snag', 'tip']).toContain(s.phase);
     expect(bulletContest(5).phase).toBe(s.phase);
@@ -84,19 +84,19 @@ describe('1. the pick (t2, t3, g5)', () => {
     expect(tips).toBeLessThan(130);
   });
 
-  it('before drive 5, neither: today’s rule settles it', () => {
+  it('before series 5, neither: today’s rule settles it', () => {
     const s = bulletContest(4);
     expect(s.snag).toBeNull();
     expect(s.tip).toBeNull();
     expect(s.field.ball).toEqual({ at: 'carried', by: 2 });
   });
 
-  it('?snag=1 alone always gives SNAG IT! and ?tip=1 alone the tip drill, from drive 1', () => {
+  it('?snag=1 alone always gives SNAG IT! and ?tip=1 alone the tip drill, from series 1', () => {
     expect(createRun(1, undefined, 0, { tipAlways: true }).tipAlways).toBe(true);
     expect(createRun(1).tipAlways).toBe(false);
-    for (const drive of [1, 5, 9]) {
-      expect(bulletContest(drive, 60, undefined, 'snag').phase).toBe('snag');
-      const t = bulletContest(drive, 60, undefined, 'tip');
+    for (const series of [1, 5, 9]) {
+      expect(bulletContest(series, 60, undefined, 'snag').phase).toBe('snag');
+      const t = bulletContest(series, 60, undefined, 'tip');
       expect(t.phase).toBe('tip');
       expect(t.tip?.receiver).toBe(2);
       expect(t.tip?.defenders).toEqual([100]);
@@ -108,7 +108,7 @@ describe('1. the pick (t2, t3, g5)', () => {
     }
   });
 
-  it('with both, either, from drive 1', () => {
+  it('with both, either, from series 1', () => {
     const phases = new Set<string>();
     for (let seed = 1; seed <= 40; seed++) phases.add(lobArrives(seed, 1, ['snag', 'tip']).phase);
     expect([...phases].sort()).toEqual(['snag', 'tip']);
@@ -117,16 +117,16 @@ describe('1. the pick (t2, t3, g5)', () => {
 
 describe('2. the count (g3)', () => {
   it('SNAG IT!’s rule plus one, 2 to 5', () => {
-    expect(tipPops({ drive: 5, crowd: 1, handsGap: 0 })).toBe(3);
-    expect(tipPops({ drive: 5, crowd: 1, handsGap: 20 })).toBe(2);
-    expect(tipPops({ drive: 5, crowd: 1, handsGap: 40 })).toBe(2);
-    expect(tipPops({ drive: 5, crowd: 2, handsGap: 0 })).toBe(4);
-    expect(tipPops({ drive: 9, crowd: 1, handsGap: 0 })).toBe(4);
-    expect(tipPops({ drive: 13, crowd: 1, handsGap: 0 })).toBe(5);
-    expect(tipPops({ drive: 17, crowd: 4, handsGap: -40 })).toBe(5);
+    expect(tipPops({ series: 5, crowd: 1, handsGap: 0 })).toBe(3);
+    expect(tipPops({ series: 5, crowd: 1, handsGap: 20 })).toBe(2);
+    expect(tipPops({ series: 5, crowd: 1, handsGap: 40 })).toBe(2);
+    expect(tipPops({ series: 5, crowd: 2, handsGap: 0 })).toBe(4);
+    expect(tipPops({ series: 9, crowd: 1, handsGap: 0 })).toBe(4);
+    expect(tipPops({ series: 13, crowd: 1, handsGap: 0 })).toBe(5);
+    expect(tipPops({ series: 17, crowd: 4, handsGap: -40 })).toBe(5);
   });
 
-  it('a contested ball at drive 5 with one Cover gets 3 pops', () => {
+  it('a contested ball at series 5 with one Cover gets 3 pops', () => {
     expect(bulletContest(5, 60, undefined, 'tip').tip?.pops).toHaveLength(3);
   });
 });
@@ -137,7 +137,7 @@ describe('3. the pace (g2, g3)', () => {
     [1.0, 0.8, 0.64, 0.512, 0.4096].forEach((want, i) => expect(screen[i]).toBeCloseTo(want, 9));
   });
 
-  it('past drive 10, shorter by SNAG IT!’s share: the first pop 0.95 s at 11, 0.625 s from 18', () => {
+  it('past series 10, shorter by SNAG IT!’s share: the first pop 0.95 s at 11, 0.625 s from 18', () => {
     expect(tipTimes(10, 1)[0]! / TIME_SCALE).toBeCloseTo(1, 9);
     expect(tipTimes(11, 1)[0]! / TIME_SCALE).toBeCloseTo(0.95, 9);
     expect(tipTimes(18, 1)[0]! / TIME_SCALE).toBeCloseTo(0.625, 9);
@@ -228,13 +228,13 @@ describe('6. the grade (t4, g1)', () => {
     expect(ofType(r.events, 'caught')).toEqual([{ type: 'caught', id: 2, contested: true }]);
     const ended = ofType(r.events, 'downEnded')[0];
     expect(ended?.result).toBe('tackled');
-    expect(ended?.gained).toBeCloseTo(6 - s.drive.los, 0);
+    expect(ended?.gained).toBeCloseTo(6 - s.series.los, 0);
   });
 
-  it('a bobble past the line: OK, and the catch wins the drive (B6)', () => {
+  it('a bobble past the line: OK, and the catch wins the series (B6)', () => {
     const s = bulletContest(5, 60, undefined, 'tip');
-    // The ball is caught at y 6: put the line (the goal line, on a Boss drive) behind it.
-    s.drive = { ...s.drive, firstDown: 5 };
+    // The ball is caught at y 6: put the line (the goal line, on a Boss series) behind it.
+    s.series = { ...s.series, firstDown: 5 };
     const r = play(s, [CLEAN, BOBBLE, CLEAN]);
     expect(ofType(r.events, 'tipResult')).toEqual([{ type: 'tipResult', grade: 'ok' }]);
     expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);

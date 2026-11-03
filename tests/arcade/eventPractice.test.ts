@@ -6,7 +6,7 @@ import {
 } from '../../src/arcade/content/eventLink';
 import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
-import { bossDrive, createRun, dispatch, driveAt, nextDown } from '../../src/arcade/sim/run';
+import { bossSeries, createRun, dispatch, seriesAt, nextDown } from '../../src/arcade/sim/run';
 import type { RunState } from '../../src/arcade/sim/types';
 
 /** docs/FIELD_EVENTS.md, test 8: Try it, event practice (f3, x2). */
@@ -22,21 +22,24 @@ const made: FieldEvent = {
 };
 
 describe('the Try it link (test 8)', () => {
-  it('carries the event itself, the drive and the throwing, and reads back the same', () => {
+  it('carries the event itself, the series and the throwing, and reads back the same', () => {
     const q = eventPracticeQuery(made, 6, true);
     const params = new URLSearchParams(q);
-    expect(params.get('drive')).toBe('6');
+    expect(params.get('series')).toBe('6');
     expect(params.get('aim')).toBe('2');
     expect(new URLSearchParams(eventPracticeQuery(made, 6, false)).get('aim')).toBe('1');
-    expect(readEventPractice(`?${q}`)).toEqual({ event: { ok: true, event: made }, drive: 6 });
+    expect(readEventPractice(`?${q}`)).toEqual({ event: { ok: true, event: made }, series: 6 });
   });
 
   it('a link it can’t read says why; with no event it’s an ordinary game', () => {
-    expect(readEventPractice('?event=nope&drive=2')).toEqual({
+    expect(readEventPractice('?event=nope&series=2')).toEqual({
       event: { ok: false, reason: 'This event link is broken.' },
-      drive: 2,
+      series: 2,
     });
-    const bad = new URLSearchParams({ event: JSON.stringify({ ...made, lasts: 'x' }), drive: '2' });
+    const bad = new URLSearchParams({
+      event: JSON.stringify({ ...made, lasts: 'x' }),
+      series: '2',
+    });
     expect(readEventPractice(`?${bad}`)?.event).toEqual({
       ok: false,
       reason: 'This event link can’t be played: lasts is not a number.',
@@ -44,12 +47,17 @@ describe('the Try it link (test 8)', () => {
     expect(readEventPractice('?try=x')).toBeNull();
   });
 
-  it('a drive it can’t read, or past the run, is held to drives 1 to 12', () => {
-    const q = (drive: string): number | undefined =>
-      readEventPractice(`?${new URLSearchParams({ event: JSON.stringify(made), drive })}`)?.drive;
+  it('a series it can’t read, or past the run, is held to series 1 to 12', () => {
+    const q = (series: string): number | undefined =>
+      readEventPractice(`?${new URLSearchParams({ event: JSON.stringify(made), series })}`)?.series;
     expect(q('x')).toBe(1);
     expect(q('0')).toBe(1);
     expect(q('40')).toBe(12);
+  });
+
+  it('a link from before the rename says drive, and plays that series', () => {
+    const old = new URLSearchParams({ event: JSON.stringify(made), drive: '7' });
+    expect(readEventPractice(`?${old}`)?.series).toBe(7);
   });
 
   it('‹ Events goes back to the editor with the event open', () => {
@@ -60,14 +68,14 @@ describe('the Try it link (test 8)', () => {
 });
 
 describe('event practice (test 8)', () => {
-  const practice = (event: FieldEvent, drive: number): RunState =>
-    createRun(3, undefined, 0, { eventPractice: { event, drive } });
+  const practice = (event: FieldEvent, series: number): RunState =>
+    createRun(3, undefined, 0, { eventPractice: { event, series } });
 
-  it('plays the chosen drive’s defense, three cards to pick from, nothing called', () => {
+  it('plays the chosen series’ defense, three cards to pick from, nothing called', () => {
     const s = practice(made, 6);
     expect(s.practice).toBe(true);
-    expect({ area: s.drive.area, index: s.drive.index }).toEqual(driveAt(6));
-    expect(s.drivesWon).toBe(5);
+    expect({ area: s.series.area, index: s.series.index }).toEqual(seriesAt(6));
+    expect(s.seriesWon).toBe(5);
     expect(s.playbook).toBe(PLAY_POOL);
     expect(s.hand).toHaveLength(3);
     expect(s.called).toBeNull();
@@ -81,14 +89,14 @@ describe('event practice (test 8)', () => {
     expect(hiked.field.fieldEvent?.left).toBe(made.goesOff);
     // The next rep: the same spot, the event placed again, waiting for the hike.
     nextDown(hiked, []);
-    expect(hiked.drive.down).toBe(1);
+    expect(hiked.series.down).toBe(1);
     // Each step works on a copy of the run (cloneRun), so it's the same event, not the same object.
     expect(hiked.field.fieldEvent?.event).toEqual(made);
     expect(hiked.field.fieldEvent?.left).toBeNull();
     expect(hiked.called).toBeNull();
   });
 
-  it('on a Boss’s drive the event tried takes the place of the Boss’s own', () => {
+  it('on a Boss’s series the event tried takes the place of the Boss’s own', () => {
     expect(practice(made, 4).field.fieldEvent?.event.id).toBe('graveyardRain');
   });
 
@@ -99,10 +107,10 @@ describe('event practice (test 8)', () => {
   });
 });
 
-describe('a Boss’s drive (review r9)', () => {
+describe('a Boss’s series (review r9)', () => {
   it('is worked out from where the Boss is, not written as a number', () => {
-    expect(bossDrive('misterFrog')).toBe(4);
-    expect(bossDrive('queen')).toBe(8);
-    expect(bossDrive('king')).toBe(12);
+    expect(bossSeries('misterFrog')).toBe(4);
+    expect(bossSeries('queen')).toBe(8);
+    expect(bossSeries('king')).toBe(12);
   });
 });

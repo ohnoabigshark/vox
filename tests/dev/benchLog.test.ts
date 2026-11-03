@@ -10,7 +10,7 @@ const isLine = async (x: unknown): Promise<boolean> => isLogLine(x);
 
 /** docs/BENCH.md, tests 12-14 and the rework's test M. */
 
-const situation: Situation = { drive: 7, tacklers: 1, crowd: 1, handsGap: 0 };
+const situation: Situation = { series: 7, tacklers: 1, crowd: 1, handsGap: 0 };
 const NOW = Date.UTC(2026, 9, 31, 15, 2, 11);
 
 describe('the log', () => {

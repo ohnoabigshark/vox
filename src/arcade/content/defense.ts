@@ -1,7 +1,7 @@
 /**
- * The forest's defenders (GAMEPLAY.md, The Defense) and each drive's
+ * The forest's defenders (GAMEPLAY.md, The Defense) and each series'
  * defense. Spots are relative to the line of scrimmage (x across, y
- * upfield). The first drive is a handful of sleepy defenders; the Boss
+ * upfield). The first series is a handful of sleepy defenders; the Boss
  * brings the whole forest. Every area adds to every defender's stats.
  */
 import type { BossName, DefenderKind, PropKind, Stats } from '../sim/types';
@@ -84,15 +84,15 @@ export interface DefenseSpot {
 export interface DefenseSpec {
   readonly name: string;
   readonly defenders: readonly DefenseSpot[];
-  /** Added to every defender's stats on top of the area's boost (a sleepy first drive is negative). */
+  /** Added to every defender's stats on top of the area's boost (a sleepy first series is negative). */
   readonly boost: number;
-  /** The drive's field event, by id: Mister Frog's Frog Rain (docs/FIELD_EVENTS.md). */
+  /** The series' field event, by id: Mister Frog's Frog Rain (docs/FIELD_EVENTS.md). */
   readonly fieldEvent?: DefaultEventId;
   /** The Queen's Royal Decree: each down one of the three cards is banned (it can't be called). */
   readonly decree?: boolean;
-  /** A Boss drive: the Boss who stands in its end zone, a prop (sim/props.ts, BOSSES). */
+  /** A Boss series: the Boss who stands in its end zone, a prop (sim/props.ts, BOSSES). */
   readonly boss?: BossName;
-  /** The last drive of the run: the end zone is Jack's pumpkin patch. */
+  /** The last series of the run: the end zone is Jack's pumpkin patch. */
   readonly home?: boolean;
 }
 
@@ -112,7 +112,7 @@ export interface ArcadeArea {
   readonly looks: Partial<Record<DefenderKind, string>>;
   readonly intro: DefenseSpec;
   readonly challenge: DefenseSpec;
-  /** Its Gimmick drive: the same every run. */
+  /** Its Gimmick series: the same every run. */
   readonly gimmick: DefenseSpec;
   readonly boss: DefenseSpec;
 }

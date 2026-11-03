@@ -17,13 +17,13 @@ pickups, more kinds and placing them in the editor are later rounds
   in the middle lane, against a sideline or on a prop (a Boss included: it
   stands in the middle lane). Each stretch keeps clear of its own props and
   its neighbours', so a pickup seen ahead lies in the same place when its
-  drive comes. They
+  series comes. They
   show before the snap, so you can call a play, or Flip it, to run through a
   bolt and clear of a slick.
 - **Taken** (k3): the first of your players to run through a pickup takes it,
-  and it's gone: it doesn't come back at the next down or the next drive (the
+  and it's gone: it doesn't come back at the next down or the next series (the
   map said "for the rest of the drive"; a pickup used up ahead would otherwise
-  reappear when that drive starts). The rest stay put.
+  reappear when that series starts). The rest stay put.
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
   your team takes them, Jack and the carrier included. Defenders run over
   them and leave them be. Jack stands in the middle until he runs, and
@@ -56,8 +56,8 @@ pickups, more kinds and placing them in the editor are later rounds
    then back; it's taken, and nobody else gets it.
 3. **The slick:** a player who runs through it lies down; a carrier is
    tackled there (SLIPPED!); a defender runs over it and it stays.
-4. **The drive:** taken pickups stay gone at the next down and the next
-   drive; the rest stay put.
+4. **The series:** taken pickups stay gone at the next down and the next
+   series; the rest stay put.
 5. **Practice** has none.
 
 The balance tool (`npm run balance:arcade`) runs before and after.
@@ -70,7 +70,7 @@ never aims for or away from pickups (k7):
 
 | | before | after |
 | --- | --- | --- |
-| Drives won (of 12) | 8.5 | 8.3 |
+| Series won (of 12) | 8.5 | 8.3 |
 | Beat the game | 35% | 30% |
 | Yards a down | 4.5 | 4.7 |
 | Yards a pass play | 4.6 | 4.8 |
