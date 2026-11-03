@@ -2,9 +2,9 @@
  * The props on the field (sim/props.ts): trees, stumps and toadstools in the
  * Forest, gumdrops, lollipops and candy canes in the Candy Kingdom, each
  * where the sim has it, drawn twice its kind's size (the sim's circle stays as it is).
- * On the run's last drive, the King stands guard and the pumpkin patch fills
- * the field behind him. Mister Frog hops on the spot. Rebuilt whenever a new drive lays
- * its props (they're in the drive's own coordinates).
+ * On the run's last series, the King stands guard and the pumpkin patch fills
+ * the field behind him. Mister Frog hops on the spot. Rebuilt whenever a new series lays
+ * its props (they're in the series' own coordinates).
  */
 import * as THREE from 'three';
 import { BOSSES, KING } from '../sim/props';
@@ -45,7 +45,7 @@ export class ArcadeFieldProps {
       if (p.model === BOSSES.misterFrog.model) this.frog = { mesh, scale: p.scale * DRAW_SCALE };
     }
     this.animate(0);
-    // The run's last drive: Jack's pumpkin patch fills the field behind the King (just scenery).
+    // The run's last series: Jack's pumpkin patch fills the field behind the King (just scenery).
     const king = props.find((p) => p.model === KING.model);
     if (king) {
       for (let row = 0; row < 4; row++) {

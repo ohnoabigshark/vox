@@ -117,7 +117,7 @@ export function eventKind(event: FieldEvent): EventKind {
   }
 }
 
-/** The ids of the events in the code: what a drive may name, so a wrong one won't compile. */
+/** The ids of the events in the code: what a series may name, so a wrong one won't compile. */
 export type DefaultEventId = 'frogRain';
 
 const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = { frogRain: FROG_RAIN };

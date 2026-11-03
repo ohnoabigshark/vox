@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { layerSaved } from '../../src/arcade/content/savedTuning';
 import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
-import { createRun, driveAt, driveNumber } from '../../src/arcade/sim/run';
+import { createRun, seriesAt, seriesNumber } from '../../src/arcade/sim/run';
 import { dotOpen, nextDot, snagCountdownLeft, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
@@ -11,29 +11,29 @@ import { v } from '../../src/arcade/sim/vec';
 import { startRep } from '../../src/dev/bench/reps';
 import { ofType, playState, run, stand, throwAt } from './helpers';
 import * as contested from './contests';
-import { onDrive, type Force } from './contests';
+import { onSeries, type Force } from './contests';
 
 /** docs/SNAG.md: the tests it lists, in its order. */
 
 const sn = arcadeTuning.snag;
 
 /**
- * From drive 5 a contested ball picks SNAG IT! or the tip drill at random
+ * From series 5 a contested ball picks SNAG IT! or the tip drill at random
  * (docs/TIP.md, t2); these tests pick SNAG IT! from there, as ?snag=1 does.
- * Before drive 5 nothing is forced, so today's rule still settles it.
+ * Before series 5 nothing is forced, so today's rule still settles it.
  */
-const snagFrom5 = (drive: number): Force | undefined => (drive >= 5 ? 'snag' : undefined);
+const snagFrom5 = (series: number): Force | undefined => (series >= 5 ? 'snag' : undefined);
 
 function bulletContest(
-  drive: number,
+  series: number,
   catcherHands = 60,
   covers: readonly { hands: number; along?: number }[] = [{ hands: 60 }],
 ): RunState {
-  return contested.bulletContest(drive, catcherHands, covers, snagFrom5(drive));
+  return contested.bulletContest(series, catcherHands, covers, snagFrom5(series));
 }
 
-function lobContest(drive: number): RunState {
-  return contested.lobContest(drive, snagFrom5(drive));
+function lobContest(series: number): RunState {
+  return contested.lobContest(series, snagFrom5(series));
 }
 
 type Tap = 'hit' | 'early' | 'none';
@@ -65,51 +65,51 @@ function snag(state: RunState, taps: readonly Tap[]): { state: RunState; events:
 }
 
 describe('SNAG IT!: how many dots (s1)', () => {
-  it('2 from drive 5, one more a zone, 5 from drive 17', () => {
-    expect(catchCount({ drive: 5, crowd: 1, handsGap: 0 })).toBe(2);
-    expect(catchCount({ drive: 8, crowd: 1, handsGap: 0 })).toBe(2);
-    expect(catchCount({ drive: 9, crowd: 1, handsGap: 0 })).toBe(3);
-    expect(catchCount({ drive: 13, crowd: 1, handsGap: 0 })).toBe(4);
-    expect(catchCount({ drive: 17, crowd: 1, handsGap: 0 })).toBe(5);
-    expect(catchCount({ drive: 40, crowd: 1, handsGap: 0 })).toBe(5);
-    // Before drive 5 (only with ?snag=1), the level gives 2.
-    expect(catchCount({ drive: 1, crowd: 1, handsGap: 0 })).toBe(2);
+  it('2 from series 5, one more a zone, 5 from series 17', () => {
+    expect(catchCount({ series: 5, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ series: 8, crowd: 1, handsGap: 0 })).toBe(2);
+    expect(catchCount({ series: 9, crowd: 1, handsGap: 0 })).toBe(3);
+    expect(catchCount({ series: 13, crowd: 1, handsGap: 0 })).toBe(4);
+    expect(catchCount({ series: 17, crowd: 1, handsGap: 0 })).toBe(5);
+    expect(catchCount({ series: 40, crowd: 1, handsGap: 0 })).toBe(5);
+    // Before series 5 (only with ?snag=1), the series number gives 2.
+    expect(catchCount({ series: 1, crowd: 1, handsGap: 0 })).toBe(2);
   });
 
   it('one more for each defender after the first in reach', () => {
-    expect(catchCount({ drive: 5, crowd: 2, handsGap: 0 })).toBe(3);
-    expect(catchCount({ drive: 5, crowd: 3, handsGap: 0 })).toBe(4);
+    expect(catchCount({ series: 5, crowd: 2, handsGap: 0 })).toBe(3);
+    expect(catchCount({ series: 5, crowd: 3, handsGap: 0 })).toBe(4);
   });
 
   it('one fewer when the receiver’s Hands beat theirs by 20, one more the other way', () => {
-    expect(catchCount({ drive: 9, crowd: 1, handsGap: 20 })).toBe(2);
-    expect(catchCount({ drive: 9, crowd: 1, handsGap: 19 })).toBe(3);
-    expect(catchCount({ drive: 9, crowd: 1, handsGap: -20 })).toBe(4);
-    expect(catchCount({ drive: 9, crowd: 1, handsGap: -19 })).toBe(3);
+    expect(catchCount({ series: 9, crowd: 1, handsGap: 20 })).toBe(2);
+    expect(catchCount({ series: 9, crowd: 1, handsGap: 19 })).toBe(3);
+    expect(catchCount({ series: 9, crowd: 1, handsGap: -20 })).toBe(4);
+    expect(catchCount({ series: 9, crowd: 1, handsGap: -19 })).toBe(3);
   });
 
   it('never under 2 or over 5', () => {
-    expect(catchCount({ drive: 5, crowd: 1, handsGap: 40 })).toBe(2);
-    expect(catchCount({ drive: 17, crowd: 4, handsGap: -30 })).toBe(5);
+    expect(catchCount({ series: 5, crowd: 1, handsGap: 40 })).toBe(2);
+    expect(catchCount({ series: 17, crowd: 4, handsGap: -30 })).toBe(5);
   });
 
-  it('a level is the drive’s number in the run', () => {
-    expect(driveNumber({ area: 0, index: 0 })).toBe(1);
-    expect(driveNumber({ area: 1, index: 0 })).toBe(5);
-    expect(driveNumber({ area: 2, index: 3 })).toBe(12);
-    expect(driveNumber({ area: 4, index: 0 })).toBe(17);
+  it('the series number is a series’ count in the run', () => {
+    expect(seriesNumber({ area: 0, index: 0 })).toBe(1);
+    expect(seriesNumber({ area: 1, index: 0 })).toBe(5);
+    expect(seriesNumber({ area: 2, index: 3 })).toBe(12);
+    expect(seriesNumber({ area: 4, index: 0 })).toBe(17);
   });
 
-  it('and back: the area and index of a drive number (review a7)', () => {
-    expect(driveAt(1)).toEqual({ area: 0, index: 0 });
-    expect(driveAt(5)).toEqual({ area: 1, index: 0 });
-    expect(driveAt(12)).toEqual({ area: 2, index: 3 });
-    for (let n = 1; n <= 20; n++) expect(driveNumber(driveAt(n))).toBe(n);
+  it('and back: the area and index of a series number (review a7)', () => {
+    expect(seriesAt(1)).toEqual({ area: 0, index: 0 });
+    expect(seriesAt(5)).toEqual({ area: 1, index: 0 });
+    expect(seriesAt(12)).toEqual({ area: 2, index: 3 });
+    for (let n = 1; n <= 20; n++) expect(seriesNumber(seriesAt(n))).toBe(n);
   });
 });
 
 describe('SNAG IT!: how fast (s2)', () => {
-  it('rings close in 0.8 s on screen, dots 0.5 s apart, up to drive 10', () => {
+  it('rings close in 0.8 s on screen, dots 0.5 s apart, up to series 10', () => {
     expect(snagPace(5)).toEqual({ close: sn.close, gap: sn.close * sn.gapShare });
     expect(snagPace(10)).toEqual(snagPace(5));
     // On screen, at the game's 0.8 time scale.
@@ -117,8 +117,8 @@ describe('SNAG IT!: how fast (s2)', () => {
     expect((sn.close * sn.gapShare) / 0.8).toBeCloseTo(0.5);
   });
 
-  it('past drive 10, faster each drive, down to the floor', () => {
-    // 0.04 s quicker a drive on screen, to 0.5 s (catchTests: 5% a drive, to 62.5%).
+  it('past series 10, faster each series, down to the floor', () => {
+    // 0.04 s quicker a series on screen, to 0.5 s (catchTests: 5% a series, to 62.5%).
     expect(snagPace(11).close / 0.8).toBeCloseTo(0.76);
     expect(snagPace(12).close / 0.8).toBeCloseTo(0.72);
     expect(snagPace(11).gap).toBeCloseTo(snagPace(11).close * sn.gapShare);
@@ -128,7 +128,7 @@ describe('SNAG IT!: how fast (s2)', () => {
 });
 
 describe('SNAG IT!: when (c2, c3, c6)', () => {
-  it('before drive 5 a contested bullet is settled as today', () => {
+  it('before series 5 a contested bullet is settled as today', () => {
     // Today's rule: even Hands, it's yours; better Hands on the Cover, it's batted.
     const won = bulletContest(4);
     expect(won.snag).toBeNull();
@@ -138,7 +138,7 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
     expect(lost.field.ball).toMatchObject({ at: 'dead', how: 'batted' });
   });
 
-  it('from drive 5 a contested bullet goes to SNAG IT! (when it’s picked), whichever way today’s rule would go', () => {
+  it('from series 5 a contested bullet goes to SNAG IT! (when it’s picked), whichever way today’s rule would go', () => {
     for (const cover of [60, 70]) {
       const s = bulletContest(5, 60, [{ hands: cover }]);
       expect(s.phase).toBe('snag');
@@ -157,13 +157,13 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
 
   it('an uncontested catch is unchanged', () => {
     const s = playState([{ pos: v(4, 6), job: stand(v(4, 6)) }]);
-    onDrive(s, 9);
+    onSeries(s, 9);
     const r = run(s, 2, throwAt(s, v(4, 6)));
     expect(ofType(r.events, 'caught')).toEqual([{ type: 'caught', id: 2, contested: false }]);
     expect(r.state.snag).toBeNull();
   });
 
-  it('?snag=1 turns it on from drive 1', () => {
+  it('?snag=1 turns it on from series 1', () => {
     const base = createRun(1, undefined, 0, { snagAlways: true });
     expect(base.snagAlways).toBe(true);
     const s = playState(
@@ -174,7 +174,7 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
     expect(run(on, 2, throwAt(on, v(4, 6))).state.phase).toBe('snag');
   });
 
-  it('the dots: 2 for one Cover at drive 5, more for a second defender in reach and its Hands', () => {
+  it('the dots: 2 for one Cover at series 5, more for a second defender in reach and its Hands', () => {
     expect(bulletContest(5).snag?.dots).toHaveLength(2);
     // A second Cover, further up the line with longer arms, reaches it at the same moment:
     // one more for it, and one more for its Hands (40 better than the Catcher's).
@@ -257,10 +257,10 @@ describe('SNAG IT!: the grade (c4, s4)', () => {
     expect(ofType(r.events, 'downEnded')[0]?.result).toBe('tackled');
   });
 
-  it('one miss past the line: OK, and the catch wins the drive (B6)', () => {
+  it('one miss past the line: OK, and the catch wins the series (B6)', () => {
     const s = bulletContest(5);
-    // The ball is caught at y 6: put the line (the goal line, on a Boss drive) behind it.
-    s.drive = { ...s.drive, firstDown: 5 };
+    // The ball is caught at y 6: put the line (the goal line, on a Boss series) behind it.
+    s.series = { ...s.series, firstDown: 5 };
     const r = snag(s, ['hit', 'none']);
     expect(ofType(r.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'ok' }]);
     expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
@@ -326,7 +326,7 @@ describe('SNAG IT!: the countdown (cd-c10)', () => {
     if (!t) throw new Error('no snag');
     expect(t.dots[0]!.appearsAt - t.startedAt).toBeCloseTo(2.4, 9);
     // A mash started the game's way (the bench's rep does it with startBreakIt).
-    const mash = startRep('mash', { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state;
+    const mash = startRep('mash', { series: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state;
     expect(mash.tackle?.kind).toBe('mash');
     expect(mash.tackle?.ready).toBe(2.4);
   });
@@ -397,7 +397,7 @@ describe('SNAG IT!: what the plan’s tests promised, checked in full (review a4
     const ended = ofType(r.events, 'downEnded')[0];
     expect(ended?.result).toBe('tackled');
     // The ball hangs a yard short of the receiver's hands at (4, 6), and it's caught there.
-    expect(ended?.gained).toBeCloseTo(6 - s.drive.los, 0);
+    expect(ended?.gained).toBeCloseTo(6 - s.series.los, 0);
   });
 
   it('a Break it! still follows a SNAG IT! in the same down, both of them', () => {
@@ -416,19 +416,19 @@ describe('SNAG IT!: what the plan’s tests promised, checked in full (review a4
     expect(t.phase).toBe('breakit');
   });
 
-  it('before drive 5 a contested lob is settled as today; from drive 5, whichever way it would go', () => {
+  it('before series 5 a contested lob is settled as today; from series 5, whichever way it would go', () => {
     // A lob onto (0.4, 10): the Catcher at x 2.2, a Cover at x `cover` (they move as it falls).
-    const lob = (drive: number, cover: number): RunState =>
-      contested.lobContest(drive, snagFrom5(drive), cover);
-    // Today's rule, before drive 5: one caught, one batted, no SNAG IT!.
+    const lob = (series: number, cover: number): RunState =>
+      contested.lobContest(series, snagFrom5(series), cover);
+    // Today's rule, before series 5: one caught, one batted, no SNAG IT!.
     expect(lob(4, -0.2).field.ball).toEqual({ at: 'carried', by: 2 });
     expect(lob(4, 0.3).field.ball).toMatchObject({ at: 'dead', how: 'batted' });
-    // From drive 5, both are SNAG IT!.
+    // From series 5, both are SNAG IT!.
     expect(lob(5, -0.2).phase).toBe('snag');
     expect(lob(5, 0.3).phase).toBe('snag');
   });
 
-  it('the floor: 0.5 s to close and about 0.3 s apart, from drive 18', () => {
+  it('the floor: 0.5 s to close and about 0.3 s apart, from series 18', () => {
     const { close, gap } = snagPace(18);
     expect(close / 0.8).toBeCloseTo(0.5, 9);
     expect(gap / 0.8).toBeCloseTo(0.3125, 9);

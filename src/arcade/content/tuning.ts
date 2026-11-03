@@ -17,7 +17,7 @@ export const tuningDefaults = {
     /** Half the field's width: x runs from -halfWidth to +halfWidth (18 yards wide, for the camera's sake). */
     halfWidth: 9.1,
   },
-  drive: {
+  series: {
     /** Yards to gain for a first down. */
     distance: 10,
     downs: 4,
@@ -101,7 +101,7 @@ export const tuningDefaults = {
     degreesPerSecond: 112.5,
     /** …this much faster each area after the first (a share of it)… */
     perArea: 0.3,
-    /** …and again on the Boss drive. It stops getting faster after the last area (hard mode's endless zones). */
+    /** …and again on the Boss series. It stops getting faster after the last area (hard mode's endless zones). */
     boss: 0.1,
     /**
      * The pocket holds while the line crosses this many times; then it's a
@@ -183,10 +183,10 @@ export const tuningDefaults = {
    * how many dots or pops, and how much quicker they get.
    */
   catchTests: {
-    /** A contested ball goes to a catch test from this drive (or the first, with ?snag=1 or ?tip=1). */
-    fromDrive: 5,
+    /** A contested ball goes to a catch test from this series (or the first, with ?snag=1 or ?tip=1). */
+    fromSeries: 5,
     /**
-     * The count: this many on drives 5-8, one more every `moreEvery` drives
+     * The count: this many on series 5-8, one more every `moreEvery` series
      * (an area's four), one more for each defender after the first in reach,
      * one fewer when the receiver's Hands beat the best defender's by
      * `handsGap`, one more the other way; never under `minCount` or over
@@ -197,12 +197,12 @@ export const tuningDefaults = {
     moreEvery: 4,
     handsGap: 20,
     /**
-     * The pace: past this drive everything is this share quicker each drive,
+     * The pace: past this series everything is this share quicker each series,
      * down to this share of the usual (SNAG IT!'s ring: 0.8 s on screen,
-     * 0.04 s quicker a drive, 0.5 s from drive 18).
+     * 0.04 s quicker a series, 0.5 s from series 18).
      */
     fasterAfter: 10,
-    perDrive: 0.05,
+    perSeries: 0.05,
     floor: 0.625,
     /** The box stays this long after the grade, so the last tap's result is seen (0.3 s on screen). */
     linger: 0.24,
@@ -278,7 +278,7 @@ export const tuningDefaults = {
   defense: {
     /** Added to every defender's stats each area after the first… */
     perArea: 10,
-    /** …and again on the Boss drive (its bigger line-up is most of its step up). */
+    /** …and again on the Boss series (its bigger line-up is most of its step up). */
     boss: 0,
     /** How far behind its Catcher a Cover trails. */
     coverTrail: 0.8,
@@ -317,7 +317,7 @@ export const tuningDefaults = {
     /** A body looks this far ahead for a prop in its way, and passes it with this much room. */
     lookAhead: 2.5,
     margin: 0.25,
-    /** A Boss stands this far past its drive's first-down line, in the middle of the end zone. */
+    /** A Boss stands this far past its series' first-down line, in the middle of the end zone. */
     bossBeyond: 2.5,
   },
   pickups: {

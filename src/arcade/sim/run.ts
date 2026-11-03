@@ -1,7 +1,7 @@
 /**
- * Creating a run, setting up drives and downs, and the actions between
- * steps (the snap, moving on after a drive). Steps are advanced by step()
- * in step.ts. See GAMEPLAY.md, The Run, A Drive and A Down.
+ * Creating a run, setting up series and downs, and the actions between
+ * steps (the snap, moving on after a series). Steps are advanced by step()
+ * in step.ts. See GAMEPLAY.md, The Run, A Series and A Down.
  */
 import { AREAS, areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
@@ -11,10 +11,10 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
-import { pickupsForDrive } from './pickups';
+import { pickupsForSeries } from './pickups';
 import { placeEvent } from './fieldEvents';
 import { fieldEventById, type DefaultEventId, type FieldEvent } from '../content/fieldEvents';
-import { BOSS_SPOT, drivePropsWithBoss } from './props';
+import { BOSS_SPOT, seriesPropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
   applyPerk,
@@ -32,8 +32,8 @@ import type {
   ArcadeEvent,
   ArcadeResult,
   DownResult,
-  Drive,
-  DriveKind,
+  Series,
+  SeriesKind,
   Phase,
   RosterPlayer,
   RunState,
@@ -41,33 +41,33 @@ import type {
   FieldEventOn,
 } from './types';
 
-export const DRIVE_KINDS: readonly DriveKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
+export const SERIES_KINDS: readonly SeriesKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
 
-/** A drive's number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
-export function driveNumber(drive: Pick<Drive, 'area' | 'index'>): number {
-  return drive.area * DRIVE_KINDS.length + drive.index + 1;
+/** A series' number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
+export function seriesNumber(series: Pick<Series, 'area' | 'index'>): number {
+  return series.area * SERIES_KINDS.length + series.index + 1;
 }
 
-/** The number of the drive a Boss stands on: the last drive of its area. */
-export function bossDrive(boss: BossName): number {
+/** The number of the series a Boss stands on: the last series of its area. */
+export function bossSeries(boss: BossName): number {
   const area = AREAS.findIndex((a) => a.boss.boss === boss);
   if (area < 0) throw new Error(`no area has ${boss} for its Boss`);
-  return driveNumber({ area, index: DRIVE_KINDS.length - 1 });
+  return seriesNumber({ area, index: SERIES_KINDS.length - 1 });
 }
 
-/** The area and index (both from 0) of a drive's number in the run: `driveNumber` backwards. */
-export function driveAt(n: number): Pick<Drive, 'area' | 'index'> {
+/** The area and index (both from 0) of a series' number in the run: `seriesNumber` backwards. */
+export function seriesAt(n: number): Pick<Series, 'area' | 'index'> {
   const i = Math.max(0, Math.floor(n) - 1);
-  return { area: Math.floor(i / DRIVE_KINDS.length), index: i % DRIVE_KINDS.length };
+  return { area: Math.floor(i / SERIES_KINDS.length), index: i % SERIES_KINDS.length };
 }
 
 /** Seven plain humans (sim/team.ts). */
 export { startingRoster };
 
-/** The defense for a drive: the area's Intro, Challenge, a seeded Gimmick, or its Boss. */
+/** The defense for a series: the area's Intro, Challenge, a seeded Gimmick, or its Boss. */
 export function defenseFor(seed: number, area: number, index: number): DefenseSpec {
   const a = areaAt(area);
-  switch (DRIVE_KINDS[index]) {
+  switch (SERIES_KINDS[index]) {
     case 'intro':
       return a.intro;
     case 'challenge':
@@ -80,11 +80,11 @@ export function defenseFor(seed: number, area: number, index: number): DefenseSp
 }
 
 /**
- * A drive's defense as it lines up: its spec, plus in hard mode one more
+ * A series' defense as it lines up: its spec, plus in hard mode one more
  * defender for every zone after the first (never past `maxDefenders` on the
  * field), alternately a Cover and a Bat, spread over the field.
  */
-export function driveDefense(state: RunState, area: number, index: number): DefenseSpec {
+export function seriesDefense(state: RunState, area: number, index: number): DefenseSpec {
   const spec = defenseFor(state.seed, area, index);
   const { extraDefendersPerZone, maxDefenders } = arcadeTuning.hard;
   const room = Math.max(0, maxDefenders - spec.defenders.length);
@@ -98,11 +98,11 @@ export function driveDefense(state: RunState, area: number, index: number): Defe
   return { ...spec, defenders: [...spec.defenders, ...spots] };
 }
 
-/** How much stiffer a drive's defense is than its spec: more each area (faster in hard mode), more on the Boss. */
+/** How much stiffer a series' defense is than its spec: more each area (faster in hard mode), more on the Boss. */
 export function defenseBoost(
   state: RunState,
   area: number,
-  kind: DriveKind,
+  kind: SeriesKind,
   spec: DefenseSpec,
 ): number {
   const d = arcadeTuning.defense;
@@ -111,8 +111,8 @@ export function defenseBoost(
 }
 
 /**
- * A new run. `startArea` (0-based) starts it at that area's first drive
- * instead, as if the drives before it were won (for trying later areas).
+ * A new run. `startArea` (0-based) starts it at that area's first series
+ * instead, as if the series before it were won (for trying later areas).
  */
 export function createRun(
   seed: number,
@@ -121,9 +121,9 @@ export function createRun(
   options: {
     readonly hard?: boolean;
     readonly twoTapAim?: boolean;
-    /** ?snag=1: SNAG IT! from the first drive. */
+    /** ?snag=1: SNAG IT! from the first series. */
     readonly snagAlways?: boolean;
-    /** ?tip=1: the tip drill from the first drive. */
+    /** ?tip=1: the tip drill from the first series. */
     readonly tipAlways?: boolean;
     /** The plays it deals from; the whole play pool if not given. */
     readonly playbook?: readonly Play[];
@@ -134,10 +134,10 @@ export function createRun(
     readonly practice?: Play;
     /**
      * Event practice (the event editor's Try it, docs/FIELD_EVENTS.md f3):
-     * this event every rep, at this drive (1-based) against its defense,
+     * this event every rep, at this series (1-based) against its defense,
      * with three cards dealt each time.
      */
-    readonly eventPractice?: { readonly event: FieldEvent; readonly drive: number };
+    readonly eventPractice?: { readonly event: FieldEvent; readonly series: number };
   } = {},
 ): RunState {
   const state: RunState = {
@@ -153,7 +153,7 @@ export function createRun(
     step: 0,
     time: 0,
     phase: 'setup',
-    drive: { area: 0, index: 0, kind: 'intro', name: '', start: 0, firstDown: 0, down: 1, los: 0 },
+    series: { area: 0, index: 0, kind: 'intro', name: '', start: 0, firstDown: 0, down: 1, los: 0 },
     hand: [],
     called: null,
     banned: null,
@@ -187,66 +187,66 @@ export function createRun(
     snappedAt: 0,
     pause: 0,
     result: null,
-    drivesWon: 0,
+    seriesWon: 0,
     yards: 0,
     nextId: 1,
   };
   if (options.eventPractice) {
-    // The chosen drive, as if the ones before it were won.
-    const at = driveAt(options.eventPractice.drive);
-    state.drivesWon = options.eventPractice.drive - 1;
-    setUpDrive(state, at.area, at.index, [], true);
+    // The chosen series, as if the ones before it were won.
+    const at = seriesAt(options.eventPractice.series);
+    state.seriesWon = options.eventPractice.series - 1;
+    setUpSeries(state, at.area, at.index, [], true);
     return state;
   }
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
-  state.drivesWon = area * DRIVE_KINDS.length;
-  setUpDrive(state, area, 0, [], true);
+  state.seriesWon = area * SERIES_KINDS.length;
+  setUpSeries(state, area, 0, [], true);
   return state;
 }
 
 /**
- * Start a drive: the line of scrimmage at 0, 1st & 10, the defense lined up.
+ * Start a series: the line of scrimmage at 0, 1st & 10, the defense lined up.
  * With `ready`, the first down is set up straight away; without, it waits
- * for the player to move on (after a won drive: the upgrade pick comes first).
+ * for the player to move on (after a won series: the upgrade pick comes first).
  */
-export function setUpDrive(
+export function setUpSeries(
   state: RunState,
   area: number,
   index: number,
   events: ArcadeEvent[],
   ready: boolean,
 ): void {
-  const spec = driveDefense(state, area, index);
+  const spec = seriesDefense(state, area, index);
   const start = 0;
   state.perks.secondWindUsed = false;
-  state.drive = {
+  state.series = {
     area,
     index,
-    kind: DRIVE_KINDS[index] ?? 'boss',
+    kind: SERIES_KINDS[index] ?? 'boss',
     name: spec.name,
     start,
-    firstDown: start + arcadeTuning.drive.distance,
+    firstDown: start + arcadeTuning.series.distance,
     down: 1,
     los: start,
   };
-  const props = drivePropsWithBoss(state.seed, area, index, spec.boss);
+  const props = seriesPropsWithBoss(state.seed, area, index, spec.boss);
   state.field = {
     ...state.field,
     props,
     // Practice tests the play by itself (map item k8); a pickup taken never comes back (k3).
     pickups: state.practice
       ? []
-      : pickupsForDrive(state.seed, area, index).filter((p) => !state.taken.includes(p.id)),
+      : pickupsForSeries(state.seed, area, index).filter((p) => !state.taken.includes(p.id)),
   };
-  events.push({ type: 'driveStarted', drive: index, name: spec.name });
+  events.push({ type: 'seriesStarted', series: index, name: spec.name });
   setUpDown(state, events);
   if (!ready) state.phase = 'draft';
 }
 
-/** This down's field event: the one practice tries, or else the drive's own (Frog Rain), placed. */
-function placedEvent(state: RunState, drives: DefaultEventId | undefined): FieldEventOn | null {
+/** This down's field event: the one practice tries, or else the series' own (Frog Rain), placed. */
+function placedEvent(state: RunState, series: DefaultEventId | undefined): FieldEventOn | null {
   if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
-  return drives ? placeEvent(state, fieldEventById(drives)) : null;
+  return series ? placeEvent(state, fieldEventById(series)) : null;
 }
 
 /** The King's crows, back on his arms for a new down (he stands at BOSS_SPOT). */
@@ -262,8 +262,8 @@ const HAND = 3;
  * place (the line-up is the same for every play), waiting for the call.
  */
 export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
-  const { drive } = state;
-  const rng = rngFor(state.seed, 'hand', state.drivesWon, drive.down, state.nextId);
+  const { series } = state;
+  const rng = rngFor(state.seed, 'hand', state.seriesWon, series.down, state.nextId);
   const deck = state.playbook.map((_, i) => i);
   state.hand = [];
   while (state.hand.length < Math.min(HAND, state.playbook.length)) {
@@ -271,17 +271,17 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   }
   // The play editor's practice deals its one play, already called; event practice deals three (f3).
   state.called = state.practice && !state.practiceEvent ? 0 : null;
-  const spec = driveDefense(state, drive.area, drive.index);
+  const spec = seriesDefense(state, series.area, series.index);
   // The Queen's Royal Decree: one card of the three is banned this down.
   state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
   const first = state.banned === 0 ? 1 : 0;
   state.play = { index: state.hand[first] ?? 0, flipped: state.flipped };
   const play = state.playbook[state.play.index];
   if (!play) throw new Error('The playbook has no plays');
-  const players = lineUpTeam(state, play, state.flipped, drive.los, state.nextId);
+  const players = lineUpTeam(state, play, state.flipped, series.los, state.nextId);
   state.nextId += players.length;
-  const boost = defenseBoost(state, drive.area, drive.kind, spec);
-  const defenders = lineUpDefense(spec, drive, boost, state.nextId);
+  const boost = defenseBoost(state, series.area, series.kind, spec);
+  const defenders = lineUpDefense(spec, series, boost, state.nextId);
   state.nextId += defenders.length;
   state.field = {
     players,
@@ -302,7 +302,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   state.phase = 'setup';
   state.result = null;
   state.tackle = null;
-  events.push({ type: 'downStarted', down: drive.down, toGo: drive.firstDown - drive.los });
+  events.push({ type: 'downStarted', down: series.down, toGo: series.firstDown - series.los });
 }
 
 /**
@@ -365,7 +365,7 @@ function call(state: RunState, hand: number, events: ArcadeEvent[]): void {
   state.field.players.splice(
     0,
     state.field.players.length,
-    ...lineUpTeam(state, play, state.flipped, state.drive.los, firstId),
+    ...lineUpTeam(state, play, state.flipped, state.series.los, firstId),
   );
   events.push({ type: 'called', play: play.name, flipped: state.flipped });
 }
@@ -443,7 +443,7 @@ function swap(state: RunState, a: number, b: number): void {
   relineTeam(state);
 }
 
-/** On to the next drive (its defense is already lined up): your team, as it now is, lines up too. */
+/** On to the next series (its defense is already lined up): your team, as it now is, lines up too. */
 function leaveDraft(state: RunState): void {
   state.offer = [];
   state.phase = 'setup';
@@ -458,7 +458,7 @@ function relineTeam(state: RunState): void {
   state.field.players.splice(
     0,
     state.field.players.length,
-    ...lineUpTeam(state, play, state.flipped, state.drive.los, firstId),
+    ...lineUpTeam(state, play, state.flipped, state.series.los, firstId),
   );
 }
 
@@ -473,53 +473,53 @@ export function endDown(
   newLos: number,
   events: ArcadeEvent[],
 ): void {
-  const { drive } = state;
+  const { series } = state;
   const carried = ended === 'tackled' || ended === 'outOfBounds';
-  const result: DownResult = carried && newLos >= drive.firstDown ? 'firstDown' : ended;
-  const wanted = result === 'firstDown' ? Math.max(newLos, drive.firstDown) : newLos;
-  // Never behind the drive's start (there's no room for the QB).
-  const los = Math.max(drive.start, wanted);
-  const gained = los - drive.los;
-  drive.los = los;
+  const result: DownResult = carried && newLos >= series.firstDown ? 'firstDown' : ended;
+  const wanted = result === 'firstDown' ? Math.max(newLos, series.firstDown) : newLos;
+  // Never behind the series' start (there's no room for the QB).
+  const los = Math.max(series.start, wanted);
+  const gained = los - series.los;
+  series.los = los;
   state.yards += gained;
   state.result = { result, gained };
   state.phase = 'downOver';
-  state.pause = arcadeTuning.drive.pause;
+  state.pause = arcadeTuning.series.pause;
   events.push({ type: 'downEnded', result, gained });
 }
 
-/** After a finished down: a won drive moves on (or wins the run), a 4th-down failure ends it, otherwise the next down (in practice, the same spot again). */
+/** After a finished down: a won series moves on (or wins the run), a 4th-down failure ends it, otherwise the next down (in practice, the same spot again). */
 export function nextDown(state: RunState, events: ArcadeEvent[]): void {
-  const { drive, result } = state;
+  const { series, result } = state;
   // Practice: whatever happened, the next rep lines up where the first one did.
   if (state.practice) {
-    drive.down = 1;
-    drive.los = drive.start;
+    series.down = 1;
+    series.los = series.start;
     setUpDown(state, events);
     return;
   }
   if (result?.result === 'firstDown') {
-    state.drivesWon++;
-    events.push({ type: 'driveWon', drive: drive.index });
-    const lastDrive = drive.index >= DRIVE_KINDS.length - 1;
-    if (lastDrive) events.push({ type: 'areaCleared', area: drive.area });
+    state.seriesWon++;
+    events.push({ type: 'seriesWon', series: series.index });
+    const lastSeries = series.index >= SERIES_KINDS.length - 1;
+    if (lastSeries) events.push({ type: 'areaCleared', area: series.area });
     // The run is won after the last area (hard mode goes round again).
-    if (lastDrive && !state.hard && drive.area >= arcadeTuning.run.areas - 1) {
+    if (lastSeries && !state.hard && series.area >= arcadeTuning.run.areas - 1) {
       state.phase = 'won';
       return;
     }
-    // TRICK OR TREAT! happens in front of the next drive, already lined up (its zone sets the offer).
-    if (lastDrive) setUpDrive(state, drive.area + 1, 0, events, false);
-    else setUpDrive(state, drive.area, drive.index + 1, events, false);
+    // TRICK OR TREAT! happens in front of the next series, already lined up (its zone sets the offer).
+    if (lastSeries) setUpSeries(state, series.area + 1, 0, events, false);
+    else setUpSeries(state, series.area, series.index + 1, events, false);
     state.offer = rollOffer(state);
     return;
   }
-  if (drive.down >= arcadeTuning.drive.downs) {
+  if (series.down >= arcadeTuning.series.downs) {
     state.phase = 'over';
-    events.push({ type: 'gameOver', drivesWon: state.drivesWon, yards: state.yards });
+    events.push({ type: 'gameOver', seriesWon: state.seriesWon, yards: state.yards });
     return;
   }
-  drive.down++;
+  series.down++;
   setUpDown(state, events);
 }
 
@@ -547,9 +547,9 @@ export function frozenForTest(phase: Phase): boolean {
   return phase === 'breakit' || phase === 'snag' || phase === 'tip';
 }
 
-/** Down and distance, e.g. "3rd & 4", or "3rd & Goal" on the Boss drive. Yards round up. */
+/** Down and distance, e.g. "3rd & 4", or "3rd & Goal" on the Boss series. Yards round up. */
 export function downAndDistance(state: RunState): string {
-  const { down, firstDown, los, kind } = state.drive;
+  const { down, firstDown, los, kind } = state.series;
   const ordinal = ['1st', '2nd', '3rd', '4th'][down - 1] ?? `${down}th`;
   return `${ordinal} & ${kind === 'boss' ? 'Goal' : Math.max(1, Math.ceil(firstDown - los))}`;
 }

@@ -10,7 +10,7 @@ const memoryStorage = (): Pick<Storage, 'getItem' | 'setItem'> & { data: Map<str
 
 const kept: Kept = {
   test: 'snag',
-  situation: { drive: 9, tacklers: 2, crowd: 2, handsGap: -20 },
+  situation: { series: 9, tacklers: 2, crowd: 2, handsGap: -20 },
   toggles: { again: false, sound: true, buzz: false, timing: true },
 };
 
@@ -29,11 +29,11 @@ describe('the settings kept on the phone', () => {
     const storage = memoryStorage();
     await benchStore(storage).save({
       ...kept,
-      situation: { drive: 99, tacklers: 0, crowd: 7, handsGap: 100 },
+      situation: { series: 99, tacklers: 0, crowd: 7, handsGap: 100 },
     });
     const { kept: back, problem } = await benchStore(storage).load();
     expect(problem).toBeNull();
-    expect(back.situation).toEqual({ drive: 20, tacklers: 1, crowd: 3, handsGap: 40 });
+    expect(back.situation).toEqual({ series: 20, tacklers: 1, crowd: 3, handsGap: 40 });
   });
 
   it('G: slider values kept before the rework are not brought back: the bench opens at what the game plays', async () => {

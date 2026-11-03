@@ -37,8 +37,8 @@ import {
 
 /** docs/BENCH.md, tests 1-5 and 7-11, in its order. */
 
-const at = (drive: number, more: Partial<Situation> = {}): Situation => ({
-  drive,
+const at = (series: number, more: Partial<Situation> = {}): Situation => ({
+  series,
   tacklers: 1,
   crowd: 1,
   handsGap: 0,
@@ -150,9 +150,9 @@ describe('the knobs', () => {
       'snag.minApart',
       'snag.margin',
       'snag.box',
-      'catchTests.fromDrive',
+      'catchTests.fromSeries',
       'catchTests.fasterAfter',
-      'catchTests.perDrive',
+      'catchTests.perSeries',
       'catchTests.floor',
       'catchTests.minCount',
       'catchTests.maxCount',
@@ -181,7 +181,7 @@ describe('the knobs', () => {
     });
   });
 
-  it("4: a by-area slider edits the picked drive's area", () => {
+  it("4: a by-area slider edits the picked series' area", () => {
     const sweet = knob('breakit.byArea.{area}.sweet');
     expect(pathOf(sweet, 7)).toBe('breakit.byArea.1.sweet');
     expect(pathOf(sweet, 2)).toBe('breakit.byArea.0.sweet');
@@ -237,7 +237,7 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
   it('a new rep has a new box, so a rep with more dots than the last gets a dot for each', () => {
     const bench = new Bench({
       test: 'snag',
-      situation: { drive: 1, tacklers: 1, crowd: 3, handsGap: 20 },
+      situation: { series: 1, tacklers: 1, crowd: 3, handsGap: 20 },
       again: false,
     });
     bench.go();
@@ -245,7 +245,7 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
     expect(first?.dots).toHaveLength(3);
     // Every rep is a fresh run, so each SNAG IT! starts at the same moment:
     // the box can't tell them apart by that, and kept the last rep's dots.
-    bench.setSituation({ drive: 1, tacklers: 1, crowd: 3, handsGap: -25 });
+    bench.setSituation({ series: 1, tacklers: 1, crowd: 3, handsGap: -25 });
     bench.go();
     const second = bench.snagView();
     expect(second?.dots).toHaveLength(5);
@@ -262,14 +262,14 @@ describe('B4: each rep starts its SNAG IT! box clean', () => {
 });
 
 describe('the situation', () => {
-  it('7: the dot count follows the drive, the crowd and the Hands gap, and the summary says so', () => {
+  it('7: the dot count follows the series, the crowd and the Hands gap, and the summary says so', () => {
     const dots = (s: Situation): number => startRep('snag', s, 1).state.snag!.dots.length;
     expect(dots(at(17))).toBe(5);
     expect(dots(at(5, { crowd: 2 }))).toBe(3);
     expect(dots(at(5, { handsGap: 20 }))).toBe(2);
     expect(dots(at(9, { handsGap: -20 }))).toBe(4);
     expect(summary('snag', at(9, { handsGap: -20 }))).toBe(
-      'drive 9 · 4 dots · ring 0.80 s · 0.50 s apart',
+      'series 9 · 4 dots · ring 0.80 s · 0.50 s apart',
     );
   });
 
@@ -425,10 +425,10 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
       'tip.bobble',
     ]);
     expect(tab.filter((k) => k.more).map((k) => k.key)).toEqual([
-      'catchTests.fromDrive',
+      'catchTests.fromSeries',
       'catchTests.linger',
     ]);
-    for (const shared of ['catchTests.fromDrive', 'catchTests.linger']) {
+    for (const shared of ['catchTests.fromSeries', 'catchTests.linger']) {
       expect(knob(shared).tests).toEqual(['snag', 'tip']);
     }
   });
@@ -439,9 +439,9 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
     expect(pops(at(5, { crowd: 2 }))).toBe(4);
     expect(pops(at(5, { handsGap: 20 }))).toBe(2);
     expect(pops(at(13))).toBe(5);
-    expect(summary('tip', at(5))).toBe('drive 5 · 3 pops · first 1.00 s in the air');
+    expect(summary('tip', at(5))).toBe('series 5 · 3 pops · first 1.00 s in the air');
     expect(summary('tip', at(11, { crowd: 2 }))).toBe(
-      'drive 11 · 5 pops · first 0.95 s in the air',
+      'series 11 · 5 pops · first 0.95 s in the air',
     );
   });
 
@@ -491,7 +491,7 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
     applySettings({ 'tip.clean': 0.06 });
     expect(tuningValue('tip.clean')).toBe(0.06);
     expect([...tabPaths('tip')].sort()).toEqual([
-      'catchTests.fromDrive',
+      'catchTests.fromSeries',
       'catchTests.linger',
       'countdown.ready',
       'tip.bobble',

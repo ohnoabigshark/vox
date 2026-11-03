@@ -1,12 +1,12 @@
 /**
- * SNAG IT! (docs/SNAG.md): from drive 5 (or the first, with ?snag=1), a
+ * SNAG IT! (docs/SNAG.md): from series 5 (or the first, with ?snag=1), a
  * contested ball freezes the play for a test: "SNAG IT!" is called, then
  * dots pop up in a box one after another, each with a ring closing onto it.
  * A tap on a dot as its ring closes hits it; a tap too early, or none, misses
  * it. Every dot hit is a GREAT (caught, the defenders knocked flying), one
  * miss an OK (caught and tackled there), more a BAD (batted down). How many
- * dots comes from the level, the crowd and the Hands gap; how fast, from the
- * level past drive 10 (both shared with the tip drill: sim/catchTests.ts).
+ * dots comes from the series number, the crowd and the Hands gap; how fast,
+ * from the series number past 10 (both shared with the tip drill: sim/catchTests.ts).
  * step.ts carries out the grade.
  */
 import { arcadeTuning } from '../content/tuning';
@@ -18,9 +18,9 @@ import { clamp, dist } from './vec';
 
 const sn = arcadeTuning.snag;
 
-/** How fast on this drive: how long a ring takes to close, and the gap between dots (sim seconds). */
-export function snagPace(drive: number): { close: number; gap: number } {
-  const close = sn.close * paceShare(drive);
+/** How fast on this series: how long a ring takes to close, and the gap between dots (sim seconds). */
+export function snagPace(series: number): { close: number; gap: number } {
+  const close = sn.close * paceShare(series);
   return { close, gap: close * sn.gapShare };
 }
 
@@ -70,7 +70,7 @@ export function startSnag(
   const { receiver, defenders } = contest;
   const situation = contestSituation(state, contest);
   const count = catchCount(situation);
-  const { close, gap } = snagPace(situation.drive);
+  const { close, gap } = snagPace(situation.series);
   // The tap tests' countdown first (docs/SNAG.md, cd-c7): the first dot comes as it ends.
   const first = state.time + arcadeTuning.countdown.ready;
   const dots: SnagDot[] = placeDots(state, count).map((p, i) => ({

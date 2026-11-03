@@ -42,14 +42,14 @@ import { ArcadeSweep, litPlayers } from './render/sweep';
 import { FIELD_AHEAD, FIELD_BEHIND, toWorld } from './render/world';
 import { carrierOf, qbOf } from './sim/ai';
 import {
-  DRIVE_KINDS,
+  SERIES_KINDS,
   createRun,
   dispatch,
   downAndDistance,
   downOn,
-  driveNumber,
+  seriesNumber,
   frozenForTest,
-  setUpDrive,
+  setUpSeries,
   startingRoster,
 } from './sim/run';
 import { rollOffer } from './sim/team';
@@ -64,7 +64,7 @@ import { PlayLogSender } from './log/playLogSender';
 import type {
   Action,
   ArcadeEvent,
-  Drive,
+  Series,
   Player,
   RosterPlayer,
   RunState,
@@ -115,9 +115,9 @@ export interface ArcadeOptions {
   hard?: boolean;
   /** Two-tap throwing (a link's default: `readModes`): the first tap stops the line, the second picks how far. */
   twoTapAim?: boolean;
-  /** SNAG IT! from the first drive (?snag=1), not only from drive 5 (docs/SNAG.md). */
+  /** SNAG IT! from the first series (?snag=1), not only from series 5 (docs/SNAG.md). */
   snagAlways?: boolean;
-  /** The tip drill from the first drive (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
+  /** The tip drill from the first series (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
   tipAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
@@ -129,7 +129,7 @@ export interface ArcadeOptions {
   practice?: Practice;
   /**
    * An event practice link (?event=, the event editor's Try it): that field
-   * event every rep at the chosen drive, with ‹ Events back to the editor. An
+   * event every rep at the chosen series, with ‹ Events back to the editor. An
    * event the link can't give opens the ordinary game, saying why.
    */
   eventPractice?: EventPractice;
@@ -158,7 +158,7 @@ function firstRoster(monsters: boolean): RosterPlayer[] {
  * the row it follows, whatever the screen's shape.
  */
 const CAMERA_PITCH = 32;
-/** The intro's crossfade into the first drive (seconds). */
+/** The intro's crossfade into the first series (seconds). */
 const INTRO_FADE = 1;
 /** With the pumpkin ball as the light, the moon and the sky are only a dim fill, so the field stays readable. */
 const MOON_FILL = 0.45;
@@ -185,11 +185,11 @@ export class ArcadeGame {
   private readonly tipAlways: boolean;
   /**
    * Practice: a sketch's play and its key in the play editor (‹ Sketch), or a
-   * field event and the drive it's tried at (‹ Events); null in an ordinary game.
+   * field event and the series it's tried at (‹ Events); null in an ordinary game.
    */
   private readonly practice:
     | { readonly kind: 'sketch'; readonly play: Play; readonly sketch: string | null }
-    | { readonly kind: 'event'; readonly event: FieldEvent; readonly drive: number }
+    | { readonly kind: 'event'; readonly event: FieldEvent; readonly series: number }
     | null;
   /** Reads the play editor's sketches in the game; none without it. */
   private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
@@ -223,7 +223,7 @@ export class ArcadeGame {
   private readonly hud: Hud;
   private readonly controls: ArcadeControls;
 
-  /** Yards marched in the drives before this one: the field is one long strip. */
+  /** Yards marched in the series before this one: the field is one long strip. */
   private origin = 0;
   /** Unspent real time, carried into the next frame's fixed steps. */
   private accumulator = 0;
@@ -268,7 +268,7 @@ export class ArcadeGame {
     this.practice = link?.play.ok
       ? { kind: 'sketch', play: link.play.play, sketch: link.sketch }
       : tryEvent?.event.ok
-        ? { kind: 'event', event: tryEvent.event.event, drive: tryEvent.drive }
+        ? { kind: 'event', event: tryEvent.event.event, series: tryEvent.series }
         : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
@@ -357,7 +357,7 @@ export class ArcadeGame {
     this.lastFrame = now;
     // Each area has its song (the intro plays the first's; the win screen keeps the last).
     this.conductor.setSong(this.areaSong());
-    // The intro plays with the game held still; when it ends it crossfades into the first drive.
+    // The intro plays with the game held still; when it ends it crossfades into the first series.
     if (this.intro) {
       const done = this.intro.update(dt, this.view.camera, this.view.canvas);
       this.view.render();
@@ -466,10 +466,10 @@ export class ArcadeGame {
   }
 
   private after(events: readonly ArcadeEvent[], prev: RunState): void {
-    // A won drive marches on: the new drive's 0 is the old one's first-down line (not after the
+    // A won series marches on: the new series' 0 is the old one's first-down line (not after the
     // last). Hard mode's zones come round onto the same stretch of field (originOf).
-    if (events.some((e) => e.type === 'driveWon') && this.state.phase !== 'won') {
-      this.origin = this.originOf(this.state.drive);
+    if (events.some((e) => e.type === 'seriesWon') && this.state.phase !== 'won') {
+      this.origin = this.originOf(this.state.series);
     }
     if (this.state.phase === 'won' && !this.outro) this.startOutro();
     this.react(events, prev);
@@ -525,7 +525,7 @@ export class ArcadeGame {
 
   private draw(dt: number): void {
     const { state } = this;
-    this.lines.update(state.drive, this.origin);
+    this.lines.update(state.series, this.origin);
     this.routes.update(state, this.origin, this.previewPlayers());
     // Keep the views in step with the field: a recruit joining or a swap changes who's where.
     this.bodies.sync(state);
@@ -562,7 +562,7 @@ export class ArcadeGame {
     const qb = qbOf(state);
     const carrier = carrierOf(state);
     const ball = state.field.ball;
-    let want = qb ? qb.pos : v(0, state.drive.los - 4);
+    let want = qb ? qb.pos : v(0, state.series.los - 4);
     if (carrier) want = carrier.pos;
     else if (ball.at === 'flight') want = v(0, Math.max(want.y, ball.target.y - 8));
     else if (ball.at === 'contested') want = ball.pos;
@@ -695,8 +695,8 @@ export class ArcadeGame {
             play('touchdown');
             // Beating a Boss clears its area: "Froggy's Forest Cleared!".
             this.hud.pop(
-              prev.drive.kind === 'boss'
-                ? `${areaAt(prev.drive.area).name} Cleared!`
+              prev.series.kind === 'boss'
+                ? `${areaAt(prev.series.area).name} Cleared!`
                 : 'FIRST DOWN!',
               'good',
             );
@@ -731,11 +731,12 @@ export class ArcadeGame {
       this.hud.setPrompt(null, null);
       return;
     }
-    const { phase, drivesWon, hand, flipped, called, banned } = this.state;
-    // No drive name during play: only the tally once the run is over.
+    const { phase, seriesWon, hand, flipped, called, banned } = this.state;
+    // No series name during play: only the tally once the run is over. It still
+    // says "drives" for series won, until the Game Over card replaces it (docs/STATS.md).
     const banner =
       phase === 'over' || phase === 'won'
-        ? `${drivesWon} ${drivesWon === 1 ? 'drive' : 'drives'} won`
+        ? `${seriesWon} ${seriesWon === 1 ? 'drive' : 'drives'} won`
         : '';
     const live = downOn(phase);
     this.hud.setTop(banner, live ? downAndDistance(this.state) : null);
@@ -766,7 +767,7 @@ export class ArcadeGame {
   /** The area's song (the intro plays the first area's). */
   private areaSong(): Song {
     const songs = this.areaSongs;
-    return songs[this.state.drive.area % songs.length] ?? hollowHop;
+    return songs[this.state.series.area % songs.length] ?? hollowHop;
   }
 
   private async onAction(): Promise<void> {
@@ -819,7 +820,7 @@ export class ArcadeGame {
 
   /**
    * A new run, dealing the play pool and these sketches (practice: always the
-   * Forest's first drive with its one sketch, map item t3).
+   * Forest's first series with its one sketch, map item t3).
    */
   private newRun(sketches: readonly Play[] = []): RunState {
     const p = this.practice;
@@ -830,7 +831,7 @@ export class ArcadeGame {
         tipAlways: this.tipAlways,
         ...(p.kind === 'sketch'
           ? { practice: p.play }
-          : { eventPractice: { event: p.event, drive: p.drive } }),
+          : { eventPractice: { event: p.event, series: p.series } }),
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
@@ -842,33 +843,33 @@ export class ArcadeGame {
   }
 
   private startOrigin(): number {
-    return this.originOf(this.state.drive);
+    return this.originOf(this.state.series);
   }
 
   /**
-   * Where a drive's 0 sits on the long field: its area's stretch, then its
-   * drives before it. The field only has the three areas, so hard mode's
+   * Where a series' 0 sits on the long field: its area's stretch, then its
+   * series before it. The field only has the three areas, so hard mode's
    * endless zones come round onto the same stretches (they look the same).
    */
-  private originOf(drive: Drive): number {
-    const area = drive.area % arcadeTuning.run.areas;
-    return (driveNumber({ area, index: drive.index }) - 1) * arcadeTuning.drive.distance;
+  private originOf(series: Series): number {
+    const area = series.area % arcadeTuning.run.areas;
+    return (seriesNumber({ area, index: series.index }) - 1) * arcadeTuning.series.distance;
   }
 
-  /** ?win=1: the run as if just won (on the King's drive, eleven recruits on the bench), and the win cutscene. */
+  /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */
   private skipToWin(): void {
     const s = createRun(this.seed, firstRoster(this.monsters), arcadeTuning.run.areas - 1);
-    setUpDrive(s, s.drive.area, DRIVE_KINDS.length - 1, [], true);
+    setUpSeries(s, s.series.area, SERIES_KINDS.length - 1, [], true);
     // One recruit for every TRICK OR TREAT! a full run has.
-    for (let i = 0; i < arcadeTuning.run.areas * DRIVE_KINDS.length - 1; i++) {
-      s.drivesWon = i;
+    for (let i = 0; i < arcadeTuning.run.areas * SERIES_KINDS.length - 1; i++) {
+      s.seriesWon = i;
       const offer = rollOffer(s)[i % 2];
       if (offer?.kind === 'recruit') s.bench.unshift(offer.player);
     }
-    s.drivesWon = arcadeTuning.run.areas * DRIVE_KINDS.length;
+    s.seriesWon = arcadeTuning.run.areas * SERIES_KINDS.length;
     s.phase = 'won';
     this.state = s;
-    this.origin = this.originOf(s.drive);
+    this.origin = this.originOf(s.series);
     this.bodies.sync(s);
     this.fieldProps.update(s, this.origin);
     this.startOutro();

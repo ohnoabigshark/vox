@@ -10,11 +10,11 @@ import type { ArcadeEvent, Perk, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, ofType, playState, run, stand, tapAt, throwAt, untilGrabbed } from './helpers';
 
-/** A run just past its first won drive: TRICK OR TREAT! is on. */
+/** A run just past its first won series: TRICK OR TREAT! is on. */
 const atDraft = (seed = 3): RunState => {
   const s = createRun(seed);
   const events: ArcadeEvent[] = [];
-  endDown(s, 'firstDown', s.drive.firstDown, events);
+  endDown(s, 'firstDown', s.series.firstDown, events);
   nextDown(s, events);
   return s;
 };
@@ -27,7 +27,7 @@ const offering = (perk: Perk): RunState => {
 };
 
 describe('TRICK OR TREAT!', () => {
-  it('after a won drive, TRICK OR TREAT! offers two cards', () => {
+  it('after a won series, TRICK OR TREAT! offers two cards', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = atDraft(seed);
       expect(s.phase).toBe('draft');
@@ -39,7 +39,7 @@ describe('TRICK OR TREAT!', () => {
   /** The offer in a zone (0 Forest, 1 Swamp, 2 Farm). */
   const offerIn = (zone: number, seed: number) => {
     const s = atDraft(seed);
-    s.drive = { ...s.drive, area: zone };
+    s.series = { ...s.series, area: zone };
     return { s, offer: rollOffer(s) };
   };
 
@@ -266,7 +266,7 @@ describe('the perks in play', () => {
     expect(ofType(r.events, 'caught')).toHaveLength(1);
   });
 
-  it('Second Wind: once a drive, a BAD Break it! counts as OK', () => {
+  it('Second Wind: once a series, a BAD Break it! counts as OK', () => {
     forceBreakKind('bar');
     const s = carry(
       playState(

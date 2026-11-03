@@ -13,8 +13,8 @@ import {
   type FieldEvent,
   type Who,
 } from '../../arcade/content/fieldEvents';
-import { DRIVES, eventPracticeQuery } from '../../arcade/content/eventLink';
-import { bossDrive } from '../../arcade/sim/run';
+import { MAX_SERIES, eventPracticeQuery } from '../../arcade/content/eventLink';
+import { bossSeries } from '../../arcade/sim/run';
 import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
@@ -109,9 +109,9 @@ function loadTwoTap(): boolean {
 }
 let twoTap = loadTwoTap();
 
-/** The drive Try it plays at: the Boss's own drive for a Boss's event, else the second. */
-const driveFor = (e: FieldEvent): number => (e.boss ? bossDrive(e.boss) : 2);
-const tryDrives = new Map<string, number>();
+/** The series Try it plays at: the Boss's own series for a Boss's event, else the second. */
+const seriesFor = (e: FieldEvent): number => (e.boss ? bossSeries(e.boss) : 2);
+const trySeries = new Map<string, number>();
 
 function tryIt(event: FieldEvent): void {
   try {
@@ -122,8 +122,8 @@ function tryIt(event: FieldEvent): void {
       true,
     );
   }
-  const drive = tryDrives.get(event.id) ?? driveFor(event);
-  location.href = `${new URL('../', location.href).href}?${eventPracticeQuery(event, drive, twoTap)}`;
+  const series = trySeries.get(event.id) ?? seriesFor(event);
+  location.href = `${new URL('../', location.href).href}?${eventPracticeQuery(event, series, twoTap)}`;
 }
 
 /** The event tried last, if it's this one and can still be read. */
@@ -258,7 +258,7 @@ interface Editing {
   sliding: SliderDrag | null;
   /** The rest, drawn again each change… */
   parts: HTMLElement;
-  /** …Try it, kept (its drive slider keeps its grip)… */
+  /** …Try it, kept (its series slider keeps its grip)… */
   tryBox: HTMLElement;
   /** …and the buttons and the save status, drawn again. */
   actions: HTMLElement;
@@ -640,36 +640,36 @@ function callRow(e: Editing): HTMLElement {
 }
 
 /**
- * Try it: the drive to try at, the bench's slider (↺ back to the event's own
- * drive), and the throwing. Built once per event, so the drive's drag keeps
+ * Try it: the series to try at, the bench's slider (↺ back to the event's own
+ * series), and the throwing. Built once per event, so the series' drag keeps
  * its grip; Try it takes the event as it is when tapped.
  */
 function tryRow(event: FieldEvent, now: () => FieldEvent): HTMLElement {
   const id = event.id;
-  const range = { min: 1, max: DRIVES, step: 1 };
-  const own = driveFor(event);
-  const drive = slider('Try at drive', range, {
+  const range = { min: 1, max: MAX_SERIES, step: 1 };
+  const own = seriesFor(event);
+  const series = slider('Try at series', range, {
     onMove: (v) => {
-      tryDrives.set(id, v);
-      showDrive();
+      trySeries.set(id, v);
+      showSeries();
     },
     onReset: () => {
-      tryDrives.delete(id);
-      showDrive();
+      trySeries.delete(id);
+      showSeries();
     },
   });
-  const showDrive = (): void => {
-    const v = tryDrives.get(id) ?? own;
-    drive.show({
+  const showSeries = (): void => {
+    const v = trySeries.get(id) ?? own;
+    series.show({
       value: v,
       shown: String(v),
       at: fractionOf(v, range),
       tick: fractionOf(own, range),
-      note: event.boss ? `its Boss's drive is ${own}` : `default ${own}`,
+      note: event.boss ? `its Boss's series is ${own}` : `default ${own}`,
       atDefault: v === own,
     });
   };
-  showDrive();
+  showSeries();
   const tap = el('button', { className: `tog${twoTap ? ' on' : ''}`, text: 'Two-tap' });
   tap.addEventListener('click', () => {
     twoTap = !twoTap;
@@ -683,7 +683,7 @@ function tryRow(event: FieldEvent, now: () => FieldEvent): HTMLElement {
   return el(
     'div',
     { className: 'numbers' },
-    drive.el,
+    series.el,
     el(
       'div',
       { className: 'chips' },

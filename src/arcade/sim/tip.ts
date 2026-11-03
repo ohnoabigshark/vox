@@ -26,9 +26,9 @@ export function tipPops(c: CatchSituation): number {
   return catchCount(c, tp.morePops);
 }
 
-/** How long each of `count` pops is in the air on this drive (sim seconds): each a share of the last. */
-export function tipTimes(drive: number, count: number): number[] {
-  const first = tp.firstPop * paceShare(drive);
+/** How long each of `count` pops is in the air on this series (sim seconds): each a share of the last. */
+export function tipTimes(series: number, count: number): number[] {
+  const first = tp.firstPop * paceShare(series);
   return Array.from({ length: count }, (_, i) => first * tp.shrink ** i);
 }
 
@@ -50,7 +50,7 @@ export function startTip(
     startedAt: state.time,
     receiver: receiver.id,
     defenders: defenders.map((d) => d.id),
-    pops: tipTimes(situation.drive, count),
+    pops: tipTimes(situation.series, count),
     poppedAt: state.time + arcadeTuning.countdown.ready,
     results: [],
   };

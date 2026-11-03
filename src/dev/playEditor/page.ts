@@ -49,7 +49,7 @@ const store = sketchStore(storage, now);
 
 // Kept synchronously, unlike sketches: a one-switch convenience for this one
 // page, read once at load, where a failure only means the default comes back.
-// There's no Hard: practice plays the Forest's first drive, where it changes
+// There's no Hard: practice plays the Forest's first series, where it changes
 // nothing (map item t3). An older save's `hard` is ignored.
 const TRY_KEY = 'getJackBack.playEditor.tryWith';
 const TRY_VERSION = 1;

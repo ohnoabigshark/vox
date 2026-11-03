@@ -1,7 +1,7 @@
 /**
  * The arcade game's own controls over the canvas (GAMEPLAY.md, Controls):
  * the THROW button on a pass play, SHOO! when the King's crows land on the
- * ball's holder (his drive), and the Break it! panel, one of
+ * ball's holder (his series), and the Break it! panel, one of
  * three: the bar (a sweet spot and "close" band, and a marker crossing it),
  * MASH! (a filling bar), or JUKE! (two buttons, one lighting up). Each
  * opens with a countdown ("GET READY TO MASH! 2"). For the bar and the mash

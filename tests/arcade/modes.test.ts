@@ -3,25 +3,25 @@ import { breakHardness } from '../../src/arcade/sim/breakit';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { lobLanding, sweepSpeed } from '../../src/arcade/sim/ball';
 import {
-  DRIVE_KINDS,
+  SERIES_KINDS,
   createRun,
   dispatch,
   defenseBoost,
-  driveDefense,
+  seriesDefense,
   endDown,
   nextDown,
-  setUpDrive,
+  setUpSeries,
 } from '../../src/arcade/sim/run';
 import { rollOffer } from '../../src/arcade/sim/team';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { ofType, playState, run, stand, throwAt } from './helpers';
 
-/** Win the drive being played (and the TRICK OR TREAT! after it, taking the first card). */
-const winDrive = (s: RunState): RunState => {
+/** Win the series being played (and the TRICK OR TREAT! after it, taking the first card). */
+const winSeries = (s: RunState): RunState => {
   const t = structuredClone(s);
   const events: ArcadeEvent[] = [];
-  endDown(t, 'firstDown', t.drive.firstDown, events);
+  endDown(t, 'firstDown', t.series.firstDown, events);
   nextDown(t, events);
   if (t.phase !== 'draft') return t;
   const picked = dispatch(t, { type: 'pick', offer: 0 }).state;
@@ -31,13 +31,13 @@ const winDrive = (s: RunState): RunState => {
 describe('hard mode', () => {
   it('goes round the zones again after the last Boss, instead of winning', () => {
     let s = createRun(3, undefined, arcadeTuning.run.areas - 1, { hard: true });
-    for (let i = 0; i < DRIVE_KINDS.length; i++) s = winDrive(s);
+    for (let i = 0; i < SERIES_KINDS.length; i++) s = winSeries(s);
     expect(s.phase).not.toBe('won');
-    expect(s.drive.area).toBe(arcadeTuning.run.areas);
-    expect(s.drive.index).toBe(0);
+    expect(s.series.area).toBe(arcadeTuning.run.areas);
+    expect(s.series.index).toBe(0);
     // The same run, not hard, is won.
     let easy = createRun(3, undefined, arcadeTuning.run.areas - 1);
-    for (let i = 0; i < DRIVE_KINDS.length; i++) easy = winDrive(easy);
+    for (let i = 0; i < SERIES_KINDS.length; i++) easy = winSeries(easy);
     expect(easy.phase).toBe('won');
   });
 
@@ -46,16 +46,17 @@ describe('hard mode', () => {
     const easy = createRun(3);
     for (const area of [0, 1, 2]) {
       const extra =
-        driveDefense(hard, area, 1).defenders.length - driveDefense(easy, area, 1).defenders.length;
+        seriesDefense(hard, area, 1).defenders.length -
+        seriesDefense(easy, area, 1).defenders.length;
       expect(extra, `zone ${area + 1}`).toBe(area);
     }
-    // The busiest drive of each zone (its Boss), zones 1 to 8.
+    // The busiest series of each zone (its Boss), zones 1 to 8.
     const busiest = [0, 1, 2, 3, 4, 5, 6, 7].map(
-      (area) => driveDefense(hard, area, 3).defenders.length,
+      (area) => seriesDefense(hard, area, 3).defenders.length,
     );
     expect(busiest).toEqual([8, 10, 11, 11, 12, 12, 12, 12]);
-    // Normal mode's own line-ups, the busiest drive of each area, are as they were.
-    expect([0, 1, 2].map((area) => driveDefense(easy, area, 3).defenders.length)).toEqual([
+    // Normal mode's own line-ups, the busiest series of each area, are as they were.
+    expect([0, 1, 2].map((area) => seriesDefense(easy, area, 3).defenders.length)).toEqual([
       8, 9, 9,
     ]);
   });
@@ -64,7 +65,7 @@ describe('hard mode', () => {
     const hard = createRun(3, undefined, 0, { hard: true });
     const easy = createRun(3);
     for (const area of [0, 1, 2, 5]) {
-      const spec = driveDefense(easy, area, 1);
+      const spec = seriesDefense(easy, area, 1);
       expect(defenseBoost(hard, area, 'challenge', spec) - spec.boost, `zone ${area + 1}`).toBe(
         20 * area,
       );
@@ -78,7 +79,7 @@ describe('hard mode', () => {
       p.stats.hustle + p.stats.hands + p.stats.heft;
     for (const area of [0, 2, 9]) {
       const s = createRun(5, undefined, 0, { hard: true });
-      setUpDrive(s, area, 1, [], false);
+      setUpSeries(s, area, 1, [], false);
       for (const perk of rollOffer(s)) {
         if (perk.kind !== 'recruit') continue;
         expect(total(perk.player)).toBe(200 + 30 * area);
@@ -90,16 +91,16 @@ describe('hard mode', () => {
 
   it("the sweep doesn't get faster after the third zone", () => {
     const s = createRun(3, undefined, 0, { hard: true });
-    setUpDrive(s, 2, 0, [], true);
+    setUpSeries(s, 2, 0, [], true);
     const third = sweepSpeed(s);
-    setUpDrive(s, 7, 0, [], true);
+    setUpSeries(s, 7, 0, [], true);
     expect(sweepSpeed(s)).toBeCloseTo(third);
   });
 
   it('TRICK OR TREAT! lets you set your lineup', () => {
     const s = createRun(3, undefined, 0, { hard: true });
     const events: ArcadeEvent[] = [];
-    endDown(s, 'firstDown', s.drive.firstDown, events);
+    endDown(s, 'firstDown', s.series.firstDown, events);
     nextDown(s, events);
     expect(s.phase).toBe('draft');
     expect(dispatch(s, { type: 'pick', offer: 0 }).state.phase).toBe('draft');

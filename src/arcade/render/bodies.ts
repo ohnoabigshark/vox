@@ -86,7 +86,7 @@ interface View {
 const modelOf = (state: RunState, b: Body): string =>
   b.side === 'team'
     ? KIND_MODEL[b.form]
-    : (areaAt(state.drive.area).looks[b.kind] ?? DEFENDER_MODEL[b.kind]);
+    : (areaAt(state.series.area).looks[b.kind] ?? DEFENDER_MODEL[b.kind]);
 
 /** What a body looks like: its model and, for a player, the position it plays. */
 const lookOf = (state: RunState, b: Body): string =>
@@ -192,7 +192,7 @@ export class ArcadeBodies {
     }
   }
 
-  /** Everything drawn (for the crossfade between drives, render/crossfade.ts). */
+  /** Everything drawn (for the crossfade between series, render/crossfade.ts). */
   objects(): THREE.Object3D[] {
     return [...this.views.values()].flatMap((v) => [v.root, v.ring, ...(v.reach ? [v.reach] : [])]);
   }

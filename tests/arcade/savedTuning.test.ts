@@ -6,7 +6,7 @@ import { startRep } from '../../src/dev/bench/reps';
 /** docs/BENCH.md, the rework's tests A–C: saved settings over the defaults. */
 
 const ringSeconds = (): number => {
-  const dot = startRep('snag', { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state.snag!
+  const dot = startRep('snag', { series: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state.snag!
     .dots[0]!;
   return (dot.closesAt - dot.appearsAt) / TIME_SCALE;
 };
@@ -78,7 +78,7 @@ describe('saved settings in the game', () => {
     expect(fresh.savedTuningWarnings).toEqual([]);
     // The sim (which the game and the balance bot both run) reads that same object.
     const sim = await import('../../src/dev/bench/reps');
-    const dot = sim.startRep('snag', { drive: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state
+    const dot = sim.startRep('snag', { series: 5, tacklers: 1, crowd: 1, handsGap: 0 }, 1).state
       .snag!.dots[0]!;
     expect(dot.closesAt - dot.appearsAt).toBe(0.56);
   });

@@ -89,15 +89,15 @@ export function bestSpot(state: RunState, recruit: RosterPlayer): number | null 
 /**
  * TRICK OR TREAT!'s two cards: two new players, never of the same kind,
  * their stats adding up to the zone's total (ZONE_OFFER, by the zone of the
- * drive about to be played).
+ * series about to be played).
  */
 export function rollOffer(state: RunState): Perk[] {
-  const rng = rngFor(state.seed, 'perks', state.drivesWon);
-  const zone = ZONE_OFFER[Math.min(state.drive.area, ZONE_OFFER.length - 1)] ?? ZONE_OFFER[0];
+  const rng = rngFor(state.seed, 'perks', state.seriesWon);
+  const zone = ZONE_OFFER[Math.min(state.series.area, ZONE_OFFER.length - 1)] ?? ZONE_OFFER[0];
   if (!zone) return [];
   const hard = arcadeTuning.hard;
   const total = state.hard
-    ? hard.recruitTotal + hard.recruitPerZone * state.drive.area
+    ? hard.recruitTotal + hard.recruitPerZone * state.series.area
     : zone.recruitTotal;
   const first = rng.pick(KINDS);
   const second = rng.pick(KINDS.filter((k) => k !== first));

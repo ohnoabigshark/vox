@@ -6,10 +6,10 @@
  * pick him up and carry him off; then GET JACK BACK, one word at a time.
  * Embers drift off Jack the whole time, burst when he's picked up, and
  * burst behind each word of the title.
- * The game then crossfades into the first drive (game.ts). It can't be skipped (it's short).
+ * The game then crossfades into the first series (game.ts). It can't be skipped (it's short).
  *
  * It's staged on the turf behind the start, with its own camera looking
- * away from the field, so the first drive waiting there stays out of view.
+ * away from the field, so the first series waiting there stays out of view.
  */
 import * as THREE from 'three';
 import { getGeometry, voxelMaterial } from '../../voxel/models';
@@ -196,7 +196,7 @@ export class ArcadeIntro {
 
   /**
    * End it: the last frame (just rendered, so the canvas still holds it) and
-   * the title freeze into an overlay that fades out over the first drive.
+   * the title freeze into an overlay that fades out over the first series.
    */
   finish(canvas: HTMLCanvasElement, fadeSeconds: number): void {
     this.scene.remove(this.group);

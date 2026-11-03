@@ -5,7 +5,7 @@
  * (playLogSender.ts) posts them.
  */
 import { carrierOf } from '../sim/ai';
-import type { ArcadeEvent, DriveKind, Phase, RunState } from '../sim/types';
+import type { ArcadeEvent, SeriesKind, Phase, RunState } from '../sim/types';
 
 /** What's the same for every line from one page: set once by the game. */
 export interface LogMeta {
@@ -28,7 +28,7 @@ export interface PlayLogLine {
   readonly link: string;
   readonly practice: boolean;
   /** The down as it was played. */
-  readonly drive: { readonly area: number; readonly index: number; readonly kind: DriveKind };
+  readonly series: { readonly area: number; readonly index: number; readonly kind: SeriesKind };
   readonly down: number;
   readonly los: number;
   readonly firstDown: number;
@@ -58,7 +58,7 @@ export function eventLines(
   return events.map((e) => ({
     ...context(prev, next, meta, now, 'event'),
     event: rounded(e),
-    ...(e.type === 'downEnded' ? { next: { los: round(next.drive.los) } } : {}),
+    ...(e.type === 'downEnded' ? { next: { los: round(next.series.los) } } : {}),
   }));
 }
 
@@ -79,7 +79,7 @@ function context(
   now: number,
   kind: PlayLogLine['kind'],
 ): PlayLogLine {
-  const { drive } = prev;
+  const { series } = prev;
   const carrier = carrierOf(next);
   return {
     at: new Date(now).toISOString(),
@@ -89,10 +89,10 @@ function context(
     build: meta.build,
     link: meta.link,
     practice: prev.practice,
-    drive: { area: drive.area, index: drive.index, kind: drive.kind },
-    down: drive.down,
-    los: round(drive.los),
-    firstDown: round(drive.firstDown),
+    series: { area: series.area, index: series.index, kind: series.kind },
+    down: series.down,
+    los: round(series.los),
+    firstDown: round(series.firstDown),
     play: prev.playbook[prev.play.index]?.name ?? null,
     phase: next.phase,
     ball: next.field.ball.at,

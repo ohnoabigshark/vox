@@ -6,7 +6,7 @@ import type { Form, Position } from '../sim/types';
 
 /**
  * Every offer is two new players (of different kinds). By zone (Forest,
- * Swamp, Farm), for the zone of the drive about to be played: what a new
+ * Swamp, Farm), for the zone of the series about to be played: what a new
  * player's Hustle + Hands + Heft add up to.
  */
 export const ZONE_OFFER: readonly { readonly recruitTotal: number }[] = [

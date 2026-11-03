@@ -98,7 +98,7 @@ export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = [])
       patrolIndex: 0,
     };
   });
-  state.drive = { ...state.drive, los: 0, start: 0, firstDown: 10, down: 1 };
+  state.series = { ...state.series, los: 0, start: 0, firstDown: 10, down: 1 };
   state.field = {
     players: [qb, ...team],
     defenders: defs,

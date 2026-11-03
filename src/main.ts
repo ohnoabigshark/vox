@@ -26,14 +26,14 @@ const seed = Number(params.get('seed')) || Math.floor(Math.random() * 1e9);
 // ?try=…&sketch=… is practice, from the play editor's Try it (dev/plays.html): that
 // one play on the field, rep after rep, with ‹ Sketch back to the editor.
 const practice = readPractice(location.search);
-// ?event=…&drive=… is event practice, from the event editor's Try it (dev/events.html):
-// that field event every rep at that drive, with ‹ Events back to the editor.
+// ?event=…&series=… is event practice, from the event editor's Try it (dev/events.html):
+// that field event every rep at that series, with ‹ Events back to the editor.
 const eventPractice = readEventPractice(location.search);
 // Hard mode (endless zones) and two-tap throwing (aim, then distance) are on unless
 // ?hard=0 or ?aim=1 turns them off (readModes).
 const modes = readModes(params);
 // ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area.
-// ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first drive, not drive 5.
+// ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first series, not series 5.
 // ?win=1 goes straight from PLAY to the win cutscene (with ?video=1, frame by frame for
 // the sing-along video's capture, tools/video/render.ts); ?farmSong=2 plays the second
 // Frederick's Farm song candidate (Spooky Cow) instead of Harvest Moon Hoedown.

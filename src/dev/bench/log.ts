@@ -72,7 +72,7 @@ export function isLogLine(x: unknown): x is LogLine {
       const s = x.situation;
       return (
         isRecord(s) &&
-        ['drive', 'tacklers', 'crowd', 'handsGap'].every((k) => typeof s[k] === 'number') &&
+        ['series', 'tacklers', 'crowd', 'handsGap'].every((k) => typeof s[k] === 'number') &&
         ['great', 'ok', 'bad'].includes(x.grade as string) &&
         isRecord(x.timing) &&
         x.timing.test === x.test &&

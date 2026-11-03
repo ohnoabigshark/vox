@@ -43,9 +43,9 @@ export interface Mood {
  * The scenery around the long field, each area's along its own stretch
  * (the Forest, the Candy Kingdom, the Farm).
  * The Forest: toadstools, stumps and trees along the
- * sidelines the whole way, and on the Boss drive a tree line closing the
+ * sidelines the whole way, and on the Boss series a tree line closing the
  * field off behind the end zone. (The 'beyond' part, shown only while
- * there's another drive to come, is empty in the Forest.)
+ * there's another series to come, is empty in the Forest.)
  */
 export class ForestScenery {
   readonly group: THREE.Group;
@@ -60,7 +60,7 @@ export class ForestScenery {
     this.setEnd(false);
   }
 
-  /** On the Boss drive the field ends at the woods; otherwise it runs on. */
+  /** On the Boss series the field ends at the woods; otherwise it runs on. */
   setEnd(ends: boolean): void {
     this.beyond.visible = !ends;
     this.treeLine.visible = ends;
@@ -346,7 +346,7 @@ function forestPlacements(layout: FieldLayout): Placement[] {
   /** How many times longer the sidelines are than the field the sim plays on. */
   const long = (NEAR_Z - FAR_Z) / (3 - FIELD_FAR_Z);
 
-  // The tree line behind the end zone, on the Boss drive.
+  // The tree line behind the end zone, on the Boss series.
   part = 'treeLine';
   scatter(
     'forestProps/pine',
