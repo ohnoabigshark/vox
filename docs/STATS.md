@@ -270,6 +270,48 @@ The record branch's scenarios (f2), written first and watched go red:
 - **What counts:** a real run with link options is recorded with its modes;
   practice, the bench and an event's practice link never are.
 
+## As built
+
+The `record` branch, 2026-11-03. Everything is in `src/arcade/record/`:
+
+- `types.ts`: the record's shape, `RECORD_FORMAT` (1), and Jack's id (0).
+- `recorder.ts`: `RunRecorder`, pure, fed each step's events with the
+  state before and after; `recordable`, the one rule for which runs count.
+- `stats.ts`: `runStats`, `playerStats` and `playsStats`, read from a
+  record whenever wanted, so each stat is defined once.
+- `allTime.ts`: `summaryOf` (what a run keeps past the last 20) and
+  `addRun` (a run added to its mode's all time as it closes).
+- `store.ts`: `statsStore` over the browser's storage, two keys:
+  `getJackBack.stats.open` for the run in progress and `getJackBack.stats`
+  for the closed runs and all time. Older formats come up through
+  `src/upgrade.ts`, shared with the test bench.
+- `keeper.ts`: `StatsKeeper`, the game's side: it starts a recorder for
+  each real run, saves after each down and on hide, and closes at Game
+  Over or a win. `game.ts` calls it; `main.ts` passes the store.
+
+Settled while building, beyond the map:
+
+- **An incomplete has no target.** By the sim's rules (`contact`,
+  `lobLanding`) a ball one of yours can reach is caught or contested, so
+  an incomplete is a throwaway; only `batted` carries a target (t1 had both).
+- **Who tackled them is the defender's kind** (`tackledBy`): a defender is
+  new each down, so there's no one to name.
+- **A tackle for loss is where the ball lay**, behind the line, even when
+  the line can't go back past the series' start and the game counts the
+  loss as 0 yards.
+- **A rush is a handoff with no throw;** a sack is a sack whoever caused it
+  (the pocket, the King's crows).
+- **Yards are kept as the sim measures them,** to the fraction; the screens
+  round them.
+- **A run with no down played isn't a run:** it isn't saved or closed (the
+  start screen, `?win=1`'s shortcut).
+- **Stats that can't be read are never written over:** the notice says so
+  and the run isn't kept. A run left open that can't be read is let go,
+  with a notice.
+- **Each player's stats count what they did as the carrier,** so tackles
+  broken, yards after contact and tackles for loss taken go to whoever
+  had the ball.
+
 ## Parked
 
 In [`PLAN.md`](PLAN.md), Later: meta progression (m1), stats kept with your
