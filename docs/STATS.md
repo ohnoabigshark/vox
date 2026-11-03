@@ -312,6 +312,25 @@ Settled while building, beyond the map:
   broken, yards after contact and tackles for loss taken go to whoever
   had the ball.
 
+### The screens
+
+The `stats-screens` branch, 2026-11-03, from q6's scenarios:
+`src/arcade/ui/statsView.ts` says what each screen shows, pure and tested;
+`src/ui/stats.ts` draws it (`stats.css`), and `src/ui/playDrawing.ts`
+draws a play small. Settled while building:
+
+- **The card waits for the run to close,** so its RECORD marks are the
+  all-time records after the run was added; a run that couldn't be kept
+  still gets its card, with no marks.
+- **The win's card comes up 3.5 s into the dance,** once GOT JACK BACK has
+  landed; `?win=1`'s shortcut, which plays no run, goes to the song as
+  before.
+- **Hard mode's second time round** says so: "Candy Queendom · round 2 ·
+  series 1".
+- **Plays are listed most called first;** Jack's row shows his name alone.
+- **The stats section keeps its tab** when switching Hard and Normal.
+- **"N drives won" is gone** from the top of the screen (z2).
+
 ## Parked
 
 In [`PLAN.md`](PLAN.md), Later: meta progression (m1), stats kept with your
