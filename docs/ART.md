@@ -137,11 +137,13 @@ through it yet: the first test is a gravestone made in Goxel on Android
      Chrome, or Playwright's cached Chromium where there's no Chrome
      (`tools/browser.ts`).
    - `/dev/models.html` (on the tailnet build, `…ts.net:8443/vox/dev/models.html`)
-     spins any model. **Game light** shows it under the game's light on an
+     spins any model. **Game light** shows it under the game's light
+     (`src/render/gameLight.ts`, the same numbers the game uses) on an
      area's turf; judge colours there, since the same model reads warmer and
-     darker on the field than in the studio light.
+     darker on the field than in the studio light. It leaves out the lamp's
+     flicker and the fog, which starts farther away than the viewer stands.
      `?render=turntable&model=<id>` and `?render=sheet&group=<folder>` are
-     the fixed images the preview tool takes; add `&light=game&area=candy`
+     the fixed images the preview tool takes; add `&light=game&turf=candy`
      for the game's light.
 4. **Use it:** `getGeometry(id)` with `voxelMaterial`. A player kind goes in
    `KIND_MODEL` and a defender kind in `DEFENDER_MODEL`

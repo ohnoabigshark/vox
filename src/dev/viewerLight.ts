@@ -1,11 +1,14 @@
 /**
  * The model viewer's light (dev/models.html, art pipeline map p5): its own
- * plain white studio light, or the game's, so a model can be judged in the
- * light it will be played in. Pure data, applied by src/dev/modelViewer.ts.
+ * plain white studio light, or the game's (render/gameLight.ts) on an area's
+ * turf, so a model can be judged in the light it will be played in. Pure
+ * data, applied by src/dev/modelViewer.ts. The game's fog is left out: it
+ * starts ten yards past the camera, farther than the viewer ever stands.
  */
-import type { Biome } from '../arcade/content/defense';
+import { AREAS, type Biome } from '../arcade/content/defense';
+import { assertNever } from '../assertNever';
 import { biomes, common, type Hex } from '../content/palettes';
-import { MOON_FILL, PUMPKIN_LAMP, SKY_FILL } from '../render/gameLight';
+import { GAME_LIGHT, type Lights, type PUMPKIN_LAMP } from '../render/gameLight';
 
 export interface ViewerLightChoice {
   readonly mode: 'studio' | 'game';
@@ -13,16 +16,17 @@ export interface ViewerLightChoice {
   readonly biome: Biome;
 }
 
-export interface ViewerLight {
-  readonly hemi: { readonly sky: Hex; readonly ground: Hex; readonly intensity: number };
-  readonly sun: { readonly color: Hex; readonly intensity: number; readonly castShadow: boolean };
+export interface ViewerLight extends Lights {
   /** The pumpkin's lamp, in the game's light only. */
   readonly lamp: typeof PUMPKIN_LAMP | null;
   /** The colour of the tile the model stands on. */
   readonly tile: Hex;
 }
 
-export const BIOMES: readonly Biome[] = ['forest', 'candy', 'farm'];
+/** The turfs to choose from: every area's, in the run's order, named as the area is. */
+export const VIEWER_TURFS: readonly { readonly biome: Biome; readonly name: string }[] = AREAS.map(
+  (a) => ({ biome: a.biome, name: a.name }),
+);
 
 export function viewerLight({ mode, biome }: ViewerLightChoice): ViewerLight {
   switch (mode) {
@@ -33,22 +37,19 @@ export function viewerLight({ mode, biome }: ViewerLightChoice): ViewerLight {
         lamp: null,
         tile: common.grass,
       };
-    case 'game': {
-      // Every area plays under the Forest's dusk (render/scenery.ts sets it once for the run).
-      const dusk = biomes.forest;
-      return {
-        hemi: { sky: dusk.hemiSky, ground: dusk.hemiGround, intensity: SKY_FILL },
-        sun: { color: dusk.moon, intensity: MOON_FILL, castShadow: false },
-        lamp: PUMPKIN_LAMP,
-        tile: biomes[biome].grass,
-      };
-    }
+    case 'game':
+      return { ...GAME_LIGHT, tile: biomes[biome].grass };
+    default:
+      return assertNever(mode);
   }
 }
 
-/** `?light=game&area=farm`; anything else is the studio light in the Forest. */
+/**
+ * `?light=game&turf=farm`; anything else is the studio light on the Forest's
+ * turf. Named turf, not area, because the game's own `?area=2` numbers an area.
+ */
 export function readViewerLight(params: URLSearchParams): ViewerLightChoice {
-  const area = params.get('area');
-  const biome = BIOMES.find((b) => b === area) ?? 'forest';
+  const turf = params.get('turf');
+  const biome = VIEWER_TURFS.find((t) => t.biome === turf)?.biome ?? 'forest';
   return { mode: params.get('light') === 'game' ? 'game' : 'studio', biome };
 }

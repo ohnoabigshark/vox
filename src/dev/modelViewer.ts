@@ -7,7 +7,8 @@ import * as THREE from 'three';
 import { common, hexToNumber } from '../content/palettes';
 import { greedyMesh } from '../voxel/mesh';
 import { MODEL_IDS, getGeometry, getModel, voxelMaterial } from '../voxel/models';
-import { BIOMES, readViewerLight, viewerLight, type ViewerLightChoice } from './viewerLight';
+import { setLights } from '../render/gameLight';
+import { VIEWER_TURFS, readViewerLight, viewerLight, type ViewerLightChoice } from './viewerLight';
 
 const params = new URLSearchParams(location.search);
 const renderMode = params.get('render'); // 'turntable' | 'sheet' | null
@@ -44,12 +45,7 @@ let lightChoice: ViewerLightChoice = readViewerLight(params);
 function applyLight(choice: ViewerLightChoice): void {
   lightChoice = choice;
   const light = viewerLight(choice);
-  hemi.color.set(light.hemi.sky);
-  hemi.groundColor.set(light.hemi.ground);
-  hemi.intensity = light.hemi.intensity;
-  sun.color.set(light.sun.color);
-  sun.intensity = light.sun.intensity;
-  sun.castShadow = light.sun.castShadow;
+  setLights(hemi, sun, light);
   lamp.visible = light.lamp !== null;
   if (light.lamp) {
     lamp.color.set(light.lamp.color);
@@ -129,6 +125,8 @@ function renderSheet(group: string): void {
     mesh.position.x = x;
     scene.add(mesh, tile(x));
   });
+  // A row of models spans several yards: the lamp stands back and centred, so the ends aren't darker.
+  lamp.position.set(0, 3.5, 6);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   // The game's camera pitch, so the sheet shows models as they'll look in play.
@@ -165,7 +163,7 @@ function interactive(): void {
     const query = new URLSearchParams({ model: shown });
     if (lightChoice.mode === 'game') {
       query.set('light', 'game');
-      query.set('area', lightChoice.biome);
+      query.set('turf', lightChoice.biome);
     }
     history.replaceState(null, '', `?${query}`);
   };
@@ -188,10 +186,8 @@ function interactive(): void {
       button('Studio light', mode === 'studio', () => choose({ mode: 'studio', biome })),
       button('Game light', mode === 'game', () => choose({ mode: 'game', biome })),
       ...(mode === 'game'
-        ? BIOMES.map((b) =>
-            button(b.charAt(0).toUpperCase() + b.slice(1), b === biome, () =>
-              choose({ mode: 'game', biome: b }),
-            ),
+        ? VIEWER_TURFS.map((t) =>
+            button(t.name, t.biome === biome, () => choose({ mode: 'game', biome: t.biome })),
           )
         : []),
     );

@@ -34,11 +34,6 @@ interface Placement {
   readonly scale: number;
 }
 
-export interface Mood {
-  readonly hemi: THREE.HemisphereLight;
-  readonly sun: THREE.DirectionalLight;
-}
-
 /**
  * The scenery around the long field, each area's along its own stretch
  * (the Forest, the Candy Kingdom, the Farm).
@@ -52,8 +47,8 @@ export class ForestScenery {
   private readonly beyond = new THREE.Group();
   private readonly treeLine = new THREE.Group();
 
-  constructor(scene: THREE.Scene, mood: Mood, layout: FieldLayout) {
-    this.group = createForestScenery(scene, mood, layout, {
+  constructor(scene: THREE.Scene, layout: FieldLayout) {
+    this.group = createForestScenery(scene, layout, {
       beyond: this.beyond,
       treeLine: this.treeLine,
     });
@@ -67,21 +62,15 @@ export class ForestScenery {
   }
 }
 
-/** Build the Forest around the field and set the haunted-dusk mood. */
+/** Build the Forest around the field, with its fog (the light is render/gameLight.ts). */
 function createForestScenery(
   scene: THREE.Scene,
-  mood: Mood,
   layout: FieldLayout,
   parts: { beyond: THREE.Group; treeLine: THREE.Group },
 ): THREE.Group {
   const palette = biomes.forest;
   scene.background = new THREE.Color(hexToNumber(palette.fog));
   scene.fog = new THREE.Fog(hexToNumber(palette.fog), 30, 60); // View.fit() sets the real range
-  mood.hemi.color.set(hexToNumber(palette.hemiSky));
-  mood.hemi.groundColor.set(hexToNumber(palette.hemiGround));
-  mood.hemi.intensity = 1.25;
-  mood.sun.color.set(hexToNumber(palette.moon));
-  mood.sun.intensity = 1.7;
 
   const group = new THREE.Group();
   group.add(forestFloor(palette.floor, layout), parts.beyond, parts.treeLine);

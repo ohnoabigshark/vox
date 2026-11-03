@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import type { SfxId } from '../audio/sfx';
 import { Conductor } from '../game/conductor';
-import { MOON_FILL, SKY_FILL } from '../render/gameLight';
+import { GAME_LIGHT, setLights } from '../render/gameLight';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
@@ -275,7 +275,7 @@ export class ArcadeGame {
     this.view = new View(canvas, { fov: 50 });
     const { scene } = this.view;
     scene.add(createArcadeTurf());
-    const scenery = new ForestScenery(scene, this.view, {
+    const scenery = new ForestScenery(scene, {
       halfWidth: arcadeTuning.field.halfWidth,
       nearZ: FIELD_BEHIND,
       farZ: -FIELD_AHEAD,
@@ -283,9 +283,7 @@ export class ArcadeGame {
     });
     scene.add(scenery.group);
     // The pumpkin ball is the light (render/ball.ts): the moon is only a dim fill, with no shadows.
-    this.view.sun.castShadow = false;
-    this.view.sun.intensity = MOON_FILL;
-    this.view.hemi.intensity = SKY_FILL;
+    setLights(this.view.hemi, this.view.sun, GAME_LIGHT);
     this.lines = new ArcadeLines(scene);
     this.routes = new ArcadeRoutes(scene);
     this.eventLooks = {
