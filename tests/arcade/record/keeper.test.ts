@@ -113,10 +113,9 @@ describe('the stats keeper', () => {
     stepOf(k, s, downEnded);
     stepOf(k, s, [{ type: 'areaCleared', area: 2 }], 'won');
     await settled();
-    expect(calls.map((c) => [c.op, c.record.end])).toEqual([
-      ['saveOpen', 'open'],
-      ['close', 'won'],
-    ]);
+    // A save waits its turn, so it writes the run as it stands by then.
+    expect(calls.map((c) => c.op)).toEqual(['saveOpen', 'close']);
+    expect(calls[1]!.record.end).toBe('won');
   });
 
   it('each run has its own id', async () => {
@@ -128,6 +127,40 @@ describe('the stats keeper', () => {
     }
     await settled();
     expect(calls.map((c) => c.record.id)).toEqual(['run-1', 'run-2']);
+  });
+
+  it('a run waits for what’s kept to be loaded: last time’s run is closed before this one is saved', async () => {
+    const order: string[] = [];
+    let loaded!: () => void;
+    const store: StatsStore = {
+      load: () =>
+        new Promise((resolve) => {
+          loaded = () => {
+            order.push('load');
+            resolve({ saved: EMPTY, problem: null });
+          };
+        }),
+      saveOpen: async () => void order.push('saveOpen'),
+      close: async () => (order.push('close'), EMPTY),
+    };
+    const k = new StatsKeeper({
+      store,
+      build: 'b',
+      link: '',
+      newId: () => 'r',
+      now: () => 0,
+      notice: () => {},
+    });
+    void k.load();
+    const s = createRun(1);
+    k.start(s);
+    stepOf(k, s, downEnded);
+    stepOf(k, s, [{ type: 'gameOver', seriesWon: 0, yards: 0 }], 'over');
+    await settled();
+    expect(order).toEqual([]);
+    loaded();
+    await settled();
+    expect(order).toEqual(['load', 'saveOpen', 'close']);
   });
 
   it('practice and an event’s practice are never recorded', async () => {
@@ -163,7 +196,7 @@ describe('a store that fails says so', () => {
       now: () => 0,
       notice: (text) => notices.push(text),
     });
-    expect(await k.load()).toBeNull();
+    await k.load();
     expect(notices).toEqual(['Storage full.']);
   });
 

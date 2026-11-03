@@ -489,7 +489,7 @@ export class ArcadeGame {
     }
   }
 
-  /** The run's record (docs/STATS.md): what's kept read in, and this run recorded from its first down. */
+  /** The run's record (docs/STATS.md): what's kept read in; each run is recorded from PLAY or AGAIN (freshRun). */
   private startStats(store: StatsStore): StatsKeeper {
     const keeper = new StatsKeeper({
       store,
@@ -500,7 +500,6 @@ export class ArcadeGame {
       notice: (text) => this.hud.notice(text),
     });
     void keeper.load();
-    keeper.start(this.state);
     return keeper;
   }
 

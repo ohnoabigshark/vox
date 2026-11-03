@@ -5,7 +5,7 @@
  */
 import type { ArcadeEvent, RunState } from '../sim/types';
 import { RunRecorder, recordable } from './recorder';
-import type { Saved, StatsStore } from './store';
+import type { StatsStore } from './store';
 
 export interface KeeperDeps {
   readonly store: StatsStore;
@@ -21,19 +21,20 @@ export interface KeeperDeps {
 export class StatsKeeper {
   /** The run being recorded, or null (a drill, or none since the last one closed). */
   private recorder: RunRecorder | null = null;
+  /**
+   * The store's calls, one after another: loading first (it closes last
+   * time's run), so nothing this run saves can go in before it.
+   */
+  private queue: Promise<void> = Promise.resolve();
 
   constructor(private readonly deps: KeeperDeps) {}
 
-  /** What's kept, closing a run left open last time; any problem shown, and null if it couldn't be had. */
-  async load(): Promise<Saved | null> {
-    try {
-      const { saved, problem } = await this.deps.store.load();
+  /** What's kept read in, closing a run left open last time; any problem shown. */
+  load(): Promise<void> {
+    return this.then(async () => {
+      const { problem } = await this.deps.store.load();
       if (problem) this.deps.notice(problem);
-      return saved;
-    } catch (e) {
-      this.deps.notice(messageOf(e));
-      return null;
-    }
+    });
   }
 
   /** A new run: recorded if it's a real one (c1). */
@@ -51,7 +52,7 @@ export class StatsKeeper {
     rec.step(prev, next, events);
     if (rec.record.end === 'over' || rec.record.end === 'won') {
       this.recorder = null;
-      if (played(rec)) this.settle(this.deps.store.close(rec.record));
+      if (played(rec)) void this.then(() => this.deps.store.close(rec.record));
       return;
     }
     if (events.some((e) => e.type === 'downEnded')) this.save(rec);
@@ -63,12 +64,16 @@ export class StatsKeeper {
   }
 
   private save(rec: RunRecorder): void {
-    if (played(rec)) this.settle(this.deps.store.saveOpen(rec.record));
+    if (played(rec)) void this.then(() => this.deps.store.saveOpen(rec.record));
   }
 
-  /** A store call's failure, shown: never silent. */
-  private settle(p: Promise<unknown>): void {
-    p.catch((e: unknown) => this.deps.notice(messageOf(e)));
+  /** A store call, queued after the others; its failure shown, never silent. */
+  private then(op: () => Promise<unknown>): Promise<void> {
+    this.queue = this.queue
+      .then(op)
+      .then(() => undefined)
+      .catch((e: unknown) => this.deps.notice(messageOf(e)));
+    return this.queue;
   }
 }
 
