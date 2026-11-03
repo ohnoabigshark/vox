@@ -327,6 +327,17 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   right solid and the left dashed, so an event that picks a side each down
   doesn't read as flipped in play. Field events map round 4, e5, Not now
   (2026-10-31).
+- **A forced play (a future event).** Two of the three play cards are
+  banned at random, leaving one, so the play is chosen for you. It's the
+  Queen's Royal Decree doubled: she bans one card a down (`decree` in
+  `content/defense.ts`, `state.banned` in `sim/run.ts`). _User,
+  2026-11-03: "an event that forces a play choice randomly, kinda like how
+  the decree removes a single play, but this would remove two plays."_
+  Open for its grilling: what kind of event it is (a field event, a Boss
+  power, a trick from TRICK OR TREAT!) and where and how often it comes; its
+  name, call and look beside the BANNED seal; whether the two bans show,
+  or the remaining card is just dealt alone; and how it sits with the
+  decree when both apply (`state.banned` holds one card today).
 - **The tip drill's drift:** each pop carries the ball left or right, its
   shadow marking where along the hands it comes down, and the Coach taps
   that spot as it lands. Option B on the tip drill's map (t1), parked until
