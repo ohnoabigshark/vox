@@ -10,8 +10,13 @@ esrauch's roadmap is `MILESTONES.md`.
   every interface; on this droplet that would be the open internet. Never set
   `DEV_BIND=0.0.0.0` here. The hot-reload server is reached through Tailscale
   (`docs/stacks/vox.md` in `/root/projects`).
-- **`upstream` is esrauch's repo, with pushing disabled.** Pull his changes
-  from it; our own remote comes with the fork.
+- **`upstream` is esrauch's repo, with pushing disabled,** kept as a
+  reference. We don't expect to pull from it again: his code has been
+  renamed to our words (`drive` became `series`, 2026-11-03, tag
+  `pre-series-rename`), so his changes would conflict throughout. Our own
+  remote comes with the fork.
+- **Speak the glossary** (`CONTEXT.md`): an area's march is a **drive** of
+  four **series**; esrauch's "drive" is a series.
 - **The game defaults to hard mode with two-tap throwing,** the way the user
   plays (`readModes` in `src/arcade/content/modeFlags.ts`); `?hard=0` and
   `?aim=1` turn them off. Try changes in the default and in esrauch's
