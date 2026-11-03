@@ -286,6 +286,8 @@ The `record` branch, 2026-11-03. Everything is in `src/arcade/record/`:
   `getJackBack.stats.open` for the run in progress and `getJackBack.stats`
   for the closed runs and all time. Older formats come up through
   `src/upgrade.ts`, shared with the test bench.
+- `achievements.ts`: the achievements, `earnedBy`, and what's earned
+  (`earn`, `newlyEarned`, `catchUp`).
 - `keeper.ts`: `StatsKeeper`, the game's side: it starts a recorder for
   each real run, saves after each down and on hide, and closes at Game
   Over or a win. `game.ts` calls it; `main.ts` passes the store.
@@ -340,7 +342,27 @@ draws a play small. Settled while building:
 - **The stats section keeps its tab** when switching Hard and Normal.
 - **"N drives won" is gone** from the top of the screen (z2).
 
-## Parked
+### Achievements
+
+The `achievements` branch, 2026-11-03, from u4's scenarios.
+`src/arcade/record/achievements.ts` defines the fourteen, each a check
+over the record, either for mid-run (`down`: checked after each down, and
+popped) or for the whole run (`run`: checked as it closes, on the card).
+Settled while building:
+
+- **They're kept in the saved stats,** whose format is 2: the earned ones
+  (the first run to earn each and when, and the hard mark) and which
+  achievements have been looked for in the saved runs. Format 1 comes up
+  through the first real upgrade step, so a phone with saved runs earns
+  from its last 20 on its first load of this build.
+- **A pop is for what's new to this phone,** or newly earned in hard mode,
+  once a run each; the card lists everything the run newly earned, popped
+  or not.
+- **Flawless Run and Rock Steady need at least one** tap test, or pass:
+  a win with none of either would earn them for nothing.
+- **Hard / Normal hides on the Achievements tab:** they're one list (h1).
+
+
 
 In [`PLAN.md`](PLAN.md), Later: meta progression (m1), stats kept with your
 account (k4), stats during a run, the one-kind-team achievements (x1), the
