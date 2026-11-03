@@ -362,7 +362,7 @@ Settled while building:
   a win with none of either would earn them for nothing.
 - **Hard / Normal hides on the Achievements tab:** they're one list (h1).
 
-
+## Parked
 
 In [`PLAN.md`](PLAN.md), Later: meta progression (m1), stats kept with your
 account (k4), stats during a run, the one-kind-team achievements (x1), the
