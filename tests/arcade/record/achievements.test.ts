@@ -1,0 +1,200 @@
+import { describe, expect, it } from 'vitest';
+import {
+  ACHIEVEMENTS,
+  earnedBy,
+  type AchievementId,
+} from '../../../src/arcade/record/achievements';
+import type { PlayResult, RunRecord } from '../../../src/arcade/record/types';
+import { blankDown, catchBy, NORMAL, runOf, rushBy, STARTERS } from './fixtures';
+
+/**
+ * docs/STATS.md, Achievements, and the branch's scenarios (stats map u4):
+ * each earned by a record that meets it and not by one just short. A drive
+ * is an area's four series: series 1–4 are the first drive, 5–8 the second.
+ */
+
+/** Whether the run so far (after its last down) earns `id`. */
+const midRun = (id: AchievementId, downs: PlayResult[], more: Partial<RunRecord> = {}) =>
+  earnedBy(runOf(downs, more), 'down').includes(id);
+/** Whether the run, ended, earns `id`. */
+const atEnd = (id: AchievementId, downs: PlayResult[], more: Partial<RunRecord> = {}) =>
+  earnedBy(runOf(downs, more), 'end').includes(id);
+
+const at = (seriesNumber: number, d: PlayResult, down = 1): PlayResult => ({
+  ...d,
+  seriesNumber,
+  down,
+});
+const td = (seriesNumber: number, d: PlayResult): PlayResult => ({
+  ...at(seriesNumber, d),
+  outcome: 'touchdown',
+});
+const great = (player = 1) => ({ test: 'bar' as const, player, grade: 'great' as const, taps: [] });
+const ok = (player = 1) => ({ test: 'mash' as const, player, grade: 'ok' as const, taps: [] });
+const GOLEM = 8;
+const withGolem = {
+  team: [
+    ...STARTERS,
+    { id: GOLEM, name: 'Slab', kind: 'golem' as const, preferred: 'catcher' as const, joinedAt: 0 },
+  ],
+};
+const won = { end: 'won' as const, modes: NORMAL };
+
+describe('the fourteen', () => {
+  it('there are fourteen, each with a name and what earns it', () => {
+    expect(ACHIEVEMENTS).toHaveLength(14);
+    for (const a of ACHIEVEMENTS) {
+      expect(a.name).not.toBe('');
+      expect(a.earns).not.toBe('');
+    }
+  });
+
+  it('Air Mail: a completed pass of more than 20 air yards', () => {
+    expect(midRun('airMail', [catchBy(1, 25, 21)])).toBe(true);
+    expect(midRun('airMail', [catchBy(1, 25, 20)])).toBe(false);
+    expect(midRun('airMail', [{ ...blankDown, outcome: 'batted', target: 1 }])).toBe(false);
+  });
+
+  it('Unbreakable: two tackles broken on one play', () => {
+    expect(midRun('unbreakable', [rushBy(2, 9, { tacklesBroken: 2 })])).toBe(true);
+    expect(
+      midRun('unbreakable', [
+        rushBy(2, 9, { tacklesBroken: 1 }),
+        rushBy(2, 9, { tacklesBroken: 1 }),
+      ]),
+    ).toBe(false);
+  });
+
+  it('Do or Die: a first down or a touchdown on fourth down (u5)', () => {
+    expect(midRun('doOrDie', [at(1, rushBy(2, 4, { outcome: 'firstDown' }), 4)])).toBe(true);
+    expect(midRun('doOrDie', [{ ...td(4, rushBy(2, 4)), down: 4 }])).toBe(true);
+    expect(midRun('doOrDie', [at(1, rushBy(2, 4, { outcome: 'firstDown' }), 3)])).toBe(false);
+    expect(midRun('doOrDie', [at(1, rushBy(2, 4), 4)])).toBe(false);
+  });
+
+  it('Pancake Breakfast: five pancakes in one drive', () => {
+    const cakes = (n: number) => Array.from({ length: n }, () => 3);
+    expect(
+      midRun('pancakeBreakfast', [
+        at(1, rushBy(2, 1, { pancakes: cakes(3) })),
+        at(4, rushBy(2, 1, { pancakes: cakes(2) })),
+      ]),
+    ).toBe(true);
+    expect(
+      midRun('pancakeBreakfast', [
+        at(4, rushBy(2, 1, { pancakes: cakes(4) })),
+        at(5, rushBy(2, 1, { pancakes: cakes(1) })),
+      ]),
+    ).toBe(false);
+  });
+
+  it('Perfect Drive: GREAT on every tap test in a drive won, at least three', () => {
+    const tests = (...t: PlayResult['tapTests'][number][]) => rushBy(2, 3, { tapTests: t });
+    expect(midRun('perfectDrive', [at(1, tests(great(), great())), td(4, tests(great()))])).toBe(
+      true,
+    );
+    expect(midRun('perfectDrive', [at(1, tests(great())), td(4, tests(great()))])).toBe(false);
+    expect(midRun('perfectDrive', [at(1, tests(great(), ok())), td(4, tests(great()))])).toBe(
+      false,
+    );
+    expect(midRun('perfectDrive', [at(1, tests(great(), great())), at(4, tests(great()))])).toBe(
+      false,
+    );
+  });
+
+  it('Spread the Love: a catch or a rush by five different players in one drive, won or not (u6)', () => {
+    const five = [catchBy(1, 3), catchBy(2, 3), rushBy(3, 3), rushBy(4, 3), at(4, catchBy(5, 3))];
+    expect(midRun('spreadTheLove', five)).toBe(true);
+    expect(midRun('spreadTheLove', [...five.slice(0, 4), at(5, catchBy(5, 3))])).toBe(false);
+    // A target who didn't catch it didn't touch it.
+    expect(midRun('spreadTheLove', [...five.slice(0, 4), { ...blankDown, target: 5 }])).toBe(false);
+  });
+
+  it('Clean Sheet: a drive won without an incomplete, a sack or a tackle for loss', () => {
+    const clean = [at(1, catchBy(1, 6)), at(2, rushBy(2, 4)), td(4, catchBy(1, 10))];
+    expect(midRun('cleanSheet', clean)).toBe(true);
+    expect(midRun('cleanSheet', [...clean.slice(0, 2), at(3, blankDown), clean[2]!])).toBe(false);
+    expect(
+      midRun('cleanSheet', [
+        ...clean.slice(0, 2),
+        at(3, { ...blankDown, kind: 'sack', outcome: 'sacked' }),
+        clean[2]!,
+      ]),
+    ).toBe(false);
+    expect(
+      midRun('cleanSheet', [
+        ...clean.slice(0, 2),
+        at(3, rushBy(2, 0, { tackleForLoss: true })),
+        clean[2]!,
+      ]),
+    ).toBe(false);
+    expect(midRun('cleanSheet', clean.slice(0, 2))).toBe(false);
+  });
+
+  it('Sweet Tooth and Down on the Farm: the first snap in the Candy Queendom, and on the Farm (u7)', () => {
+    expect(midRun('sweetTooth', [at(5, rushBy(2, 1))])).toBe(true);
+    expect(midRun('sweetTooth', [at(4, rushBy(2, 1))])).toBe(false);
+    expect(midRun('downOnTheFarm', [at(9, rushBy(2, 1))])).toBe(true);
+    expect(midRun('downOnTheFarm', [at(8, rushBy(2, 1))])).toBe(false);
+  });
+
+  it('Stone Hands: every pass to a Golem in a run caught, at least five', () => {
+    const five = Array.from({ length: 5 }, () => catchBy(GOLEM, 4));
+    expect(atEnd('stoneHands', five, withGolem)).toBe(true);
+    expect(atEnd('stoneHands', five.slice(1), withGolem)).toBe(false);
+    expect(
+      atEnd('stoneHands', [...five, { ...blankDown, outcome: 'batted', target: GOLEM }], withGolem),
+    ).toBe(false);
+    // It's about the whole run: not checked mid-run, where a drop could still come.
+    expect(midRun('stoneHands', five, withGolem)).toBe(false);
+  });
+});
+
+describe('the four for a win, normal mode only', () => {
+  it('Jack’s Back: a run won', () => {
+    expect(atEnd('jacksBack', [rushBy(2, 1)], won)).toBe(true);
+    expect(atEnd('jacksBack', [rushBy(2, 1)], { end: 'over', modes: NORMAL })).toBe(false);
+    expect(atEnd('jacksBack', [rushBy(2, 1)], { end: 'won' })).toBe(false);
+  });
+
+  it('Home Grown: won without taking a TRICK OR TREAT! player', () => {
+    expect(atEnd('homeGrown', [rushBy(2, 1)], won)).toBe(true);
+    const recruit = {
+      id: 8,
+      name: 'Boo',
+      kind: 'ghost' as const,
+      preferred: 'catcher' as const,
+      joinedAt: 2,
+    };
+    expect(atEnd('homeGrown', [rushBy(2, 1)], { ...won, team: [...STARTERS, recruit] })).toBe(
+      false,
+    );
+  });
+
+  it('Flawless Run: won with GREAT on every tap test', () => {
+    expect(atEnd('flawlessRun', [rushBy(2, 1, { tapTests: [great(2), great(2)] })], won)).toBe(
+      true,
+    );
+    expect(atEnd('flawlessRun', [rushBy(2, 1, { tapTests: [great(2), ok(2)] })], won)).toBe(false);
+    expect(atEnd('flawlessRun', [rushBy(2, 1)], won)).toBe(false);
+  });
+
+  it('Rock Steady: won with every pass thrown to a Golem; a throwaway breaks it', () => {
+    const toGolem = [
+      catchBy(GOLEM, 5),
+      { ...blankDown, outcome: 'batted' as const, target: GOLEM },
+      rushBy(2, 3),
+    ];
+    expect(atEnd('rockSteady', toGolem, { ...won, ...withGolem })).toBe(true);
+    expect(atEnd('rockSteady', [...toGolem, blankDown], { ...won, ...withGolem })).toBe(false);
+    expect(atEnd('rockSteady', [...toGolem, catchBy(1, 4)], { ...won, ...withGolem })).toBe(false);
+    expect(atEnd('rockSteady', [rushBy(2, 3)], { ...won, ...withGolem })).toBe(false);
+  });
+
+  it('none of the four mid-run', () => {
+    const ids = earnedBy(runOf([rushBy(2, 1, { tapTests: [great(2)] })], won), 'down');
+    expect(
+      ids.filter((id) => ['jacksBack', 'homeGrown', 'flawlessRun', 'rockSteady'].includes(id)),
+    ).toEqual([]);
+  });
+});
