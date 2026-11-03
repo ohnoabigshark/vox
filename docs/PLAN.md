@@ -270,30 +270,23 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   and every tap test, so the game can keep stats and award achievements.
   _User, 2026-10-31: "result recording. we need to do this after each play,
   each quick time event. the reason being I want to add achievements and
-  stats."_ It threads through much of the game, so it's its own branch, or
-  several.
-  - **Stats**, the user's examples: the longest pass play, the longest run
-    (the note says "longest pass play" twice; the second read as the
-    longest run, to confirm), runs against passes in a run. Shown on a
-    **Game Over stats screen** for the run just played, and in a **stats
-    section** with totals over every game played.
-  - **Achievements**, the user's examples: win with a team of all
-    blockers, all catchers or all runners (the note says "boulders", read
-    as blockers, to confirm); play the stock team from beginning to end
-    (never taking a TRICK OR TREAT! player); a pass of over 20 air yards;
-    GREAT on every tap test (in a run, or a drive, to decide).
-  - **Where it can start:** the sim already reports most of what happened
-    as events (`downEnded` with its result and yards, `thrown`, `caught`,
-    `breakResult`, `snagResult`, `tipResult`, the crows), so a run's record
-    could be built from that stream without the sim knowing about stats.
-  - **Open for its grilling:** what a result holds (a play's call, its
-    yards, air yards, who carried; a tap test's grade and timing); where the
-    totals are kept (this phone, behind an async store, as the rules ask)
-    and whether they ever leave it; which runs count (hard mode and normal
-    apart; practice, the bench and dev link options like `?snag=1` left
-    out); air yards measured from the line to the catch; how an achievement
-    is shown when it's earned, and where the list of them lives; the stats
-    screen's design, with mockups.
+  stats."_ **Planned** by grilling, seven rounds, 2026-11-02 to 2026-11-03,
+  on the map https://claude.ai/artifact/1jesxDVCarUMEPTMDcwqfR; the design
+  is [`docs/STATS.md`](STATS.md). Four branches, each reviewed and merged
+  before the next:
+  - **`series-rename`:** football's words for the game as it is (w1, w3):
+    an area's march is a **drive** of four **series**, won series are
+    **first downs** and the Boss's a **touchdown**. esrauch's `drive`
+    becomes `series` in the code and the docs (r1, r2). `main` is tagged
+    `pre-series-rename` first, and the user plays some rounds as a smoke
+    test before it merges (r3).
+  - **`record`:** a pure recorder fed from the sim's events, the run's
+    record saved on the phone as the run goes, the run's stats, all-time
+    totals and records. Its test scenarios are approved (f2).
+  - **`stats-screens`:** the Game Over card, a run's stats, the win card
+    before the song, STATS on the start screen, the stats section (v1–v5).
+  - **`achievements`:** fourteen approved, defined in one file as checks
+    over the record, popped after the down that earns them (h1–h3).
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
@@ -389,7 +382,10 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
   more of a sense of progression and improvement of your team, not always
   bringing in new players but instead improving your squad."_ The user
   doesn't yet know what all its parts should look like, so it needs a lot
-  more work before it's split into branches. The parts seen so far:
+  more work before it's split into branches. **Players skill up only
+  within a run,** roguelite style; anything that lasts between runs is
+  **Meta progression** (below). _Decided on the stats map, m1, 2026-11-02._
+  The parts seen so far:
   - **Growth from play:** which stats grow (Heft, Hustle, Hands), from
     what (a catch, yards after it, a block held, a tap test's grade), how
     fast, and whether there's a ceiling. It needs the per-play results of
@@ -419,6 +415,9 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     dev page, and what it allows (every slot, or routes only); whether the
     play rules still apply; whether the play is kept afterwards (in the
     run's playbook, as a sketch) or gone after the down.
+    The record keeps a drawn-up play like any other, with an id from when
+    it's drawn (stats map p8, 2026-11-02); filing it away as a sketch is
+    for this grilling.
   - **Select any play** (a reward, alongside Draw up a play): instead of
     the three play cards dealt, the Coach picks any play for that down.
     _User, 2026-10-31._ Open for its grilling, with Draw up a play: which
@@ -427,6 +426,29 @@ https://claude.ai/artifact/9B7U7HryCxoE7bnGYXJTi5.
     before picking, as with Draw up a play; how it's earned and how
     often, and whether the two are offered side by side as one reward
     pick.
+- **Meta progression:** something that lasts from one run to the next,
+  such as players unlocked by achievements. _User's note on a1, 2026-11-02:
+  "Meta progression may come later, such as players unlocked by
+  achievements."_ Players skill up only within a run (A team that grows).
+- **Stats kept with your account:** the record sent to a server and kept
+  with the account that played, so it follows the Coach between phones.
+  The record is ready for it: each run has a random id, the build and its
+  format version (stats map k1, k4, 2026-11-02).
+- **Stats during a run:** the run's stats so far, from the pause menu or
+  between drives. Left out of the first screens (stats map, 2026-11-02).
+- **Achievements for a team of one kind:** a drive won with all seven of
+  one kind, Golems, Ghosts or Werewolves (x1, Not now, 2026-11-03: "it
+  depends on core game changes").
+- **Achievements for one way only:** a drive won without a pass, or
+  without a rush (x9, Not now, 2026-11-03): a down doesn't always offer
+  both. It comes back if Jack can run, or a handoff can be forced on a pass
+  play.
+- **Yards that carry over, and longer areas.** A gain past the first-down
+  line carries to where it ended, and an area can be longer than 40 yards;
+  how a series' defense and the Boss fit that is open. Today every area is
+  four series of exactly 10 yards (`originOf`, `src/arcade/game.ts`), and
+  the extra yards are thrown away. _User's question on w1, 2026-11-03;
+  parked as g1._
 - **Defense against a computer offense.** The Coach plays defense while the
   computer runs the offense. The sim's AI only drives defenders and carriers
   today, so the offense needs play calling and throw timing of its own, and
