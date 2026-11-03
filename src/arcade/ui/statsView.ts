@@ -20,6 +20,8 @@ import {
   playerStats,
   playsStats,
   runStats,
+  yardsPerCall,
+  yardsPerRush,
   type PlayerStats,
   type RunStats,
 } from '../record/stats';
@@ -102,6 +104,7 @@ const TEST: Readonly<Record<TapTestKind, string>> = {
 const GRADES: readonly Grade[] = ['great', 'ok', 'bad'];
 
 const yds = (n: number): string => String(Math.round(n));
+const percent = (share: number): string => `${Math.round(share * 100)}%`;
 const count = (n: number, one: string, many = `${one}s`): string => `${n} ${n === 1 ? one : many}`;
 const row = (label: string, value: string | number, record = false): Row => ({
   label,
@@ -267,7 +270,7 @@ export function runView(record: RunRecord): RunView {
         return {
           id,
           name: record.plays[id]?.name ?? id,
-          line: `${count(p.calls, 'call')} · ${(p.yards / p.calls).toFixed(1)} yds a call`,
+          line: `${count(p.calls, 'call')} · ${yardsPerCall(p).toFixed(1)} yds a call`,
           mark:
             used && successful
               ? 'both'
@@ -298,6 +301,7 @@ function teamSections(
   reached: RunRecord['reached'],
 ): Section[] {
   const rate = completionRate(s.passing);
+  const perRush = yardsPerRush(s.rushing);
   return [
     {
       title: 'How far',
@@ -314,7 +318,7 @@ function teamSections(
       rows: [
         row('Passes', s.passing.passes),
         row('Completions', s.passing.completions),
-        row('Completion rate', rate === null ? '–' : `${Math.round(rate * 100)}%`),
+        row('Completion rate', rate === null ? '–' : percent(rate)),
         row('Passing yards', yds(s.passing.yards)),
         row('Air yards', yds(s.passing.airYards)),
         row('Longest pass', yds(s.passing.longest)),
@@ -325,10 +329,7 @@ function teamSections(
       rows: [
         row('Rushes', s.rushing.rushes),
         row('Yards', yds(s.rushing.yards)),
-        row(
-          'Yards a rush',
-          s.rushing.rushes === 0 ? '–' : (s.rushing.yards / s.rushing.rushes).toFixed(1),
-        ),
+        row('Yards a rush', perRush === null ? '–' : perRush.toFixed(1)),
         row('Longest rush', yds(s.rushing.longest)),
         row('Rushes · passes', `${s.rushing.rushes} · ${s.passing.passes}`),
       ],
@@ -408,7 +409,7 @@ export function allTimeView(all: AllTime): AllTimeView {
           ...dated('Most yards in a run', r.mostYards),
           ...dated('Most first downs in a run', r.mostFirstDowns),
           ...dated('Most tackles broken in a run', r.mostTacklesBroken),
-          ...dated('Best completion rate', r.bestCompletion, (v) => `${Math.round(v * 100)}%`),
+          ...dated('Best completion rate', r.bestCompletion, percent),
         ],
       },
       {

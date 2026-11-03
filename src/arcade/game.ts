@@ -252,6 +252,8 @@ export class ArcadeGame {
   private renewing = false;
   /** The win cutscene, after the last Boss: the end (it dances on, with no AGAIN). */
   private outro: ArcadeOutro | null = null;
+  /** The way to the song if going there is blocked (toTheSong), once made. */
+  private songLink: HTMLAnchorElement | null = null;
   /** The opening cutscene, while it plays (after the first PLAY). */
   private intro: ArcadeIntro | null = null;
   /** Where the camera looks (field yards, smoothed). */
@@ -495,6 +497,8 @@ export class ArcadeGame {
     if (events.some((e) => e.type === 'seriesWon') && this.state.phase !== 'won') {
       this.origin = this.originOf(this.state.series);
     }
+    // The outro asks the keeper whether a played run is being recorded (its card comes, or the
+    // song at once), so it starts before the keeper sees the win and closes the run.
     if (this.state.phase === 'won' && !this.outro) this.startOutro();
     this.react(events, prev);
     this.stats?.step(prev, this.state, events);
@@ -777,7 +781,7 @@ export class ArcadeGame {
   private syncHud(): void {
     if (this.outro) {
       // Nothing over the win: it's the end.
-      this.hud.setTop('', null);
+      this.hud.setDowns(null);
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
       this.hud.setPrompt(null, null);
@@ -785,7 +789,7 @@ export class ArcadeGame {
     }
     if (this.intro) {
       // Nothing over the intro.
-      this.hud.setTop('', null);
+      this.hud.setDowns(null);
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
       this.hud.setPrompt(null, null);
@@ -794,7 +798,7 @@ export class ArcadeGame {
     const { phase, hand, flipped, called, banned } = this.state;
     // No series name during play, and no tally after: the card says how the run went (docs/STATS.md, z2).
     const live = downOn(phase);
-    this.hud.setTop('', live ? downAndDistance(this.state) : null);
+    this.hud.setDowns(live ? downAndDistance(this.state) : null);
     const ready = this.live && !this.paused;
     // Practice: ‹ Sketch between reps (map item t4), not mid-play.
     if (this.practice) this.hud.setBack(phase === 'setup' || phase === 'downOver');
@@ -970,7 +974,13 @@ export class ArcadeGame {
    * here a moment later (the redirect was blocked), show a button for it.
    */
   private toTheSong(): void {
+    // Once is enough for the button: ♪ THE SONG can be tapped again.
+    if (this.songLink) {
+      this.songLink.hidden = false;
+      return;
+    }
     const link = document.createElement('a');
+    this.songLink = link;
     link.className = 'song-link interactive';
     link.href = WIN_SONG_URL;
     link.textContent = "Listen to 'We Got Jack Back' on YouTube";

@@ -72,6 +72,14 @@ export interface PlaysStats {
 
 export const noGrades = (): Grades => ({ great: 0, ok: 0, bad: 0 });
 
+/** Yards a rush, or null with no rushes. */
+export const yardsPerRush = (r: RunStats['rushing']): number | null =>
+  r.rushes === 0 ? null : r.yards / r.rushes;
+
+/** A play's yards a call: what "most successful" ranks by (p7). */
+export const yardsPerCall = (p: { readonly calls: number; readonly yards: number }): number =>
+  p.yards / p.calls;
+
 /** Completions a pass, or null with no passes. */
 export const completionRate = (p: RunStats['passing']): number | null =>
   p.passes === 0 ? null : p.completions / p.passes;
@@ -201,7 +209,7 @@ export function playsStats(record: RunRecord): PlaysStats {
   const byCalls = [...plays].sort(([, a], [, b]) => b.calls - a.calls);
   const eligible = plays.filter(([, p]) => p.calls >= MOST_SUCCESSFUL_CALLS);
   const bySuccess = [...eligible].sort(
-    ([, a], [, b]) => b.yards / b.calls - a.yards / a.calls || b.calls - a.calls,
+    ([, a], [, b]) => yardsPerCall(b) - yardsPerCall(a) || b.calls - a.calls,
   );
   return {
     byPlay,
