@@ -27,19 +27,32 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 ## The run
 
 - **Run:** one game, from PLAY to a loss or the win dance.
-- **Area:** a themed place of four drives (Froggy's Forest, the Candy
+- **Area:** a themed place of four series (Froggy's Forest, the Candy
   Queendom, Frederick's Farm). Upstream's code and hard mode also say
-  **zone** for the same thing.
-- **Drive:** four downs to gain 10 yards. **Down:** one play.
-- **Level** _(ours)_: a drive's number in the run, counting from 1 (the
-  Candy Queendom's first drive is 5), as `driveNumber` gives it; SNAG IT!
-  grows with it (`docs/SNAG.md`).
+  **zone** for the same thing. **Level** _(ours)_: an area, as the Coach
+  says it ("we will eventually add more levels").
+- **Drive** _(ours, football's)_: an area's march up the field, its four
+  series ending in the end zone. Won with a touchdown, which clears the
+  area; it fails if any of its series fails. _Avoid:_ "drive" for one
+  series, esrauch's word until the rename of 2026-11-03 (the code, our
+  docs and his `GAMEPLAY.md` say series now; `MILESTONES.md` and our dated
+  decisions still say drive). The **drive block** (a Blocker driving a
+  defender back, `contact.drive`) is a verb and keeps its name.
+- **Series** _(ours, football's)_: four downs to gain 10 yards, always
+  exactly 10 yards of field; yards past the first-down line don't carry
+  over. Winning one is a **first down**; winning the Boss's is a
+  **touchdown**. In code, `state.series`, `Series`, and the events
+  `seriesStarted` and `seriesWon`. **Down:** one play.
+- **Series number** _(ours)_: a series' count in the run, from 1 (the Candy
+  Queendom's first series is 5), as `seriesNumber` gives it; SNAG IT! and
+  the tip drill grow with it (`docs/SNAG.md`). The glossary called it the
+  level until 2026-11-03.
 - **Line of scrimmage** and **first-down line:** where the down starts, and
-  10 yards past where the drive started.
-- **Boss:** the area's last drive, with its own gimmick (Frog Rain, the
+  10 yards past where the series started.
+- **Boss:** the area's last series, with its own gimmick (Frog Rain, the
   Royal Decree, the crows). A gimmick can be a field event (Frog Rain) or
   not (the decree bans a card).
-- **TRICK OR TREAT!:** the screen between drives where the Coach takes one of
+- **TRICK OR TREAT!:** the screen between series where the Coach takes one of
   two new players (the **offer**) and arranges the roster. In code it's the
   **draft** (`phase: 'draft'`). Use "the draft" in docs and code, so it
   can't be confused with a trick or a treat on the field.
@@ -101,7 +114,7 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Test bench:** the dev page where each quick tap test (Break it!'s
   three, SNAG IT!, the tip drill, SHOO CROWS!) is played on its own, with sliders for its
   `tuning.ts` values (`docs/BENCH.md`). One go is a **rep**, as in
-  practice. Its **situation** is the drive, tacklers, crowd and Hands gap a
+  practice. Its **situation** is the series, tacklers, crowd and Hands gap a
   rep is played in.
 - **Countdown:** the get-ready before a tap test that freezes the play
   (Break it!'s three, SNAG IT! and the tip drill; not SHOO CROWS!, a
@@ -138,3 +151,28 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   **pop** is tapped as it lands on them, **clean**, a **bobble** or a
   **drop** (`docs/TIP.md`). TIP DRILL! on screen; in code, `tip`. SNAG IT!
   and the tip drill are the **catch tests**.
+
+## Results and stats _(ours)_
+
+Decided on the stats map (`docs/STATS.md`), 2026-11-02 to 2026-11-03.
+
+- **Record:** what the game keeps of a run: every play's and tap test's
+  **result**, who did what, and the plays called. Kept on the phone. Not
+  the **play log** (`docs/PLAY_LOG.md`), which is for finding bugs.
+- **Rush:** a play where a Runner carries the ball from the handoff. The
+  carrier's run after a catch belongs to the pass. _Avoid:_ "run" for a
+  play, since a run is a whole game (the play cards keep "Run" and "Pass").
+- **Target:** who a pass was meant for: the catcher, or for a pass batted
+  or incomplete, the eligible player nearest where it came down, within
+  catching reach; none for a throwaway.
+- **Air yards:** from the line of scrimmage to where a pass was caught,
+  downfield only. **Yards after the catch:** from there to where the play
+  ended. **Yards after contact:** from where the carrier was first grabbed
+  to where the play ended.
+- **Tackle for loss:** a rush or a catch brought down behind the line of
+  scrimmage, however it happened. A **sack** (Jack brought down holding the
+  ball) is never also a tackle for loss.
+- **Tackle broken:** one BREAK in Break it!, however many tacklers it sent
+  flying.
+- **Achievement:** something earned once on a phone and kept, such as Air
+  Mail; one earned in hard mode is marked **hard**.
