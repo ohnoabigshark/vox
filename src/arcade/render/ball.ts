@@ -10,6 +10,7 @@
  * lamp inside it.
  */
 import * as THREE from 'three';
+import { PUMPKIN_LAMP } from '../../render/gameLight';
 import { getGeometry } from '../../voxel/models';
 import type { RunState } from '../sim/types';
 import { lerp } from '../sim/vec';
@@ -17,12 +18,13 @@ import type { ArcadeBodies } from './bodies';
 import { Embers } from './embers';
 import { toWorld } from './world';
 
-/** The lamp inside the pumpkin. */
-const LIGHT_COLOR = 0xffa64d;
-const LIGHT_INTENSITY = 60;
-/** How far its light reaches (yards), and how it falls off. */
-const LIGHT_RANGE = 22;
-const LIGHT_DECAY = 1.6;
+/** The lamp inside the pumpkin (render/gameLight.ts, shared with the model viewer). */
+const {
+  color: LIGHT_COLOR,
+  intensity: LIGHT_INTENSITY,
+  range: LIGHT_RANGE,
+  decay: LIGHT_DECAY,
+} = PUMPKIN_LAMP;
 /** Where a dead ball hovers (the bottom of the pumpkin, above the turf): clear of a pile. */
 const DEAD_HEIGHT = 1.6;
 /** The lamp sits this far above the ball's bottom, inside it. */
