@@ -57,6 +57,7 @@ import {
   LONG_PLAY,
   byStretch,
   isLong,
+  quantile,
   seriesSpread,
   stops,
   type DownSummary,
@@ -587,23 +588,23 @@ const listed = <K>(m: ReadonlyMap<K, number>, of: number): string =>
     .map(([k, n]) => `${String(k)} ${pct(n, of).trim()}`)
     .join(' · ');
 
-/** Long plays: how often, run or pass, by area; what stopped them; where touchdowns start; breaking clear. */
+/** Long plays: how often, rush or pass, by area; what stopped them; where touchdowns start; breaking clear. */
 function longPlays(downs: readonly DownSummary[]): void {
-  const runs = downs.filter((d) => d.kind === 'run');
-  const passes = downs.filter((d) => d.kind === 'pass');
-  const share = (of: readonly DownSummary[]): string =>
-    `${pct(of.filter(isLong).length, of.length).trim()} of ${of.length}`;
+  const of = (kind: DownSummary['kind'], from: readonly DownSummary[]): DownSummary[] =>
+    from.filter((d) => d.kind === kind);
+  const share = (from: readonly DownSummary[]): string =>
+    `${pct(from.filter(isLong).length, from.length).trim()} of ${from.length}`;
+  const scoring = (from: readonly DownSummary[]): string =>
+    pct(from.filter((d) => d.result === 'touchdown').length, from.length).trim();
   console.log(
-    `  long plays (${LONG_PLAY}+ yards): ${share(downs)} downs · runs ${share(runs)} · passes ${share(passes)}`,
+    `  long plays (${LONG_PLAY}+ yards): ${share(downs)} downs · rushes ${share(of('rush', downs))} · passes ${share(of('pass', downs))}`,
   );
   const areas = [...new Set(downs.map((d) => d.area))].sort((a, b) => a - b);
   for (const area of areas) {
     const here = downs.filter((d) => d.area === area);
-    const tds = (of: readonly DownSummary[]): string =>
-      pct(of.filter((d) => d.result === 'touchdown').length, of.length).trim();
     console.log(
-      `    area ${area + 1}: long ${share(here)} (runs ${share(here.filter((d) => d.kind === 'run'))}, passes ${share(here.filter((d) => d.kind === 'pass'))}) · ` +
-        `touchdowns ${tds(here)} (runs ${tds(here.filter((d) => d.kind === 'run'))}, passes ${tds(here.filter((d) => d.kind === 'pass'))})`,
+      `    area ${area + 1}: long ${share(here)} (rushes ${share(of('rush', here))}, passes ${share(of('pass', here))}) · ` +
+        `touchdowns ${scoring(here)} (rushes ${scoring(of('rush', here))}, passes ${scoring(of('pass', here))})`,
     );
   }
   const long = downs.filter(isLong);
@@ -617,7 +618,7 @@ function longPlays(downs: readonly DownSummary[]): void {
   const clear = downs.filter((d) => d.pastLast !== null);
   if (clear.length > 0) {
     const after = clear.map((d) => d.pastLast ?? 0).sort((a, b) => a - b);
-    const median = after[Math.floor(after.length / 2)] ?? 0;
+    const median = quantile(after, 0.5);
     console.log(
       `  broke clear of every defender: ${pct(clear.length, downs.length).trim()} of downs · then ran a median ${median.toFixed(1)} yards · ` +
         `scored ${pct(clear.filter((d) => d.result === 'touchdown').length, clear.length).trim()}`,

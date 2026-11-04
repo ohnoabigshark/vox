@@ -45,7 +45,7 @@ describe('balance counts for the long field', () => {
 
     expect(w.downs).toEqual([
       expect.objectContaining({
-        kind: 'run',
+        kind: 'rush',
         area: 1,
         result: 'firstDown',
         gained: 24,

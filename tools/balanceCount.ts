@@ -12,8 +12,8 @@ export const LONG_PLAY = 20;
 export type Stop = DefenderKind | 'sack' | 'outOfBounds' | 'event' | 'slipped' | 'crows';
 
 export interface DownSummary {
-  /** A handoff that was never thrown is a run; everything else a pass. */
-  readonly kind: 'run' | 'pass';
+  /** A handoff that was never thrown is a rush (CONTEXT.md); everything else a pass. */
+  readonly kind: 'rush' | 'pass';
   readonly area: number;
   /** The stretch of the down's line of scrimmage. */
   readonly stretch: number;
@@ -72,7 +72,7 @@ export class DownWatch {
       case 'downEnded': {
         const { area, stretch, los } = before.series;
         this.downs.push({
-          kind: this.handedOff && !this.thrown ? 'run' : 'pass',
+          kind: this.handedOff && !this.thrown ? 'rush' : 'pass',
           area,
           stretch,
           result: e.result,
@@ -135,7 +135,11 @@ export function seriesSpread(perRun: readonly number[]): {
   best: number;
 } {
   const sorted = [...perRun].sort((a, b) => a - b);
-  const at = (q: number): number =>
-    sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+  const at = (q: number): number => quantile(sorted, q);
   return { p10: at(0.1), median: at(0.5), p90: at(0.9), best: at(1) };
+}
+
+/** The value a share `q` of the way up numbers sorted low to high (0 when there are none). */
+export function quantile(sorted: readonly number[], q: number): number {
+  return sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
 }
