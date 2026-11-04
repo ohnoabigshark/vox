@@ -240,3 +240,33 @@ What it says:
 The "broke clear of every defender" counts from these runs are left out. A
 bug counted the last down's scorer, still standing in the end zone, toward
 the next down (fixed in 5128f56, with a test).
+
+## Balance: two Owls in the Forest (difficulty-3)
+
+The same six scenarios, 40 runs each, 2026-11-04. Before is the patrols'
+"after" (main at 347e6e4 plays the same); after is 167be7c.
+
+| | Before | After |
+| --- | --- | --- |
+| Long plays (20+ yards), all six pooled | 234 | 164 |
+| Long plays that score, pooled | 50% | 52% |
+| Long plays, % of the Forest's downs (by scenario) | 13–20% | 5–9% |
+| Normal mode beaten (pass · handoffs · runs) | 78 · 73 · 88% | 95 · 88 · 85% |
+| Hard mode's series won a run (pass · handoffs · runs) | 6.9 · 7.0 · 6.0 | 8.2 · 8.2 · 6.5 |
+| Hard mode's series won at p10 (pass · handoffs · runs) | 3 · 3 · 2 | 4 · 4 · 2 |
+| Touchdowns from the Boss stretch | 61–74% | 64–80% |
+
+What it says:
+
+- **The Forest is in line now.** Its long plays fell from 13–20% of downs
+  to 5–9%, near the other areas' 0–9%, and long plays overall fell by
+  nearly a third.
+- **A long play still scores half the time,** so r3's condition (over 20%)
+  is met.
+- **The passing runs got easier, but not in the Forest.** Its stretches
+  were won about as often as before; the gains are in the Candy Queendom
+  and the Farm. A likely cause, not yet measured: every series won brings a
+  TRICK OR TREAT! pick, and a Forest won over several series, instead of by
+  one long touchdown, sends more new players into the later areas. Forty
+  runs are also noisy: each one deals other cards since the extra body id.
+
