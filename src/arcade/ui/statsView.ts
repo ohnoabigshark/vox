@@ -134,13 +134,19 @@ const row = (label: string, value: string | number, record = false): Row => ({
 const day = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-/** How far a run got: the area by name (and which time round, in hard mode) and the series in it. */
+/**
+ * How far a run got: the area by name (and which time round, in hard mode)
+ * and the stretch in it, by name (docs/LONG_FIELD.md, r2; a record's `index`
+ * is the stretch).
+ */
 function where(reached: RunRecord['reached']): string {
   const round = Math.floor(reached.area / AREAS.length) + 1;
+  const area = areaAt(reached.area);
+  const stretches = [area.intro, area.challenge, area.gimmick, area.boss];
   return [
-    areaAt(reached.area).name,
+    area.name,
     ...(round > 1 ? [`round ${round}`] : []),
-    `series ${(reached.index % SERIES_PER_AREA) + 1}`,
+    stretches[reached.index % SERIES_PER_AREA]?.name ?? '',
   ].join(' · ');
 }
 
