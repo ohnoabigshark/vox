@@ -96,8 +96,13 @@ export function lobReceivers(state: RunState, from: Vec, at: Vec): Player[] {
  * a lob, h1, h2): its distance, less the reach its Hands give. Only Hands:
  * a defender kind's extra reach lets it get to the ball, not win it.
  */
-export function lobNearness(body: Player | Defender, at: Vec): number {
+function lobNearness(body: Player | Defender, at: Vec): number {
   return dist(body.pos, at) - handsReach(body.stats.hands);
+}
+
+/** Nearest a lob's landing spot first, counting Hands (`lobNearness`); ties by id. */
+function byNearness(at: Vec): (a: Defender, b: Defender) => number {
+  return (a, b) => lobNearness(a, at) - lobNearness(b, at) || a.id - b.id;
 }
 
 /**
@@ -108,9 +113,7 @@ export function lobNearness(body: Player | Defender, at: Vec): number {
  */
 export function lobLanding(state: RunState, from: Vec, at: Vec): FlightOutcome {
   const receiver = lobReceivers(state, from, at)[0];
-  const reaching = reachingDefenders(state, at).sort(
-    (a, b) => lobNearness(a, at) - lobNearness(b, at) || a.id - b.id,
-  );
+  const reaching = reachingDefenders(state, at).sort(byNearness(at));
   const defender = reaching[0];
   const contest = receiver && defender ? { receiver, defenders: reaching } : undefined;
   if (receiver && defender && lobNearness(defender, at) < lobNearness(receiver, at)) {
