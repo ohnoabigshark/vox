@@ -45,7 +45,6 @@ interface Draft {
   readonly down: number;
   readonly toGo: number;
   readonly los: number;
-  readonly boss: boolean;
   play: string | null;
   flipped: boolean;
   thrown: boolean;
@@ -294,7 +293,6 @@ function newDraft(state: RunState): Draft {
     down: series.down,
     toGo: series.firstDown - series.los,
     los: series.los,
-    boss: series.kind === 'boss',
     play: state.called === null ? null : (play?.id ?? null),
     flipped: state.play.flipped,
     thrown: false,
@@ -320,7 +318,7 @@ function newDraft(state: RunState): Draft {
 }
 
 function finished(d: Draft, next: RunState, result: DownResult, gained: number): PlayResult {
-  const outcome: Outcome = result === 'firstDown' && d.boss ? 'touchdown' : result;
+  const outcome: Outcome = result;
   const kind: PlayKind = d.sacked ? 'sack' : d.handedOff && !d.thrown ? 'rush' : 'pass';
   const end = endSpot(next, d);
   return {

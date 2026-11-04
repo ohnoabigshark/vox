@@ -780,11 +780,12 @@ export class ArcadeGame {
           this.hud.pop('OUT OF BOUNDS', 'bad');
           break;
         case 'downEnded':
-          if (e.result === 'firstDown') {
+          if (e.result === 'firstDown' || e.result === 'touchdown') {
             play('touchdown');
-            // Beating a Boss clears its area: "Froggy's Forest Cleared!".
+            // Called as the down ends, not as the line is crossed (docs/LONG_FIELD.md, b2); a
+            // touchdown clears its area: "Froggy's Forest Cleared!".
             this.hud.pop(
-              prev.series.kind === 'boss'
+              e.result === 'touchdown'
                 ? `${areaAt(prev.series.area).name} Cleared!`
                 : 'FIRST DOWN!',
               'good',
@@ -939,7 +940,13 @@ export class ArcadeGame {
   /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */
   private skipToWin(): void {
     const s = createRun(this.seed, firstRoster(this.monsters), arcadeTuning.run.areas - 1);
-    setUpSeries(s, s.series.area, SERIES_KINDS.length - 1, [], true);
+    setUpSeries(
+      s,
+      s.series.area,
+      (SERIES_KINDS.length - 1) * arcadeTuning.series.distance,
+      [],
+      true,
+    );
     // One recruit for every TRICK OR TREAT! a full run has.
     for (let i = 0; i < arcadeTuning.run.areas * SERIES_KINDS.length - 1; i++) {
       s.seriesWon = i;

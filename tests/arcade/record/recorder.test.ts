@@ -348,7 +348,21 @@ describe('along the way', () => {
     expect(r.crowsShooed).toBe(1);
   });
 
-  it('a won Boss’s series is a touchdown', () => {
+  it('a down over the goal line is a touchdown, from any stretch (long field test 7)', () => {
+    const s = field();
+    const r = only(
+      [
+        { events: [{ type: 'handoff', id: 3 }] },
+        { events: [{ type: 'downEnded', result: 'touchdown', gained: 40 }], set: at(3, 40) },
+      ],
+      s,
+    );
+    expect(r.outcome).toBe('touchdown');
+    expect(r.gained).toBe(40);
+    expect(r.seriesNumber).toBe(1);
+  });
+
+  it('a won series is a first down, even on the Boss’s stretch (long field test 7)', () => {
     const s = field();
     s.series = { ...s.series, kind: 'boss', stretch: 3 };
     const r = only(
@@ -358,8 +372,7 @@ describe('along the way', () => {
       ],
       s,
     );
-    expect(r.outcome).toBe('touchdown');
-    expect(r.seriesNumber).toBe(4);
+    expect(r.outcome).toBe('firstDown');
   });
 });
 

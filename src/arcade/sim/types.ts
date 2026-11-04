@@ -314,7 +314,7 @@ export interface Series {
 }
 
 export type DownResult =
-  'tackled' | 'incomplete' | 'batted' | 'sacked' | 'outOfBounds' | 'firstDown';
+  'tackled' | 'incomplete' | 'batted' | 'sacked' | 'outOfBounds' | 'firstDown' | 'touchdown';
 
 /** One of your seven players, for the whole run. */
 /** A position on the field: a slot in the line-up (2 Blockers, 2 Runners, 3 Catchers). */
@@ -583,7 +583,7 @@ export type ArcadeEvent =
     }
   /** A carrier slipped on an oil slick and is down there: SLIPPED! */
   | { readonly type: 'slipped'; readonly id: number }
-  | { readonly type: 'seriesStarted'; readonly index: number; readonly name: string }
+  | { readonly type: 'seriesStarted'; readonly stretch: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
   | { readonly type: 'gameOver'; readonly seriesWon: number; readonly yards: number };
 

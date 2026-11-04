@@ -14,7 +14,7 @@ import { assignMarks } from './ai';
 import { pickupsForArea } from './pickups';
 import { placeEvent } from './fieldEvents';
 import { fieldEventById, type DefaultEventId, type FieldEvent } from '../content/fieldEvents';
-import { BOSS_SPOT, areaPropsWithBoss } from './props';
+import { AREA_YARDS, BOSS_SPOT, areaPropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
   applyPerk,
@@ -62,6 +62,15 @@ export function bossStretch(boss: BossName): number {
 export function stretchAt(n: number): Pick<Series, 'area' | 'stretch'> {
   const i = Math.max(0, Math.floor(n) - 1);
   return { area: Math.floor(i / SERIES_KINDS.length), stretch: i % SERIES_KINDS.length };
+}
+
+/**
+ * The stretch (0-3) a line of scrimmage is in, whose defense the down faces
+ * (docs/LONG_FIELD.md, r1). Behind the area's start counts as its first.
+ */
+export function stretchOf(los: number): number {
+  const last = SERIES_KINDS.length - 1;
+  return Math.max(0, Math.min(last, Math.floor(los / arcadeTuning.series.distance)));
 }
 
 /** Seven plain humans (sim/team.ts). */
@@ -207,7 +216,7 @@ export function createRun(
     // The chosen series, as if the ones before it were won.
     const at = stretchAt(options.eventPractice.series);
     state.seriesWon = options.eventPractice.series - 1;
-    setUpSeries(state, at.area, at.stretch, [], true);
+    setUpSeries(state, at.area, at.stretch * arcadeTuning.series.distance, [], true);
     return state;
   }
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
@@ -217,28 +226,29 @@ export function createRun(
 }
 
 /**
- * Start a series: the line of scrimmage at its stretch's start (yards from
- * the area's start, docs/LONG_FIELD.md), 1st & 10, the defense lined up.
- * With `ready`, the first down is set up straight away; without, it waits
- * for the player to move on (after a won series: the upgrade pick comes first).
+ * Start a series at `start` (yards from the area's start, docs/LONG_FIELD.md):
+ * 1st & 10, football's rule, or 1st & Goal within 10 of the goal line (a1,
+ * r3), the defense of its line's stretch lined up (r1). With `ready`, the
+ * first down is set up straight away; without, it waits for the player to
+ * move on (after a won series: the upgrade pick comes first).
  */
 export function setUpSeries(
   state: RunState,
   area: number,
-  index: number,
+  start: number,
   events: ArcadeEvent[],
   ready: boolean,
 ): void {
-  const spec = seriesDefense(state, area, index);
-  const start = index * arcadeTuning.series.distance;
+  const stretch = stretchOf(start);
+  const spec = seriesDefense(state, area, stretch);
   state.perks.secondWindUsed = false;
   state.series = {
     area,
-    stretch: index,
-    kind: SERIES_KINDS[index] ?? 'boss',
+    stretch,
+    kind: SERIES_KINDS[stretch] ?? 'boss',
     name: spec.name,
     start,
-    firstDown: start + arcadeTuning.series.distance,
+    firstDown: Math.min(start + arcadeTuning.series.distance, AREA_YARDS),
     down: 1,
     los: start,
   };
@@ -252,7 +262,7 @@ export function setUpSeries(
       ? []
       : pickupsForArea(state.seed, area).filter((p) => !state.taken.includes(p.id)),
   };
-  events.push({ type: 'seriesStarted', index, name: spec.name });
+  events.push({ type: 'seriesStarted', stretch, name: spec.name });
   setUpDown(state, events);
   if (!ready) state.phase = 'draft';
 }
@@ -276,6 +286,15 @@ const HAND = 3;
  * place (the line-up is the same for every play), waiting for the call.
  */
 export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
+  // Each down faces the defense of the stretch its line is in (r1).
+  const stretch = stretchOf(state.series.los);
+  const spec = seriesDefense(state, state.series.area, stretch);
+  state.series = {
+    ...state.series,
+    stretch,
+    kind: SERIES_KINDS[stretch] ?? 'boss',
+    name: spec.name,
+  };
   const { series } = state;
   const rng = rngFor(state.seed, 'hand', state.seriesWon, series.down, state.nextId);
   const deck = state.playbook.map((_, i) => i);
@@ -285,7 +304,6 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   }
   // The play editor's practice deals its one play, already called; event practice deals three (f3).
   state.called = state.practice && !state.practiceEvent ? 0 : null;
-  const spec = seriesDefense(state, series.area, series.stretch);
   // The Queen's Royal Decree: one card of the three is banned this down.
   state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
   const first = state.banned === 0 ? 1 : 0;
@@ -489,9 +507,19 @@ export function endDown(
   events: ArcadeEvent[],
 ): void {
   const { series } = state;
-  const carried = ended === 'tackled' || ended === 'outOfBounds';
-  const result: DownResult = carried && newLos >= series.firstDown ? 'firstDown' : ended;
-  const wanted = result === 'firstDown' ? Math.max(newLos, series.firstDown) : newLos;
+  const carried =
+    ended === 'tackled' ||
+    ended === 'outOfBounds' ||
+    ended === 'firstDown' ||
+    ended === 'touchdown';
+  // Over the goal line from anywhere is a touchdown (b4); past the line to gain, a first down.
+  const result: DownResult =
+    carried && newLos >= AREA_YARDS
+      ? 'touchdown'
+      : carried && newLos >= series.firstDown
+        ? 'firstDown'
+        : ended;
+  const wanted = result === 'touchdown' ? AREA_YARDS : newLos;
   // A loss counts on any down, back to a floor behind the area's start (docs/LONG_FIELD.md, a3).
   const los = Math.max(-arcadeTuning.series.furthestBack, wanted);
   const gained = los - series.los;
@@ -513,19 +541,20 @@ export function nextDown(state: RunState, events: ArcadeEvent[]): void {
     setUpDown(state, events);
     return;
   }
-  if (result?.result === 'firstDown') {
+  if (result?.result === 'firstDown' || result?.result === 'touchdown') {
     state.seriesWon++;
     events.push({ type: 'seriesWon', stretch: series.stretch });
-    const lastSeries = series.stretch >= SERIES_KINDS.length - 1;
-    if (lastSeries) events.push({ type: 'areaCleared', area: series.area });
+    const touchdown = result.result === 'touchdown';
+    if (touchdown) events.push({ type: 'areaCleared', area: series.area });
     // The run is won after the last area (hard mode goes round again).
-    if (lastSeries && !state.hard && series.area >= arcadeTuning.run.areas - 1) {
+    if (touchdown && !state.hard && series.area >= arcadeTuning.run.areas - 1) {
       state.phase = 'won';
       return;
     }
-    // TRICK OR TREAT! happens in front of the next series, already lined up (its zone sets the offer).
-    if (lastSeries) setUpSeries(state, series.area + 1, 0, events, false);
-    else setUpSeries(state, series.area, series.stretch + 1, events, false);
+    // TRICK OR TREAT! happens in front of the next series, already lined up (its zone sets the offer):
+    // the next area's from its start, or this area's from where the ball was downed (a1).
+    if (touchdown) setUpSeries(state, series.area + 1, 0, events, false);
+    else setUpSeries(state, series.area, series.los, events, false);
     state.offer = rollOffer(state);
     return;
   }
@@ -562,9 +591,10 @@ export function frozenForTest(phase: Phase): boolean {
   return phase === 'breakit' || phase === 'snag' || phase === 'tip';
 }
 
-/** Down and distance, e.g. "3rd & 4", or "3rd & Goal" on the Boss series. Yards round up. */
+/** Down and distance, e.g. "3rd & 4", or "3rd & Goal" when the line to gain is the goal line (r3). Yards round up. */
 export function downAndDistance(state: RunState): string {
-  const { down, firstDown, los, kind } = state.series;
+  const { down, firstDown, los } = state.series;
   const ordinal = ['1st', '2nd', '3rd', '4th'][down - 1] ?? `${down}th`;
-  return `${ordinal} & ${kind === 'boss' ? 'Goal' : Math.max(1, Math.ceil(firstDown - los))}`;
+  const toGo = firstDown >= AREA_YARDS ? 'Goal' : Math.max(1, Math.ceil(firstDown - los));
+  return `${ordinal} & ${toGo}`;
 }

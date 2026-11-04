@@ -46,7 +46,7 @@ describe('Frog Rain is the first field event (test 1)', () => {
     const sides = new Set<number>();
     for (let seed = 1; seed <= 20; seed++) {
       const s = createRun(seed);
-      setUpSeries(s, 0, 3, [], true);
+      setUpSeries(s, 0, 30, [], true);
       const on = s.field.fieldEvent;
       expect(on?.event.id).toBe('frogRain');
       expect(on?.left).toBeNull();
@@ -70,7 +70,7 @@ describe('Frog Rain is the first field event (test 1)', () => {
 
   it('its countdown starts at the hike', () => {
     const s = createRun(3);
-    setUpSeries(s, 0, 3, [], true);
+    setUpSeries(s, 0, 30, [], true);
     const st = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
     expect(st.field.fieldEvent?.left).toBe(FROG_RAIN.goesOff);
   });

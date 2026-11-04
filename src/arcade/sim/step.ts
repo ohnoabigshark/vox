@@ -28,7 +28,7 @@ import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
 import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle } from './ball';
 import { moveBodies, separate, touching } from './physics';
-import { pushOutOfProps } from './props';
+import { AREA_YARDS, pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
 import { catchTestFor, type CatchTest } from './catchTests';
@@ -541,14 +541,18 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
   return true;
 }
 
-/** The carrier over the first-down line wins the series; over the sideline, it's down there. */
+/**
+ * The carrier over the goal line scores (docs/LONG_FIELD.md, b4); over the
+ * sideline, it's down there. Past the first-down line the play goes on (b1):
+ * the down that ends there wins the series (`endDown`).
+ */
 function checkCarrier(state: RunState, events: ArcadeEvent[]): boolean {
   const carrier = carrierOf(state);
   if (!carrier) return false;
-  if (carrier.pos.y >= state.series.firstDown) {
+  if (carrier.pos.y >= AREA_YARDS) {
     for (const d of state.field.defenders) d.latch = null;
     state.field.drag = null;
-    endDown(state, 'firstDown', carrier.pos.y, events);
+    endDown(state, 'touchdown', carrier.pos.y, events);
     return true;
   }
   if (Math.abs(carrier.pos.x) > field.halfWidth) {

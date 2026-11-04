@@ -264,7 +264,9 @@ describe('SNAG IT!: the grade (c4, s4)', () => {
     const r = snag(s, ['hit', 'none']);
     expect(ofType(r.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'ok' }]);
     expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
-    expect(ofType(r.events, 'tackled')).toEqual([]);
+    // Caught and tackled on the spot (OK), past the line: since the long field the play doesn't
+    // stop at the line, so the tackle comes, and the down still wins the series (B6).
+    expect(ofType(r.events, 'tackled')).toHaveLength(1);
   });
 
   it('two misses: BAD, batted down by the Cover', () => {

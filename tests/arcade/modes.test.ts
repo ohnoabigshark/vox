@@ -79,7 +79,7 @@ describe('hard mode', () => {
       p.stats.hustle + p.stats.hands + p.stats.heft;
     for (const area of [0, 2, 9]) {
       const s = createRun(5, undefined, 0, { hard: true });
-      setUpSeries(s, area, 1, [], false);
+      setUpSeries(s, area, 10, [], false);
       for (const perk of rollOffer(s)) {
         if (perk.kind !== 'recruit') continue;
         expect(total(perk.player)).toBe(200 + 30 * area);
