@@ -508,6 +508,11 @@ function report(scenario: Scenario, t: Tally): void {
     `  series won ${(t.seriesWon / t.runs).toFixed(1)} of 12 · beat the game ${pct(t.fullWins, t.runs)} · ` +
       `yards/down ${(t.yards / t.downs).toFixed(1)} · down length ${(t.downTime / t.downs).toFixed(1)}s`,
   );
+  // Since the long field a series is won from wherever the last ended, and an area by a touchdown
+  // from any stretch (docs/LONG_FIELD.md): areas cleared a run is the measure that compares.
+  console.log(
+    `  touchdowns (areas cleared) ${((t.results.get('touchdown') ?? 0) / t.runs).toFixed(2)} a run`,
+  );
   if (scenario.hard) {
     const sorted = [...t.perRun].sort((a, b) => a - b);
     const at = (q: number): number =>
