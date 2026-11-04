@@ -96,7 +96,9 @@ The item numbers below are the map's.
   stopped by the Safeties (deep, sure tackles), anyone fast enough to chase
   it, and Break it!'s two a down. _User's note: "We will need to adjust
   this/defenses in general if it becomes too easy to get past the
-  defense."_
+  defense."_ **Since the patrols** (`docs/DIFFICULTY.md`, "The long
+  field", 2026-11-04): each stretch ahead keeps its Scarecrows, Bats and
+  Crows on the field. The rest of its defense is still the down's only.
 - **Carriers still don't steer for pickups** (c2, k7). Bolts and slicks past
   the line come into play on their own.
 
