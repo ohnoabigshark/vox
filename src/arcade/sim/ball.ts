@@ -105,28 +105,33 @@ function handsEdge(defender: Defender, receiver: Player | undefined): number {
   return clamp(edge, -cap, cap);
 }
 
-/** How near the spot a defender counts against your receiver: its distance, less its Hands edge. */
-function nearness(defender: Defender, receiver: Player | undefined, at: Vec): number {
+/** How far from the spot a defender counts against your receiver: its distance, less its Hands edge. */
+function countedDistance(defender: Defender, receiver: Player | undefined, at: Vec): number {
   return dist(defender.pos, at) - handsEdge(defender, receiver);
 }
 
-/** The nearest the spot first, against your receiver (`nearness`); ties by id. */
-function byNearness(receiver: Player | undefined, at: Vec): (a: Defender, b: Defender) => number {
-  return (a, b) => nearness(a, receiver, at) - nearness(b, receiver, at) || a.id - b.id;
+/**
+ * The nearest the spot first, against your receiver (`countedDistance`);
+ * ties by id. With none of yours there, by plain distance.
+ */
+function nearestFirst(receiver: Player | undefined, at: Vec): (a: Defender, b: Defender) => number {
+  return (a, b) =>
+    countedDistance(a, receiver, at) - countedDistance(b, receiver, at) || a.id - b.id;
 }
 
 /**
  * Where a lob comes down (two-tap throwing): your player nearest the spot,
  * within the catch circle, catches it, unless a defender who can reach the
- * spot is nearer it, counting its Hands over your player's (`nearness`);
+ * spot is nearer it, counting its Hands over your player's
+ * (`countedDistance`);
  * then it's batted down, and a tie is yours. Nobody there: incomplete.
  */
 export function lobLanding(state: RunState, from: Vec, at: Vec): FlightOutcome {
   const receiver = lobReceivers(state, from, at)[0];
-  const reaching = reachingDefenders(state, at).sort(byNearness(receiver, at));
+  const reaching = reachingDefenders(state, at).sort(nearestFirst(receiver, at));
   const defender = reaching[0];
   const contest = receiver && defender ? { receiver, defenders: reaching } : undefined;
-  if (receiver && defender && nearness(defender, receiver, at) < dist(receiver.pos, at)) {
+  if (receiver && defender && countedDistance(defender, receiver, at) < dist(receiver.pos, at)) {
     return { kind: 'batted', by: defender.id, at: defender.pos, contest };
   }
   if (receiver) return { kind: 'caught', by: receiver, contest };

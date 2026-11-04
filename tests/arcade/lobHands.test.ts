@@ -138,6 +138,9 @@ describe('Hands on a lob', () => {
     expect(lobAt({ away: 0.5, hands: 50 }, [{ away: 2, hands: 150 }]).kind).toBe('caught');
     expect(lobAt({ away: 0.9, hands: 50 }, [{ away: 2, hands: 150 }]).kind).toBe('caught');
     expect(lobAt({ away: 1.1, hands: 50 }, [{ away: 2, hands: 150 }]).kind).toBe('batted');
+    // At the cap exactly, a tie is yours: 1.5 less the yard is 0.5, your catcher's own distance.
+    expect(lobAt({ away: 0.5, hands: 50 }, [{ away: 1.5, hands: 150 }]).kind).toBe('caught');
+    expect(lobAt({ away: 0.51, hands: 50 }, [{ away: 1.5, hands: 150 }]).kind).toBe('batted');
     // And the other way: your 130 Hands count a yard, not two, against a Gnome (50) 0.4 off.
     expect(lobAt({ away: 1.5, hands: 130 }, [{ away: 0.4 }]).kind).toBe('batted');
     expect(lobAt({ away: 1.3, hands: 130 }, [{ away: 0.4 }]).kind).toBe('caught');
