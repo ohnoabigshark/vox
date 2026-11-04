@@ -481,8 +481,8 @@ export function endDown(
   const carried = ended === 'tackled' || ended === 'outOfBounds';
   const result: DownResult = carried && newLos >= series.firstDown ? 'firstDown' : ended;
   const wanted = result === 'firstDown' ? Math.max(newLos, series.firstDown) : newLos;
-  // Never behind the series' start (there's no room for the QB).
-  const los = Math.max(series.start, wanted);
+  // A loss counts on any down, back to a floor behind the area's start (docs/LONG_FIELD.md, a3).
+  const los = Math.max(-arcadeTuning.series.furthestBack, wanted);
   const gained = los - series.los;
   series.los = los;
   state.yards += gained;

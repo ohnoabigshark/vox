@@ -6,7 +6,14 @@ import { areaOrigin } from '../../src/arcade/render/world';
 import { pocketTime } from '../../src/arcade/sim/ball';
 import { pickupsForArea } from '../../src/arcade/sim/pickups';
 import { AREA_YARDS, BOSS_SPOT, stretchProps } from '../../src/arcade/sim/props';
-import { createRun, dispatch, nextDown, setUpSeries } from '../../src/arcade/sim/run';
+import {
+  createRun,
+  dispatch,
+  downAndDistance,
+  endDown,
+  nextDown,
+  setUpSeries,
+} from '../../src/arcade/sim/run';
 import type { RunState } from '../../src/arcade/sim/types';
 import { ofType, run } from './helpers';
 
@@ -20,6 +27,12 @@ import { ofType, run } from './helpers';
 
 const { distance } = arcadeTuning.series;
 
+/** The series lined up and snapped with the first card, nobody throwing. */
+function snapped(state: RunState): RunState {
+  const called = dispatch(state, { type: 'call', hand: 0 }).state;
+  return dispatch(called, { type: 'hike' }).state;
+}
+
 /** Hold the ball until the down ends (a sack), then line up the next down. */
 function sackedThenNext(state: RunState): { state: RunState; sacks: number } {
   const r = run(state, pocketTime(state) + 0.5);
@@ -29,6 +42,40 @@ function sackedThenNext(state: RunState): { state: RunState; sacks: number } {
 }
 
 describe('the long field, part 1', () => {
+  it('1: a sack on 1st & 10 at the area’s start makes 2nd & 12, the line 2 yards behind it', () => {
+    const { state, sacks } = sackedThenNext(snapped(createRun(1)));
+    expect(sacks).toBe(1);
+    expect(state.series.los).toBe(-arcadeTuning.series.sackLoss);
+    expect(state.series.down).toBe(2);
+    expect(downAndDistance(state)).toBe('2nd & 12');
+  });
+
+  it('2: a tackle for a loss on 1st down moves the line back by it, at most 10 yards behind the area’s start', () => {
+    const s = createRun(1);
+    s.phase = 'play';
+    endDown(s, 'tackled', -4, []);
+    expect(s.series.los).toBe(-4);
+    expect(s.result).toEqual({ result: 'tackled', gained: -4 });
+
+    const far = createRun(1);
+    far.phase = 'play';
+    endDown(far, 'tackled', -15, []);
+    expect(far.series.los).toBe(-arcadeTuning.series.furthestBack);
+    expect(arcadeTuning.series.furthestBack).toBe(10);
+  });
+
+  it('3: a sack on the Challenge’s 1st down at 10 goes back into the Intro’s stretch, still the Challenge’s series', () => {
+    const s = createRun(1);
+    setUpSeries(s, 0, 1, [], true);
+    expect(s.series.los).toBe(distance);
+    const { state, sacks } = sackedThenNext(snapped(s));
+    expect(sacks).toBe(1);
+    expect(state.series.los).toBe(distance - arcadeTuning.series.sackLoss);
+    expect(state.series.index).toBe(1);
+    expect(state.series.kind).toBe('challenge');
+    expect(downAndDistance(state)).toBe('2nd & 12');
+  });
+
   it('4: from the area’s first down the field holds all four stretches’ props and pickups, and the Boss', () => {
     for (const seed of [1, 2, 3, 7, 11]) {
       const s = createRun(seed);
