@@ -17,7 +17,8 @@ pickups, more kinds and placing them in the editor are later rounds
   in the middle lane, against a sideline or on a prop (a Boss included: it
   stands in the middle lane). Each stretch keeps clear of its own props and
   its neighbours', so a pickup seen ahead lies in the same place when its
-  series comes. They
+  series comes. Since the long field (`docs/LONG_FIELD.md`, a2) an area's
+  every stretch is laid out from its first series. They
   show before the snap, so you can call a play, or Flip it, to run through a
   bolt and clear of a slick.
 - **Taken** (k3): the first of your players to run through a pickup takes it,

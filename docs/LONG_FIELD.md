@@ -141,6 +141,15 @@ step. The docs are reconciled and the two-axis review is run before its PR.
 
 ## Part 1's tests, written first (o2)
 
+Built 2026-11-04 on `long-field-1`, in `tests/arcade/longField.test.ts`:
+the area's field (e0ac0fb; 7 passed on its first run, a regression test),
+losses on any down (063d843; 1–3 red without it), the end zone on every
+down (b23100a; screenshots of practice on series 1 and 3). In code:
+`AREA_YARDS`, `propsForArea`, `areaPropsWithBoss` (`sim/props.ts`),
+`pickupsForArea`, `areaOrigin` (`render/world.ts`), `series.furthestBack`.
+The Farm's pumpkin patch, scenery behind the King, now shows the whole
+Farm, since he does.
+
 1. A sack on 1st & 10 at the area's start sets 2nd & 12, with the line of
    scrimmage 2 yards behind the start.
 2. A tackle for a loss on 1st down moves the line back by the loss. A loss

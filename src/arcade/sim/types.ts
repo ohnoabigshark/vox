@@ -5,8 +5,9 @@
  * about rendering or audio.
  *
  * Coordinates are yards: x across the field (0 is the middle, negative is
- * left), y upfield. Each series starts its line of scrimmage at y = 0 and its
- * first-down line at y = 10. Times are seconds.
+ * left), y upfield from the area's start (docs/LONG_FIELD.md): the area's
+ * series n (from 0) starts its line of scrimmage at y = 10n, its first-down
+ * line at 10n + 10, and the goal line is at 40. Times are seconds.
  */
 import type { EventLook, FieldEvent } from '../content/fieldEvents';
 import type { Play } from '../content/plays';
@@ -120,7 +121,7 @@ export interface FieldProp extends PropKind {
 /** A trick or a treat (docs/PICKUPS.md): the lightning bolt speeds up whoever takes it, the oil slick trips them. */
 export type PickupKind = 'bolt' | 'slick';
 
-/** A pickup on the field (sim/pickups.ts), in the series' own coordinates; the first of your players to run through it takes it. */
+/** A pickup on the field (sim/pickups.ts), in the area's own yards; the first of your players to run through it takes it. */
 export interface Pickup {
   /** Unique in the run, so one taken stays gone (RunState.taken). */
   readonly id: number;

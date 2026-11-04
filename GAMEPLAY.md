@@ -70,7 +70,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
   |---|---|
   | **Tackled** | The next down starts where the carrier went down. |
   | **Incomplete or batted down** | The down is used, no gain. |
-  | **Sacked** (a rusher reaches the QB holding the ball) | The down is used, and you lose ground. |
+  | **Sacked** (a rusher reaches the QB holding the ball) | The down is used, and you lose ground (2 yards). *(Fork:)* A sack or a tackle behind the line costs ground on any down, 1st included, back as far as 10 yards behind the area's start (`docs/LONG_FIELD.md`). |
   | **Over the line** | A first down: the series is won (in the Boss's series, a touchdown). |
   | **4th down fails** | Game over. |
 
@@ -240,7 +240,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Crow** *(Frederick's Farm)* | Crow | Like a Bat, it swats passes that fly through it; it flies a lane up and down the field (8 yards) instead of looping a square, and **leaves it to dive at a carrier who comes within 4 yards** (a Bat dives from 3). |
 
 - **Each area has its own set:** Froggy's Forest adds Frogs; the Candy Queendom swaps the Owl for Witches and adds Gingerbread Men; Frederick's Farm adds Crows and rows of Scarecrows, and its props are pumpkins and hay bales. Older kinds keep their rules wherever they appear.
-- **The Bosses aren't defenders:** each stands in the middle of the end zone its series goes for, just past the first-down line, drawn twice a player's size, and never moves, tackles or defends (a prop). Its ability is the whole fight. Mister Frog is a Frog in a top hat, the Queen a Witch in a crown, the King a Scarecrow in a crown.
+- **The Bosses aren't defenders:** each stands in the middle of the end zone its series goes for, just past the first-down line *(fork: there from the area's first series, the end zone drawn on every down, `docs/LONG_FIELD.md`)*, drawn twice a player's size, and never moves, tackles or defends (a prop). Its ability is the whole fight. Mister Frog is a Frog in a top hat, the Queen a Witch in a crown, the King a Scarecrow in a crown.
 - **Props on the field:** two or three to every 10 yards, from the area's own set (Froggy's Forest: trees, stumps and toadstools; the Candy Queendom: gumdrops, lollipops and candy canes). They're solid: everyone, yours and theirs, has to go around them, and carriers pick lanes clear of them. The ball flies over them. They never stand in the middle lane (the pumpkin's, and the handoffs'), never against a sideline, and always leave room to pass between.
 - **Scaling, the lever behind the whole run:** the first series of area I is **four slow defenders** (Intro 4, Challenge 5, Gimmicks 5 or 6, the Boss a full 8); every series adds defenders or stats, and later areas bring more rushers and heavier, faster, grabbier versions of everyone. ▲ *Numbers to come from the balance runs: the target is that a team that never upgrades loses in area II, a decent build reaches the last Boss, and a strong one beats it.*
 - **The defense always shows its intent:** rushers lean toward the QB, Covers face their Catcher, the Owl tracks the ball.

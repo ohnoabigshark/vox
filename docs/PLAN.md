@@ -346,7 +346,8 @@ Open, for when the first new theme or set is planned:
   far, 2026-11-04, on the map https://claude.ai/artifact/5qLrncweSw1w5DgFZgo7JU;
   the design and the order of work are in `docs/LONG_FIELD.md`. It is built
   in two parts, each played before it merges: the area's field and losses
-  (`long-field-1`), then football's downs and the long play (`long-field-2`).
+  (`long-field-1`, built 2026-11-04), then football's downs and the long
+  play (`long-field-2`, its tests on the map's round 3).
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
