@@ -13,7 +13,7 @@ export type Force = 'snag' | 'tip';
 /** Put a down on the given series of the run (1-based: series 5 is the Candy Queendom's first). */
 export function onSeries(state: RunState, series: number): RunState {
   const area = Math.floor((series - 1) / 4);
-  state.series = { ...state.series, area, index: (series - 1) % 4 };
+  state.series = { ...state.series, area, stretch: (series - 1) % 4 };
   return state;
 }
 

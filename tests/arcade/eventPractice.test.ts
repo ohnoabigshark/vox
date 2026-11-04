@@ -6,7 +6,7 @@ import {
 } from '../../src/arcade/content/eventLink';
 import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
-import { bossSeries, createRun, dispatch, seriesAt, nextDown } from '../../src/arcade/sim/run';
+import { bossStretch, createRun, dispatch, stretchAt, nextDown } from '../../src/arcade/sim/run';
 import type { RunState } from '../../src/arcade/sim/types';
 
 /** docs/FIELD_EVENTS.md, test 8: Try it, event practice (f3, x2). */
@@ -74,7 +74,7 @@ describe('event practice (test 8)', () => {
   it('plays the chosen series’ defense, three cards to pick from, nothing called', () => {
     const s = practice(made, 6);
     expect(s.practice).toBe(true);
-    expect({ area: s.series.area, index: s.series.index }).toEqual(seriesAt(6));
+    expect({ area: s.series.area, stretch: s.series.stretch }).toEqual(stretchAt(6));
     expect(s.seriesWon).toBe(5);
     expect(s.playbook).toBe(PLAY_POOL);
     expect(s.hand).toHaveLength(3);
@@ -111,8 +111,8 @@ describe('event practice (test 8)', () => {
 
 describe('a Boss’s series (review r9)', () => {
   it('is worked out from where the Boss is, not written as a number', () => {
-    expect(bossSeries('misterFrog')).toBe(4);
-    expect(bossSeries('queen')).toBe(8);
-    expect(bossSeries('king')).toBe(12);
+    expect(bossStretch('misterFrog')).toBe(4);
+    expect(bossStretch('queen')).toBe(8);
+    expect(bossStretch('king')).toBe(12);
   });
 });

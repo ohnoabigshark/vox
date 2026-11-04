@@ -43,22 +43,25 @@ import type {
 
 export const SERIES_KINDS: readonly SeriesKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
 
-/** A series' number in the run (1-based): Froggy's Forest is 1-4, the Candy Queendom 5-8, and so on. */
-export function seriesNumber(series: Pick<Series, 'area' | 'index'>): number {
-  return series.area * SERIES_KINDS.length + series.index + 1;
+/**
+ * A down's stretch number in the run (1-based): Froggy's Forest's stretches
+ * are 1-4, the Candy Queendom's 5-8, and so on (docs/LONG_FIELD.md, r2).
+ */
+export function stretchNumber(series: Pick<Series, 'area' | 'stretch'>): number {
+  return series.area * SERIES_KINDS.length + series.stretch + 1;
 }
 
-/** The number of the series a Boss stands on: the last series of its area. */
-export function bossSeries(boss: BossName): number {
+/** The number of the stretch a Boss's gimmick comes on: the last of its area. */
+export function bossStretch(boss: BossName): number {
   const area = AREAS.findIndex((a) => a.boss.boss === boss);
   if (area < 0) throw new Error(`no area has ${boss} for its Boss`);
-  return seriesNumber({ area, index: SERIES_KINDS.length - 1 });
+  return stretchNumber({ area, stretch: SERIES_KINDS.length - 1 });
 }
 
-/** The area and index (both from 0) of a series' number in the run: `seriesNumber` backwards. */
-export function seriesAt(n: number): Pick<Series, 'area' | 'index'> {
+/** The area and stretch (both from 0) of a stretch number in the run: `stretchNumber` backwards. */
+export function stretchAt(n: number): Pick<Series, 'area' | 'stretch'> {
   const i = Math.max(0, Math.floor(n) - 1);
-  return { area: Math.floor(i / SERIES_KINDS.length), index: i % SERIES_KINDS.length };
+  return { area: Math.floor(i / SERIES_KINDS.length), stretch: i % SERIES_KINDS.length };
 }
 
 /** Seven plain humans (sim/team.ts). */
@@ -153,7 +156,16 @@ export function createRun(
     step: 0,
     time: 0,
     phase: 'setup',
-    series: { area: 0, index: 0, kind: 'intro', name: '', start: 0, firstDown: 0, down: 1, los: 0 },
+    series: {
+      area: 0,
+      stretch: 0,
+      kind: 'intro',
+      name: '',
+      start: 0,
+      firstDown: 0,
+      down: 1,
+      los: 0,
+    },
     hand: [],
     called: null,
     banned: null,
@@ -193,9 +205,9 @@ export function createRun(
   };
   if (options.eventPractice) {
     // The chosen series, as if the ones before it were won.
-    const at = seriesAt(options.eventPractice.series);
+    const at = stretchAt(options.eventPractice.series);
     state.seriesWon = options.eventPractice.series - 1;
-    setUpSeries(state, at.area, at.index, [], true);
+    setUpSeries(state, at.area, at.stretch, [], true);
     return state;
   }
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
@@ -222,7 +234,7 @@ export function setUpSeries(
   state.perks.secondWindUsed = false;
   state.series = {
     area,
-    index,
+    stretch: index,
     kind: SERIES_KINDS[index] ?? 'boss',
     name: spec.name,
     start,
@@ -273,7 +285,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   }
   // The play editor's practice deals its one play, already called; event practice deals three (f3).
   state.called = state.practice && !state.practiceEvent ? 0 : null;
-  const spec = seriesDefense(state, series.area, series.index);
+  const spec = seriesDefense(state, series.area, series.stretch);
   // The Queen's Royal Decree: one card of the three is banned this down.
   state.banned = spec.decree ? rng.int(0, state.hand.length - 1) : null;
   const first = state.banned === 0 ? 1 : 0;
@@ -503,8 +515,8 @@ export function nextDown(state: RunState, events: ArcadeEvent[]): void {
   }
   if (result?.result === 'firstDown') {
     state.seriesWon++;
-    events.push({ type: 'seriesWon', index: series.index });
-    const lastSeries = series.index >= SERIES_KINDS.length - 1;
+    events.push({ type: 'seriesWon', stretch: series.stretch });
+    const lastSeries = series.stretch >= SERIES_KINDS.length - 1;
     if (lastSeries) events.push({ type: 'areaCleared', area: series.area });
     // The run is won after the last area (hard mode goes round again).
     if (lastSeries && !state.hard && series.area >= arcadeTuning.run.areas - 1) {
@@ -513,7 +525,7 @@ export function nextDown(state: RunState, events: ArcadeEvent[]): void {
     }
     // TRICK OR TREAT! happens in front of the next series, already lined up (its zone sets the offer).
     if (lastSeries) setUpSeries(state, series.area + 1, 0, events, false);
-    else setUpSeries(state, series.area, series.index + 1, events, false);
+    else setUpSeries(state, series.area, series.stretch + 1, events, false);
     state.offer = rollOffer(state);
     return;
   }

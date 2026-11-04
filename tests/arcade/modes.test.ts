@@ -34,7 +34,7 @@ describe('hard mode', () => {
     for (let i = 0; i < SERIES_KINDS.length; i++) s = winSeries(s);
     expect(s.phase).not.toBe('won');
     expect(s.series.area).toBe(arcadeTuning.run.areas);
-    expect(s.series.index).toBe(0);
+    expect(s.series.stretch).toBe(0);
     // The same run, not hard, is won.
     let easy = createRun(3, undefined, arcadeTuning.run.areas - 1);
     for (let i = 0; i < SERIES_KINDS.length; i++) easy = winSeries(easy);

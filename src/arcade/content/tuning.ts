@@ -192,7 +192,7 @@ export const tuningDefaults = {
    */
   catchTests: {
     /** A contested ball goes to a catch test from this series (or the first, with ?snag=1 or ?tip=1). */
-    fromSeries: 5,
+    fromStretch: 5,
     /**
      * The share of contested balls from then on that go to a catch test; today's
      * rule settles the rest. _User, 2026-11-04: "trigger about 20% less."_

@@ -5,7 +5,7 @@
  * of it.
  */
 import { assertNever } from '../../assertNever';
-import { seriesNumber } from '../sim/run';
+import { stretchNumber } from '../sim/run';
 import type { ArcadeEvent, DefenderKind, DownResult, Grade, RunState } from '../sim/types';
 import {
   JACK,
@@ -252,7 +252,7 @@ export class RunRecorder {
             name: p.name,
             kind: p.kind,
             preferred: p.preferred,
-            joinedAt: seriesNumber(next.series),
+            joinedAt: stretchNumber(next.series),
           });
         }
         return;
@@ -290,7 +290,7 @@ function newDraft(state: RunState): Draft {
   const { series } = state;
   const play = state.playbook[state.play.index];
   return {
-    seriesNumber: seriesNumber(series),
+    seriesNumber: stretchNumber(series),
     down: series.down,
     toGo: series.firstDown - series.los,
     los: series.los,
@@ -372,6 +372,7 @@ function spot(state: RunState, body: number): number | null {
 }
 
 function reachedOf(state: RunState): RunRecord['reached'] {
-  const { area, index } = state.series;
-  return { area, index, seriesNumber: seriesNumber(state.series) };
+  const { area, stretch } = state.series;
+  // Kept as `index` and `seriesNumber` in saved records: the stretch, and its number (docs/STATS.md).
+  return { area, index: stretch, seriesNumber: stretchNumber(state.series) };
 }

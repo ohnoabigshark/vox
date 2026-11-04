@@ -150,7 +150,7 @@ describe('the knobs', () => {
       'snag.minApart',
       'snag.margin',
       'snag.box',
-      'catchTests.fromSeries',
+      'catchTests.fromStretch',
       'catchTests.chance',
       'catchTests.fasterAfter',
       'catchTests.perSeries',
@@ -430,11 +430,11 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
       'tip.bobble',
     ]);
     expect(tab.filter((k) => k.more).map((k) => k.key)).toEqual([
-      'catchTests.fromSeries',
+      'catchTests.fromStretch',
       'catchTests.chance',
       'catchTests.linger',
     ]);
-    for (const shared of ['catchTests.fromSeries', 'catchTests.chance', 'catchTests.linger']) {
+    for (const shared of ['catchTests.fromStretch', 'catchTests.chance', 'catchTests.linger']) {
       expect(knob(shared).tests).toEqual(['snag', 'tip']);
     }
   });
@@ -498,7 +498,7 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
     expect(tuningValue('tip.clean')).toBe(0.06);
     expect([...tabPaths('tip')].sort()).toEqual([
       'catchTests.chance',
-      'catchTests.fromSeries',
+      'catchTests.fromStretch',
       'catchTests.linger',
       'countdown.ready',
       'tip.bobble',

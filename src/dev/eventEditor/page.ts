@@ -14,7 +14,7 @@ import {
   type Who,
 } from '../../arcade/content/fieldEvents';
 import { MAX_SERIES, eventPracticeQuery } from '../../arcade/content/eventLink';
-import { bossSeries } from '../../arcade/sim/run';
+import { bossStretch } from '../../arcade/sim/run';
 import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
@@ -110,7 +110,7 @@ function loadTwoTap(): boolean {
 let twoTap = loadTwoTap();
 
 /** The series Try it plays at: the Boss's own series for a Boss's event, else the second. */
-const seriesFor = (e: FieldEvent): number => (e.boss ? bossSeries(e.boss) : 2);
+const seriesFor = (e: FieldEvent): number => (e.boss ? bossStretch(e.boss) : 2);
 const trySeries = new Map<string, number>();
 
 function tryIt(event: FieldEvent): void {

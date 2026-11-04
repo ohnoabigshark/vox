@@ -6,7 +6,7 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
-import { seriesNumber } from './run';
+import { stretchNumber } from './run';
 import type { Contest } from './ball';
 import type { Player, RunState, Vec } from './types';
 import { add, clamp, len, norm, scale, sub } from './vec';
@@ -21,7 +21,7 @@ const forcedByLink = (state: RunState): boolean => state.snagAlways || state.tip
 
 /** Whether a contested ball can go to a catch test on this series. */
 export function catchTestsOn(state: RunState): boolean {
-  return forcedByLink(state) || seriesNumber(state.series) >= ct.fromSeries;
+  return forcedByLink(state) || stretchNumber(state.series) >= ct.fromStretch;
 }
 
 /**
@@ -36,7 +36,7 @@ function whichCatchTest(state: RunState): CatchTest {
 
 /**
  * The catch test this contested ball goes to, or null for today's rule:
- * none before `fromSeries`; from then on `chance` of them, from the run's
+ * none before `fromStretch`; from then on `chance` of them, from the run's
  * seed; every one with ?snag=1 or ?tip=1. The roll has its own label, so it
  * draws a number apart from the pick's.
  */
@@ -67,7 +67,7 @@ export interface CatchSituation {
 export function contestSituation(state: RunState, contest: Contest): CatchSituation {
   const best = Math.max(...contest.defenders.map((d) => d.stats.hands));
   return {
-    series: seriesNumber(state.series),
+    series: stretchNumber(state.series),
     crowd: contest.defenders.length,
     handsGap: contest.receiver.stats.hands - best,
   };
@@ -82,7 +82,7 @@ export function contestSituation(state: RunState, contest: Contest): CatchSituat
  */
 export function catchCount(c: CatchSituation, more = 0): number {
   // By the series number (docs/SNAG.md), the series' count in the run.
-  const bySeries = ct.minCount + Math.floor(Math.max(0, c.series - ct.fromSeries) / ct.moreEvery);
+  const bySeries = ct.minCount + Math.floor(Math.max(0, c.series - ct.fromStretch) / ct.moreEvery);
   const hands = c.handsGap >= ct.handsGap ? -1 : c.handsGap <= -ct.handsGap ? 1 : 0;
   return clamp(bySeries + Math.max(0, c.crowd - 1) + hands + more, ct.minCount, ct.maxCount);
 }

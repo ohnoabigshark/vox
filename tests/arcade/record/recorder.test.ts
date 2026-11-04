@@ -350,7 +350,7 @@ describe('along the way', () => {
 
   it('a won Boss’s series is a touchdown', () => {
     const s = field();
-    s.series = { ...s.series, kind: 'boss', index: 3 };
+    s.series = { ...s.series, kind: 'boss', stretch: 3 };
     const r = only(
       [
         { events: [{ type: 'handoff', id: 3 }] },
@@ -429,7 +429,7 @@ describe('players', () => {
         set: (n) => {
           n.bench.unshift(n.roster[0]!);
           n.roster[0] = recruit;
-          n.series = { ...n.series, index: 1 };
+          n.series = { ...n.series, stretch: 1 };
         },
       },
     ]);
@@ -483,7 +483,7 @@ describe('the run', () => {
     const over = feed(field(), [
       {
         events: [{ type: 'gameOver', seriesWon: 6, yards: 81 }],
-        set: (n) => (n.series = { ...n.series, area: 1, index: 2 }),
+        set: (n) => (n.series = { ...n.series, area: 1, stretch: 2 }),
       },
     ]);
     expect(over.rec.record.end).toBe('over');

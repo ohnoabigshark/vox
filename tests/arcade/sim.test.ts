@@ -50,7 +50,7 @@ describe('a run', () => {
   it('starts on the first series: 1st & 10, eight a side, three play cards, no draft', () => {
     const s = createRun(1);
     expect(s.phase).toBe('setup');
-    expect(s.series).toMatchObject({ index: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
+    expect(s.series).toMatchObject({ stretch: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
     expect(downAndDistance(s)).toBe('1st & 10');
     expect(s.field.players).toHaveLength(8);
     expect(s.hand).toHaveLength(3);
@@ -731,7 +731,7 @@ describe('series and the run', () => {
   it('a won series lines up the next one, waiting for the move on', () => {
     const s = winSeries(createRun(3));
     expect(s.phase).toBe('draft');
-    expect(s.series).toMatchObject({ index: 1, kind: 'challenge', down: 1, los: 10 });
+    expect(s.series).toMatchObject({ stretch: 1, kind: 'challenge', down: 1, los: 10 });
     expect(dispatch(s, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 
@@ -1027,7 +1027,7 @@ describe('the Candy Kingdom', () => {
   it('a run can start there (?area=2), as if the Forest were won', () => {
     const s = createRun(3, startingRoster(), 1);
     expect(s.series.area).toBe(1);
-    expect(s.series.index).toBe(0);
+    expect(s.series.stretch).toBe(0);
     expect(s.series.name).toBe('Gumdrop Lane');
     expect(s.seriesWon).toBe(4);
     expect(s.phase).toBe('setup');

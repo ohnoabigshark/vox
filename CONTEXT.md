@@ -43,10 +43,16 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   over. Winning one is a **first down**; winning the Boss's is a
   **touchdown**. In code, `state.series`, `Series`, and the events
   `seriesStarted` and `seriesWon`. **Down:** one play.
-- **Series number** _(ours)_: a series' count in the run, from 1 (the Candy
-  Queendom's first series is 5), as `seriesNumber` gives it; SNAG IT! and
-  the tip drill grow with it (`docs/SNAG.md`). The glossary called it the
-  level until 2026-11-03.
+- **Stretch** _(ours)_: one of an area's four 10-yard parts, named Intro,
+  Challenge, Gimmick and Boss (A Quiet Clearing, Gnome Country…). A down
+  faces the defense of the stretch its line of scrimmage is in, the Boss's
+  gimmick included (`docs/LONG_FIELD.md`, r1). In code, `Series.stretch`.
+- **Stretch number** _(ours)_: a stretch's count in the run, from 1 (the
+  Candy Queendom's first is 5), as `stretchNumber` gives it; SNAG IT! and
+  the tip drill grow with it (`docs/SNAG.md`). It was the **series
+  number** until the long field (r2, 2026-11-04), when every series was its
+  stretch, and the level before 2026-11-03. Saved records and the test
+  bench still call it `seriesNumber` and `series`.
 - **Line of scrimmage** and **first-down line:** where the down starts, and
   10 yards past where the series started.
 - **Boss:** the area's last series, with its own gimmick (Frog Rain, the

@@ -71,7 +71,7 @@ describe('the long field, part 1', () => {
     const { state, sacks } = sackedThenNext(snapped(s));
     expect(sacks).toBe(1);
     expect(state.series.los).toBe(distance - arcadeTuning.series.sackLoss);
-    expect(state.series.index).toBe(1);
+    expect(state.series.stretch).toBe(1);
     expect(state.series.kind).toBe('challenge');
     expect(downAndDistance(state)).toBe('2nd & 12');
   });

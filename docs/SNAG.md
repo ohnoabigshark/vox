@@ -20,7 +20,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 drill at random, half and half, and `?snag=1` makes every contested ball
 SNAG IT! (with `?tip=1` too, either). What the two share moved to
 `catchTests` in `tuning.ts` and `sim/catchTests.ts`, with SNAG IT! playing
-exactly as before: when they start (`fromSeries`), the dot count
+exactly as before: when they start (`fromStretch`), the dot count
 (`minCount`, `maxCount`, `moreEvery`, `handsGap`), the pace past series 10
 (now a share of the usual: 5% a series, down to 62.5%, the same 0.04 s a
 series and 0.5 s floor for the ring) and the box's linger. Where the

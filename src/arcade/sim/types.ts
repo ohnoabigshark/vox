@@ -301,8 +301,8 @@ export type SeriesKind = 'intro' | 'challenge' | 'gimmick' | 'boss';
 
 export interface Series {
   readonly area: number;
-  /** 0-3: Intro, Challenge, Gimmick, Boss. */
-  readonly index: number;
+  /** The down's stretch of the area, 0-3: Intro, Challenge, Gimmick, Boss (docs/LONG_FIELD.md, r1). */
+  readonly stretch: number;
   readonly kind: SeriesKind;
   readonly name: string;
   /** Where the series started (10 yards a series into its area) and the line it has to cross (10 on). */
@@ -555,7 +555,7 @@ export type ArcadeEvent =
   | { readonly type: 'crowsStruck'; readonly on: number }
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
-  | { readonly type: 'seriesWon'; readonly index: number }
+  | { readonly type: 'seriesWon'; readonly stretch: number }
   | { readonly type: 'perk'; readonly perk: Perk }
   | {
       readonly type: 'joined';

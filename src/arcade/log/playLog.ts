@@ -28,7 +28,7 @@ export interface PlayLogLine {
   readonly link: string;
   readonly practice: boolean;
   /** The down as it was played. */
-  readonly series: { readonly area: number; readonly index: number; readonly kind: SeriesKind };
+  readonly series: { readonly area: number; readonly stretch: number; readonly kind: SeriesKind };
   readonly down: number;
   readonly los: number;
   readonly firstDown: number;
@@ -89,7 +89,7 @@ function context(
     build: meta.build,
     link: meta.link,
     practice: prev.practice,
-    series: { area: series.area, index: series.index, kind: series.kind },
+    series: { area: series.area, stretch: series.stretch, kind: series.kind },
     down: series.down,
     los: round(series.los),
     firstDown: round(series.firstDown),
