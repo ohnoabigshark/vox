@@ -73,9 +73,9 @@ export interface Defender extends BodyBase {
   mark: number | null;
   /** Hanging on to the carrier, at this offset from it (null when it isn't). */
   latch: Vec | null;
-  /** A Bat's loop, and the corner it's heading for. */
-  readonly patrol: readonly Vec[] | null;
-  patrolIndex: number;
+  /** Its beat: a Bat's loop or a Crow's lane, and the corner it's heading for. */
+  readonly beat: readonly Vec[] | null;
+  beatIndex: number;
 }
 
 export type Body = Player | Defender;

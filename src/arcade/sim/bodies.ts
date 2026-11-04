@@ -134,7 +134,7 @@ export function lineUpDefense(
     const home = v(spot.x, y);
     const stats = plus(def.stats, even(boost));
     // A Bat loops a square; a Crow flies a lane up and down the field.
-    const patrol =
+    const beat =
       spot.kind === 'bat'
         ? [
             home,
@@ -159,8 +159,8 @@ export function lineUpDefense(
       home,
       mark: null,
       latch: null,
-      patrol,
-      patrolIndex: 1,
+      beat,
+      beatIndex: 1,
     };
   });
 }

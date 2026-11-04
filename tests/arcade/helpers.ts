@@ -94,8 +94,8 @@ export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = [])
       home: spec.pos,
       mark: spec.mark ?? null,
       latch: null,
-      patrol: null,
-      patrolIndex: 0,
+      beat: null,
+      beatIndex: 0,
     };
   });
   state.series = { ...state.series, los: 0, start: 0, firstDown: 10, down: 1 };

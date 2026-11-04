@@ -64,7 +64,8 @@ describe('a run', () => {
       'catcher',
       'catcher',
     ]);
-    expect(s.field.defenders.length).toBeLessThanOrEqual(4);
+    // A Quiet Clearing's four, and the five patrols ahead (docs/DIFFICULTY.md, "The long field").
+    expect(s.field.defenders).toHaveLength(4 + 5);
   });
 
   it('deals different hands, with handoff cards among them', () => {
@@ -849,7 +850,8 @@ describe('determinism', () => {
         }
       }
     }
-  });
+    // Long: since the patrols ahead, more bodies and longer downs (docs/DIFFICULTY.md).
+  }, 60_000);
 });
 
 it('dist is Euclidean', () => {
@@ -1143,9 +1145,9 @@ describe('the Farm', () => {
     const s = createRun(5, startingRoster(), 2);
     setUpSeries(s, 2, 10, [], true);
     const crow = s.field.defenders.find((d) => d.kind === 'crow')!;
-    expect(crow.patrol).toHaveLength(2);
-    expect(crow.patrol![1]!.x).toBe(crow.patrol![0]!.x);
-    expect(crow.patrol![1]!.y - crow.patrol![0]!.y).toBe(arcadeTuning.defense.crowLane);
+    expect(crow.beat).toHaveLength(2);
+    expect(crow.beat![1]!.x).toBe(crow.beat![0]!.x);
+    expect(crow.beat![1]!.y - crow.beat![0]!.y).toBe(arcadeTuning.defense.crowLane);
   });
 });
 
@@ -1224,7 +1226,7 @@ describe('Bats', () => {
   it('loop their square while nobody comes near', () => {
     const s = playState([{ pos: v(-6, 2), job: stand(v(-6, 2)) }], [{ kind: 'bat', pos: v(4, 6) }]);
     const bat = s.field.defenders[0]!;
-    Object.assign(bat, { patrol: [v(4, 6), v(7.5, 6), v(7.5, 9.5), v(4, 9.5)] });
+    Object.assign(bat, { beat: [v(4, 6), v(7.5, 6), v(7.5, 9.5), v(4, 9.5)] });
     const r = run(s, 1);
     expect(body(r.state, 100).pos.x).toBeGreaterThan(4.5);
     expect(ofType(r.events, 'grabbed')).toHaveLength(0);
@@ -1236,7 +1238,7 @@ describe('Bats', () => {
       2,
     );
     const bat = s.field.defenders[0]!;
-    Object.assign(bat, { patrol: [v(4, 6), v(7.5, 6), v(7.5, 9.5), v(4, 9.5)] });
+    Object.assign(bat, { beat: [v(4, 6), v(7.5, 6), v(7.5, 9.5), v(4, 9.5)] });
     s.field.lane = 4;
     const r = untilGrabbed(s);
     expect(ofType(r.events, 'grabbed')[0]?.by).toContain(100);
@@ -1250,7 +1252,7 @@ describe('Crows and Safeties', () => {
       2,
     );
     const crow = s.field.defenders[0]!;
-    Object.assign(crow, { patrol: [v(4, 5), v(4, 13)] });
+    Object.assign(crow, { beat: [v(4, 5), v(4, 13)] });
     s.field.lane = 4;
     const r = untilGrabbed(s);
     expect(ofType(r.events, 'grabbed')[0]?.by).toContain(100);

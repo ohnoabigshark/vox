@@ -27,9 +27,10 @@ import { ofType, run } from './helpers';
 
 const { distance } = arcadeTuning.series;
 
-/** The series lined up and snapped with the first card, nobody throwing. */
+/** The series lined up and snapped with its first pass card, nobody throwing. */
 function snapped(state: RunState): RunState {
-  const called = dispatch(state, { type: 'call', hand: 0 }).state;
+  const pass = state.hand.findIndex((i) => state.playbook[i]?.handoff === undefined);
+  const called = dispatch(state, { type: 'call', hand: pass }).state;
   return dispatch(called, { type: 'hike' }).state;
 }
 

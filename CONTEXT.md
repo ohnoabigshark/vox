@@ -49,6 +49,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   Challenge, Gimmick and Boss (A Quiet Clearing, Gnome Country…). A down
   faces the defense of the stretch its line of scrimmage is in, the Boss's
   gimmick included (`docs/LONG_FIELD.md`, r1). In code, `Series.stretch`.
+- **Patrol** _(ours)_: a Scarecrow, Bat or Crow of a stretch ahead of the
+  line, which stays in its stretch on every down (`docs/DIFFICULTY.md`, "The
+  long field"). Which kinds patrol is `DefenderDef.patrols`. _Avoid:_
+  "patrol" for a Bat's square or a Crow's lane, which is its **beat**
+  (`Defender.beat`).
 - **Stretch number** _(ours)_: a stretch's count in the run, from 1 (the
   Candy Queendom's first is 5), as `stretchNumber` gives it; SNAG IT! and
   the tip drill grow with it (`docs/SNAG.md`). It was the **series

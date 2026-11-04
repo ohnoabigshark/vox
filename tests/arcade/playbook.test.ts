@@ -36,21 +36,24 @@ const firstHands = (s: RunState): (string | undefined)[][] => {
 };
 
 describe("a run's playbook", () => {
-  it("with esrauch's plays, a seeded run deals exactly what it did before playbooks", () => {
+  it("with esrauch's plays, a seeded run deals the hands recorded for it", () => {
     // Recorded from the game before runs carried a playbook (2026-10-29), when
-    // the pool was his five plays; ours joined it on 2026-10-31.
+    // the pool was his five plays, to show playbooks changed no deal; ours
+    // joined it on 2026-10-31. Re-recorded
+    // 2026-11-04 when the patrols ahead took body ids: each down's deal is
+    // seeded by the next id (docs/DIFFICULTY.md, "The long field").
     const his = { playbook: PLAYS };
     expect(firstHands(createRun(1, undefined, 0, his))).toEqual([
       ['slants', 'deepShot', 'sweep'],
-      ['deepShot', 'sweep', 'curlFlat'],
+      ['sweep', 'dive', 'slants'],
+      ['slants', 'dive', 'deepShot'],
       ['deepShot', 'slants', 'sweep'],
-      ['slants', 'dive', 'sweep'],
     ]);
     expect(firstHands(createRun(7, undefined, 0, his))).toEqual([
       ['curlFlat', 'dive', 'sweep'],
-      ['curlFlat', 'dive', 'sweep'],
-      ['curlFlat', 'sweep', 'dive'],
-      ['curlFlat', 'deepShot', 'dive'],
+      ['dive', 'deepShot', 'curlFlat'],
+      ['curlFlat', 'deepShot', 'sweep'],
+      ['sweep', 'dive', 'curlFlat'],
     ]);
   });
 
