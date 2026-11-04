@@ -145,6 +145,9 @@ export function jukeGrade(state: RunState): 'great' | 'ok' | 'bad' | null {
   return shown <= t.window * b.jukeBreakShare ? 'great' : shown <= t.window ? 'ok' : 'bad';
 }
 
+/** How far short of a mark a mash's fill may fall and still reach it. */
+const FILL_SLACK = 1e-9;
+
 /**
  * Whether a mash's fill has reached `mark`. The fill is a sum of `perTap`s,
  * which floating point leaves a hair short: ten tenths make
@@ -152,7 +155,7 @@ export function jukeGrade(state: RunState): 'great' | 'ok' | 'bad' | null {
  * took an eleventh tap (B3).
  */
 function filledTo(fill: number, mark: number): boolean {
-  return fill >= mark - 1e-9;
+  return fill >= mark - FILL_SLACK;
 }
 
 /** Judge this step's input (it may fill a mash). Returns the outcome once there is one. */
