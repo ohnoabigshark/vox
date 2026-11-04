@@ -172,3 +172,39 @@ the distance. Every comparison also runs it with handoffs
 
 Balance runs before and after, against the targets. The user plays it
 before it merges.
+
+## Balance: the patrols (difficulty-2)
+
+`npm run balance:arcade 40`, "A new player every time", normal and hard
+mode, each with three bots: the default, which only throws
+(`passOnly`); with handoffs (`BOT='{"passOnly": false}'`); and runs only
+(`BOT='{"runOnly": true}'`). Run on 2026-11-04. Before is `difficulty-1`
+(689b4de), after is `difficulty-2` (db6d4ec).
+
+| | Before | After |
+| --- | --- | --- |
+| Long plays (20+ yards) that score, all six pooled | 71% | 50% |
+| Long plays, % of the Forest's downs, pooled | 18% | 16% |
+| Long plays stopped by a patrol (Bat, Crow or Scarecrow) | — | 21–35% |
+| Touchdowns on hard mode's downs (pass · handoffs · runs) | 12 · 11 · 11% | 12 · 12 · 11% |
+| Normal mode beaten (pass · handoffs · runs) | 83 · 83 · 73% | 78 · 73 · 88% |
+| Hard mode's series won at p10 (pass · handoffs · runs) | 2 · 2 · 2 | 3 · 3 · 2 |
+| Touchdowns from the Boss stretch (the last 10 yards) | 51–66% | 61–74% |
+
+What it says:
+
+- **The patrols stop about a quarter of long plays** that would have
+  scored, but long plays still score half the time, against a target of
+  10–20%.
+- **The Forest is where the long plays are.** In the Candy Queendom and the
+  Farm, long plays are 0–7% of downs. In the Forest they are 13–20%. The
+  Forest lines up one Owl. The others line up two Safeties.
+- **The touchdown rate a down hardly moved.** Every area ends in a
+  touchdown, and most come from the last stretch, so the rate a down mostly
+  counts how many downs an area takes.
+- **Hard mode's worst runs held** at 2–3 series won (o2).
+- The user played it: "definitely felt more fun".
+
+The "broke clear of every defender" counts from these runs are left out. A
+bug counted the last down's scorer, still standing in the end zone, toward
+the next down (fixed in 5128f56, with a test).
