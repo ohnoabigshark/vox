@@ -247,13 +247,9 @@ Open, for when the first new theme or set is planned:
   events and the editor, built on `field-events`; then the Coach tunes Frog
   Rain with Save, and the taffy flood is next.
 - **Losses move you back past the series' start** (difficulty), so a sack
-  or a tackle for a loss on 1st down makes it 2nd & 12. Today losses do move
-  the line back, but never behind where the series started (`endDown` in
-  `sim/run.ts`: "Never behind the series' start (there's no room for the
-  QB)"), so a loss on the series' first snap leaves 2nd & 10. Open for its
-  grilling: what that "no room" was (the camera, the field behind, the
-  previous series' props and pickups), and how far back a series may go.
-  _User, 2026-10-30._
+  or a tackle for a loss on 1st down makes it 2nd & 12. _User, 2026-10-30._
+  Now part of the long field (below, a3): back to 10 yards behind the
+  area's start, built in its part 1.
 - **A play clock** (difficulty). Today you can wait forever before
   calling a play and hiking. From some level on, a clock counts down the
   call and the hike, to force a faster choice. _User, 2026-10-30._ Open for
@@ -342,6 +338,17 @@ Open, for when the first new theme or set is planned:
     defenders gain 20 Hands a zone; your player who goes for the lob is still
     simply your nearest (n1 rejected), not the one Hands would favour.
 
+- **The long field.** The play goes on past the first-down line, losses
+  count on any down, and any down can score by reaching the end of the
+  area. First downs follow football's rule, 10 yards from wherever a series
+  starts, and each down faces the defense of the stretch its line of
+  scrimmage is in. _User, 2026-11-04._ Planned by grilling, two rounds so
+  far, 2026-11-04, on the map https://claude.ai/artifact/5qLrncweSw1w5DgFZgo7JU;
+  the design and the order of work are in `docs/LONG_FIELD.md`. It is built
+  in two parts, each played before it merges: the area's field and losses
+  (`long-field-1`, built 2026-11-04), then football's downs and the long
+  play (`long-field-2`, its tests on the map's round 3).
+
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
   teach people how to play, esp with the passing mechanic."_ Open for its
@@ -353,6 +360,20 @@ Open, for when the first new theme or set is planned:
   open it again or skip it); with mockups.
 
 ## Later (not yet in order)
+
+- **The Boss as the extra point:** the Boss's series becomes a set of downs
+  of its own, played after the area's touchdown, a Boss battle as the
+  "extra point". _User's note on the long field's b4, 2026-11-04: "I do
+  like the idea of the boss of each area being a separate series/set of
+  downs... Let's save that concept to explore later, I want to see how the
+  game plays with the recommendation for this first."_
+- **Defenses tuned for the long field:** if breakaways get past the defense
+  too easily once the play goes on past the line, adjust the defense (the
+  Safeties, a second line of defenders, pursuit). _User's note on c1,
+  2026-11-04._ The long field's balance runs (e1) give the numbers.
+- **An arrow for a receiver out of sight:** at the top edge of the screen,
+  for a receiver who has run off it but can still be thrown to. Parked from
+  the long field (d2, 2026-11-04).
 
 - **A catch circle that grows with Hands** (two-tap): a catcher with good
   Hands gets a bigger circle round the marker, drawn bigger. Parked from
@@ -484,7 +505,11 @@ Open, for when the first new theme or set is planned:
     tricks last only a moment (`docs/PICKUPS.md`).
   - **TRICK OR TREAT! rebalanced:** plays offered more often than players;
     how rarely a player comes, and whether a growing squad still needs
-    the roster screen as it is.
+    the roster screen as it is. Player bonuses in the pool too, fewer
+    players in it, and rewards that grow with the yards a play gained,
+    since under the long field a long play makes fewer first downs, so
+    fewer TRICK OR TREAT!s. _User's note on the long field's b3,
+    2026-11-04._
   - **Draw up a play** (below), with the play editor showing the defense
     as it lines up for that down.
   - **Balance:** a squad that grows across a run makes later areas
@@ -534,7 +559,9 @@ Open, for when the first new theme or set is planned:
   both. It comes back if Jack can run, or a handoff can be forced on a pass
   play.
 - **Yards that carry over, and longer areas.** A gain past the first-down
-  line carries to where it ended, and an area can be longer than 40 yards;
+  line carries to where it ended (now planned as the long field, above,
+  `docs/LONG_FIELD.md`), and an area can be longer than 40 yards (still
+  parked);
   how a series' defense and the Boss fit that is open. Today every area is
   four series of exactly 10 yards (`originOf`, `src/arcade/game.ts`), and
   the extra yards are thrown away. _User's question on w1, 2026-11-03;

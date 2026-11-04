@@ -84,7 +84,9 @@ describe('event practice (test 8)', () => {
   it('sets the event off every rep: placed each down, counting from the hike', () => {
     const s = practice(made, 2);
     expect(s.field.fieldEvent?.event).toBe(made);
-    expect(s.field.fieldEvent?.area).toEqual({ shape: 'circle', x: 4, y: 10, r: 2 });
+    // Series 2 starts 10 yards into the area (docs/LONG_FIELD.md), and the circle is 10 past its line.
+    expect(s.series.los).toBe(10);
+    expect(s.field.fieldEvent?.area).toEqual({ shape: 'circle', x: 4, y: 20, r: 2 });
     const hiked = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
     expect(hiked.field.fieldEvent?.left).toBe(made.goesOff);
     // The next rep: the same spot, the event placed again, waiting for the hike.

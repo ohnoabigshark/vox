@@ -23,6 +23,8 @@ export const tuningDefaults = {
     downs: 4,
     /** Yards lost on a sack. */
     sackLoss: 2,
+    /** A loss goes back no further than this behind the area's start (docs/LONG_FIELD.md, a3). */
+    furthestBack: 10,
     /** Seconds a finished down stays on screen before the next lines up. */
     pause: 0.8,
   },

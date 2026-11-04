@@ -80,7 +80,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 
 ## 4. The Simulation
 
-**Coordinates are yards:** `x` across the field (±`field.halfWidth`, 9.1), `y` upfield. Each series starts at `y = 0` with the first-down line at 10; the renderer's `origin` adds up earlier series so the field is one continuous strip.
+**Coordinates are yards:** `x` across the field (±`field.halfWidth`, 9.1), `y` upfield. They count from the area's start (fork, `docs/LONG_FIELD.md`): the area's series start at 0, 10, 20 and 30, each with its first-down line 10 on, and the goal line is at 40. The renderer's `origin` (`areaOrigin`) places the area on the long strip, so the field is one continuous strip.
 
 **Bodies** are circles (`Player` and `Defender`, both `Body`) with position, velocity, radius and the physics their stats give them (`sim/bodies.ts`): **Heft → mass** (×1.25 per step of 10 over 50), **Hustle → top speed**, **Hands → reach** for the ball. Stats are on a 50 scale (GAMEPLAY.md, *Your Team*); `sim/stats.ts` has the small arithmetic (`plus`, `even`).
 
@@ -112,8 +112,8 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 | `tip.ts` | The tip drill (fork, `docs/TIP.md`): the pops (`tipPops`, `tipTimes`), `startTip`, `tipLanding`, `judgeTip` (clean, bobble or drop a tap; a drop ends it). What a catch test's grade does is `catchGraded` in `step.ts`. |
 | `team.ts` | The roster and bench: `startingRoster`, `playerStats` (own stats + perks), `fieldedStats`, the offer (`rollOffer`: two new players of different kinds, sized by zone), `bestSpot` (where a new player goes), `applyPerk` (the old perks, unused for now), spots (`BENCH_START`, `atSpot`, `setSpot`). |
 | `bodies.ts` | Stats into physics (`handsReach`: a quarter-yard of reach a 10 Hands, which a contested lob counts as nearness too), and lining both teams up for a down. |
-| `pickups.ts` | Tricks and treats (fork, `docs/PICKUPS.md`): `pickupsForSeries` lays a lightning bolt and an oil slick per 10-yard stretch from the seed, each stretch clear of a fixed set of props (its own and its neighbours') so a pickup seen ahead doesn't move when its series comes. Taking one is `takePickups` in `step.ts`; `RunState.taken` keeps them gone. |
-| `props.ts` | Props on the field: laid per 10-yard stretch from the seed (`propsForSeries`), solid circles; `steerAround` (a body turns away from one in its path), `clearOfProps` (a target or waypoint inside one moves to its edge), `pushOutOfProps` (after the shoves). |
+| `pickups.ts` | Tricks and treats (fork, `docs/PICKUPS.md`): `pickupsForArea` lays a lightning bolt and an oil slick per 10-yard stretch from the seed, each stretch clear of a fixed set of props (its own and its neighbours') so a pickup lies in the same place whichever area's field shows it. An area's whole field is laid from its first series (`docs/LONG_FIELD.md`). Taking one is `takePickups` in `step.ts`; `RunState.taken` keeps them gone. |
+| `props.ts` | Props on the field: laid per 10-yard stretch from the seed, an area's whole field at once (`propsForArea`: the stretch behind it, its four, and two past the goal line; `areaPropsWithBoss` adds its Boss), solid circles; `steerAround` (a body turns away from one in its path), `clearOfProps` (a target or waypoint inside one moves to its edge), `pushOutOfProps` (after the shoves). |
 | `random.ts`, `vec.ts`, `stats.ts` | Seeded randomness, 2D vectors, stat arithmetic. |
 
 **Determinism:** `step` and `dispatch` copy the state (`cloneRun`: a `structuredClone` of everything but the read-only playbook, which is shared) and return a new one; the input state is never modified. A test runs long seeded runs and checks the invariants (no NaNs, nobody off the field but the carrier).
@@ -128,7 +128,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 - **Voxel meshes:** greedy meshing keeps only visible faces as a few big quads; repeated models share geometry (`getGeometry` caches it), and many copies of a static prop go through an `InstancedMesh`. The turf strip is one instanced mesh.
 - **What's drawn** (`src/arcade/render/`):
   - `world.ts`: yards → world (one unit a yard).
-  - `field.ts`: the turf strip and the series' lines (scrimmage, the gold first-down line).
+  - `field.ts`: the turf strip, the series' lines (scrimmage, the gold first-down line) and the area's end zone, drawn on every down (fork).
   - `bodies.ts`: every player (its kind's model in the team helmet; Golems stretched wide and low, the one linebacker build; Ghosts hovering) and defender, turning to face where they're going and tipping over when down; the rings: gold under the carrier, each receiver's catch range (green open, red covered, gold when the aim line stops on it), and every defender's purple reach.
   - `ball.ts`, `embers.ts`: the pumpkin (it is the QB: there's no QB model), its light, and an instanced pool of embers that drift off it, trail it in flight and burst on throws and catches (the intro and outro each make their own `Embers` around their own Jack).
   - `sweep.ts`: the sweeping aim line, stopping at the first catch or block a throw now would meet (`aimNow`, from the sim's `aimContact`), and the receiver it stops on (`litPlayers`).
@@ -213,7 +213,7 @@ src/content/
 
 - **Each area is data** in `content/defense.ts`: `FOREST`, `CANDY_KINGDOM` and `FARM`, listed in play order in `AREAS` (`areaAt(n)`). An area has an Intro, a Challenge, a Gimmick and a Boss (the same twelve series every run), each a set of defenders at spots relative to the line of scrimmage, and flags for its Boss's gimmick (`frogRain`, `decree`: the Queen's Royal Decree sets `state.banned`, the hand's banned card, at each deal, and `call` refuses it). Every area adds `defense.perArea` to every defender's stats (hard mode: `hard.statsPerZone`, with `hard.extraDefendersPerZone` more defenders a zone up to `hard.maxDefenders`; fork, `docs/DIFFICULTY.md`). Break it!'s difficulty is `breakHardness(area)` in `sim/breakit.ts`: `breakit.byArea`, then past it `perAreaPast` down to `floor` (the floor is for one tackler; each extra tackler still makes it harder).
 - **An area's look:** its `biome` (`forest`, `candy` or `farm`) picks the turf colours (`render/field.ts`), the floor and the sideline props (`render/scenery.ts`), each along the area's own stretch of the long field (`biomeAtYard`); its `looks` give a kind of defender its own model there (the Candy Kingdom's Covers are Gingerbread Men, its Safeties Witches), with the kind's rule unchanged.
-- **The Bosses** aren't defenders: on its series (`boss`) each is a prop in the middle of the end zone (`BOSSES`, `BOSS_SPOT` in `sim/props.ts`); on the run's last series (`home`) `render/fieldProps.ts` lays the pumpkin patch behind the King.
+- **The Bosses** aren't defenders: each is a prop in the middle of its area's end zone (`BOSSES`, `BOSS_SPOT` in `sim/props.ts`), standing there from the area's first series (fork, `docs/LONG_FIELD.md`); its gimmick comes on its own series (`boss`). On the Farm `render/fieldProps.ts` lays the pumpkin patch behind the King.
 - **A new defender kind** is an entry in `DEFENDERS`, a case in `ai.ts`'s `defenderTarget` if it moves in a new way, a model in `render/bodies.ts`'s `DEFENDER_MODEL`, and a balance check.
 
 ---

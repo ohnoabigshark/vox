@@ -40,7 +40,9 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - the event itself, as the sim reported it (since 2026-11-03's record
     branch, `called` carries the play's id, `batted` its target and
     `joined` the recruit's id: `docs/STATS.md`). A `downEnded` line also
-    carries where the line of scrimmage moved to (`next.los`), but not the
+    carries where the line of scrimmage moved to (`next.los`, yards from the
+    area's start since 2026-11-04's long field; from the series' start
+    before), but not the
     next down: the game settles that after the pause, so the next down's own
     lines carry it. (A first version logged the series' down there, which
     was still the down just played; found reading the first real session.)

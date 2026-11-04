@@ -6,7 +6,7 @@
  * prop. A Boss stands in the middle lane, so it's never in the way either.
  */
 import { arcadeTuning } from '../content/tuning';
-import { SERIES_PER_AREA, stretchProps } from './props';
+import { areaStretches, stretchProps } from './props';
 import { rngFor } from './random';
 import type { FieldProp, Pickup, PickupKind } from './types';
 import { dist, v } from './vec';
@@ -15,24 +15,16 @@ const { pickups: tuning, field, series: seriesTuning } = arcadeTuning;
 
 const KINDS: readonly PickupKind[] = ['bolt', 'slick'];
 
-/**
- * The pickups around a series, in its own coordinates (its start line at 0):
- * the stretch behind it, its own and two ahead, as with props.
- */
-export function pickupsForSeries(seed: number, area: number, index: number): Pickup[] {
-  const here = area * SERIES_PER_AREA + index;
-  const out: Pickup[] = [];
-  for (let k = here - 1; k <= here + 2; k++) {
-    if (k < 0) continue;
-    const shift = (k - here) * seriesTuning.distance;
-    out.push(...stretchPickups(seed, k).map((p) => ({ ...p, y: p.y + shift })));
-  }
-  return out;
+/** The pickups of an area's whole field, in its own yards, on the same stretches as its props. */
+export function pickupsForArea(seed: number, area: number): Pickup[] {
+  return areaStretches(area).flatMap(({ stretch, shift }) =>
+    stretchPickups(seed, stretch).map((p) => ({ ...p, y: p.y + shift })),
+  );
 }
 
 /**
  * One stretch's bolt and slick (y from 0 to 10 within it), clear of its own
- * props and its neighbours', so it lies in the same place whichever series is
+ * props and its neighbours', so it lies in the same place whichever area's field is
  * showing it. Ids are unique in the run.
  */
 function stretchPickups(seed: number, k: number): Pickup[] {

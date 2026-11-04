@@ -26,7 +26,7 @@ import {
 } from '../../src/arcade/sim/breakit';
 import { canThrow, forceBreakKind, step } from '../../src/arcade/sim/step';
 import { pathXAt } from '../../src/arcade/sim/ai';
-import { propsForSeries } from '../../src/arcade/sim/props';
+import { propsForArea } from '../../src/arcade/sim/props';
 import { DT } from '../../src/arcade/content/tuning';
 import type { ArcadeEvent, Phase, RunState } from '../../src/arcade/sim/types';
 import { dist, v } from '../../src/arcade/sim/vec';
@@ -731,7 +731,7 @@ describe('series and the run', () => {
   it('a won series lines up the next one, waiting for the move on', () => {
     const s = winSeries(createRun(3));
     expect(s.phase).toBe('draft');
-    expect(s.series).toMatchObject({ index: 1, kind: 'challenge', down: 1, los: 0 });
+    expect(s.series).toMatchObject({ index: 1, kind: 'challenge', down: 1, los: 10 });
     expect(dispatch(s, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 
@@ -1065,8 +1065,8 @@ describe('props on the field', () => {
 
   it('are laid the same for a seed, out of the middle lane, in from the sidelines, with room between', () => {
     for (let seed = 1; seed <= 30; seed++) {
-      const props = propsForSeries(seed, seed % 2, seed % 4);
-      expect(propsForSeries(seed, seed % 2, seed % 4)).toEqual(props);
+      const props = propsForArea(seed, seed % 2);
+      expect(propsForArea(seed, seed % 2)).toEqual(props);
       expect(props.length).toBeGreaterThan(0);
       for (const p of props) {
         expect(Math.abs(p.x) - p.radius).toBeGreaterThanOrEqual(
@@ -1075,9 +1075,9 @@ describe('props on the field', () => {
         expect(Math.abs(p.x) + p.radius).toBeLessThanOrEqual(arcadeTuning.field.halfWidth);
       }
     }
-    // Each area lays its own along its own stretch: the Candy Kingdom's first ten yards are candy,
-    // and the stretch behind its first series is still the Forest's.
-    const first = propsForSeries(1, 1, 0);
+    // Each area lays its own along its own stretches: the Candy Kingdom's first ten yards are candy,
+    // and the stretch behind its start is still the Forest's.
+    const first = propsForArea(1, 1);
     const own = first.filter((p) => p.y >= 0 && p.y < 10);
     expect(own.length).toBeGreaterThan(0);
     expect(own.every((p) => p.model.startsWith('candyProps/'))).toBe(true);
@@ -1119,7 +1119,7 @@ describe('the Farm', () => {
     expect(s.series.name).toBe("The King's Patch");
   });
 
-  it('the King stands guard on the last series: a prop, not a defender, past the first-down line', () => {
+  it('the King stands guard past the goal line: a prop, not a defender, there from the area’s first series', () => {
     const s = createRun(5, startingRoster(), 2);
     setUpSeries(s, 2, 3, [], true);
     const king = s.field.props.find((p) => p.model === 'bosses/king');
@@ -1127,9 +1127,9 @@ describe('the Farm', () => {
     expect(king!.x).toBe(0);
     expect(king!.y).toBeGreaterThan(s.series.firstDown);
     expect(s.field.defenders.some((d) => (d.kind as string) === 'king')).toBe(false);
-    // Only on the last series.
-    setUpSeries(s, 2, 2, [], true);
-    expect(s.field.props.some((p) => p.model === 'bosses/king')).toBe(false);
+    // In his end zone the whole area (docs/LONG_FIELD.md, a2), not only on his own series.
+    setUpSeries(s, 2, 0, [], true);
+    expect(s.field.props.find((p) => p.model === 'bosses/king')).toEqual(king);
   });
 
   it('a Crow patrols a lane up and down the field', () => {

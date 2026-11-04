@@ -128,6 +128,13 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 
 ## The field
 
+- **Goal line** and **end zone:** the area's last line, 40 yards from its
+  start, and the 10 yards past it where its Boss stands. A down that gets
+  the ball over the goal line is a touchdown. Since the long field
+  (`docs/LONG_FIELD.md`) the sim measures yards from the area's start, and
+  the end zone shows on every down. In code, `AREA_YARDS` and `BOSS_SPOT`.
+  The **long field** _(ours)_ is that change's name, not a thing on the
+  field.
 - **Prop:** a solid object on the field that bodies steer around, such as a
   Scarecrow (`sim/props.ts`).
 - **Pickup** _(ours)_: an object one of your players **takes** by running

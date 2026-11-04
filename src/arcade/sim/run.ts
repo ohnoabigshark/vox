@@ -11,10 +11,10 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
-import { pickupsForSeries } from './pickups';
+import { pickupsForArea } from './pickups';
 import { placeEvent } from './fieldEvents';
 import { fieldEventById, type DefaultEventId, type FieldEvent } from '../content/fieldEvents';
-import { BOSS_SPOT, seriesPropsWithBoss } from './props';
+import { BOSS_SPOT, areaPropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
   applyPerk,
@@ -205,7 +205,8 @@ export function createRun(
 }
 
 /**
- * Start a series: the line of scrimmage at 0, 1st & 10, the defense lined up.
+ * Start a series: the line of scrimmage at its stretch's start (yards from
+ * the area's start, docs/LONG_FIELD.md), 1st & 10, the defense lined up.
  * With `ready`, the first down is set up straight away; without, it waits
  * for the player to move on (after a won series: the upgrade pick comes first).
  */
@@ -217,7 +218,7 @@ export function setUpSeries(
   ready: boolean,
 ): void {
   const spec = seriesDefense(state, area, index);
-  const start = 0;
+  const start = index * arcadeTuning.series.distance;
   state.perks.secondWindUsed = false;
   state.series = {
     area,
@@ -229,14 +230,15 @@ export function setUpSeries(
     down: 1,
     los: start,
   };
-  const props = seriesPropsWithBoss(state.seed, area, index, spec.boss);
+  // The whole area's field, its Boss in his end zone from the first series (a2).
+  const props = areaPropsWithBoss(state.seed, area, areaAt(area).boss.boss);
   state.field = {
     ...state.field,
     props,
     // Practice tests the play by itself (map item k8); a pickup taken never comes back (k3).
     pickups: state.practice
       ? []
-      : pickupsForSeries(state.seed, area, index).filter((p) => !state.taken.includes(p.id)),
+      : pickupsForArea(state.seed, area).filter((p) => !state.taken.includes(p.id)),
   };
   events.push({ type: 'seriesStarted', index, name: spec.name });
   setUpDown(state, events);
@@ -478,8 +480,8 @@ export function endDown(
   const carried = ended === 'tackled' || ended === 'outOfBounds';
   const result: DownResult = carried && newLos >= series.firstDown ? 'firstDown' : ended;
   const wanted = result === 'firstDown' ? Math.max(newLos, series.firstDown) : newLos;
-  // Never behind the series' start (there's no room for the QB).
-  const los = Math.max(series.start, wanted);
+  // A loss counts on any down, back to a floor behind the area's start (docs/LONG_FIELD.md, a3).
+  const los = Math.max(-arcadeTuning.series.furthestBack, wanted);
   const gained = los - series.los;
   series.los = los;
   state.yards += gained;
