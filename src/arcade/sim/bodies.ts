@@ -24,13 +24,21 @@ export function steps(stat: number): number {
   return (stat - arcadeTuning.body.statBase) / arcadeTuning.body.statStep;
 }
 
+/**
+ * The yards of reach Hands gives over ordinary Hands (50): a quarter-yard a
+ * 10. It also counts as nearness in a contested lob (Hands on a lob, h1).
+ */
+export function handsReach(hands: number): number {
+  return arcadeTuning.body.reach.perHands * steps(hands);
+}
+
 /** The physics a set of stats gives a body. */
 export function physicsOf(stats: Stats): { mass: number; speed: number; reach: number } {
   const b = arcadeTuning.body;
   return {
     mass: b.mass.perHeft ** steps(stats.heft),
     speed: Math.max(b.speed.min, b.speed.base + b.speed.perHustle * steps(stats.hustle)),
-    reach: Math.max(b.reach.min, b.reach.base + b.reach.perHands * steps(stats.hands)),
+    reach: Math.max(b.reach.min, b.reach.base + handsReach(stats.hands)),
   };
 }
 
