@@ -277,9 +277,11 @@ What it says:
 
 All approved, 2026-11-04.
 
-- **The picks are counted** (n1, m2): the balance report counts the
-  TRICK OR TREAT! picks a run takes before each area, to test whether more
-  picks explain the passing runs' easier later areas. Built on
+- **The picks are counted** (n1, m2): the balance report gives, for each
+  area, the draft picks (TRICK OR TREAT!) a run has taken by its first snap
+  there, averaged over the runs that reach it (`PickWatch` in
+  `tools/balanceCount.ts`). It tests whether more picks explain the passing
+  runs' easier later areas. Built on
   `difficulty-3` before it merges; the game doesn't change.
 - **The mischief bolt: `difficulty-4`** (b1–b6), on its own branch after
   `difficulty-3` merges, measured on its own and played before it merges.

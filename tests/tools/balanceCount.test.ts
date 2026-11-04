@@ -149,33 +149,41 @@ describe('balance counts for the long field', () => {
     expect(w.downs.map((d) => d.pastLast)).toEqual([0, null]);
   });
 
-  it('6: a TRICK OR TREAT! pick counts toward the area of the series it’s taken in front of (n1)', () => {
-    const w = new PickWatch();
-    const draftIn = (area: number): RunState => {
-      const s = down({ area });
-      s.phase = 'draft';
-      return s;
-    };
-    const perk: Perk = { rarity: 'common', kind: 'extraSweep' };
-    w.step(draftIn(0), [{ type: 'perk', perk }]);
-    // A new player is one pick, though it brings a `joined` too.
-    w.step(draftIn(1), [
-      { type: 'perk', perk },
-      { type: 'joined', id: 9, name: 'Example', slot: 2, replaced: null },
-    ]);
-    w.step(draftIn(1), [{ type: 'perk', perk }]);
-    // Winning a series isn't a pick.
-    w.step(draftIn(2), [{ type: 'seriesWon', stretch: 0 }]);
-
-    expect([...w.byArea.entries()]).toEqual([
-      [0, 1],
-      [1, 2],
-    ]);
-  });
-
   it('5: series won spread: the worst tenth, the median, the top tenth and the best', () => {
     const perRun = [7, 2, 9, 4, 12, 5, 6, 3, 8, 10];
     expect(seriesSpread(perRun)).toEqual({ p10: 3, median: 7, p90: 12, best: 12 });
     expect(seriesSpread([])).toEqual({ p10: 0, median: 0, p90: 0, best: 0 });
+  });
+
+  it('6: the draft picks a run has taken when it first snaps the ball in each area, among runs that reach it (n1)', () => {
+    const w = new PickWatch();
+    const inArea = (area: number): RunState => down({ area });
+    const perk: Perk = { rarity: 'common', kind: 'extraSweep' };
+    // A run that reaches area 3.
+    w.step(inArea(0), [{ type: 'snapped' }]);
+    w.step(inArea(0), [{ type: 'perk', perk }]);
+    // The draft after a touchdown is in front of the next area's first series; a new player is one pick, though it brings a `joined` too.
+    w.step(inArea(1), [
+      { type: 'perk', perk },
+      { type: 'joined', id: 9, name: 'Example', slot: 2, replaced: null },
+    ]);
+    w.step(inArea(1), [{ type: 'snapped' }]);
+    // Only the area's first snap counts.
+    w.step(inArea(1), [{ type: 'perk', perk }]);
+    w.step(inArea(1), [{ type: 'snapped' }]);
+    // Winning a series isn't a pick.
+    w.step(inArea(1), [{ type: 'seriesWon', stretch: 0 }]);
+    w.step(inArea(2), [{ type: 'snapped' }]);
+    w.endRun();
+    // A run that never leaves area 1.
+    w.step(inArea(0), [{ type: 'snapped' }]);
+    w.step(inArea(0), [{ type: 'perk', perk }]);
+    w.endRun();
+
+    expect([...w.onEntering.entries()]).toEqual([
+      [0, [0, 0]],
+      [1, [2]],
+      [2, [3]],
+    ]);
   });
 });

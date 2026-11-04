@@ -179,7 +179,7 @@ interface Tally {
   tipResults: Map<string, number>;
   /** Every down summed up, for long plays (docs/DIFFICULTY.md, "The long field"). */
   watch: DownWatch;
-  /** TRICK OR TREAT! picks by area (docs/DIFFICULTY.md, n1). */
+  /** Draft picks taken by the time each area is reached (docs/DIFFICULTY.md, n1). */
   picks: PickWatch;
 }
 
@@ -477,6 +477,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       const hiked = dispatch(called, { type: 'hike' });
       count(t, hiked.events, state, ran);
       t.watch.step(state, hiked.state, hiked.events);
+      t.picks.step(state, hiked.events);
       state = hiked.state;
       continue;
     }
@@ -485,8 +486,10 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     if (r.events.some((e) => e.type === 'seriesWon')) bump(t.wins, key);
     count(t, r.events, state, ran);
     t.watch.step(state, r.state, r.events);
+    t.picks.step(state, r.events);
     state = r.state;
   }
+  t.picks.endRun();
   t.runs++;
   t.seriesWon += state.seriesWon;
   t.perRun.push(state.seriesWon);
@@ -576,11 +579,13 @@ function report(scenario: Scenario, t: Tally): void {
   }
   longPlays(t.watch.downs);
   {
-    const areas = [...t.picks.byArea.entries()].sort((a, b) => a[0] - b[0]);
-    const each = areas.map(([area, n]) => `area ${area + 1} ${(n / t.runs).toFixed(1)}`);
-    console.log(
-      `  TRICK OR TREAT! picks a run, in front of each area's series: ${each.join(' · ') || 'none'}`,
-    );
+    const each = [...t.picks.onEntering.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([area, held]) => {
+        const mean = held.reduce((a, n) => a + n, 0) / held.length;
+        return `area ${area + 1} ${mean.toFixed(1)} (${held.length} runs)`;
+      });
+    console.log(`  draft picks taken on reaching each area: ${each.join(' · ')}`);
   }
   console.log('  downs from each stretch that won a series:');
   [0, 1, 2].forEach((area) => {

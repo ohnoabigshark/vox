@@ -106,21 +106,32 @@ function clearOf(state: RunState): number | null {
 }
 
 /**
- * TRICK OR TREAT! picks by area (difficulty map n1): each counts toward the
- * area of the series it's taken in front of, which is already lined up. A
- * defense that stops long plays means more series won, and so more picks,
- * before the later areas.
+ * Draft picks (TRICK OR TREAT!; difficulty map n1): how many a run has taken
+ * when it first snaps the ball in each area, among the runs that get there.
+ * A defense that stops long plays means more series won, and so more picks,
+ * before the later areas. Feed it every step's events, then `endRun`.
  */
 export class PickWatch {
-  readonly byArea = new Map<number, number>();
+  /** For each area, one count a run that reached it: the picks it had taken by its first snap there. */
+  readonly onEntering = new Map<number, number[]>();
+  private taken = 0;
+  private reached = -1;
 
-  /** Feed it the state a pick is made in and that step's events. */
+  /** `state` is the state the step started from (its series is the one being drafted for or snapped). */
   step(state: RunState, events: readonly ArcadeEvent[]): void {
+    const { area } = state.series;
     for (const e of events) {
-      if (e.type !== 'perk') continue;
-      const { area } = state.series;
-      this.byArea.set(area, (this.byArea.get(area) ?? 0) + 1);
+      if (e.type === 'perk') this.taken++;
+      if (e.type === 'snapped' && area > this.reached) {
+        this.reached = area;
+        this.onEntering.set(area, [...(this.onEntering.get(area) ?? []), this.taken]);
+      }
     }
+  }
+
+  endRun(): void {
+    this.taken = 0;
+    this.reached = -1;
   }
 }
 
