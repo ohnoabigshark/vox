@@ -333,9 +333,14 @@ Open, for when the first new theme or set is planned:
     aiming already comes from the same rule, so it follows); the 2-yard
     catch circle for everyone.
   - **Built** on one branch, `lob-hands`, tests first (b1), reviewed, and
-    played in two-tap before it merges (b2). Built 2026-11-04:
-    `lobNearness` in `sim/ball.ts`, with `handsReach` in `sim/bodies.ts`
-    the one rate.
+    played in two-tap before it merges (b2). Built 2026-11-04: `handsEdge`
+    and `nearness` in `sim/ball.ts`, with `handsReach` in `sim/bodies.ts`
+    the one rate. The review found a catch test's BAD batted by the first
+    defender on the field rather than the rule's first; fixed, bullets too.
+  - **Round 2**, decided the same day from the review: the Hands edge counts
+    at most a yard either way (n2, `twoTap.handsEdgeCap`), since hard mode's
+    defenders gain 20 Hands a zone; your player who goes for the lob is still
+    simply your nearest (n1 rejected), not the one Hands would favour.
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
