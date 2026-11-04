@@ -70,7 +70,6 @@ import { PlayLogSender } from './log/playLogSender';
 import type {
   Action,
   ArcadeEvent,
-  Series,
   Player,
   RosterPlayer,
   RunState,
@@ -288,7 +287,7 @@ export class ArcadeGame {
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
     this.state = this.newRun();
-    this.origin = this.startOrigin();
+    this.lineUpCamera();
     this.view = new View(canvas, { fov: 50 });
     const { scene } = this.view;
     scene.add(createArcadeTurf());
@@ -503,13 +502,13 @@ export class ArcadeGame {
 
   private after(events: readonly ArcadeEvent[], prev: RunState): void {
     // A cleared area marches on: the next area's 0 is the old one's goal line (not after the last),
-    // so the camera keeps its place on the field. Hard mode's zones come round onto the same
-    // stretch of field (originOf), which looks the same.
+    // so the camera keeps its place relative to the field. Hard mode's zones come round onto the
+    // same stretch of the long strip (areaOrigin), which looks the same.
     if (events.some((e) => e.type === 'seriesWon') && this.state.phase !== 'won') {
       if (this.state.series.area !== prev.series.area) {
         this.focus = v(this.focus.x, this.focus.y - AREA_YARDS);
       }
-      this.origin = this.originOf(this.state.series);
+      this.origin = areaOrigin(this.state.series.area);
     }
     // The outro asks the keeper whether a played run is being recorded (its card comes, or the
     // song at once), so it starts before the keeper sees the win and closes the run.
@@ -892,7 +891,6 @@ export class ArcadeGame {
       } finally {
         this.renewing = false;
       }
-      this.focus = v(0, -4);
       this.statsScreens?.hideCard();
       this.statsScreens?.closePanel();
     }
@@ -904,7 +902,7 @@ export class ArcadeGame {
     const sketches = this.sketchesInGame ? await this.sketchesInGame().catch(unreadSketches) : [];
     this.state = this.newRun(sketches);
     this.stats?.start(this.state);
-    this.origin = this.startOrigin();
+    this.lineUpCamera();
     this.bodies.sync(this.state);
   }
 
@@ -932,13 +930,10 @@ export class ArcadeGame {
     });
   }
 
-  private startOrigin(): number {
-    return this.originOf(this.state.series);
-  }
-
-  /** Where a series' yard 0 (its area's start) sits on the long field. */
-  private originOf(series: Series): number {
-    return areaOrigin(series.area);
+  /** The camera on a new run: its area placed on the long strip, looking from behind the line of scrimmage. */
+  private lineUpCamera(): void {
+    this.origin = areaOrigin(this.state.series.area);
+    this.focus = v(0, this.state.series.los - 4);
   }
 
   /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */
@@ -954,7 +949,7 @@ export class ArcadeGame {
     s.seriesWon = arcadeTuning.run.areas * SERIES_KINDS.length;
     s.phase = 'won';
     this.state = s;
-    this.origin = this.originOf(s.series);
+    this.lineUpCamera();
     this.bodies.sync(s);
     this.fieldProps.update(s, this.origin);
     this.startOutro();

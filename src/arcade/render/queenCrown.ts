@@ -1,5 +1,5 @@
 /**
- * The Queen's crown (her series), just for looks: it glows purple, pulsing
+ * The Queen's crown (the Candy Kingdom, where she stands in the end zone), just for looks: it glows purple, pulsing
  * slowly, and lights the field around her. It does nothing to the game.
  */
 import * as THREE from 'three';

@@ -305,7 +305,7 @@ export interface Series {
   readonly index: number;
   readonly kind: SeriesKind;
   readonly name: string;
-  /** Where the series started (always 0) and the line it has to cross (10). */
+  /** Where the series started (10 yards a series into its area) and the line it has to cross (10 on). */
   readonly start: number;
   readonly firstDown: number;
   down: number;

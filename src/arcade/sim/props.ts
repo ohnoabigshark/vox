@@ -30,25 +30,25 @@ export const AREA_YARDS = SERIES_PER_AREA * seriesTuning.distance;
  * with its shift onto the area's own yards (its start at 0): the one behind
  * it, its own four, and two past the goal line.
  */
-export function areaStretches(area: number): { k: number; shift: number }[] {
+export function areaStretches(area: number): { stretch: number; shift: number }[] {
   const first = area * SERIES_PER_AREA;
-  const out: { k: number; shift: number }[] = [];
+  const out: { stretch: number; shift: number }[] = [];
   for (let k = first - 1; k <= first + SERIES_PER_AREA + 1; k++) {
-    if (k >= 0) out.push({ k, shift: (k - first) * seriesTuning.distance });
+    if (k >= 0) out.push({ stretch: k, shift: (k - first) * seriesTuning.distance });
   }
   return out;
 }
 
 /** The props of an area's whole field, in its own yards (docs/LONG_FIELD.md, a2). */
 export function propsForArea(seed: number, area: number): FieldProp[] {
-  return areaStretches(area).flatMap(({ k, shift }) =>
-    stretchProps(seed, k).map((p) => ({ ...p, y: p.y + shift })),
+  return areaStretches(area).flatMap(({ stretch, shift }) =>
+    stretchProps(seed, stretch).map((p) => ({ ...p, y: p.y + shift })),
   );
 }
 
 /**
- * The Bosses: each stands guard in the middle of its series' end zone, just
- * past the first-down line, drawn twice its model's size
+ * The Bosses: each stands guard in the middle of its area's end zone, just
+ * past the goal line, there from the area's first series (docs/LONG_FIELD.md), drawn twice its model's size
  * (render/fieldProps.ts). In play each is only a prop: it never moves,
  * tackles or defends; its ability is the whole fight.
  */

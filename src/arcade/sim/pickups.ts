@@ -17,14 +17,14 @@ const KINDS: readonly PickupKind[] = ['bolt', 'slick'];
 
 /** The pickups of an area's whole field, in its own yards, on the same stretches as its props. */
 export function pickupsForArea(seed: number, area: number): Pickup[] {
-  return areaStretches(area).flatMap(({ k, shift }) =>
-    stretchPickups(seed, k).map((p) => ({ ...p, y: p.y + shift })),
+  return areaStretches(area).flatMap(({ stretch, shift }) =>
+    stretchPickups(seed, stretch).map((p) => ({ ...p, y: p.y + shift })),
   );
 }
 
 /**
  * One stretch's bolt and slick (y from 0 to 10 within it), clear of its own
- * props and its neighbours', so it lies in the same place whichever series is
+ * props and its neighbours', so it lies in the same place whichever area's field is
  * showing it. Ids are unique in the run.
  */
 function stretchPickups(seed: number, k: number): Pickup[] {

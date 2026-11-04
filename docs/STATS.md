@@ -299,9 +299,12 @@ Settled while building, beyond the map:
   an incomplete is a throwaway; only `batted` carries a target (t1 had both).
 - **Who tackled them is the defender's kind** (`tackledBy`): a defender is
   new each down, so there's no one to name.
-- **A tackle for loss is where the ball lay**, behind the line, even when
-  the line can't go back past the series' start and the game counts the
-  loss as 0 yards.
+- **A tackle for loss is where the ball lay**, behind the line. (Until the
+  long field's part 1, 2026-11-04, the line couldn't go back past the
+  series' start, and the game counted such a loss as 0 yards.)
+- **A down's `los` is yards from the area's start** since the long field
+  (`docs/LONG_FIELD.md`), from the series' start before it. Records from
+  before then mean the other; nothing reads them back.
 - **A rush is a handoff with no throw;** a sack is a sack whoever caused it
   (the pocket, the King's crows).
 - **Yards are kept as the sim measures them,** to the fraction; the screens

@@ -231,8 +231,7 @@ export function setUpSeries(
     los: start,
   };
   // The whole area's field, its Boss in his end zone from the first series (a2).
-  const { boss } = seriesDefense(state, area, SERIES_KINDS.length - 1);
-  const props = areaPropsWithBoss(state.seed, area, boss);
+  const props = areaPropsWithBoss(state.seed, area, areaAt(area).boss.boss);
   state.field = {
     ...state.field,
     props,

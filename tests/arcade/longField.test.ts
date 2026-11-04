@@ -92,7 +92,12 @@ describe('the long field, part 1', () => {
           ).toBe(true);
         }
       }
-      expect(props.find((p) => p.id === -1)).toMatchObject({ x: 0, y: BOSS_SPOT.y });
+      const boss = props.find((p) => p.id === -1);
+      expect(boss && { model: boss.model, x: boss.x, y: boss.y }).toEqual({
+        model: 'bosses/misterFrog',
+        x: 0,
+        y: BOSS_SPOT.y,
+      });
       expect(BOSS_SPOT.y).toBeGreaterThan(AREA_YARDS);
       expect(s.field.pickups).toEqual(pickupsForArea(seed, 0));
       for (let k = 0; k < 4; k++) {
