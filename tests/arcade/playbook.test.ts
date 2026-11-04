@@ -40,20 +40,21 @@ describe("a run's playbook", () => {
     // Recorded from the game before runs carried a playbook (2026-10-29), when
     // the pool was his five plays, to show playbooks changed no deal; ours
     // joined it on 2026-10-31. Re-recorded
-    // 2026-11-04 when the patrols ahead took body ids: each down's deal is
-    // seeded by the next id (docs/DIFFICULTY.md, "The long field").
+    // 2026-11-04 when the patrols ahead took body ids, and again when the
+    // Forest's second Owl did: each down's deal is seeded by the next id
+    // (docs/DIFFICULTY.md, "The long field").
     const his = { playbook: PLAYS };
     expect(firstHands(createRun(1, undefined, 0, his))).toEqual([
       ['slants', 'deepShot', 'sweep'],
-      ['sweep', 'dive', 'slants'],
-      ['slants', 'dive', 'deepShot'],
-      ['deepShot', 'slants', 'sweep'],
+      ['slants', 'deepShot', 'sweep'],
+      ['sweep', 'curlFlat', 'dive'],
+      ['deepShot', 'curlFlat', 'slants'],
     ]);
     expect(firstHands(createRun(7, undefined, 0, his))).toEqual([
       ['curlFlat', 'dive', 'sweep'],
-      ['dive', 'deepShot', 'curlFlat'],
-      ['curlFlat', 'deepShot', 'sweep'],
-      ['sweep', 'dive', 'curlFlat'],
+      ['curlFlat', 'sweep', 'slants'],
+      ['deepShot', 'dive', 'sweep'],
+      ['slants', 'sweep', 'dive'],
     ]);
   });
 
