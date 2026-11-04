@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DT } from '../../src/arcade/content/tuning';
+import { arcadeTuning, DT } from '../../src/arcade/content/tuning';
 import { lobLanding } from '../../src/arcade/sim/ball';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, DefenderKind, RunState } from '../../src/arcade/sim/types';
@@ -129,5 +129,17 @@ describe('Hands on a lob', () => {
     expect(r.state.tip).toBeNull();
     expect(ofType(r.events, 'caught').map((e) => e.id)).toEqual([2]);
     expect(ofType(r.events, 'batted')).toEqual([]);
+  });
+
+  it('n2: Hands count for at most a yard either way', () => {
+    expect(arcadeTuning.twoTap.handsEdgeCap).toBe(1);
+    // A hard-mode Gnome with 150 Hands two yards off: uncapped it counts as -0.5 and beats
+    // your catcher half a yard off; capped at a yard it counts as 1.0, and you catch it.
+    expect(lobAt({ away: 0.5, hands: 50 }, [{ away: 2, hands: 150 }]).kind).toBe('caught');
+    expect(lobAt({ away: 0.9, hands: 50 }, [{ away: 2, hands: 150 }]).kind).toBe('caught');
+    expect(lobAt({ away: 1.1, hands: 50 }, [{ away: 2, hands: 150 }]).kind).toBe('batted');
+    // And the other way: your 130 Hands count a yard, not two, against a Gnome (50) 0.4 off.
+    expect(lobAt({ away: 1.5, hands: 130 }, [{ away: 0.4 }]).kind).toBe('batted');
+    expect(lobAt({ away: 1.3, hands: 130 }, [{ away: 0.4 }]).kind).toBe('caught');
   });
 });

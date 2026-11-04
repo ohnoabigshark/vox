@@ -93,6 +93,12 @@ export const tuningDefaults = {
     lobSpeed: 15,
     /** …and your player nearest where it comes down, within this (yards), catches it (they run to it as it flies). */
     catchRadius: 2,
+    /**
+     * …and in a contest for it each 10 Hands counts as a quarter-yard nearer
+     * (reach's rate), the difference counting at most this far either way
+     * (yards), so hard mode's late defenders can't win every lob they reach.
+     */
+    handsEdgeCap: 1,
   },
   sweep: {
     /** The aim line sweeps this far either side of straight upfield (degrees)… */
