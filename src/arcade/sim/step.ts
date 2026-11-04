@@ -301,7 +301,8 @@ function tipDrill(state: RunState, input: StepInput, events: ArcadeEvent[]): voi
  * A catch test's grade, the same for both (docs/TIP.md, t4). GREAT: caught,
  * and the defenders reaching for it go flying, so the receiver runs free.
  * OK: caught, and tackled on the spot, unless caught past the line, which wins
- * the series (B6). BAD: batted down by the first of them.
+ * the series (B6). BAD: batted down by the first of them, in the order the
+ * contest put them (the one its rule pits against the receiver).
  */
 function catchGraded(
   state: RunState,
@@ -311,7 +312,9 @@ function catchGraded(
 ): void {
   state.phase = 'play';
   const receiver = state.field.players.find((p) => p.id === t.receiver);
-  const defenders = state.field.defenders.filter((d) => t.defenders.includes(d.id));
+  const defenders = t.defenders.flatMap(
+    (id) => state.field.defenders.find((d) => d.id === id) ?? [],
+  );
   const first = defenders[0];
   if (grade === 'bad' || !receiver) {
     const at = first?.pos ?? receiver?.pos ?? v(0, state.series.los);
