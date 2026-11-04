@@ -12,6 +12,7 @@ import {
   type EarnedSet,
 } from '../record/achievements';
 import { SERIES_PER_AREA } from '../sim/props';
+import { defenseFor } from '../sim/run';
 import type { Play } from '../content/plays';
 import type { Form, Grade } from '../sim/types';
 import {
@@ -141,12 +142,10 @@ const day = (iso: string): string =>
  */
 function where(reached: RunRecord['reached']): string {
   const round = Math.floor(reached.area / AREAS.length) + 1;
-  const area = areaAt(reached.area);
-  const stretches = [area.intro, area.challenge, area.gimmick, area.boss];
   return [
-    area.name,
+    areaAt(reached.area).name,
     ...(round > 1 ? [`round ${round}`] : []),
-    stretches[reached.index % SERIES_PER_AREA]?.name ?? '',
+    defenseFor(reached.area, reached.index % SERIES_PER_AREA).name,
   ].join(' · ');
 }
 

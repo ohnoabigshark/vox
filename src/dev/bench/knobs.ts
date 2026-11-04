@@ -85,8 +85,8 @@ export const KNOBS: readonly Knob[] = [
   // and when they start and the box's linger on the tip drill's tab too (g6).
   catchMore('fromStretch', 'Catch tests from stretch', 'count', ['snag', 'tip']),
   catchMore('chance', 'Contested balls that get one', 'share', ['snag', 'tip']),
-  catchMore('fasterAfter', 'Quicker after series', 'count'),
-  catchMore('perSeries', 'Quicker each series by', 'share'),
+  catchMore('fasterAfter', 'Quicker after stretch', 'count'),
+  catchMore('perSeries', 'Quicker each stretch by', 'share'),
   catchMore('floor', 'No quicker than', 'share'),
   catchMore('minCount', 'Fewest dots', 'count'),
   catchMore('maxCount', 'Most dots', 'count'),

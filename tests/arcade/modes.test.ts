@@ -21,7 +21,7 @@ import { ofType, playState, run, stand, throwAt } from './helpers';
 const winSeries = (s: RunState): RunState => {
   const t = structuredClone(s);
   const events: ArcadeEvent[] = [];
-  endDown(t, 'firstDown', t.series.firstDown, events);
+  endDown(t, 'tackled', t.series.firstDown, events);
   nextDown(t, events);
   if (t.phase !== 'draft') return t;
   const picked = dispatch(t, { type: 'pick', offer: 0 }).state;
@@ -100,7 +100,7 @@ describe('hard mode', () => {
   it('TRICK OR TREAT! lets you set your lineup', () => {
     const s = createRun(3, undefined, 0, { hard: true });
     const events: ArcadeEvent[] = [];
-    endDown(s, 'firstDown', s.series.firstDown, events);
+    endDown(s, 'tackled', s.series.firstDown, events);
     nextDown(s, events);
     expect(s.phase).toBe('draft');
     expect(dispatch(s, { type: 'pick', offer: 0 }).state.phase).toBe('draft');

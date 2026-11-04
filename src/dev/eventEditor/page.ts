@@ -13,7 +13,7 @@ import {
   type FieldEvent,
   type Who,
 } from '../../arcade/content/fieldEvents';
-import { MAX_SERIES, eventPracticeQuery } from '../../arcade/content/eventLink';
+import { MAX_STRETCH, eventPracticeQuery } from '../../arcade/content/eventLink';
 import { bossStretch } from '../../arcade/sim/run';
 import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
@@ -109,9 +109,9 @@ function loadTwoTap(): boolean {
 }
 let twoTap = loadTwoTap();
 
-/** The series Try it plays at: the Boss's own series for a Boss's event, else the second. */
-const seriesFor = (e: FieldEvent): number => (e.boss ? bossStretch(e.boss) : 2);
-const trySeries = new Map<string, number>();
+/** The stretch Try it plays at, from its start: the Boss's own for a Boss's event, else the second. */
+const stretchFor = (e: FieldEvent): number => (e.boss ? bossStretch(e.boss) : 2);
+const tryStretch = new Map<string, number>();
 
 function tryIt(event: FieldEvent): void {
   try {
@@ -122,8 +122,8 @@ function tryIt(event: FieldEvent): void {
       true,
     );
   }
-  const series = trySeries.get(event.id) ?? seriesFor(event);
-  location.href = `${new URL('../', location.href).href}?${eventPracticeQuery(event, series, twoTap)}`;
+  const stretch = tryStretch.get(event.id) ?? stretchFor(event);
+  location.href = `${new URL('../', location.href).href}?${eventPracticeQuery(event, stretch, twoTap)}`;
 }
 
 /** The event tried last, if it's this one and can still be read. */
@@ -646,26 +646,26 @@ function callRow(e: Editing): HTMLElement {
  */
 function tryRow(event: FieldEvent, now: () => FieldEvent): HTMLElement {
   const id = event.id;
-  const range = { min: 1, max: MAX_SERIES, step: 1 };
-  const own = seriesFor(event);
-  const series = slider('Try at series', range, {
+  const range = { min: 1, max: MAX_STRETCH, step: 1 };
+  const own = stretchFor(event);
+  const series = slider('Try at stretch', range, {
     onMove: (v) => {
-      trySeries.set(id, v);
+      tryStretch.set(id, v);
       showSeries();
     },
     onReset: () => {
-      trySeries.delete(id);
+      tryStretch.delete(id);
       showSeries();
     },
   });
   const showSeries = (): void => {
-    const v = trySeries.get(id) ?? own;
+    const v = tryStretch.get(id) ?? own;
     series.show({
       value: v,
       shown: String(v),
       at: fractionOf(v, range),
       tick: fractionOf(own, range),
-      note: event.boss ? `its Boss's series is ${own}` : `default ${own}`,
+      note: event.boss ? `its Boss's stretch is ${own}` : `default ${own}`,
       atDefault: v === own,
     });
   };

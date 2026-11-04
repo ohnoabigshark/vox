@@ -22,23 +22,23 @@ const made: FieldEvent = {
 };
 
 describe('the Try it link (test 8)', () => {
-  it('carries the event itself, the series and the throwing, and reads back the same', () => {
+  it('carries the event itself, the stretch and the throwing, and reads back the same', () => {
     const q = eventPracticeQuery(made, 6, true);
     const params = new URLSearchParams(q);
-    expect(params.get('series')).toBe('6');
+    expect(params.get('stretch')).toBe('6');
     expect(params.get('aim')).toBe('2');
     expect(new URLSearchParams(eventPracticeQuery(made, 6, false)).get('aim')).toBe('1');
-    expect(readEventPractice(`?${q}`)).toEqual({ event: { ok: true, event: made }, series: 6 });
+    expect(readEventPractice(`?${q}`)).toEqual({ event: { ok: true, event: made }, stretch: 6 });
   });
 
   it('a link it can’t read says why; with no event it’s an ordinary game', () => {
-    expect(readEventPractice('?event=nope&series=2')).toEqual({
+    expect(readEventPractice('?event=nope&stretch=2')).toEqual({
       event: { ok: false, reason: 'This event link is broken.' },
-      series: 2,
+      stretch: 2,
     });
     const bad = new URLSearchParams({
       event: JSON.stringify({ ...made, lasts: 'x' }),
-      series: '2',
+      stretch: '2',
     });
     expect(readEventPractice(`?${bad}`)?.event).toEqual({
       ok: false,
@@ -47,17 +47,20 @@ describe('the Try it link (test 8)', () => {
     expect(readEventPractice('?try=x')).toBeNull();
   });
 
-  it('a series it can’t read, or past the run, is held to series 1 to 12', () => {
-    const q = (series: string): number | undefined =>
-      readEventPractice(`?${new URLSearchParams({ event: JSON.stringify(made), series })}`)?.series;
+  it('a stretch it can’t read, or past the run, is held to stretches 1 to 12', () => {
+    const q = (stretch: string): number | undefined =>
+      readEventPractice(`?${new URLSearchParams({ event: JSON.stringify(made), stretch })}`)
+        ?.stretch;
     expect(q('x')).toBe(1);
     expect(q('0')).toBe(1);
     expect(q('40')).toBe(12);
   });
 
-  it('a link from before the rename says drive, and plays that series', () => {
+  it('a link from before the renames says drive or series, and plays that stretch', () => {
     const old = new URLSearchParams({ event: JSON.stringify(made), drive: '7' });
-    expect(readEventPractice(`?${old}`)?.series).toBe(7);
+    expect(readEventPractice(`?${old}`)?.stretch).toBe(7);
+    const older = new URLSearchParams({ event: JSON.stringify(made), series: '6' });
+    expect(readEventPractice(`?${older}`)?.stretch).toBe(6);
   });
 
   it('‹ Events goes back to the editor with the event open', () => {
@@ -69,7 +72,7 @@ describe('the Try it link (test 8)', () => {
 
 describe('event practice (test 8)', () => {
   const practice = (event: FieldEvent, series: number): RunState =>
-    createRun(3, undefined, 0, { eventPractice: { event, series } });
+    createRun(3, undefined, 0, { eventPractice: { event, stretch: series } });
 
   it('plays the chosen series’ defense, three cards to pick from, nothing called', () => {
     const s = practice(made, 6);

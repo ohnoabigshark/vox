@@ -1,7 +1,7 @@
 /**
  * The event editor's Try it link (docs/FIELD_EVENTS.md, f3, x2): the event
- * itself, so practice plays what's on the editor before Save, the series whose
- * defense it plays, and the throwing. Read back with the same check a saved
+ * itself, so practice plays what's on the editor before Save, the stretch whose
+ * defense it plays (from its start), and the throwing. Read back with the same check a saved
  * event gets.
  */
 import type { FieldEvent } from './fieldEvents';
@@ -15,16 +15,16 @@ export type EventFromLink =
 
 export interface EventPractice {
   readonly event: EventFromLink;
-  /** The series whose defense practice plays (1 to 12). */
-  readonly series: number;
+  /** The stretch number whose defense practice plays, from its start (1 to 12). */
+  readonly stretch: number;
 }
 
-/** The series of a run (12: three areas of four), the most Try it can pick. */
-export const MAX_SERIES = arcadeTuning.run.areas * 4;
+/** The stretches of a run (12: three areas of four), the most Try it can pick. */
+export const MAX_STRETCH = arcadeTuning.run.areas * 4;
 
-/** The query of an event practice link: `event`, `series`, and `aim=2` or `aim=1` (both written, as two-tap is the default). */
-export function eventPracticeQuery(event: FieldEvent, series: number, twoTap: boolean): string {
-  const params = new URLSearchParams({ event: JSON.stringify(event), series: String(series) });
+/** The query of an event practice link: `event`, `stretch`, and `aim=2` or `aim=1` (both written, as two-tap is the default). */
+export function eventPracticeQuery(event: FieldEvent, stretch: number, twoTap: boolean): string {
+  const params = new URLSearchParams({ event: JSON.stringify(event), stretch: String(stretch) });
   params.set('aim', twoTap ? '2' : '1');
   return params.toString();
 }
@@ -34,14 +34,16 @@ export function readEventPractice(search: string): EventPractice | null {
   const params = new URLSearchParams(search);
   const text = params.get('event');
   if (text === null) return null;
-  // Links from before 2026-11-03's rename name the series `drive`.
-  const n = Math.round(Number(params.get('series') ?? params.get('drive')));
-  const series = Number.isFinite(n) ? Math.max(1, Math.min(MAX_SERIES, n)) : 1;
+  // Links from before the long field (2026-11-04) say `series`, and before 2026-11-03's rename `drive`.
+  const n = Math.round(
+    Number(params.get('stretch') ?? params.get('series') ?? params.get('drive')),
+  );
+  const stretch = Number.isFinite(n) ? Math.max(1, Math.min(MAX_STRETCH, n)) : 1;
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
-    return { event: { ok: false, reason: 'This event link is broken.' }, series };
+    return { event: { ok: false, reason: 'This event link is broken.' }, stretch };
   }
   const id = (parsed as { id?: unknown } | null)?.id;
   const why = eventProblem(typeof id === 'string' ? id : '', parsed);
@@ -49,7 +51,7 @@ export function readEventPractice(search: string): EventPractice | null {
     event: why
       ? { ok: false, reason: `This event link can’t be played: ${why}.` }
       : { ok: true, event: parsed as FieldEvent },
-    series,
+    stretch,
   };
 }
 

@@ -725,7 +725,7 @@ describe('series and the run', () => {
   const winSeries = (s: RunState): RunState => {
     const t = structuredClone(s);
     const events: ArcadeEvent[] = [];
-    endDown(t, 'firstDown', t.series.firstDown, events);
+    endDown(t, 'tackled', t.series.firstDown, events);
     nextDown(t, events);
     return t;
   };

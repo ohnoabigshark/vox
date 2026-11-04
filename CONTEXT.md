@@ -27,12 +27,12 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 ## The run
 
 - **Run:** one game, from PLAY to a loss or the win dance.
-- **Area:** a themed place of four series (Froggy's Forest, the Candy
-  Queendom, Frederick's Farm). Upstream's code and hard mode also say
+- **Area:** a themed place of four stretches, crossed in at most four series
+  (Froggy's Forest, the Candy Queendom, Frederick's Farm). Upstream's code and hard mode also say
   **zone** for the same thing. **Level** _(ours)_: an area, as the Coach
   says it ("we will eventually add more levels").
-- **Drive** _(ours, football's)_: an area's march up the field, its four
-  series ending in the end zone. Won with a touchdown, which clears the
+- **Drive** _(ours, football's)_: an area's march up the field, its series
+  (four at most) ending in the end zone. Won with a touchdown, which clears the
   area; it fails if any of its series fails. _Avoid:_ "drive" for one
   series, esrauch's word until the rename of 2026-11-03 (the code, our
   docs and his `GAMEPLAY.md` say series now; `MILESTONES.md` and our dated

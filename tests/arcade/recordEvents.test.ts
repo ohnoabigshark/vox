@@ -14,7 +14,7 @@ import { ofType, playState, run, stand } from './helpers';
 /** A run just past its first won series: TRICK OR TREAT! is on. */
 const atDraft = (s: RunState = createRun(3)): RunState => {
   const events: ArcadeEvent[] = [];
-  endDown(s, 'firstDown', s.series.firstDown, events);
+  endDown(s, 'tackled', s.series.firstDown, events);
   nextDown(s, events);
   return s;
 };

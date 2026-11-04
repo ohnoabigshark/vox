@@ -362,6 +362,18 @@ describe('along the way', () => {
     expect(r.seriesNumber).toBe(1);
   });
 
+  it('how far a run got is the furthest stretch, not where a loss left it (long field review)', () => {
+    const s = field();
+    s.series = { ...s.series, kind: 'boss', stretch: 3 };
+    const { rec } = feed(s, [
+      {
+        events: [{ type: 'sacked' }],
+        set: (n) => (n.series = { ...n.series, kind: 'gimmick', stretch: 2 }),
+      },
+    ]);
+    expect(rec.record.reached).toEqual({ area: 0, index: 3, seriesNumber: 4 });
+  });
+
   it('a won series is a first down, even on the Boss’s stretch (long field test 7)', () => {
     const s = field();
     s.series = { ...s.series, kind: 'boss', stretch: 3 };

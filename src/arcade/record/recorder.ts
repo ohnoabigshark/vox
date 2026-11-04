@@ -123,7 +123,9 @@ export class RunRecorder {
   /** One step's (or one action's) events: the down from `prev`, the spots from `next`. */
   step(prev: RunState, next: RunState, events: readonly ArcadeEvent[]): void {
     for (const e of events) this.event(prev, next, e);
-    this.record.reached = reachedOf(next);
+    // How far the run got: the furthest stretch, since a loss can now take the line back (docs/LONG_FIELD.md).
+    const now = reachedOf(next);
+    if (now.seriesNumber > this.record.reached.seriesNumber) this.record.reached = now;
     if (next.phase === 'won') this.record.end = 'won';
   }
 
@@ -318,6 +320,7 @@ function newDraft(state: RunState): Draft {
 }
 
 function finished(d: Draft, next: RunState, result: DownResult, gained: number): PlayResult {
+  // Saved records keep their own union, which today has the sim's results exactly.
   const outcome: Outcome = result;
   const kind: PlayKind = d.sacked ? 'sack' : d.handedOff && !d.thrown ? 'rush' : 'pass';
   const end = endSpot(next, d);
@@ -371,6 +374,6 @@ function spot(state: RunState, body: number): number | null {
 
 function reachedOf(state: RunState): RunRecord['reached'] {
   const { area, stretch } = state.series;
-  // Kept as `index` and `seriesNumber` in saved records: the stretch, and its number (docs/STATS.md).
+  // Kept as `index` and `seriesNumber` in saved records: the stretch, and its number (CONTEXT.md, Stretch number).
   return { area, index: stretch, seriesNumber: stretchNumber(state.series) };
 }

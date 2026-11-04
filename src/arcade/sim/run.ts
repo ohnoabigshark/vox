@@ -73,13 +73,32 @@ export function stretchOf(los: number): number {
   return Math.max(0, Math.min(last, Math.floor(los / arcadeTuning.series.distance)));
 }
 
+/** Where a stretch starts, in yards from its area's start: `stretchOf` backwards. */
+export function stretchStart(stretch: number): number {
+  return stretch * arcadeTuning.series.distance;
+}
+
+/**
+ * The stretch of a line of scrimmage, with its kind, name and defense: the
+ * one place a down's stretch is worked out (r1).
+ */
+function lineStretch(
+  state: RunState,
+  area: number,
+  los: number,
+): { at: Pick<Series, 'stretch' | 'kind' | 'name'>; spec: DefenseSpec } {
+  const stretch = stretchOf(los);
+  const spec = seriesDefense(state, area, stretch);
+  return { at: { stretch, kind: SERIES_KINDS[stretch] ?? 'boss', name: spec.name }, spec };
+}
+
 /** Seven plain humans (sim/team.ts). */
 export { startingRoster };
 
 /** The defense for a series: the area's Intro, Challenge, a seeded Gimmick, or its Boss. */
-export function defenseFor(seed: number, area: number, index: number): DefenseSpec {
+export function defenseFor(area: number, stretch: number): DefenseSpec {
   const a = areaAt(area);
-  switch (SERIES_KINDS[index]) {
+  switch (SERIES_KINDS[stretch]) {
     case 'intro':
       return a.intro;
     case 'challenge':
@@ -96,8 +115,8 @@ export function defenseFor(seed: number, area: number, index: number): DefenseSp
  * defender for every zone after the first (never past `maxDefenders` on the
  * field), alternately a Cover and a Bat, spread over the field.
  */
-export function seriesDefense(state: RunState, area: number, index: number): DefenseSpec {
-  const spec = defenseFor(state.seed, area, index);
+export function seriesDefense(state: RunState, area: number, stretch: number): DefenseSpec {
+  const spec = defenseFor(area, stretch);
   const { extraDefendersPerZone, maxDefenders } = arcadeTuning.hard;
   const room = Math.max(0, maxDefenders - spec.defenders.length);
   const extra = state.hard ? Math.min(area * extraDefendersPerZone, room) : 0;
@@ -149,7 +168,7 @@ export function createRun(
      * this event every rep, at this series (1-based) against its defense,
      * with three cards dealt each time.
      */
-    readonly eventPractice?: { readonly event: FieldEvent; readonly series: number };
+    readonly eventPractice?: { readonly event: FieldEvent; readonly stretch: number };
   } = {},
 ): RunState {
   const state: RunState = {
@@ -214,9 +233,9 @@ export function createRun(
   };
   if (options.eventPractice) {
     // The chosen series, as if the ones before it were won.
-    const at = stretchAt(options.eventPractice.series);
-    state.seriesWon = options.eventPractice.series - 1;
-    setUpSeries(state, at.area, at.stretch * arcadeTuning.series.distance, [], true);
+    const at = stretchAt(options.eventPractice.stretch);
+    state.seriesWon = options.eventPractice.stretch - 1;
+    setUpSeries(state, at.area, stretchStart(at.stretch), [], true);
     return state;
   }
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
@@ -239,14 +258,11 @@ export function setUpSeries(
   events: ArcadeEvent[],
   ready: boolean,
 ): void {
-  const stretch = stretchOf(start);
-  const spec = seriesDefense(state, area, stretch);
+  const { at } = lineStretch(state, area, start);
   state.perks.secondWindUsed = false;
   state.series = {
     area,
-    stretch,
-    kind: SERIES_KINDS[stretch] ?? 'boss',
-    name: spec.name,
+    ...at,
     start,
     firstDown: Math.min(start + arcadeTuning.series.distance, AREA_YARDS),
     down: 1,
@@ -262,7 +278,7 @@ export function setUpSeries(
       ? []
       : pickupsForArea(state.seed, area).filter((p) => !state.taken.includes(p.id)),
   };
-  events.push({ type: 'seriesStarted', stretch, name: spec.name });
+  events.push({ type: 'seriesStarted', stretch: at.stretch, name: at.name });
   setUpDown(state, events);
   if (!ready) state.phase = 'draft';
 }
@@ -287,14 +303,8 @@ const HAND = 3;
  */
 export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   // Each down faces the defense of the stretch its line is in (r1).
-  const stretch = stretchOf(state.series.los);
-  const spec = seriesDefense(state, state.series.area, stretch);
-  state.series = {
-    ...state.series,
-    stretch,
-    kind: SERIES_KINDS[stretch] ?? 'boss',
-    name: spec.name,
-  };
+  const { at, spec } = lineStretch(state, state.series.area, state.series.los);
+  state.series = { ...state.series, ...at };
   const { series } = state;
   const rng = rngFor(state.seed, 'hand', state.seriesWon, series.down, state.nextId);
   const deck = state.playbook.map((_, i) => i);
@@ -507,11 +517,7 @@ export function endDown(
   events: ArcadeEvent[],
 ): void {
   const { series } = state;
-  const carried =
-    ended === 'tackled' ||
-    ended === 'outOfBounds' ||
-    ended === 'firstDown' ||
-    ended === 'touchdown';
+  const carried = ended === 'tackled' || ended === 'outOfBounds' || ended === 'touchdown';
   // Over the goal line from anywhere is a touchdown (b4); past the line to gain, a first down.
   const result: DownResult =
     carried && newLos >= AREA_YARDS

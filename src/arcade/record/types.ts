@@ -33,7 +33,7 @@ export interface TapTestResult {
 
 /** One down's result (p1). Players are record ids: JACK, or a roster player's id. */
 export interface PlayResult {
-  /** The situation: the series' number in the run, the down, yards to go, the line. */
+  /** The situation: the stretch number (named before the long field, CONTEXT.md), the down, yards to go, the line. */
   readonly seriesNumber: number;
   readonly down: number;
   readonly toGo: number;
@@ -111,7 +111,7 @@ export interface RunRecord {
   readonly startedAt: string;
   endedAt: string | null;
   end: RunEnd;
-  /** How far it got: the area and the series in it (both from 0), and the series number. */
+  /** How far it got, the furthest: the area and the stretch in it (`index`, both from 0), and the stretch number. */
   reached: { area: number; index: number; seriesNumber: number };
   readonly team: RecordPlayer[];
   /** A copy of each play called, once a run, by id (p5). */

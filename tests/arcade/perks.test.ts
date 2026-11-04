@@ -14,7 +14,7 @@ import { carry, ofType, playState, run, stand, tapAt, throwAt, untilGrabbed } fr
 const atDraft = (seed = 3): RunState => {
   const s = createRun(seed);
   const events: ArcadeEvent[] = [];
-  endDown(s, 'firstDown', s.series.firstDown, events);
+  endDown(s, 'tackled', s.series.firstDown, events);
   nextDown(s, events);
   return s;
 };

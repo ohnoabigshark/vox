@@ -4,7 +4,7 @@
  */
 import { DEFENDERS, type DefenseSpec } from '../content/defense';
 import { arcadeTuning } from '../content/tuning';
-import { AREA_YARDS } from './props';
+import { AREA_YARDS, END_ZONE_YARDS } from './props';
 import {
   BASE_STATS,
   GOLEM_RADIUS,
@@ -129,8 +129,8 @@ export function lineUpDefense(
     const def = DEFENDERS[spot.kind];
     const deep = spot.kind === 'safety';
     let y = deep ? Math.max(los + arcadeTuning.defense.safetyDepth, firstDown + 1) : los + spot.y;
-    // Never past the end zone's back.
-    y = Math.min(y, AREA_YARDS + 9);
+    // Never past the end zone, a yard short of its back.
+    y = Math.min(y, AREA_YARDS + END_ZONE_YARDS - 1);
     const home = v(spot.x, y);
     const stats = plus(def.stats, even(boost));
     // A Bat loops a square; a Crow flies a lane up and down the field.

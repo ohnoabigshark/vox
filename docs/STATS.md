@@ -26,7 +26,11 @@ These go into [`CONTEXT.md`](../CONTEXT.md) with the rename (w1, w2, e3).
 - **Series:** four downs to gain 10 yards. Winning one is a **first down**;
   winning the Boss's, the area's last series, is a **touchdown**. Every area
   is four series of exactly 10 yards: yards past the first-down line don't
-  carry over (g1).
+  carry over (g1). _Since the long field (2026-11-04, `docs/LONG_FIELD.md`)
+  yards carry over, a touchdown is the ball over the goal line from any
+  down, and what this plan calls the series number is the stretch number;
+  a record's `reached.index` and `seriesNumber` hold the stretch, the
+  furthest the run got._
 - **Level:** an area, as the user says it ("we will eventually add more
   levels"). Level, area and drive name the same stretch of a run. The
   **series number** is a series' count in the run (the Candy Queendom's

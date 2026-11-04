@@ -300,8 +300,8 @@ function tipDrill(state: RunState, input: StepInput, events: ArcadeEvent[]): voi
 /**
  * A catch test's grade, the same for both (docs/TIP.md, t4). GREAT: caught,
  * and the defenders reaching for it go flying, so the receiver runs free.
- * OK: caught, and tackled on the spot, unless caught past the line, which wins
- * the series (B6). BAD: batted down by the first of them, in the order the
+ * OK: caught, and tackled on the spot (past the line, that wins the series,
+ * B6; in the end zone, it's a touchdown). BAD: batted down by the first of them, in the order the
  * contest put them (the one its rule pits against the receiver).
  */
 function catchGraded(
@@ -326,7 +326,7 @@ function catchGraded(
   giveBall(state, receiver);
   events.push({ type: 'caught', id: receiver.id, contested: true });
   if (grade === 'ok') {
-    // Caught past the line (or in the end zone) wins the series before anyone tackles (B6).
+    // Caught in the end zone is a touchdown before anyone tackles; anywhere else, tackled there.
     if (!checkCarrier(state, events)) tackle(state, receiver, first?.id ?? -1, events);
     return;
   }

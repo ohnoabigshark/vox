@@ -25,6 +25,9 @@ export const SERIES_PER_AREA = 4;
 /** An area's length, start to goal line: its four stretches (docs/LONG_FIELD.md, a1). */
 export const AREA_YARDS = SERIES_PER_AREA * seriesTuning.distance;
 
+/** How deep the end zone past the goal line is. */
+export const END_ZONE_YARDS = 10;
+
 /**
  * The stretches (counted through the run) that dress an area's field, each
  * with its shift onto the area's own yards (its start at 0): the one behind

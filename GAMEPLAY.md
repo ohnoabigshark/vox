@@ -7,10 +7,10 @@ This doc covers what the player *does*: the pillars, the run, a down, the contro
 Items marked **▲** are recommendations or details still open to change. Every number is a starting value, to tune by playtesting and by the headless balance runs (TECHNICAL.md).
 
 **Words used here:**
-- **Area:** a themed place (Froggy's Forest first). Each area is four series.
-- **Series:** four downs to gain 10 yards. Winning one is a **first down**; winning the Boss's is a **touchdown**. **Down:** one play, a few seconds long.
+- **Area:** a themed place (Froggy's Forest first). Each area is four series. *(Fork, the long field: one 40-yard field of four 10-yard **stretches**, Intro to Boss, crossed in at most four series.)*
+- **Series:** four downs to gain 10 yards. Winning one is a **first down**; winning the Boss's is a **touchdown**. **Down:** one play, a few seconds long. *(Fork, the long field: a touchdown is the ball over the goal line, from any down.)*
 - **Drive:** an area's whole march up the field, its four series ending in the end zone.
-- **Series number:** a series' count in the run, from 1 (the Candy Queendom's first series is 5).
+- **Series number:** a series' count in the run, from 1 (the Candy Queendom's first series is 5). *(Fork, the long field: the **stretch number**, the stretch of the down's line counted through the run; the Candy Queendom's first is still 5.)*
 - **Line of scrimmage:** where the current down starts. **First-down line:** 10 yards past where the series started. *(Fork, the long field, `docs/LONG_FIELD.md`: wherever that is, so yards past the line carry over; within 10 of the goal line it's & Goal, and the line is the goal line. An area is one 40-yard field of four 10-yard **stretches**, and each down faces the defense of the stretch its line of scrimmage is in, the Boss's gimmick in his.)*
 - **Your team:** **eight on the field**: the QB plus seven players, each a **Blocker**, a **Runner** or a **Catcher**. *The QB is the pumpkin ball itself, **Jack**: there's no QB player on the field, Jack throws himself (THEME.md, The ball).*
 - **Carrier:** whoever has the ball after a catch or a handoff. It runs on its own.
