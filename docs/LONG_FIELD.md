@@ -169,6 +169,46 @@ Farm, since he does.
 The end zone drawn on every down (d1) is checked in a phone-sized
 screenshot.
 
-## Part 2's tests
+## Part 2's tests, written first (p1)
 
-Proposed on the map's round 3.
+Approved on the map's round 3 (p1), which also confirmed this design as
+written. In `tests/arcade/longFieldPlay.test.ts` unless named:
+
+1. **Football's first downs:** a first down ending at 14 sets 1st & 10 from
+   14, the line at 24; one ending at 33 sets 1st & Goal, the line to gain
+   (and the gold line) on the goal line.
+2. **Defense by stretch:** a down from 14 lines up the Challenge's defense,
+   from 21 the Gimmick's, from 32 the Boss's with his gimmick; a loss from
+   21 back to 18 brings the Challenge's back.
+3. **The stretch number:** catch tests start on the Candy Queendom's first
+   stretch (5) however many series it took; a down from 22 there is 7.
+4. **The play goes on:** a carrier over the line keeps running, with no
+   event at the crossing; tackled at 17, a first down, one series won, one
+   TRICK OR TREAT!.
+5. **Out of bounds past the line** is a first down where the carrier went
+   out.
+6. **A touchdown from anywhere:** from the Intro's stretch over the goal
+   line clears the area, skips the Boss, one TRICK OR TREAT!, the next area
+   from its 0; on the Farm in normal mode, the win.
+7. **The record** (`tests/arcade/record/recorder.test.ts`): a touchdown is
+   recorded as one with its yards; a won series, even on the Boss's
+   stretch, is a first down.
+8. **Practice:** a rep goes on past the line; the next lines up at the same
+   spot.
+
+Built 2026-11-04 on `long-field-2`. Test 5 passes for a different reason
+than before: the sideline now calls it, where the line used to. The
+recorder's touchdown test passed before the change (a result it was handed
+went through), its first-down twin failed. "How far" on Game Over and the
+stats names the stretch (Candy Queendom · Broomstick Alley), its test red
+first. Older tests that pinned the play stopping at the line were
+updated: a SNAG IT! or tip drill OK past the line is now tackled there
+(the down still wins the series), and the King's second pair of crows can
+now reach a carrier who has run on past the line.
+
+In code: `stretchOf` and the reworked `setUpSeries` (a start in yards),
+`setUpDown` (the stretch each down), `endDown` (`touchdown`), `nextDown`,
+`checkCarrier` (`sim/step.ts`), the Safeties kept inside the end zone
+(`lineUpDefense`), `downAndDistance`. The rename that came first:
+`Series.stretch`, `stretchNumber`, `stretchAt`, `bossStretch`,
+`catchTests.fromStretch`; saved records keep `index` and `seriesNumber`.

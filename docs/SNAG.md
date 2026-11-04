@@ -35,6 +35,12 @@ games trigger about 20% less."_ `?snag=1` and `?tip=1` still send every one.
 
 ## When (c2, c3, c6)
 
+_Since the long field (`docs/LONG_FIELD.md`, r2, 2026-11-04), "series" in
+"from series 5" and "the series number" below means the **stretch
+number**: the stretch of the down's line of scrimmage, counted through the
+run, so the Candy Queendom still starts at 5 however many series it took
+to get there._
+
 - **A contested ball** is one that one of your players and a defender could
   both get to: on a bullet, a receiver's reach and a defender's reach both
   cover the ball where it is; on a lob (two-tap throwing), a receiver inside the

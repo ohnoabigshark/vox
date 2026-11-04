@@ -38,11 +38,13 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   docs and his `GAMEPLAY.md` say series now; `MILESTONES.md` and our dated
   decisions still say drive). The **drive block** (a Blocker driving a
   defender back, `contact.drive`) is a verb and keeps its name.
-- **Series** _(ours, football's)_: four downs to gain 10 yards, always
-  exactly 10 yards of field; yards past the first-down line don't carry
-  over. Winning one is a **first down**; winning the Boss's is a
-  **touchdown**. In code, `state.series`, `Series`, and the events
-  `seriesStarted` and `seriesWon`. **Down:** one play.
+- **Series** _(ours, football's)_: four downs to gain 10 yards from
+  wherever it starts, football's rule (`docs/LONG_FIELD.md`, a1): yards past
+  the first-down line carry over, and within 10 of the goal line it's
+  **& Goal**. Winning one is a **first down**; getting the ball over the
+  goal line, from any down, is a **touchdown**, which clears the area. In
+  code, `state.series`, `Series`, and the events `seriesStarted` and
+  `seriesWon`. **Down:** one play.
 - **Stretch** _(ours)_: one of an area's four 10-yard parts, named Intro,
   Challenge, Gimmick and Boss (A Quiet Clearing, Gnome Country…). A down
   faces the defense of the stretch its line of scrimmage is in, the Boss's
@@ -54,8 +56,8 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   stretch, and the level before 2026-11-03. Saved records and the test
   bench still call it `seriesNumber` and `series`.
 - **Line of scrimmage** and **first-down line:** where the down starts, and
-  10 yards past where the series started.
-- **Boss:** the area's last series, with its own gimmick (Frog Rain, the
+  10 yards past where the series started (the goal line on & Goal).
+- **Boss:** the area's last stretch, with its own gimmick (Frog Rain, the
   Royal Decree, the crows). A gimmick can be a field event (Frog Rain) or
   not (the decree bans a card).
 - **TRICK OR TREAT!:** the screen between series where the Coach takes one of

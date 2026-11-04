@@ -80,7 +80,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 
 ## 4. The Simulation
 
-**Coordinates are yards:** `x` across the field (±`field.halfWidth`, 9.1), `y` upfield. They count from the area's start (fork, `docs/LONG_FIELD.md`): the area's series start at 0, 10, 20 and 30, each with its first-down line 10 on, and the goal line is at 40. The renderer's `origin` (`areaOrigin`) places the area on the long strip, so the field is one continuous strip.
+**Coordinates are yards:** `x` across the field (±`field.halfWidth`, 9.1), `y` upfield. They count from the area's start (fork, `docs/LONG_FIELD.md`): a series starts wherever the last first down ended (0 for the area's first), its first-down line 10 on or the goal line at 40 (& Goal), and each down's defense is its line's stretch (`stretchOf`). The renderer's `origin` (`areaOrigin`) places the area on the long strip, so the field is one continuous strip.
 
 **Bodies** are circles (`Player` and `Defender`, both `Body`) with position, velocity, radius and the physics their stats give them (`sim/bodies.ts`): **Heft → mass** (×1.25 per step of 10 over 50), **Hustle → top speed**, **Hands → reach** for the ball. Stats are on a 50 scale (GAMEPLAY.md, *Your Team*); `sim/stats.ts` has the small arithmetic (`plus`, `even`).
 
@@ -93,7 +93,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 6. A carrier dragging tacklers goes down when the drag runs out.
 7. **The pocket:** once its sweeps are done with the ball still at the QB, it's a sack.
 8. **The bullet** in the air (`ball.ts`): who it reaches first, if anyone.
-9. The carrier over the first-down line wins the series (a first down, or on the Boss's series a touchdown); over the sideline, it's down there.
+9. The carrier over the goal line scores a touchdown; over the sideline, it's down there. Past the first-down line the play goes on (fork, `docs/LONG_FIELD.md`): `endDown` makes a down ended at or past it a first down.
 
 **Where each rule lives:**
 
