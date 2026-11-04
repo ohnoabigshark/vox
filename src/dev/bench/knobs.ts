@@ -70,7 +70,7 @@ export const KNOBS: readonly Knob[] = [
   k('breakit.byArea.{area}.jukeWindow', 'Juke window', 'seconds', ['juke']),
   k('breakit.jukeBreakShare', 'Share of it that breaks', 'share', ['juke']),
   k('breakit.jukeLinger', 'Red linger', 'seconds', ['juke']),
-  // SNAG IT!: the seven that shape a rep, then the twelve behind More
+  // SNAG IT!: the seven that shape a rep, then the thirteen behind More
   // (r-p2): where dots may land, and how it changes over a run.
   snag('close', 'Ring closes in', 'seconds'),
   snag('window', 'Hit window ±', 'seconds'),
@@ -84,6 +84,7 @@ export const KNOBS: readonly Knob[] = [
   // What SNAG IT! shares with the tip drill (docs/TIP.md, g3): tuned here for both,
   // and when they start and the box's linger on the tip drill's tab too (g6).
   catchMore('fromSeries', 'Catch tests from series', 'count', ['snag', 'tip']),
+  catchMore('chance', 'Contested balls that get one', 'share', ['snag', 'tip']),
   catchMore('fasterAfter', 'Quicker after series', 'count'),
   catchMore('perSeries', 'Quicker each series by', 'share'),
   catchMore('floor', 'No quicker than', 'share'),

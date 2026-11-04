@@ -151,6 +151,7 @@ describe('the knobs', () => {
       'snag.margin',
       'snag.box',
       'catchTests.fromSeries',
+      'catchTests.chance',
       'catchTests.fasterAfter',
       'catchTests.perSeries',
       'catchTests.floor',
@@ -418,7 +419,7 @@ describe('the reps', () => {
 });
 
 describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
-  it('its tab: five sliders in order, and More’s two, shared with SNAG IT!', () => {
+  it('its tab: five sliders in order, and More’s three, shared with SNAG IT!', () => {
     expect(BENCH_TESTS).toContain('tip');
     const tab = knobsFor('tip');
     expect(tab.filter((k) => !k.more).map((k) => k.key)).toEqual([
@@ -430,9 +431,10 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
     ]);
     expect(tab.filter((k) => k.more).map((k) => k.key)).toEqual([
       'catchTests.fromSeries',
+      'catchTests.chance',
       'catchTests.linger',
     ]);
-    for (const shared of ['catchTests.fromSeries', 'catchTests.linger']) {
+    for (const shared of ['catchTests.fromSeries', 'catchTests.chance', 'catchTests.linger']) {
       expect(knob(shared).tests).toEqual(['snag', 'tip']);
     }
   });
@@ -495,6 +497,7 @@ describe('the tip drill on the bench (docs/TIP.md, test 9, g6)', () => {
     applySettings({ 'tip.clean': 0.06 });
     expect(tuningValue('tip.clean')).toBe(0.06);
     expect([...tabPaths('tip')].sort()).toEqual([
+      'catchTests.chance',
       'catchTests.fromSeries',
       'catchTests.linger',
       'countdown.ready',

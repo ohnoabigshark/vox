@@ -31,6 +31,18 @@ export function whichCatchTest(state: RunState): CatchTest {
   return rngFor(state.seed, 'catch', state.step).next() < 0.5 ? 'snag' : 'tip';
 }
 
+/**
+ * The catch test this contested ball goes to, or null for today's rule:
+ * none before series 5; from then on `chance` of them, from the run's seed;
+ * every one with ?snag=1 or ?tip=1.
+ */
+export function catchTestFor(state: RunState): CatchTest | null {
+  if (!catchTestsOn(state)) return null;
+  const forced = state.snagAlways || state.tipAlways;
+  if (!forced && rngFor(state.seed, 'catchChance', state.step).next() >= ct.chance) return null;
+  return whichCatchTest(state);
+}
+
 /** The freeze: the ball hangs a yard short of the receiver's hands, on its way from `from`. */
 export function freezeContested(state: RunState, receiver: Player, from: Vec): void {
   const toward = sub(from, receiver.pos);
