@@ -7,7 +7,7 @@ the item numbers below are the map's.
 
 ## What changes (hard mode: the default; `?hard=0` turns it off)
 
-- **Each series' own line-up stays** (d1): the hand-made defenses of 4 to 9
+- **Each series' own line-up stays** (d1): the hand-made defenses of 5 to 9
   defenders are esrauch's design. Only hard mode's extra defenders change.
 - **One extra defender a zone, at most 12 in a down's defense** (d2; since
   the long field the patrols ahead don't count), instead of
@@ -190,8 +190,9 @@ before it merges.
 
 Round 3 of the map, all approved, 2026-11-04.
 
-- **Every Forest stretch lines up two Owls,** at −3.5 and 3.5, 12 deep,
-  each shadowing your deepest player on its half (f3). That is how the
+- **Every Forest stretch lines up two Owls,** at −3.5 and 3.5, as deep as
+  every Safety (`safetyDepth`), each shadowing your deepest player on its
+  half (f3). That is how the
   Candy Queendom's and the Farm's Safeties already stand. The Forest had one
   in the middle, and 13–20% of its downs went 20+ yards, against 0–7%
   elsewhere. Each Forest defense has one more defender: the Clearing 5,

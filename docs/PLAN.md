@@ -421,8 +421,9 @@ Open, for when the first new theme or set is planned:
 - **More passes blocked or dropped.** _User, 2026-11-04, while playing
   difficulty-3: "we will need to consider more outright blocks/drops on
   passes."_ What exists: a ball that only a defender reaches is batted;
-  one both reach goes to the catch tests (SNAG IT!, the tip drill) at
-  `catchTests.chance`, or is batted by Hands (`sim/ball.ts`). Nothing is
+  one both reach is caught or batted by Hands (`sim/ball.ts`), or, from
+  the fifth stretch on (`catchTests.fromStretch`), goes to the catch tests
+  (SNAG IT!, the tip drill) at `catchTests.chance`. Nothing is
   intercepted, and an uncontested catch is never dropped. Candidates for
   the grilling: a defender in a bullet's lane bats it on the way (not
   only at its end), Rushers batting balls at the line, uncontested drops

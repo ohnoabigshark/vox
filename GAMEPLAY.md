@@ -176,7 +176,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Runner** | 2 | Takes handoffs; on a pass, runs a short route past the line | **Hustle** |
 | **Catcher** | 3 | Gets open, catches | **Hands** |
 
-▲ *Up to eight defenders against them.*
+▲ *Up to nine defenders against them; in hard mode, up to twelve.*
 
 **The camera sits behind and above the QB**, lower than a top-down view: a third-person look down the field, like standing just behind your own line, always wide enough for both sidelines. It follows the play upfield. Every kind has to read from there at phone size.
 
