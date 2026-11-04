@@ -117,7 +117,7 @@ export function createArcadeTurf(): THREE.Group {
   return group;
 }
 
-/** The line of scrimmage (white), the first-down line (gold), and the end zone on the Boss series. */
+/** The line of scrimmage (white), the first-down line (gold), and the area's end zone, on every down (docs/LONG_FIELD.md, d1). */
 export class ArcadeLines {
   private readonly scrimmage: THREE.Mesh;
   private readonly firstDown: THREE.Mesh;
@@ -141,7 +141,6 @@ export class ArcadeLines {
   update(series: Series, origin: number): void {
     this.scrimmage.position.set(0, 0.008, -(origin + series.los));
     this.firstDown.position.set(0, 0.009, -(origin + series.firstDown));
-    this.endZone.visible = series.kind === 'boss';
     this.endZone.position.set(0, 0.007, -(origin + AREA_YARDS + 5));
   }
 }
