@@ -378,7 +378,15 @@ Open, for when the first new theme or set is planned:
   (https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), in
   `docs/DIFFICULTY.md` ("The long field"). First the balance tool counts
   long plays (`difficulty-1`), then the stretches ahead keep their patrols
-  (`difficulty-2`).
+  (`difficulty-2`; both merged as PR #31). Next, two Owls in every Forest
+  stretch (`difficulty-3`), and the goal-line Owl only if long plays still
+  score more than 20%.
+- **The mischief bolt** (difficulty map round 4, b1–b6, awaiting answers):
+  the lightning bolt becomes mischief, taken by whoever runs through it
+  first once the ball is snapped, yours or a defender. _User, 2026-11-04:
+  "we turn the lightning bolt power ups to be 'mischief' class where either
+  side can take them, but only once the snap starts."_ Only your side takes
+  pickups today (`docs/PICKUPS.md` k4).
 - **Curses and events for the long field** (difficulty map c1, parked
   2026-11-04): the generic events from `docs/FIELD_EVENTS.md` (n1, n2), the
   taffy flood first. Each event belongs to a stretch and goes off on every

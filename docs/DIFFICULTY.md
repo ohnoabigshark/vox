@@ -17,6 +17,7 @@ the item numbers below are the map's.
   | --- | --- | --- | --- | --- | --- | --- | --- |
   | Before | 8 | 11 | 13 | 14 | 17 | 19 | 20 |
   | After | 8 | 10 | 11 | 11 | 12 | 12 | 12 |
+  | Since the Forest's second Owl (f3) | 9 | 10 | 11 | 12 | 12 | 12 | 12 |
 
 - **Break it! keeps tightening past zone 3** (d3), a step a zone (a narrower
   sweet spot, slower mash fill, a shorter juke window), down to a floor where
@@ -83,7 +84,7 @@ carrier past the Safety ran clear to the goal. One down in five scored in
 normal mode, and one in eight in hard mode (bot, 40 runs). The user: "just
 the first level is a little too easy, I've had a few run plays that just go
 the distance". Planned by grilling on the decision map
-(https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), rounds 1 and 2,
+(https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), rounds 1 to 3,
 2026-11-04. The item numbers below are the map's. This pass is the
 defenders only. The curses and events are parked in `PLAN.md` (c1, c2).
 
@@ -91,9 +92,12 @@ defenders only. The curses and events are parked in `PLAN.md` (c1, c2).
 
 For the bot, 40 runs each:
 
-- **Hard mode** (the default): touchdowns on about 5% of downs (12% now).
-- **Normal mode:** the game beaten in 75% of runs or fewer (83% now).
-  Touchdowns on about 8% of downs.
+- **Normal mode:** the game beaten in 75% of runs or fewer (83% before the
+  patrols).
+- _Dropped (g3):_ touchdowns on about 5% of hard mode's downs, and 8% of
+  normal mode's. Every area ends in a touchdown, most of them from the last
+  10 yards, so the rate a down mostly counts how many downs an area takes:
+  it held at 11–12% while long plays changed a lot.
 - **Areas cleared** stay near today's: 2.4 in hard mode, 2.7 in normal.
 - **Long plays that score:** 10–20% of downs gaining 20 yards or more end
   in a touchdown. Before the patrols it was 64–77% (normal mode, with
@@ -178,6 +182,27 @@ the distance. Every comparison also runs it with handoffs
 
 Balance runs before and after, against the targets. The user plays it
 before it merges.
+
+## Two Owls in the Forest: `difficulty-3` (f3, r3, t3)
+
+Round 3 of the map, all approved, 2026-11-04.
+
+- **Every Forest stretch lines up two Owls,** at −3.5 and 3.5, 12 deep,
+  each shadowing your deepest player on its half (f3). That is how the
+  Candy Queendom's and the Farm's Safeties already stand. The Forest had one
+  in the middle, and 13–20% of its downs went 20+ yards, against 0–7%
+  elsewhere. Each Forest defense has one more defender: the Clearing 5,
+  Gnome Country 6, Bat Cave 7, the Pond 9. The Intro's −10 and the Rhino
+  Beetle's fake stay, so the first level still starts gently near the line.
+- **The goal-line Owl waits for the numbers** (r3): if long plays still
+  score more than 20% after this, the Boss stretch's Safeties join the
+  patrols, 3 yards short of the goal line. When that is measured depends on
+  round 4 (b5, below).
+- **Tests, written first** (t3): every Forest stretch lines up two Safeties
+  at ±3.5; on the field each shadows the deepest player on its half; the
+  Candy Queendom's and the Farm's defenses are unchanged
+  (`tests/arcade/forestOwls.test.ts`). The extra Owl takes a body id, so the
+  seeded deals were re-recorded again.
 
 ## Balance: the patrols (difficulty-2)
 
