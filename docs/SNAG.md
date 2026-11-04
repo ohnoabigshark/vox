@@ -106,6 +106,9 @@ games trigger about 20% less."_ `?snag=1` and `?tip=1` still send every one.
 - **OK** (one miss): caught, and tackled on the spot. The yards count; caught
   past the line, or in the end zone, it wins the series (B6).
 - **BAD** (two or more misses): batted down by the defender: incomplete.
+  With several reaching for it, the one the contest's rule pits against the
+  receiver bats it (the best Hands on a bullet, the nearest counting Hands
+  on a lob; since 2026-11-04, before which it was the first on the field).
 - Each hit pops its dot green, with the catch sound and a short buzz
   (where the phone can: iPhones can't); each miss cracks it red, with the
   fumble sound. The grade is called in the middle of the screen, as Break
