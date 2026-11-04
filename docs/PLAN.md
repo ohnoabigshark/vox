@@ -367,10 +367,23 @@ Open, for when the first new theme or set is planned:
   like the idea of the boss of each area being a separate series/set of
   downs... Let's save that concept to explore later, I want to see how the
   game plays with the recommendation for this first."_
+  With it (difficulty map d2, 2026-11-04): the Boss, who stands in his end
+  zone (`BOSS_SPOT`), steps out to stop a carrier near the goal line, a
+  last line of defense with his own Break it!.
 - **Defenses tuned for the long field:** if breakaways get past the defense
   too easily once the play goes on past the line, adjust the defense (the
   Safeties, a second line of defenders, pursuit). _User's note on c1,
   2026-11-04._ The long field's balance runs (e1) give the numbers.
+  **Under way:** planned on the difficulty map
+  (https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), in
+  `docs/DIFFICULTY.md` ("The long field"). First the balance tool counts
+  long plays (`difficulty-1`), then the stretches ahead keep their patrols
+  (`difficulty-2`).
+- **Curses and events for the long field** (difficulty map c1, parked
+  2026-11-04): the generic events from `docs/FIELD_EVENTS.md` (n1, n2), the
+  taffy flood first. Each event belongs to a stretch and goes off on every
+  down whose line is in it. _User: "Let's park this and save it for later.
+  Let's just try to tune without it for now."_
 - **An arrow for a receiver out of sight:** at the top edge of the screen,
   for a receiver who has run off it but can still be thrown to. Parked from
   the long field (d2, 2026-11-04).
@@ -408,6 +421,10 @@ Open, for when the first new theme or set is planned:
   `PickupKind` `'gravestone'`), nothing left saying slick; and _"Can we
   make the trigger area a little larger as part of this work."_ (how much
   larger, its radius against the slick's today, decided then).
+  For the long field (difficulty map c2, parked 2026-11-04): more of them
+  further up the field (one in the Intro, two in the Challenge, and so
+  on), so a long run is likelier to meet one. _User: "It's a good thing to
+  tune but I want to focus on the defenders first."_
 - **The art pipeline** (`docs/ART.md`; map round 1,
   https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
   - **Proving the editor path** (p3): the user makes a small gravestone in
