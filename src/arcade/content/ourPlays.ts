@@ -13,7 +13,7 @@ const route = (...to: [number, number][]): Assignment => ({
   to: to.map(([x, y]) => ({ x, y })),
 });
 
-/** The in-game sketches kept for the first release (release mode's map, s1-s3), 2026-10-31. */
+/** The in-game sketches kept: the first release's (release mode's map, s1-s3), 2026-10-31; Tight End Run, 2026-11-04. */
 export const OUR_PLAYS: readonly Play[] = [
   {
     id: 'crazy',
@@ -137,6 +137,29 @@ export const OUR_PLAYS: readonly Play[] = [
       { x: -8.5, y: -0.5 },
       { x: -4, y: -0.5 },
       { x: -6, y: -1.5 },
+    ],
+  },
+  {
+    id: 'tightEndRun',
+    name: 'Tight End Run',
+    slots: [
+      block,
+      block,
+      route([-2, 2], [-2, 11]),
+      route([-4.5, 6]),
+      route([2.5, 3.5], [2.5, 12.5]),
+      route([0.5, 4], [3.5, 10]),
+      route([0, 3], [3, 9]),
+    ],
+    handoff: 2,
+    lineup: [
+      { x: -0.9, y: -0.7 },
+      { x: 0.9, y: -0.7 },
+      { x: -2, y: -4.5 },
+      { x: -2.5, y: -1 },
+      { x: -7, y: -0.7 },
+      { x: 5, y: -2.5 },
+      { x: 3, y: -1 },
     ],
   },
 ];
