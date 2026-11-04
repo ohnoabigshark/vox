@@ -20,6 +20,11 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   contests are settled as they always were.
 - **One setting says when both start:** `catchTests.fromSeries` (was
   `snag.fromDrive`).
+- **Four in five, since 2026-11-04:** a contested ball from series 5 goes to
+  a catch test with `catchTests.chance` (0.8), rolled from the seed, before
+  the pick; today's rule settles the rest (`catchTestFor` in
+  `sim/catchTests.ts`; `docs/SNAG.md`). The links below still send every
+  one.
 - **`?tip=1`** makes every contested ball a tip drill from the first series,
   as `?snag=1` does for SNAG IT!; with both, each picks at random from the
   first series. The parked dev setup mode will replace these with switches.
@@ -140,7 +145,8 @@ same seeds; the runs are slow here, so they're small):
 8. **The view:** "GET READY FOR THE TIP DRILL!" and the seconds left in the
    countdown; the ball's height at moments of a pop; the pips' results; the
    box staying for the linger.
-9. **The bench:** the tab's five sliders in order, More's two, SNAG IT!'s
+9. **The bench:** the tab's five sliders in order, More's two (three since
+   `catchTests.chance`, 2026-11-04), SNAG IT!'s
    situation sliders; a rep plays a tip drill with its situation's pops,
    and Save writes the tab's values.
 

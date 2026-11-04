@@ -27,6 +27,12 @@ series and 0.5 s floor for the ring) and the box's linger. Where the
 sections below say "every contested ball", read "every contested ball that
 picks SNAG IT!".
 
+**Since 2026-11-04** only four contested balls in five from series 5 go to a
+catch test (`catchTests.chance`, 0.8, rolled from the run's seed); today's
+rule settles the fifth. _User: "can we make it so that the passing tap event
+games trigger about 20% less."_ `?snag=1` and `?tip=1` still send every one.
+`catchTestFor` in `sim/catchTests.ts` is the one rule.
+
 ## When (c2, c3, c6)
 
 - **A contested ball** is one that one of your players and a defender could

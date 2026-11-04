@@ -112,7 +112,10 @@ Open, for when the first new theme or set is planned:
     shadow on them growing as it falls. _User: "Let's see how the initial
     concept plays and maybe we add drift later"_ (the drift is under Later).
   - Each contested ball picks SNAG IT! or the tip drill at random, half and
-    half (t2), from drive 5, one setting saying when both start (t3).
+    half (t2), from drive 5, one setting saying when both start (t3). Since
+    2026-11-04 only four in five go to either, today's rule settling the
+    rest (`catchTests.chance`). _User: "can we make it so that the passing
+    tap event games trigger about 20% less."_
   - Its grades do what SNAG IT!'s do (t4), and everything else works as
     SNAG IT! does: the shared countdown, the freeze, the box and its
     linger, outside Break it!'s two, a bench tab, the balance bot, the
