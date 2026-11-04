@@ -278,7 +278,7 @@ The log, and SNAG IT!'s cut
 - **M.** A rep line carries the tab's settings off default; a save line what was
   saved; moving a slider writes nothing.
 - **N.** SNAG IT! shows seven sliders and the other twelve behind More, which
-  opens them.
+  opens them (thirteen since `catchTests.chance`, 2026-11-04).
 
 r-u2's sizes are checked by eye in a phone-sized screenshot, not a test.
 

@@ -31,7 +31,7 @@ import { moveBodies, separate, touching } from './physics';
 import { pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
-import { catchTestsOn, whichCatchTest, type CatchTest } from './catchTests';
+import { catchTestFor, type CatchTest } from './catchTests';
 import { caughtBy, countDown } from './fieldEvents';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
@@ -506,16 +506,14 @@ function royalCrows(state: RunState, input: StepInput, events: ArcadeEvent[]): b
 function flight(state: RunState, events: ArcadeEvent[]): boolean {
   const outcome = resolveFlight(state);
   if (!outcome) return false;
-  // A catch test: a contested ball, from series 5, is the Coach's to win (docs/SNAG.md, docs/TIP.md).
+  // A catch test: most contested balls, from series 5, are the Coach's to win (docs/SNAG.md, docs/TIP.md).
   const ball = state.field.ball;
-  if (
-    outcome.kind !== 'incomplete' &&
-    outcome.contest &&
-    ball.at === 'flight' &&
-    catchTestsOn(state)
-  ) {
-    START_CATCH_TEST[whichCatchTest(state)](state, outcome.contest, ball.from, events);
-    return true;
+  if (outcome.kind !== 'incomplete' && outcome.contest && ball.at === 'flight') {
+    const test = catchTestFor(state);
+    if (test) {
+      START_CATCH_TEST[test](state, outcome.contest, ball.from, events);
+      return true;
+    }
   }
   if (outcome.kind === 'caught') {
     giveBall(state, outcome.by);

@@ -186,6 +186,12 @@ export const tuningDefaults = {
     /** A contested ball goes to a catch test from this series (or the first, with ?snag=1 or ?tip=1). */
     fromSeries: 5,
     /**
+     * The share of contested balls from then on that go to a catch test; today's
+     * rule settles the rest. _User, 2026-11-04: "trigger about 20% less."_
+     * ?snag=1 and ?tip=1 still send every one.
+     */
+    chance: 0.8,
+    /**
      * The count: this many on series 5-8, one more every `moreEvery` series
      * (an area's four), one more for each defender after the first in reach,
      * one fewer when the receiver's Hands beat the best defender's by

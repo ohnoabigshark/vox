@@ -27,6 +27,12 @@ series and 0.5 s floor for the ring) and the box's linger. Where the
 sections below say "every contested ball", read "every contested ball that
 picks SNAG IT!".
 
+**Since 2026-11-04** only four contested balls in five from series 5 go to a
+catch test (`catchTests.chance`, 0.8, rolled from the run's seed); today's
+rule settles the fifth. _User: "can we make it so that the passing tap event
+games trigger about 20% less."_ `?snag=1` and `?tip=1` still send every one.
+`catchTestFor` in `sim/catchTests.ts` is the one rule.
+
 ## When (c2, c3, c6)
 
 - **A contested ball** is one that one of your players and a defender could
@@ -35,7 +41,8 @@ picks SNAG IT!".
   catch circle and a defender who can reach the landing spot. Today the
   code settles it at once (`contact` and `lobLanding` in `sim/ball.ts`): on a
   bullet the better Hands wins, on a lob the nearer one. With SNAG IT! on,
-  every contested ball goes to the test instead, whichever way today's rule
+  every contested ball goes to the test instead (four in five since
+  2026-11-04, `catchTests.chance`), whichever way today's rule
   would have gone. An uncontested catch, a batted ball nobody of yours could
   reach, and an incomplete are unchanged.
 - **From series 5.** A series number is a series' count in the run (Froggy's

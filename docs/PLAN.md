@@ -96,7 +96,7 @@ Open, for when the first new theme or set is planned:
   really busy."_
 - **SNAG IT!**, a Break it!-style test on contested catches: dots pop up
   one after another, and the Coach taps each as a ring closes on it. From
-  drive 5, every contested ball goes to it. Grilled 2026-10-30 (c1–c6,
+  series 5, every contested ball goes to it. Grilled 2026-10-30 (c1–c6,
   s1–s8, u1–u2, all approved); the design is `docs/SNAG.md`. Built on the
   `snag-it` branch. It was parked here as "a Break it! test on catches" (a
   box of dots to tap in Y seconds), which the grilling turned into rings.
@@ -112,7 +112,10 @@ Open, for when the first new theme or set is planned:
     shadow on them growing as it falls. _User: "Let's see how the initial
     concept plays and maybe we add drift later"_ (the drift is under Later).
   - Each contested ball picks SNAG IT! or the tip drill at random, half and
-    half (t2), from drive 5, one setting saying when both start (t3).
+    half (t2), from series 5, one setting saying when both start (t3). Since
+    2026-11-04 only four in five go to either, today's rule settling the
+    rest (`catchTests.chance`). _User: "can we make it so that the passing
+    tap event games trigger about 20% less."_
   - Its grades do what SNAG IT!'s do (t4), and everything else works as
     SNAG IT! does: the shared countdown, the freeze, the box and its
     linger, outside Break it!'s two, a bench tab, the balance bot, the

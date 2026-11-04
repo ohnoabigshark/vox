@@ -77,11 +77,34 @@ describe('1. the pick (t2, t3, g5)', () => {
     for (const seed of [3, 4, 5]) expect(lobArrives(seed, 5).phase).toBe(lobArrives(seed, 5).phase);
   });
 
-  it('over many seeds, about half are each', () => {
+  it('over many seeds, about half of the catch tests are each', () => {
     let tips = 0;
-    for (let seed = 1; seed <= 200; seed++) if (lobArrives(seed, 5).phase === 'tip') tips++;
-    expect(tips).toBeGreaterThan(70);
-    expect(tips).toBeLessThan(130);
+    let tests = 0;
+    for (let seed = 1; seed <= 250; seed++) {
+      const phase = lobArrives(seed, 5).phase;
+      if (phase === 'tip') tips++;
+      if (phase === 'tip' || phase === 'snag') tests++;
+    }
+    expect(tips / tests).toBeGreaterThan(0.35);
+    expect(tips / tests).toBeLessThan(0.65);
+  });
+
+  it('from series 5, about four contested balls in five go to a catch test; today’s rule settles the rest', () => {
+    expect(arcadeTuning.catchTests.chance).toBe(0.8);
+    let tests = 0;
+    for (let seed = 1; seed <= 400; seed++) {
+      const s = lobArrives(seed, 5);
+      if (s.phase === 'snag' || s.phase === 'tip') tests++;
+      else {
+        expect(s.snag).toBeNull();
+        expect(s.tip).toBeNull();
+        // Settled just as the same lob is before series 5, by today's rule.
+        expect(s.field.ball).toEqual(lobArrives(seed, 4).field.ball);
+        expect(s.field.ball).toEqual({ at: 'carried', by: 2 });
+      }
+    }
+    expect(tests / 400).toBeGreaterThan(0.72);
+    expect(tests / 400).toBeLessThan(0.88);
   });
 
   it('before series 5, neither: today’s rule settles it', () => {
@@ -102,7 +125,8 @@ describe('1. the pick (t2, t3, g5)', () => {
       expect(t.tip?.defenders).toEqual([100]);
       expect(t.field.ball.at).toBe('contested');
     }
-    for (let seed = 1; seed <= 20; seed++) {
+    // Every contested ball, not four in five: the links are for trying a test.
+    for (let seed = 1; seed <= 40; seed++) {
       expect(lobArrives(seed, 5, ['snag']).phase).toBe('snag');
       expect(lobArrives(seed, 5, ['tip']).phase).toBe('tip');
     }
