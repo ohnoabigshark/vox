@@ -387,6 +387,65 @@ Open, for when the first new theme or set is planned:
   "we turn the lightning bolt power ups to be 'mischief' class where either
   side can take them, but only once the snap starts."_ Only your side takes
   pickups today (`docs/PICKUPS.md` k4).
+- **Play-call levers: no flip, a random play, hidden routes.** Three
+  ways to make a down harder before the snap, each likely set by a
+  stretch or a Boss rather than for the whole run, and each also a toggle
+  the player can set to play their own way. _User, 2026-11-04: "take away
+  the ability to flip the play, could be on a specific level/boss. also,
+  choose a play at random for you. also, don't show the routes your
+  players will take. these are 3 different levers that we can add to
+  pull, likely tied to levels/bosses and not just general run settings
+  (although we can expose them as toggles so a player can customize how
+  they want to play)."_
+  - **No flip:** the Flip button does nothing today outside `setup`
+    (`case 'flip'` in `sim/run.ts`); this would turn it off for a
+    stretch.
+  - **A random play:** the same idea as **A forced play** below (two
+    cards banned, one left), there planned as an event. Grill the two
+    together.
+  - **Hidden routes:** the called play's routes are drawn on the turf
+    until the hike (`render/routes.ts`); this would hide them, and maybe
+    the handoff's ring too.
+  - Open for its grilling: which stretches or Bosses pull which lever,
+    and where the toggles live (the title screen beside hard mode and
+    two-tap, or a settings page), and whether a toggle run still counts
+    toward the same records.
+- **More passes blocked or dropped.** _User, 2026-11-04, while playing
+  difficulty-3: "we will need to consider more outright blocks/drops on
+  passes."_ What exists: a ball that only a defender reaches is batted;
+  one both reach goes to the catch tests (SNAG IT!, the tip drill) at
+  `catchTests.chance`, or is batted by Hands (`sim/ball.ts`). Nothing is
+  intercepted, and an uncontested catch is never dropped. Candidates for
+  the grilling: a defender in a bullet's lane bats it on the way (not
+  only at its end), Rushers batting balls at the line, uncontested drops
+  for low Hands, interceptions. Measure first: the balance tool counts
+  how passes end.
+- **Stats for Jack, the QB.** Jack has no stats today (the three stats,
+  Heft, Hustle and Hands, are the players'). _User, 2026-11-04: "stats for
+  the QB to give them a faster/slower pass, faster/slower 'reads' (not sure
+  what the actual mechanism is called for having the passing line scan
+  from left to right). also the ability to flip that direction.
+  evasiveness to allow for more time in the pocket. maybe a power up or
+  something that lets them see the sack timer. random sack timers."_ In
+  our words (`CONTEXT.md`):
+  - **Pass speed:** the bullet's speed (`throw.speed` in `content/tuning.ts`, 24 yards a second).
+  - **Reads:** the **sweep**, the aim line, which starts at the left
+    sideline at the snap and crosses back and forth (`sweepAngle` in
+    `sim/ball.ts`); its speed is `sweep.degreesPerSecond`, faster each
+    area. The Slow-Mo Sweep perk (`slowSweep`) already slows it by a
+    quarter.
+  - **Flip the sweep's direction:** start it at the right sideline.
+  - **Evasiveness:** a longer **pocket**, which holds for 4.5 scans
+    (`sweep.scans`) and then it's a sack. The Extra Sweep perk
+    (`extraSweep`) already adds one.
+  - **Seeing the sack timer:** nothing shows the pocket's time today. A
+    power-up or treat could show it.
+  - **Random sack timers:** the pocket's length varies from down to down,
+    so the 4.5 scans can't be counted.
+  - Open for its grilling: whether these are Jack's stats (rolled per
+    run, or raised by TRICK OR TREAT!) or perks like the two sweep perks,
+    and which are difficulty levers (random sack timers) rather than
+    rewards.
 - **Curses and events for the long field** (difficulty map c1, parked
   2026-11-04): the generic events from `docs/FIELD_EVENTS.md` (n1, n2), the
   taffy flood first. Each event belongs to a stretch and goes off on every
@@ -462,7 +521,9 @@ Open, for when the first new theme or set is planned:
   power, a trick from TRICK OR TREAT!) and where and how often it comes; its
   name, call and look beside the BANNED seal; whether the two bans show,
   or the remaining card is just dealt alone; and how it sits with the
-  decree when both apply (`state.banned` holds one card today).
+  decree when both apply (`state.banned` holds one card today). It is
+  also one of the play-call levers above (2026-11-04), as a stretch's
+  rule or the player's toggle.
 - **The tip drill's drift:** each pop carries the ball left or right, its
   shadow marking where along the hands it comes down, and the Coach taps
   that spot as it lands. Option B on the tip drill's map (t1), parked until
