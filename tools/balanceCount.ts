@@ -105,6 +105,25 @@ function clearOf(state: RunState): number | null {
   return state.field.defenders.some((d) => d.pos.y > carrier.pos.y) ? null : carrier.pos.y;
 }
 
+/**
+ * TRICK OR TREAT! picks by area (difficulty map n1): each counts toward the
+ * area of the series it's taken in front of, which is already lined up. A
+ * defense that stops long plays means more series won, and so more picks,
+ * before the later areas.
+ */
+export class PickWatch {
+  readonly byArea = new Map<number, number>();
+
+  /** Feed it the state a pick is made in and that step's events. */
+  step(state: RunState, events: readonly ArcadeEvent[]): void {
+    for (const e of events) {
+      if (e.type !== 'perk') continue;
+      const { area } = state.series;
+      this.byArea.set(area, (this.byArea.get(area) ?? 0) + 1);
+    }
+  }
+}
+
 /** How many downs each thing stopped. */
 export function stops(downs: readonly DownSummary[]): Map<Stop, number> {
   return countBy(downs, (d) => d.stoppedBy);

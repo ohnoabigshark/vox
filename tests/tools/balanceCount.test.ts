@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   DownWatch,
   LONG_PLAY,
+  PickWatch,
   byStretch,
   isLong,
   seriesSpread,
   stops,
 } from '../../tools/balanceCount';
-import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
+import type { ArcadeEvent, Perk, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, playState, stand } from '../arcade/helpers';
 
@@ -146,6 +147,30 @@ describe('balance counts for the long field', () => {
     feed(w, next, [{ type: 'downEnded', result: 'tackled', gained: 5 }]);
     // Clear on the goal line as it scored: 0 yards after; the next, never clear.
     expect(w.downs.map((d) => d.pastLast)).toEqual([0, null]);
+  });
+
+  it('6: a TRICK OR TREAT! pick counts toward the area of the series it’s taken in front of (n1)', () => {
+    const w = new PickWatch();
+    const draftIn = (area: number): RunState => {
+      const s = down({ area });
+      s.phase = 'draft';
+      return s;
+    };
+    const perk: Perk = { rarity: 'common', kind: 'extraSweep' };
+    w.step(draftIn(0), [{ type: 'perk', perk }]);
+    // A new player is one pick, though it brings a `joined` too.
+    w.step(draftIn(1), [
+      { type: 'perk', perk },
+      { type: 'joined', id: 9, name: 'Example', slot: 2, replaced: null },
+    ]);
+    w.step(draftIn(1), [{ type: 'perk', perk }]);
+    // Winning a series isn't a pick.
+    w.step(draftIn(2), [{ type: 'seriesWon', stretch: 0 }]);
+
+    expect([...w.byArea.entries()]).toEqual([
+      [0, 1],
+      [1, 2],
+    ]);
   });
 
   it('5: series won spread: the worst tenth, the median, the top tenth and the best', () => {
