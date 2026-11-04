@@ -92,10 +92,14 @@ export class DownWatch {
   }
 }
 
-/** Where the ball's carrier is, if they have no defender in front of them. */
+/**
+ * Where the ball's carrier is, if they have no defender in front of them, while
+ * the ball is in play: after a down, its carrier stays on the field until the
+ * next lines up, and must not count toward it.
+ */
 function clearOf(state: RunState): number | null {
   const ball = state.field.ball;
-  if (ball.at !== 'carried') return null;
+  if (state.phase !== 'play' || ball.at !== 'carried') return null;
   const carrier = state.field.players.find((p) => p.id === ball.by);
   if (!carrier) return null;
   return state.field.defenders.some((d) => d.pos.y > carrier.pos.y) ? null : carrier.pos.y;

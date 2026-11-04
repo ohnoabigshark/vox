@@ -132,6 +132,22 @@ describe('balance counts for the long field', () => {
     expect(w.downs.map((d) => d.pastLast)).toEqual([15, null]);
   });
 
+  it('4b: a carrier still on the field after the down has ended doesn’t count toward the next down', () => {
+    const w = new DownWatch();
+    // A touchdown: the scorer stays in the end zone, nobody ahead, while the result shows.
+    const scored = down({}, v(0, 40), [{ kind: 'safety', pos: v(0, 30) }]);
+    scored.phase = 'play';
+    feed(w, scored, [{ type: 'downEnded', result: 'touchdown', gained: 40 }]);
+    scored.phase = 'downOver';
+    feed(w, scored, []);
+    // The next down never gets clear.
+    const next = down({}, v(0, 3), [{ kind: 'safety', pos: v(0, 14) }]);
+    next.phase = 'play';
+    feed(w, next, [{ type: 'downEnded', result: 'tackled', gained: 5 }]);
+    // Clear on the goal line as it scored: 0 yards after; the next, never clear.
+    expect(w.downs.map((d) => d.pastLast)).toEqual([0, null]);
+  });
+
   it('5: series won spread: the worst tenth, the median, the top tenth and the best', () => {
     const perRun = [7, 2, 9, 4, 12, 5, 6, 3, 8, 10];
     expect(seriesSpread(perRun)).toEqual({ p10: 3, median: 7, p90: 12, best: 12 });
