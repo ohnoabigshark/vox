@@ -145,6 +145,16 @@ export function jukeGrade(state: RunState): 'great' | 'ok' | 'bad' | null {
   return shown <= t.window * b.jukeBreakShare ? 'great' : shown <= t.window ? 'ok' : 'bad';
 }
 
+/**
+ * Whether a mash's fill has reached `mark`. The fill is a sum of `perTap`s,
+ * which floating point leaves a hair short: ten tenths make
+ * 0.9999999999999999, so without the allowance a full mash in the Forest
+ * took an eleventh tap (B3).
+ */
+function filledTo(fill: number, mark: number): boolean {
+  return fill >= mark - 1e-9;
+}
+
 /** Judge this step's input (it may fill a mash). Returns the outcome once there is one. */
 export function judgeBreakIt(state: RunState, input: StepInput): BreakOutcome | null {
   const t = state.tackle;
@@ -162,9 +172,9 @@ export function judgeBreakIt(state: RunState, input: StepInput): BreakOutcome | 
     }
     case 'mash': {
       if (input.breakTap) t.fill += t.perTap;
-      if (t.fill >= 1) return 'break';
+      if (filledTo(t.fill, 1)) return 'break';
       if (elapsed < b.mashSeconds) return null;
-      return t.fill >= b.mashDrag ? 'drag' : 'tackle';
+      return filledTo(t.fill, b.mashDrag) ? 'drag' : 'tackle';
     }
     case 'juke': {
       const shown = state.time - t.showAt;

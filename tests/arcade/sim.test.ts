@@ -17,7 +17,13 @@ import {
   setUpSeries,
   startingRoster,
 } from '../../src/arcade/sim/run';
-import { breakMarker, countdownLeft, jukeGrade, jukeShowing } from '../../src/arcade/sim/breakit';
+import {
+  breakMarker,
+  countdownLeft,
+  jukeGrade,
+  jukeShowing,
+  sinceGo,
+} from '../../src/arcade/sim/breakit';
 import { canThrow, forceBreakKind, step } from '../../src/arcade/sim/step';
 import { pathXAt } from '../../src/arcade/sim/ai';
 import { propsForSeries } from '../../src/arcade/sim/props';
@@ -618,6 +624,26 @@ describe('Break it!: the mash and the juke', () => {
 
   it('mash: tap fast enough to fill it and the tackle breaks', () => {
     expect(ofType(mash(grabbed('mash'), 3).events, 'brokeTackle')).toHaveLength(1);
+  });
+
+  it('mash: a full mash in the Forest takes ten taps, not eleven (B3)', () => {
+    let s = grabbed('mash');
+    const t = s.tackle!;
+    if (t.kind !== 'mash') throw new Error('not a mash');
+    // The Forest with one tackler: a tenth a tap, which ten times over sums to just under 1.
+    expect(t.perTap).toBe(0.1);
+    let taps = 0;
+    const events: ArcadeEvent[] = [];
+    for (let i = 0; i < 400 && s.phase === 'breakit'; i++) {
+      // Tap every other step once the countdown is over, counting each tap that counts.
+      const tap = (sinceGo(s) ?? -1) >= 0 && i % 2 === 0;
+      if (tap) taps++;
+      const r = step(s, tap ? { breakTap: true } : {});
+      s = r.state;
+      events.push(...r.events);
+    }
+    expect(ofType(events, 'brokeTackle')).toHaveLength(1);
+    expect(taps).toBe(10);
   });
 
   it('mash: half full by the end drags; barely tapping is a tackle', () => {
