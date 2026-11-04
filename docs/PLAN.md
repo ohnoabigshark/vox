@@ -319,6 +319,22 @@ Open, for when the first new theme or set is planned:
   - **`achievements`:** fourteen approved, defined in one file as checks
     over the record, popped after the down that earns them (h1–h3).
 
+- **Hands on a lob.** On a contested two-tap lob the nearer one wins and
+  Hands never counts (`lobLanding`, esrauch's 2026-10-27 rule), so in the
+  default game a receiver's Hands barely matter. _User, 2026-11-04: "yeah I
+  want to make hands matter."_ Planned by grilling, one round, 2026-11-04,
+  on the map https://claude.ai/artifact/GoDRbJaFXbBA1p3QwESN6D, all approved:
+  - **The rule** (h1): the nearer one still wins, but each 10 Hands counts
+    as a quarter-yard nearer, reach's own rate (`body.reach.perHands`).
+  - **Hands only** (h2), not a kind's `reachBonus` (the Scarecrow's 1.2
+    yards would count twice). **Ties go to you** (h3). **The catch tests**
+    order the defenders reaching for a lob the same way (h4).
+  - **Unchanged** (s1–s3): straight throws; the screen (the player lit while
+    aiming already comes from the same rule, so it follows); the 2-yard
+    catch circle for everyone.
+  - **Built** on one branch, `lob-hands`, tests first (b1), reviewed, and
+    played in two-tap before it merges (b2).
+
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
   teach people how to play, esp with the passing mechanic."_ Open for its
@@ -331,6 +347,16 @@ Open, for when the first new theme or set is planned:
 
 ## Later (not yet in order)
 
+- **A catch circle that grows with Hands** (two-tap): a catcher with good
+  Hands gets a bigger circle round the marker, drawn bigger. Parked from
+  Hands on a lob (s3, 2026-11-04), since it changes what you see while
+  aiming and the run under the ball.
+- **More catch tests if lobs are batted too often:** if Hands on a lob
+  leaves too many batted down, send more contested lobs to SNAG IT! or the
+  tip drill to give the Coach a chance. _User's note on h2, 2026-11-04: "We
+  can add more tap events to be triggered by this to give the player a
+  chance if we get too many batted balls."_ The lever is
+  `catchTests.chance`.
 - **Tackles for a loss, explored.** They already happen: a tackled carrier
   is down where it falls (`tackle` in `sim/step.ts`), and behind the line the
   screen says "LOSS OF N". What's open is making them a moment of their own
