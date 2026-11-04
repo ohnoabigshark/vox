@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CANDY_KINGDOM, FARM, FOREST, type ArcadeArea } from '../../src/arcade/content/defense';
-import { createRun } from '../../src/arcade/sim/run';
+import { SERIES_KINDS, createRun } from '../../src/arcade/sim/run';
 import { v } from '../../src/arcade/sim/vec';
 import { run, stand } from './helpers';
 
@@ -10,13 +10,14 @@ import { run, stand } from './helpers';
  * t3): one each side, as the Candy Queendom's and the Farm's Safeties stand.
  */
 
-const stretches = (a: ArcadeArea) => [a.intro, a.challenge, a.gimmick, a.boss];
+const stretches = (a: ArcadeArea) => SERIES_KINDS.map((k) => a[k]);
 const safeties = (a: ArcadeArea) =>
   stretches(a).map((s) => s.defenders.filter((d) => d.kind === 'safety'));
 
 describe('two Owls in the Forest', () => {
-  it('1: every Forest stretch lines up two Safeties, at −3.5 and 3.5, 12 deep', () => {
+  it('1: every Forest stretch lines up two Safeties, at −3.5 and 3.5', () => {
     for (const owls of safeties(FOREST)) {
+      // Their y is never read: a Safety stands `safetyDepth` back, or past the first-down line (lineUpDefense).
       expect(owls).toEqual([
         { kind: 'safety', x: -3.5, y: 12 },
         { kind: 'safety', x: 3.5, y: 12 },
@@ -32,21 +33,25 @@ describe('two Owls in the Forest', () => {
     expect(owls).toHaveLength(2);
     const [left, right] = [...owls].sort((a, b) => a.home.x - b.home.x);
     const others = s.field.players.filter((p) => p.role !== 'qb');
-    // The deepest on the left half at x −5, on the right at x 6.
+    // Each half has shallower players at x −5 and 6, and its deepest at x −2 and 3.
+    const lastLeft = others.length - (others.length % 2 === 0 ? 2 : 1);
+    const lastRight = others.length - (others.length % 2 === 0 ? 1 : 2);
     others.forEach((p, i) => {
-      p.pos = v(i % 2 === 0 ? -5 : 6, 2 + i * 0.1);
+      const left = i % 2 === 0;
+      const deepest = i === (left ? lastLeft : lastRight);
+      p.pos = v(left ? (deepest ? -2 : -5) : deepest ? 3 : 6, 2 + i);
       p.job = stand(p.pos);
     });
     s.phase = 'play';
     const after = run(s, 60).state.field.defenders;
-    expect(after.find((d) => d.id === left!.id)!.pos.x).toBeCloseTo(-5, 0);
-    expect(after.find((d) => d.id === right!.id)!.pos.x).toBeCloseTo(6, 0);
+    expect(after.find((d) => d.id === left!.id)!.pos.x).toBeCloseTo(-2, 0);
+    expect(after.find((d) => d.id === right!.id)!.pos.x).toBeCloseTo(3, 0);
   });
 
   it('2: the Candy Queendom’s and the Farm’s defenses are unchanged', () => {
     for (const area of [CANDY_KINGDOM, FARM]) {
-      for (const owls of safeties(area)) {
-        expect(owls.map((d) => d.x)).toEqual([-3.5, 3.5]);
+      for (const deep of safeties(area)) {
+        expect(deep.map((d) => d.x)).toEqual([-3.5, 3.5]);
       }
     }
     expect(stretches(CANDY_KINGDOM).map((s) => s.defenders.length)).toEqual(CANDY_COUNTS_BEFORE_F3);
