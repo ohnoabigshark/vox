@@ -18,7 +18,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   or the tip drill at random, half and half, from the run's seeded random
   numbers, as Break it! picks among its three kinds. Before series 5,
   contests are settled as they always were.
-- **One setting says when both start:** `catchTests.fromSeries` (was
+- **One setting says when both start:** `catchTests.fromStretch` (was
   `snag.fromDrive`).
 - **Four in five, since 2026-11-04:** a contested ball from series 5 goes to
   a catch test with `catchTests.chance` (0.8), rolled from the seed, before

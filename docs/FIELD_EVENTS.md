@@ -219,7 +219,7 @@ changed:
   `sideOf`, `rectXs` and `circleX`, which the editor draws through (r4);
   `sameEvent` (r5); the drive count, `DRIVES` (r7; now `MAX_SERIES`);
   `Yards`, in `fieldSvg.ts` (r8); a Boss's drive, `bossDrive` (r9; now
-  `bossSeries`); each look's drawing and sounds, one record in the game
+  `bossStretch`); each look's drawing and sounds, one record in the game
   (r15).
 - **Tidier:** comments on the right code (r10), "Goes off as" for burst
   and spell (r11), names (r16), the save status told its page by every

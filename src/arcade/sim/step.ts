@@ -28,7 +28,7 @@ import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
 import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle } from './ball';
 import { moveBodies, separate, touching } from './physics';
-import { pushOutOfProps } from './props';
+import { AREA_YARDS, pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
 import { catchTestFor, type CatchTest } from './catchTests';
@@ -300,8 +300,8 @@ function tipDrill(state: RunState, input: StepInput, events: ArcadeEvent[]): voi
 /**
  * A catch test's grade, the same for both (docs/TIP.md, t4). GREAT: caught,
  * and the defenders reaching for it go flying, so the receiver runs free.
- * OK: caught, and tackled on the spot, unless caught past the line, which wins
- * the series (B6). BAD: batted down by the first of them, in the order the
+ * OK: caught, and tackled on the spot (past the line, that wins the series,
+ * B6; in the end zone, it's a touchdown). BAD: batted down by the first of them, in the order the
  * contest put them (the one its rule pits against the receiver).
  */
 function catchGraded(
@@ -326,7 +326,7 @@ function catchGraded(
   giveBall(state, receiver);
   events.push({ type: 'caught', id: receiver.id, contested: true });
   if (grade === 'ok') {
-    // Caught past the line (or in the end zone) wins the series before anyone tackles (B6).
+    // Caught in the end zone is a touchdown before anyone tackles; anywhere else, tackled there.
     if (!checkCarrier(state, events)) tackle(state, receiver, first?.id ?? -1, events);
     return;
   }
@@ -541,14 +541,18 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
   return true;
 }
 
-/** The carrier over the first-down line wins the series; over the sideline, it's down there. */
+/**
+ * The carrier over the goal line scores (docs/LONG_FIELD.md, b4); over the
+ * sideline, it's down there. Past the first-down line the play goes on (b1):
+ * the down that ends there wins the series (`endDown`).
+ */
 function checkCarrier(state: RunState, events: ArcadeEvent[]): boolean {
   const carrier = carrierOf(state);
   if (!carrier) return false;
-  if (carrier.pos.y >= state.series.firstDown) {
+  if (carrier.pos.y >= AREA_YARDS) {
     for (const d of state.field.defenders) d.latch = null;
     state.field.drag = null;
-    endDown(state, 'firstDown', carrier.pos.y, events);
+    endDown(state, 'touchdown', carrier.pos.y, events);
     return true;
   }
   if (Math.abs(carrier.pos.x) > field.halfWidth) {

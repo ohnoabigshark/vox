@@ -42,6 +42,7 @@ import { tipLanding } from '../src/arcade/sim/tip';
 import { canThrow, step } from '../src/arcade/sim/step';
 import type {
   ArcadeEvent,
+  DownResult,
   Form,
   Role,
   RunState,
@@ -136,12 +137,13 @@ interface Tally {
   /** Each run's series won, for hard mode's spread. */
   perRun: number[];
   fullWins: number;
+  /** Downs snapped from each area's stretch, and those of them that won a series (`area:kind`). */
   attempts: Map<string, number>;
   wins: Map<string, number>;
   downs: number;
   downTime: number;
   yards: number;
-  results: Map<string, number>;
+  results: Map<DownResult, number>;
   passes: number;
   handoffs: number;
   /** Yards and downs on handoffs, and on everything else. */
@@ -166,7 +168,7 @@ interface Tally {
   tipResults: Map<string, number>;
 }
 
-const bump = (m: Map<string, number>, k: string, by = 1): void => {
+const bump = <K>(m: Map<K, number>, k: K, by = 1): void => {
   m.set(k, (m.get(k) ?? 0) + by);
 };
 
@@ -434,13 +436,9 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     tipPlan: [],
   };
   const ran = { now: false, grabbed: false };
-  let seriesKey = '';
   for (let guard = 0; guard < 200000 && state.phase !== 'over' && state.phase !== 'won'; guard++) {
+    // The down's stretch (docs/LONG_FIELD.md): the table counts downs from it, and those that won a series.
     const key = `${state.series.area}:${state.series.kind}`;
-    if (key !== seriesKey) {
-      seriesKey = key;
-      bump(t.attempts, key);
-    }
     if (state.phase === 'draft') {
       state = draftPick(state, rng, scenario);
       continue;
@@ -466,6 +464,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       continue;
     }
     const r = step(state, botInput(state, rng, plan));
+    if (r.events.some((e) => e.type === 'downEnded')) bump(t.attempts, key);
     if (r.events.some((e) => e.type === 'seriesWon')) bump(t.wins, key);
     count(t, r.events, state, ran);
     state = r.state;
@@ -508,12 +507,17 @@ function report(scenario: Scenario, t: Tally): void {
     `  series won ${(t.seriesWon / t.runs).toFixed(1)} of 12 · beat the game ${pct(t.fullWins, t.runs)} · ` +
       `yards/down ${(t.yards / t.downs).toFixed(1)} · down length ${(t.downTime / t.downs).toFixed(1)}s`,
   );
+  // Since the long field a series is won from wherever the last ended, and an area by a touchdown
+  // from any stretch (docs/LONG_FIELD.md): areas cleared a run is the measure that compares.
+  console.log(
+    `  touchdowns (areas cleared) ${((t.results.get('touchdown') ?? 0) / t.runs).toFixed(2)} a run`,
+  );
   if (scenario.hard) {
     const sorted = [...t.perRun].sort((a, b) => a - b);
     const at = (q: number): number =>
       sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
     console.log(
-      `  hard mode: series won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (${SERIES_KINDS.length} series a zone)`,
+      `  hard mode: series won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (up to ${SERIES_KINDS.length} series a zone)`,
     );
   }
   const results = [...t.results.entries()]
@@ -555,6 +559,7 @@ function report(scenario: Scenario, t: Tally): void {
       `  handoffs first grabbed at (yards past the line) p10 ${q(0.1)} · median ${q(0.5)} · p90 ${q(0.9)} · by ${by}`,
     );
   }
+  console.log('  downs from each stretch that won a series:');
   [0, 1, 2].forEach((area) => {
     const row = SERIES_KINDS.map((k) => {
       const key = `${area}:${k}`;

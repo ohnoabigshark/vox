@@ -21,7 +21,7 @@ import { ofType, playState, run, stand, throwAt } from './helpers';
 const winSeries = (s: RunState): RunState => {
   const t = structuredClone(s);
   const events: ArcadeEvent[] = [];
-  endDown(t, 'firstDown', t.series.firstDown, events);
+  endDown(t, 'tackled', t.series.firstDown, events);
   nextDown(t, events);
   if (t.phase !== 'draft') return t;
   const picked = dispatch(t, { type: 'pick', offer: 0 }).state;
@@ -34,7 +34,7 @@ describe('hard mode', () => {
     for (let i = 0; i < SERIES_KINDS.length; i++) s = winSeries(s);
     expect(s.phase).not.toBe('won');
     expect(s.series.area).toBe(arcadeTuning.run.areas);
-    expect(s.series.index).toBe(0);
+    expect(s.series.stretch).toBe(0);
     // The same run, not hard, is won.
     let easy = createRun(3, undefined, arcadeTuning.run.areas - 1);
     for (let i = 0; i < SERIES_KINDS.length; i++) easy = winSeries(easy);
@@ -79,7 +79,7 @@ describe('hard mode', () => {
       p.stats.hustle + p.stats.hands + p.stats.heft;
     for (const area of [0, 2, 9]) {
       const s = createRun(5, undefined, 0, { hard: true });
-      setUpSeries(s, area, 1, [], false);
+      setUpSeries(s, area, 10, [], false);
       for (const perk of rollOffer(s)) {
         if (perk.kind !== 'recruit') continue;
         expect(total(perk.player)).toBe(200 + 30 * area);
@@ -100,7 +100,7 @@ describe('hard mode', () => {
   it('TRICK OR TREAT! lets you set your lineup', () => {
     const s = createRun(3, undefined, 0, { hard: true });
     const events: ArcadeEvent[] = [];
-    endDown(s, 'firstDown', s.series.firstDown, events);
+    endDown(s, 'tackled', s.series.firstDown, events);
     nextDown(s, events);
     expect(s.phase).toBe('draft');
     expect(dispatch(s, { type: 'pick', offer: 0 }).state.phase).toBe('draft');

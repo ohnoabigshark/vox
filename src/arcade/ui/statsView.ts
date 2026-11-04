@@ -12,6 +12,7 @@ import {
   type EarnedSet,
 } from '../record/achievements';
 import { SERIES_PER_AREA } from '../sim/props';
+import { defenseFor } from '../sim/run';
 import type { Play } from '../content/plays';
 import type { Form, Grade } from '../sim/types';
 import {
@@ -134,13 +135,17 @@ const row = (label: string, value: string | number, record = false): Row => ({
 const day = (iso: string): string =>
   new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-/** How far a run got: the area by name (and which time round, in hard mode) and the series in it. */
+/**
+ * How far a run got: the area by name (and which time round, in hard mode)
+ * and the stretch in it, by name (docs/LONG_FIELD.md, r2; a record's `index`
+ * is the stretch).
+ */
 function where(reached: RunRecord['reached']): string {
   const round = Math.floor(reached.area / AREAS.length) + 1;
   return [
     areaAt(reached.area).name,
     ...(round > 1 ? [`round ${round}`] : []),
-    `series ${(reached.index % SERIES_PER_AREA) + 1}`,
+    defenseFor(reached.area, reached.index % SERIES_PER_AREA).name,
   ].join(' · ');
 }
 

@@ -105,7 +105,7 @@ describe('the Game Over card (v1)', () => {
 
   it('how far: the area’s name and the series, and the downs played', () => {
     expect(card.title).toBe('Game Over!');
-    expect(card.sub).toBe('Candy Queendom · series 3 · 7 downs');
+    expect(card.sub).toBe('Candy Queendom · Broomstick Alley · 7 downs');
   });
 
   it('first downs, touchdowns, passing, rushes and yards; yards whole', () => {
@@ -159,7 +159,7 @@ describe('the Game Over card (v1)', () => {
       null,
       [],
     );
-    expect(c.sub).toBe('Candy Queendom · round 2 · series 1 · 0 downs');
+    expect(c.sub).toBe('Candy Queendom · round 2 · Gumdrop Lane · 0 downs');
   });
 
   it('a win (v3): its own title, all three areas', () => {
@@ -261,8 +261,8 @@ describe('the stats section (v5)', () => {
 
   it('Runs: newest first, one mode at a time', () => {
     expect(runsView(saved, 'hard').map((r) => [r.id, r.date, r.where, r.line])).toEqual([
-      ['c', 'Nov 2', 'Candy Queendom · series 3 · unfinished', '0 yds · 0 first downs'],
-      ['a', 'Nov 2', 'Candy Queendom · series 3', '38 yds · 1 first down'],
+      ['c', 'Nov 2', 'Candy Queendom · Broomstick Alley · unfinished', '0 yds · 0 first downs'],
+      ['a', 'Nov 2', 'Candy Queendom · Broomstick Alley', '38 yds · 1 first down'],
     ]);
     expect(runsView(saved, 'normal').map((r) => [r.id, r.where])).toEqual([['b', 'Won']]);
   });
@@ -279,7 +279,7 @@ describe('the stats section (v5)', () => {
     expect(all.sections[0]!.rows.map((r) => [r.label, r.value])).toEqual([
       ['Played', '2'],
       ['Won', '0'],
-      ['Furthest', 'Candy Queendom · series 3'],
+      ['Furthest', 'Candy Queendom · Broomstick Alley'],
     ]);
     expect(all.sections[1]!.rows).toContainEqual({
       label: 'Longest pass',

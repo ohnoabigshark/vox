@@ -12,19 +12,19 @@ import type { RunState } from '../../src/arcade/sim/types';
  */
 
 function onSeries(state: RunState, series: number): RunState {
-  state.series = { ...state.series, area: Math.floor((series - 1) / 4), index: (series - 1) % 4 };
+  state.series = { ...state.series, area: Math.floor((series - 1) / 4), stretch: (series - 1) % 4 };
   return state;
 }
 
 describe('the catch tests’ shared settings (TIP.md, step 2)', () => {
   it('live in catchTests, and SNAG IT!’s own block no longer has them', () => {
     const c = tuningDefaults.catchTests;
-    expect(c.fromSeries).toBe(5);
+    expect(c.fromStretch).toBe(5);
     expect([c.minCount, c.maxCount, c.moreEvery, c.handsGap]).toEqual([2, 5, 4, 20]);
     expect([c.fasterAfter, c.perSeries, c.floor]).toEqual([10, 0.05, 0.625]);
     // 0.3 s on screen, at the game's 0.8 time scale.
     expect(c.linger / 0.8).toBeCloseTo(0.3, 9);
-    for (const gone of ['fromSeries', 'minDots', 'maxDots', 'moreEvery', 'handsGap']) {
+    for (const gone of ['fromStretch', 'minDots', 'maxDots', 'moreEvery', 'handsGap']) {
       expect(Object.keys(tuningDefaults.snag)).not.toContain(gone);
     }
     for (const gone of ['fasterAfter', 'perSeries', 'closeFloor', 'linger']) {

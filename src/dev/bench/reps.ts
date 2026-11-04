@@ -9,7 +9,7 @@ import { arcadeTuning, DT, TIME_SCALE } from '../../arcade/content/tuning';
 import { BASE_STATS } from '../../arcade/content/team';
 import { qbOf } from '../../arcade/sim/ai';
 import { breakHardness, startBreakIt } from '../../arcade/sim/breakit';
-import { createRun, seriesAt } from '../../arcade/sim/run';
+import { createRun, stretchAt } from '../../arcade/sim/run';
 import { catchCount } from '../../arcade/sim/catchTests';
 import { snagPace, startSnag } from '../../arcade/sim/snag';
 import { startTip, tipLanding, tipPops, tipTimes } from '../../arcade/sim/tip';
@@ -139,7 +139,7 @@ export interface Rep {
 /** Start a rep of `test` in `situation`; `seed` varies where the sweet spot, the arrow and the dots fall. */
 export function startRep(test: BenchTest, situation: Situation, seed: number): Rep {
   const state = createRun(seed, startingRoster(), 0, { snagAlways: true });
-  state.series = { ...state.series, ...seriesAt(situation.series) };
+  state.series = { ...state.series, ...stretchAt(situation.series) };
   state.phase = 'play';
   state.snappedAt = state.time;
   state.field.pickups = [];
@@ -359,7 +359,7 @@ export function timingText(timing: Timing): string {
 /** What the situation adds up to for this test (k2), in screen seconds. */
 export function summary(test: BenchTest, situation: Situation): string {
   const { series } = situation;
-  const { area } = seriesAt(series);
+  const { area } = stretchAt(series);
   const b = arcadeTuning.breakit;
   const pile = b.perExtraTackler ** (situation.tacklers - 1);
   const level = breakHardness(area);

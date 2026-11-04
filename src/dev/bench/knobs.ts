@@ -8,7 +8,7 @@
  */
 import { numberAt } from '../../arcade/content/savedTuning';
 import { arcadeTuning, TIME_SCALE, tuningDefaults } from '../../arcade/content/tuning';
-import { seriesAt } from '../../arcade/sim/run';
+import { stretchAt } from '../../arcade/sim/run';
 
 /** The tap tests, one tab each (b1; the tip drill's from docs/TIP.md, g6). */
 export type BenchTest = 'bar' | 'mash' | 'juke' | 'snag' | 'tip' | 'shoo';
@@ -83,10 +83,10 @@ export const KNOBS: readonly Knob[] = [
   snagMore('box', 'Box at most', 'px'),
   // What SNAG IT! shares with the tip drill (docs/TIP.md, g3): tuned here for both,
   // and when they start and the box's linger on the tip drill's tab too (g6).
-  catchMore('fromSeries', 'Catch tests from series', 'count', ['snag', 'tip']),
+  catchMore('fromStretch', 'Catch tests from stretch', 'count', ['snag', 'tip']),
   catchMore('chance', 'Contested balls that get one', 'share', ['snag', 'tip']),
-  catchMore('fasterAfter', 'Quicker after series', 'count'),
-  catchMore('perSeries', 'Quicker each series by', 'share'),
+  catchMore('fasterAfter', 'Quicker after stretch', 'count'),
+  catchMore('perSeries', 'Quicker each stretch by', 'share'),
   catchMore('floor', 'No quicker than', 'share'),
   catchMore('minCount', 'Fewest dots', 'count'),
   catchMore('maxCount', 'Most dots', 'count'),
@@ -109,7 +109,7 @@ const AREAS = arcadeTuning.breakit.byArea.length;
 
 /** The area a series (1-based) is in, as a by-area value counts it: past the Farm, the Farm's. */
 function areaOf(series: number): number {
-  return Math.min(AREAS - 1, Math.max(0, seriesAt(series).area));
+  return Math.min(AREAS - 1, Math.max(0, stretchAt(series).area));
 }
 
 /** The value a knob edits at this series. */

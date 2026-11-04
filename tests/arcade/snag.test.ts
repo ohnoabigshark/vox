@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { layerSaved } from '../../src/arcade/content/savedTuning';
 import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
-import { createRun, seriesAt, seriesNumber } from '../../src/arcade/sim/run';
+import { createRun, stretchAt, stretchNumber } from '../../src/arcade/sim/run';
 import { dotOpen, nextDot, snagCountdownLeft, snagPace } from '../../src/arcade/sim/snag';
 import { step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
@@ -93,18 +93,18 @@ describe('SNAG IT!: how many dots (s1)', () => {
     expect(catchCount({ series: 17, crowd: 4, handsGap: -30 })).toBe(5);
   });
 
-  it('the series number is a series’ count in the run', () => {
-    expect(seriesNumber({ area: 0, index: 0 })).toBe(1);
-    expect(seriesNumber({ area: 1, index: 0 })).toBe(5);
-    expect(seriesNumber({ area: 2, index: 3 })).toBe(12);
-    expect(seriesNumber({ area: 4, index: 0 })).toBe(17);
+  it('the stretch number is a stretch’s count in the run', () => {
+    expect(stretchNumber({ area: 0, stretch: 0 })).toBe(1);
+    expect(stretchNumber({ area: 1, stretch: 0 })).toBe(5);
+    expect(stretchNumber({ area: 2, stretch: 3 })).toBe(12);
+    expect(stretchNumber({ area: 4, stretch: 0 })).toBe(17);
   });
 
-  it('and back: the area and index of a series number (review a7)', () => {
-    expect(seriesAt(1)).toEqual({ area: 0, index: 0 });
-    expect(seriesAt(5)).toEqual({ area: 1, index: 0 });
-    expect(seriesAt(12)).toEqual({ area: 2, index: 3 });
-    for (let n = 1; n <= 20; n++) expect(seriesNumber(seriesAt(n))).toBe(n);
+  it('and back: the area and stretch of a stretch number (review a7)', () => {
+    expect(stretchAt(1)).toEqual({ area: 0, stretch: 0 });
+    expect(stretchAt(5)).toEqual({ area: 1, stretch: 0 });
+    expect(stretchAt(12)).toEqual({ area: 2, stretch: 3 });
+    for (let n = 1; n <= 20; n++) expect(stretchNumber(stretchAt(n))).toBe(n);
   });
 });
 
@@ -264,7 +264,9 @@ describe('SNAG IT!: the grade (c4, s4)', () => {
     const r = snag(s, ['hit', 'none']);
     expect(ofType(r.events, 'snagResult')).toEqual([{ type: 'snagResult', grade: 'ok' }]);
     expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
-    expect(ofType(r.events, 'tackled')).toEqual([]);
+    // Caught and tackled on the spot (OK), past the line: since the long field the play doesn't
+    // stop at the line, so the tackle comes, and the down still wins the series (B6).
+    expect(ofType(r.events, 'tackled')).toHaveLength(1);
   });
 
   it('two misses: BAD, batted down by the Cover', () => {

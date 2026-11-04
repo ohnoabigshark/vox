@@ -44,7 +44,7 @@ describe('the play log: its lines (l2)', () => {
     const [line] = eventLines(before, after, [{ type: 'tackled', id: 2, by: 100 }], meta, NOW);
     expect(line?.series).toEqual({
       area: before.series.area,
-      index: before.series.index,
+      stretch: before.series.stretch,
       kind: before.series.kind,
     });
     expect(line?.down).toBe(2);

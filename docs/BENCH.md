@@ -62,7 +62,7 @@ something, the old text is marked _replaced_.
   - the tip drill (docs/TIP.md, g6): the countdown, the first pop's time in
     the air (`tip.firstPop`), each pop's share of the last (`shrink`), the
     clean and bobble windows (`clean`, `bobble`); behind More, when the
-    catch tests start and the box's linger (`catchTests.fromSeries`,
+    catch tests start and the box's linger (`catchTests.fromStretch`,
     `linger`, the same sliders as SNAG IT!'s). The count and the pace are
     tuned on SNAG IT!'s tab, for both;
   - SHOO CROWS!: the time to shoo (`crows.window`).
@@ -334,7 +334,7 @@ the bench like this:
 - **SNAG IT!'s last dot is seen:** the box stays `catchTests.linger` after the
   grade, timed by the bench (a1); `catchTests.linger` has a slider behind More.
 - **Shared with the game:** the next dot to tap (`nextDot`, a5), a drive's
-  area (`driveAt`, a7; now `seriesAt`), and the grade words, a Break it!
+  area (`driveAt`, a7; now `stretchAt`), and the grade words, a Break it!
   outcome's grade and the tap tests' sounds (`ui/tapTestCalls.ts`, b8).
 - **Tidier:** the slider widget in `slider.ts` (b12), `Bench` changes its
   own settings (b12), the situation's ranges in one table (b7), the tests'

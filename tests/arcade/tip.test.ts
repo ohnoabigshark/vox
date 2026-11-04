@@ -262,7 +262,9 @@ describe('6. the grade (t4, g1)', () => {
     const r = play(s, [CLEAN, BOBBLE, CLEAN]);
     expect(ofType(r.events, 'tipResult')).toEqual([{ type: 'tipResult', grade: 'ok' }]);
     expect(ofType(r.events, 'downEnded').map((e) => e.result)).toEqual(['firstDown']);
-    expect(ofType(r.events, 'tackled')).toEqual([]);
+    // Caught and tackled on the spot (OK), past the line: since the long field the play doesn't
+    // stop at the line, so the tackle comes, and the down still wins the series (B6).
+    expect(ofType(r.events, 'tackled')).toHaveLength(1);
   });
 
   it('a drop ends the drill at once: BAD, batted down by the Cover', () => {

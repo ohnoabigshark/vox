@@ -98,7 +98,10 @@ describe('whole runs, recorded', () => {
         events.filter((e) => e.type === 'breakResult' && e.outcome === 'break').length,
       );
       expect(stats.passing.completions).toBe(events.filter((e) => e.type === 'caught').length);
-      expect(record.reached).toMatchObject({ area: state.series.area, index: state.series.index });
+      expect(record.reached).toMatchObject({
+        area: state.series.area,
+        index: state.series.stretch,
+      });
       // Every player in a result is on the team the record kept.
       const team = new Set(record.team.map((p) => p.id));
       for (const d of record.downs) {

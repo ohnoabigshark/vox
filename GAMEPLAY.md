@@ -7,11 +7,11 @@ This doc covers what the player *does*: the pillars, the run, a down, the contro
 Items marked **▲** are recommendations or details still open to change. Every number is a starting value, to tune by playtesting and by the headless balance runs (TECHNICAL.md).
 
 **Words used here:**
-- **Area:** a themed place (Froggy's Forest first). Each area is four series.
-- **Series:** four downs to gain 10 yards. Winning one is a **first down**; winning the Boss's is a **touchdown**. **Down:** one play, a few seconds long.
+- **Area:** a themed place (Froggy's Forest first). Each area is four series. *(Fork, the long field: one 40-yard field of four 10-yard **stretches**, Intro to Boss, crossed in at most four series.)*
+- **Series:** four downs to gain 10 yards. Winning one is a **first down**; winning the Boss's is a **touchdown**. **Down:** one play, a few seconds long. *(Fork, the long field: a touchdown is the ball over the goal line, from any down.)*
 - **Drive:** an area's whole march up the field, its four series ending in the end zone.
-- **Series number:** a series' count in the run, from 1 (the Candy Queendom's first series is 5).
-- **Line of scrimmage:** where the current down starts. **First-down line:** 10 yards past where the series started.
+- **Series number:** a series' count in the run, from 1 (the Candy Queendom's first series is 5). *(Fork, the long field: the **stretch number**, the stretch of the down's line counted through the run; the Candy Queendom's first is still 5.)*
+- **Line of scrimmage:** where the current down starts. **First-down line:** 10 yards past where the series started. *(Fork, the long field, `docs/LONG_FIELD.md`: wherever that is, so yards past the line carry over; within 10 of the goal line it's & Goal, and the line is the goal line. An area is one 40-yard field of four 10-yard **stretches**, and each down faces the defense of the stretch its line of scrimmage is in, the Boss's gimmick in his.)*
 - **Your team:** **eight on the field**: the QB plus seven players, each a **Blocker**, a **Runner** or a **Catcher**. *The QB is the pumpkin ball itself, **Jack**: there's no QB player on the field, Jack throws himself (THEME.md, The ball).*
 - **Carrier:** whoever has the ball after a catch or a handoff. It runs on its own.
 - **Heft, Hustle, Hands:** your players' (and defenders') three stats. They're physics, not dice: weight, speed and reach.
@@ -57,7 +57,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 
 - **The story is two tiny cutscenes:** at the start (after PLAY, with the music already going), Jack asks a football team "Can you help me get back to my patch?", one says "Ok", they carry him off, and the title slams in: GET JACK BACK (it plays through: it's short); at the end, in front of the King and the patch, your whole roster (field and bench) dances around Jack: GOT JACK BACK. That's the end: *(fork)* once GOT JACK BACK has landed, the run's card comes up over the dance, **You got Jack back!**, with its stats, **STATS** for the rest and **♪ THE SONG** for the sing-along video of the win song on YouTube (`docs/STATS.md`, v3; if the browser blocks that, a **Listen to 'We Got Jack Back' on YouTube** button shows). There's no AGAIN (a Game Over offers AGAIN on its own card).
 
-- **The four series are one continuous drive up the field**, with no break between them: the camera follows the play up to the next defense, TRICK OR TREAT! takes a moment, and play carries on. The Boss's series goes for the end zone, and getting there (a touchdown) clears the area: **Froggy's Forest Cleared!** (and, the third time, Jack is home).
+- **The four series are one continuous drive up the field**, with no break between them: the camera follows the play up to the next defense, TRICK OR TREAT! takes a moment, and play carries on. The Boss's series goes for the end zone, and getting there (a touchdown) clears the area: **Froggy's Forest Cleared!** (and, the third time, Jack is home). *(Fork, the long field: a touchdown from any down clears the area, skipping the Boss if it comes from outside his stretch; an area takes at most four series, fewer when plays go long.)*
 - **There are no lives. Losing a series is game over.** Four downs, and every one counts.
 - **The forest scales up as you do:** the first series is a handful of sleepy defenders, the area III Boss is the whole forest at full strength (see *The Defense*).
 
@@ -71,7 +71,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
   | **Tackled** | The next down starts where the carrier went down. |
   | **Incomplete or batted down** | The down is used, no gain. |
   | **Sacked** (a rusher reaches the QB holding the ball) | The down is used, and you lose ground (2 yards). *(Fork:)* A sack or a tackle behind the line costs ground on any down, 1st included, back as far as 10 yards behind the area's start (`docs/LONG_FIELD.md`). |
-  | **Over the line** | A first down: the series is won (in the Boss's series, a touchdown). |
+  | **Over the line** | A first down: the series is won (in the Boss's series, a touchdown). *(Fork, the long field: the play goes on past the line, and the series is won when the down ends at or past it; FIRST DOWN! is called then. Over the goal line, from any down, is a touchdown.)* |
   | **4th down fails** | Game over. |
 
 - **No interceptions, no fumbles.** A bad pass costs a down, never the run.
@@ -104,7 +104,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 4. **The pocket holds for four and a half sweeps** (the line crosses fast, at 112.5° a second: about 6 seconds on screen in the first area, as before). If the QB still has the ball when they're done, the pocket collapses: **SACKED!** A faster sweep in later areas means a quicker pocket.
 5. **After the catch, the carrier runs on its own:** it charges upfield and drifts toward the emptiest lane by itself. There's no steering: your skill goes into the tackles.
 6. **Break it!** (below) every time someone grabs the carrier.
-7. **The down ends with a tackle, a dead ball, a sack, or the line.**
+7. **The down ends with a tackle, a dead ball, a sack, or the line.** *(Fork, the long field: or the goal line; the first-down line no longer ends it.)*
 
 ### Break it! *(the tackle mini-games)*
 

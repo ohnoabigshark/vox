@@ -50,7 +50,7 @@ describe('a run', () => {
   it('starts on the first series: 1st & 10, eight a side, three play cards, no draft', () => {
     const s = createRun(1);
     expect(s.phase).toBe('setup');
-    expect(s.series).toMatchObject({ index: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
+    expect(s.series).toMatchObject({ stretch: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
     expect(downAndDistance(s)).toBe('1st & 10');
     expect(s.field.players).toHaveLength(8);
     expect(s.hand).toHaveLength(3);
@@ -550,9 +550,11 @@ describe('the carrier, and Break it! (the bar)', () => {
     expect(ofType(run(s, 0.2).events, 'outOfBounds')).toHaveLength(1);
   });
 
-  it('over the first-down line wins the series', () => {
-    const s = carry(playState([{ pos: v(0, 8) }]), 2);
-    expect(ofType(run(s, 1.5).events, 'downEnded')[0]?.result).toBe('firstDown');
+  it('over the first-down line the play goes on; over the goal line, a touchdown (docs/LONG_FIELD.md)', () => {
+    const s = carry(playState([{ pos: v(3, 8) }]), 2);
+    expect(ofType(run(s, 1.5).events, 'downEnded')).toEqual([]);
+    const deep = carry(playState([{ pos: v(3, 39) }]), 2);
+    expect(ofType(run(deep, 1.5).events, 'downEnded')[0]?.result).toBe('touchdown');
   });
 });
 
@@ -723,7 +725,7 @@ describe('series and the run', () => {
   const winSeries = (s: RunState): RunState => {
     const t = structuredClone(s);
     const events: ArcadeEvent[] = [];
-    endDown(t, 'firstDown', t.series.firstDown, events);
+    endDown(t, 'tackled', t.series.firstDown, events);
     nextDown(t, events);
     return t;
   };
@@ -731,7 +733,7 @@ describe('series and the run', () => {
   it('a won series lines up the next one, waiting for the move on', () => {
     const s = winSeries(createRun(3));
     expect(s.phase).toBe('draft');
-    expect(s.series).toMatchObject({ index: 1, kind: 'challenge', down: 1, los: 10 });
+    expect(s.series).toMatchObject({ stretch: 1, kind: 'challenge', down: 1, los: 10 });
     expect(dispatch(s, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 
@@ -774,10 +776,15 @@ describe('series and the run', () => {
     }
   });
 
-  it('the Boss series goes for the end zone: "& Goal"', () => {
+  it('a series within 10 of the goal line goes for the end zone: "& Goal" (r3)', () => {
     const s = createRun(1);
-    s.series = { ...s.series, kind: 'boss', down: 3 };
+    setUpSeries(s, 0, 30, [], true);
+    s.series.down = 3;
     expect(downAndDistance(s)).toBe('3rd & Goal');
+    setUpSeries(s, 0, 25, [], true);
+    expect(downAndDistance(s)).toBe('1st & 10');
+    setUpSeries(s, 0, 33, [], true);
+    expect(downAndDistance(s)).toBe('1st & Goal');
   });
 });
 
@@ -945,7 +952,7 @@ describe("Mister Frog's Frog Rain", () => {
   it('his series shows a lane each down, never over the pumpkin; he stands in the end zone', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = createRun(seed);
-      setUpSeries(s, 0, 3, [], true);
+      setUpSeries(s, 0, 30, [], true);
       expect(s.series.kind).toBe('boss');
       expect(s.field.props.some((p) => p.model === 'bosses/misterFrog')).toBe(true);
       const lane = s.field.fieldEvent!.area;
@@ -995,7 +1002,7 @@ describe("Mister Frog's Frog Rain", () => {
 
   it('they come a moment after the snap, and only once', () => {
     const s = createRun(3);
-    setUpSeries(s, 0, 3, [], true);
+    setUpSeries(s, 0, 30, [], true);
     let st = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
     expect(st.field.fieldEvent?.left).toBe(FROG_RAIN.goesOff);
     let dumps = 0;
@@ -1027,7 +1034,7 @@ describe('the Candy Kingdom', () => {
   it('a run can start there (?area=2), as if the Forest were won', () => {
     const s = createRun(3, startingRoster(), 1);
     expect(s.series.area).toBe(1);
-    expect(s.series.index).toBe(0);
+    expect(s.series.stretch).toBe(0);
     expect(s.series.name).toBe('Gumdrop Lane');
     expect(s.seriesWon).toBe(4);
     expect(s.phase).toBe('setup');
@@ -1037,19 +1044,19 @@ describe('the Candy Kingdom', () => {
     const s = createRun(3);
     setUpSeries(s, 1, 0, [], true);
     expect(s.series.name).toBe('Gumdrop Lane');
-    setUpSeries(s, 1, 3, [], true);
+    setUpSeries(s, 1, 30, [], true);
     expect(s.series.name).toBe("The Queen's Court");
     expect(s.field.props.some((p) => p.model === 'bosses/queen')).toBe(true);
     expect(s.banned).not.toBeNull();
     expect(s.field.fieldEvent).toBeNull();
     // The Forest's Boss series has no Decree.
-    setUpSeries(s, 0, 3, [], true);
+    setUpSeries(s, 0, 30, [], true);
     expect(s.banned).toBeNull();
   });
 
   it("the Queen's Royal Decree bans a card each down: tapping it calls nothing", () => {
     const s = createRun(3);
-    setUpSeries(s, 1, 3, [], true);
+    setUpSeries(s, 1, 30, [], true);
     const banned = s.banned!;
     expect(PLAYS[s.play.index]).toBe(PLAYS[s.hand[banned === 0 ? 1 : 0]!]);
     const r = dispatch(s, { type: 'call', hand: banned });
@@ -1115,13 +1122,13 @@ describe('the Farm', () => {
   it('is the third area, and the run ends on its last series', () => {
     const s = createRun(5, startingRoster(), 2);
     expect(s.series.name).toBe('The Back Forty');
-    setUpSeries(s, 2, 3, [], true);
+    setUpSeries(s, 2, 30, [], true);
     expect(s.series.name).toBe("The King's Patch");
   });
 
   it('the King stands guard past the goal line: a prop, not a defender, there from the area’s first series', () => {
     const s = createRun(5, startingRoster(), 2);
-    setUpSeries(s, 2, 3, [], true);
+    setUpSeries(s, 2, 30, [], true);
     const king = s.field.props.find((p) => p.model === 'bosses/king');
     expect(king).toBeDefined();
     expect(king!.x).toBe(0);
@@ -1134,7 +1141,7 @@ describe('the Farm', () => {
 
   it('a Crow patrols a lane up and down the field', () => {
     const s = createRun(5, startingRoster(), 2);
-    setUpSeries(s, 2, 1, [], true);
+    setUpSeries(s, 2, 10, [], true);
     const crow = s.field.defenders.find((d) => d.kind === 'crow')!;
     expect(crow.patrol).toHaveLength(2);
     expect(crow.patrol![1]!.x).toBe(crow.patrol![0]!.x);
@@ -1190,13 +1197,17 @@ describe("the King's crows (SHOO!)", () => {
     expect(ofType(r.events, 'sacked')).toHaveLength(1);
   });
 
-  it('a quick deep pass leaves them behind', () => {
+  it('a quick deep pass leaves them behind: the pair after Jack misses', () => {
     const s = kingDown();
     // Throw at the deep Catcher before they take off.
     const thrown = run(s, 0.1, throwAt(s, v(0, 9)));
     const r = run(thrown.state, 2);
     expect(ofType([...thrown.events, ...r.events], 'caught')).toHaveLength(1);
-    expect(ofType(r.events, 'crowsStruck')).toHaveLength(0);
+    // Nobody lands on Jack (id 1), and the first pair is done. Since the long field the play
+    // goes on past the line, so the second pair can still come for the carrier.
+    const all = [...thrown.events, ...r.events];
+    expect(ofType(all, 'crowsLanded').filter((e) => e.on === 1)).toEqual([]);
+    expect(r.state.field.crows?.[0]?.phase).toBe('gone');
   });
 
   /** Step until the crows land (SHOO! time). */

@@ -20,7 +20,7 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 drill at random, half and half, and `?snag=1` makes every contested ball
 SNAG IT! (with `?tip=1` too, either). What the two share moved to
 `catchTests` in `tuning.ts` and `sim/catchTests.ts`, with SNAG IT! playing
-exactly as before: when they start (`fromSeries`), the dot count
+exactly as before: when they start (`fromStretch`), the dot count
 (`minCount`, `maxCount`, `moreEvery`, `handsGap`), the pace past series 10
 (now a share of the usual: 5% a series, down to 62.5%, the same 0.04 s a
 series and 0.5 s floor for the ring) and the box's linger. Where the
@@ -34,6 +34,12 @@ games trigger about 20% less."_ `?snag=1` and `?tip=1` still send every one.
 `catchTestFor` in `sim/catchTests.ts` is the one rule.
 
 ## When (c2, c3, c6)
+
+_Since the long field (`docs/LONG_FIELD.md`, r2, 2026-11-04), "series" in
+"from series 5" and "the series number" below means the **stretch
+number**: the stretch of the down's line of scrimmage, counted through the
+run, so the Candy Queendom still starts at 5 however many series it took
+to get there._
 
 - **A contested ball** is one that one of your players and a defender could
   both get to: on a bullet, a receiver's reach and a defender's reach both

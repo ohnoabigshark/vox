@@ -164,7 +164,7 @@ describe('tricks and treats: taking them', () => {
     endDown(s, 'incomplete', s.series.los, []);
     nextDown(s, []);
     expect(s.field.pickups).toEqual(rest);
-    setUpSeries(s, 0, 1, [], true);
+    setUpSeries(s, 0, 10, [], true);
     expect(s.field.pickups.map((q) => q.id)).not.toContain(first.id);
     expect(s.field.pickups.length).toBeGreaterThan(0);
   });

@@ -169,6 +169,88 @@ Farm, since he does.
 The end zone drawn on every down (d1) is checked in a phone-sized
 screenshot.
 
-## Part 2's tests
+## Balance, before and after (e1)
 
-Proposed on the map's round 3.
+`npm run balance:arcade 40`, 2026-11-04. Before is main at c5198d7 (part 1
+merged); after is `long-field-2` at 03331bf. Normal mode is "A new player
+every time" (it takes one of the two TRICK OR TREAT! players each time);
+hard mode is `{"hard": true, "perks": true}`, played until the run is
+lost. The bot calls only passes and throws to the line or past it; it
+doesn't aim for pickups.
+
+| | Normal before | Normal after | Hard before | Hard after |
+| --- | --- | --- | --- | --- |
+| Areas cleared a run | 2.75¹ | 2.67 | 2.45¹ | 2.40 |
+| Beat the game | 75% | 83% | — | — |
+| Series won a run (TRICK OR TREAT!s) | 11.0 | 7.3 | 9.8 | 7.5 |
+| Hard mode series won, p10 · median · p90 | | | 5 · 9 · 15 | 2 · 8 · 13 |
+| Yards a down | 5.7 | 8.2 | 4.6 | 5.7 |
+| Yards a pass play | 5.7 | 8.3 | 4.6 | 5.7 |
+| Downs ending in a touchdown | not counted | 20% | not counted | 12% |
+| Down length | 4.5 s | 5.5 s | 4.6 s | 5.5 s |
+
+¹ Before, an area was always four series, so areas cleared is series won ÷
+4 (the tool didn't count touchdowns then).
+
+What it says, before the Coach has played it:
+- **About as far, a little more often to the end.** Normal mode beats the
+  game 83% of the time against 75%, and both modes clear about the same
+  number of areas a run.
+- **Long plays score.** One down in five ends in a touchdown in normal
+  mode, one in eight in hard mode. Yards a pass play are up by half in
+  normal mode.
+- **Fewer players.** Fewer series a run means fewer TRICK OR TREAT!s:
+  about 3.7 fewer in normal mode and 2.3 fewer in hard. Hard mode's
+  spread widens (p10 down from 5 to 2), likely from the thinner squads
+  meeting late zones. This is what your note on b3 parks for the TRICK OR
+  TREAT! overhaul (`PLAN.md`).
+- **The Boss's stretch is easiest to win from.** A down from it scores
+  whenever it gains the yards, so 77–93% of them win a series in normal
+  mode. Hard mode's third zone is the exception at 44%.
+
+Nothing is tuned yet (e1): your play comes first, then your note on c1
+(the defenses) if breakaways are too easy.
+
+## Part 2's tests, written first (p1)
+
+Approved on the map's round 3 (p1), which also confirmed this design as
+written. In `tests/arcade/longFieldPlay.test.ts` unless named:
+
+1. **Football's first downs:** a first down ending at 14 sets 1st & 10 from
+   14, the line at 24; one ending at 33 sets 1st & Goal, the line to gain
+   (and the gold line) on the goal line.
+2. **Defense by stretch:** a down from 14 lines up the Challenge's defense,
+   from 21 the Gimmick's, from 32 the Boss's with his gimmick; a loss from
+   21 back to 18 brings the Challenge's back.
+3. **The stretch number:** catch tests start on the Candy Queendom's first
+   stretch (5) however many series it took; a down from 22 there is 7.
+4. **The play goes on:** a carrier over the line keeps running, with no
+   event at the crossing; tackled at 17, a first down, one series won, one
+   TRICK OR TREAT!.
+5. **Out of bounds past the line** is a first down where the carrier went
+   out.
+6. **A touchdown from anywhere:** from the Intro's stretch over the goal
+   line clears the area, skips the Boss, one TRICK OR TREAT!, the next area
+   from its 0; on the Farm in normal mode, the win.
+7. **The record** (`tests/arcade/record/recorder.test.ts`): a touchdown is
+   recorded as one with its yards; a won series, even on the Boss's
+   stretch, is a first down.
+8. **Practice:** a rep goes on past the line; the next lines up at the same
+   spot.
+
+Built 2026-11-04 on `long-field-2`. Test 5 passes for a different reason
+than before: the sideline now calls it, where the line used to. The
+recorder's touchdown test passed before the change (a result it was handed
+went through), its first-down twin failed. "How far" on Game Over and the
+stats names the stretch (Candy Queendom · Broomstick Alley), its test red
+first. Older tests that pinned the play stopping at the line were
+updated: a SNAG IT! or tip drill OK past the line is now tackled there
+(the down still wins the series), and the King's second pair of crows can
+now reach a carrier who has run on past the line.
+
+In code: `stretchOf` and the reworked `setUpSeries` (a start in yards),
+`setUpDown` (the stretch each down), `endDown` (`touchdown`), `nextDown`,
+`checkCarrier` (`sim/step.ts`), the Safeties kept inside the end zone
+(`lineUpDefense`), `downAndDistance`. The rename that came first:
+`Series.stretch`, `stretchNumber`, `stretchAt`, `bossStretch`,
+`catchTests.fromStretch`; saved records keep `index` and `seriesNumber`.

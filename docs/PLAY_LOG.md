@@ -29,7 +29,8 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - `link`: the link's query string (`aim=2&hard=1&snag=1&tip=1`); lines
     from before 2026-11-01's review call it `flags` (r6);
   - `practice`: true for Try it's practice;
-  - the down as it was played: `series` (area, index, kind), the down,
+  - the down as it was played: `series` (area, stretch, kind; `index`
+    before the long field, 2026-11-04, when it was the series), the down,
     the line of scrimmage and the first-down line, and the play called;
     lines from before 2026-11-03's series-rename branch call it `drive`;
   - `phase`: where the run was just after the event: `setup` before the

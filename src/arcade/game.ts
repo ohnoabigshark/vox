@@ -44,6 +44,7 @@ import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toWorld } from './render/world';
 import { carrierOf, qbOf } from './sim/ai';
 import {
   SERIES_KINDS,
+  stretchStart,
   createRun,
   dispatch,
   downAndDistance,
@@ -195,7 +196,7 @@ export class ArcadeGame {
    */
   private readonly practice:
     | { readonly kind: 'sketch'; readonly play: Play; readonly sketch: string | null }
-    | { readonly kind: 'event'; readonly event: FieldEvent; readonly series: number }
+    | { readonly kind: 'event'; readonly event: FieldEvent; readonly stretch: number }
     | null;
   /** Reads the play editor's sketches in the game; none without it. */
   private readonly sketchesInGame: (() => Promise<readonly Play[]>) | null;
@@ -282,7 +283,7 @@ export class ArcadeGame {
     this.practice = link?.play.ok
       ? { kind: 'sketch', play: link.play.play, sketch: link.sketch }
       : tryEvent?.event.ok
-        ? { kind: 'event', event: tryEvent.event.event, series: tryEvent.series }
+        ? { kind: 'event', event: tryEvent.event.event, stretch: tryEvent.stretch }
         : null;
     const farm = FARM_SONGS[(options.farmSong ?? 1) - 1] ?? FARM_SONGS[0];
     this.areaSongs = [...AREA_SONGS, farm];
@@ -780,15 +781,17 @@ export class ArcadeGame {
           this.hud.pop('OUT OF BOUNDS', 'bad');
           break;
         case 'downEnded':
-          if (e.result === 'firstDown') {
+          if (e.result === 'firstDown' || e.result === 'touchdown') {
             play('touchdown');
-            // Beating a Boss clears its area: "Froggy's Forest Cleared!".
-            this.hud.pop(
-              prev.series.kind === 'boss'
-                ? `${areaAt(prev.series.area).name} Cleared!`
-                : 'FIRST DOWN!',
-              'good',
-            );
+            // Called as the down ends, not as the line is crossed (docs/LONG_FIELD.md, b2); a
+            // touchdown clears its area: "Froggy's Forest Cleared!" (a practice rep clears nothing, e2).
+            const call =
+              e.result === 'firstDown'
+                ? 'FIRST DOWN!'
+                : prev.practice
+                  ? 'TOUCHDOWN!'
+                  : `${areaAt(prev.series.area).name} Cleared!`;
+            this.hud.pop(call, 'good');
           } else if (e.result === 'tackled' || e.result === 'outOfBounds') {
             const yards = Math.round(e.gained);
             this.hud.pop(
@@ -919,7 +922,7 @@ export class ArcadeGame {
         tipAlways: this.tipAlways,
         ...(p.kind === 'sketch'
           ? { practice: p.play }
-          : { eventPractice: { event: p.event, series: p.series } }),
+          : { eventPractice: { event: p.event, stretch: p.stretch } }),
       });
     return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
       hard: this.hard,
@@ -939,7 +942,7 @@ export class ArcadeGame {
   /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */
   private skipToWin(): void {
     const s = createRun(this.seed, firstRoster(this.monsters), arcadeTuning.run.areas - 1);
-    setUpSeries(s, s.series.area, SERIES_KINDS.length - 1, [], true);
+    setUpSeries(s, s.series.area, stretchStart(SERIES_KINDS.length - 1), [], true);
     // One recruit for every TRICK OR TREAT! a full run has.
     for (let i = 0; i < arcadeTuning.run.areas * SERIES_KINDS.length - 1; i++) {
       s.seriesWon = i;

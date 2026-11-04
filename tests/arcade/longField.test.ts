@@ -64,15 +64,17 @@ describe('the long field, part 1', () => {
     expect(arcadeTuning.series.furthestBack).toBe(10);
   });
 
-  it('3: a sack on the Challenge’s 1st down at 10 goes back into the Intro’s stretch, still the Challenge’s series', () => {
+  it('3: a sack on the Challenge’s 1st down at 10 goes back into the Intro’s stretch: the same series, the Intro’s defense', () => {
     const s = createRun(1);
-    setUpSeries(s, 0, 1, [], true);
+    setUpSeries(s, 0, 10, [], true);
     expect(s.series.los).toBe(distance);
     const { state, sacks } = sackedThenNext(snapped(s));
     expect(sacks).toBe(1);
     expect(state.series.los).toBe(distance - arcadeTuning.series.sackLoss);
-    expect(state.series.index).toBe(1);
-    expect(state.series.kind).toBe('challenge');
+    // The series and its line to gain stay; since part 2 the down faces the Intro's defense (r1).
+    expect(state.series.firstDown).toBe(2 * distance);
+    expect(state.series.stretch).toBe(0);
+    expect(state.series.kind).toBe('intro');
     expect(downAndDistance(state)).toBe('2nd & 12');
   });
 
@@ -116,7 +118,7 @@ describe('the long field, part 1', () => {
     const ahead = s.field.pickups.find((p) => p.y >= 2 * distance);
     if (!ahead) throw new Error('no pickup in the Gimmick’s stretch');
     s.taken.push(ahead.id);
-    setUpSeries(s, 0, 1, [], true);
+    setUpSeries(s, 0, 10, [], true);
     expect(s.field.pickups.map((p) => p.id)).not.toContain(ahead.id);
     expect(s.field.pickups).toEqual(pickupsForArea(4, 0).filter((p) => p.id !== ahead.id));
   });
@@ -127,7 +129,7 @@ describe('the long field, part 1', () => {
       for (const area of hard ? [0, 1, 2, 3, 4] : [0, 1, 2]) {
         for (let index = 0; index < 4; index++) {
           const s = createRun(1, undefined, 0, { hard });
-          setUpSeries(s, area, index, [], true);
+          setUpSeries(s, area, index * distance, [], true);
           expect(s.series, `area ${area} series ${index}`).toMatchObject({
             start: index * distance,
             los: index * distance,

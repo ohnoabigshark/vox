@@ -301,8 +301,8 @@ export type SeriesKind = 'intro' | 'challenge' | 'gimmick' | 'boss';
 
 export interface Series {
   readonly area: number;
-  /** 0-3: Intro, Challenge, Gimmick, Boss. */
-  readonly index: number;
+  /** The down's stretch of the area, 0-3: Intro, Challenge, Gimmick, Boss (docs/LONG_FIELD.md, r1). */
+  readonly stretch: number;
   readonly kind: SeriesKind;
   readonly name: string;
   /** Where the series started (10 yards a series into its area) and the line it has to cross (10 on). */
@@ -314,7 +314,7 @@ export interface Series {
 }
 
 export type DownResult =
-  'tackled' | 'incomplete' | 'batted' | 'sacked' | 'outOfBounds' | 'firstDown';
+  'tackled' | 'incomplete' | 'batted' | 'sacked' | 'outOfBounds' | 'firstDown' | 'touchdown';
 
 /** One of your seven players, for the whole run. */
 /** A position on the field: a slot in the line-up (2 Blockers, 2 Runners, 3 Catchers). */
@@ -555,7 +555,7 @@ export type ArcadeEvent =
   | { readonly type: 'crowsStruck'; readonly on: number }
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
-  | { readonly type: 'seriesWon'; readonly index: number }
+  | { readonly type: 'seriesWon'; readonly stretch: number }
   | { readonly type: 'perk'; readonly perk: Perk }
   | {
       readonly type: 'joined';
@@ -583,7 +583,7 @@ export type ArcadeEvent =
     }
   /** A carrier slipped on an oil slick and is down there: SLIPPED! */
   | { readonly type: 'slipped'; readonly id: number }
-  | { readonly type: 'seriesStarted'; readonly index: number; readonly name: string }
+  | { readonly type: 'seriesStarted'; readonly stretch: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
   | { readonly type: 'gameOver'; readonly seriesWon: number; readonly yards: number };
 

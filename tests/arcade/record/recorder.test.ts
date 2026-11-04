@@ -348,9 +348,35 @@ describe('along the way', () => {
     expect(r.crowsShooed).toBe(1);
   });
 
-  it('a won Boss’s series is a touchdown', () => {
+  it('a down over the goal line is a touchdown, from any stretch (long field test 7)', () => {
     const s = field();
-    s.series = { ...s.series, kind: 'boss', index: 3 };
+    const r = only(
+      [
+        { events: [{ type: 'handoff', id: 3 }] },
+        { events: [{ type: 'downEnded', result: 'touchdown', gained: 40 }], set: at(3, 40) },
+      ],
+      s,
+    );
+    expect(r.outcome).toBe('touchdown');
+    expect(r.gained).toBe(40);
+    expect(r.seriesNumber).toBe(1);
+  });
+
+  it('how far a run got is the furthest stretch, not where a loss left it (long field review)', () => {
+    const s = field();
+    s.series = { ...s.series, kind: 'boss', stretch: 3 };
+    const { rec } = feed(s, [
+      {
+        events: [{ type: 'sacked' }],
+        set: (n) => (n.series = { ...n.series, kind: 'gimmick', stretch: 2 }),
+      },
+    ]);
+    expect(rec.record.reached).toEqual({ area: 0, index: 3, seriesNumber: 4 });
+  });
+
+  it('a won series is a first down, even on the Boss’s stretch (long field test 7)', () => {
+    const s = field();
+    s.series = { ...s.series, kind: 'boss', stretch: 3 };
     const r = only(
       [
         { events: [{ type: 'handoff', id: 3 }] },
@@ -358,8 +384,7 @@ describe('along the way', () => {
       ],
       s,
     );
-    expect(r.outcome).toBe('touchdown');
-    expect(r.seriesNumber).toBe(4);
+    expect(r.outcome).toBe('firstDown');
   });
 });
 
@@ -429,7 +454,7 @@ describe('players', () => {
         set: (n) => {
           n.bench.unshift(n.roster[0]!);
           n.roster[0] = recruit;
-          n.series = { ...n.series, index: 1 };
+          n.series = { ...n.series, stretch: 1 };
         },
       },
     ]);
@@ -483,7 +508,7 @@ describe('the run', () => {
     const over = feed(field(), [
       {
         events: [{ type: 'gameOver', seriesWon: 6, yards: 81 }],
-        set: (n) => (n.series = { ...n.series, area: 1, index: 2 }),
+        set: (n) => (n.series = { ...n.series, area: 1, stretch: 2 }),
       },
     ]);
     expect(over.rec.record.end).toBe('over');

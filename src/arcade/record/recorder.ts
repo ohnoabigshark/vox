@@ -5,7 +5,7 @@
  * of it.
  */
 import { assertNever } from '../../assertNever';
-import { seriesNumber } from '../sim/run';
+import { stretchNumber } from '../sim/run';
 import type { ArcadeEvent, DefenderKind, DownResult, Grade, RunState } from '../sim/types';
 import {
   JACK,
@@ -45,7 +45,6 @@ interface Draft {
   readonly down: number;
   readonly toGo: number;
   readonly los: number;
-  readonly boss: boolean;
   play: string | null;
   flipped: boolean;
   thrown: boolean;
@@ -124,7 +123,9 @@ export class RunRecorder {
   /** One step's (or one action's) events: the down from `prev`, the spots from `next`. */
   step(prev: RunState, next: RunState, events: readonly ArcadeEvent[]): void {
     for (const e of events) this.event(prev, next, e);
-    this.record.reached = reachedOf(next);
+    // How far the run got: the furthest stretch, since a loss can now take the line back (docs/LONG_FIELD.md).
+    const now = reachedOf(next);
+    if (now.seriesNumber > this.record.reached.seriesNumber) this.record.reached = now;
     if (next.phase === 'won') this.record.end = 'won';
   }
 
@@ -252,7 +253,7 @@ export class RunRecorder {
             name: p.name,
             kind: p.kind,
             preferred: p.preferred,
-            joinedAt: seriesNumber(next.series),
+            joinedAt: stretchNumber(next.series),
           });
         }
         return;
@@ -290,11 +291,10 @@ function newDraft(state: RunState): Draft {
   const { series } = state;
   const play = state.playbook[state.play.index];
   return {
-    seriesNumber: seriesNumber(series),
+    seriesNumber: stretchNumber(series),
     down: series.down,
     toGo: series.firstDown - series.los,
     los: series.los,
-    boss: series.kind === 'boss',
     play: state.called === null ? null : (play?.id ?? null),
     flipped: state.play.flipped,
     thrown: false,
@@ -320,7 +320,8 @@ function newDraft(state: RunState): Draft {
 }
 
 function finished(d: Draft, next: RunState, result: DownResult, gained: number): PlayResult {
-  const outcome: Outcome = result === 'firstDown' && d.boss ? 'touchdown' : result;
+  // Saved records keep their own union, which today has the sim's results exactly.
+  const outcome: Outcome = result;
   const kind: PlayKind = d.sacked ? 'sack' : d.handedOff && !d.thrown ? 'rush' : 'pass';
   const end = endSpot(next, d);
   return {
@@ -372,6 +373,7 @@ function spot(state: RunState, body: number): number | null {
 }
 
 function reachedOf(state: RunState): RunRecord['reached'] {
-  const { area, index } = state.series;
-  return { area, index, seriesNumber: seriesNumber(state.series) };
+  const { area, stretch } = state.series;
+  // Kept as `index` and `seriesNumber` in saved records: the stretch, and its number (CONTEXT.md, Stretch number).
+  return { area, index: stretch, seriesNumber: stretchNumber(state.series) };
 }

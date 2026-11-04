@@ -2,11 +2,11 @@
  * The catch tests (docs/TIP.md): SNAG IT! and the tip drill, the tap tests
  * on a contested ball. What they share is written once here: when they
  * start, how many dots or pops a situation gives, and how much quicker they
- * get past series 10.
+ * get past stretch 10.
  */
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
-import { seriesNumber } from './run';
+import { stretchNumber } from './run';
 import type { Contest } from './ball';
 import type { Player, RunState, Vec } from './types';
 import { add, clamp, len, norm, scale, sub } from './vec';
@@ -16,12 +16,12 @@ const ct = arcadeTuning.catchTests;
 /** The catch tests: SNAG IT! and the tip drill. */
 export type CatchTest = 'snag' | 'tip';
 
-/** Whether ?snag=1 or ?tip=1 is on: every contested ball a catch test, from the first series. */
+/** Whether ?snag=1 or ?tip=1 is on: every contested ball a catch test, from the first stretch. */
 const forcedByLink = (state: RunState): boolean => state.snagAlways || state.tipAlways;
 
-/** Whether a contested ball can go to a catch test on this series. */
+/** Whether a contested ball can go to a catch test on this down's stretch. */
 export function catchTestsOn(state: RunState): boolean {
-  return forcedByLink(state) || seriesNumber(state.series) >= ct.fromSeries;
+  return forcedByLink(state) || stretchNumber(state.series) >= ct.fromStretch;
 }
 
 /**
@@ -36,7 +36,7 @@ function whichCatchTest(state: RunState): CatchTest {
 
 /**
  * The catch test this contested ball goes to, or null for today's rule:
- * none before `fromSeries`; from then on `chance` of them, from the run's
+ * none before `fromStretch`; from then on `chance` of them, from the run's
  * seed; every one with ?snag=1 or ?tip=1. The roll has its own label, so it
  * draws a number apart from the pick's.
  */
@@ -63,31 +63,31 @@ export interface CatchSituation {
   readonly handsGap: number;
 }
 
-/** The situation a contested ball is played in, on this series. */
+/** The situation a contested ball is played in, on this down's stretch. */
 export function contestSituation(state: RunState, contest: Contest): CatchSituation {
   const best = Math.max(...contest.defenders.map((d) => d.stats.hands));
   return {
-    series: seriesNumber(state.series),
+    series: stretchNumber(state.series),
     crowd: contest.defenders.length,
     handsGap: contest.receiver.stats.hands - best,
   };
 }
 
 /**
- * How many dots (or pops): `minCount` from series 5, one more every
- * `moreEvery` series; one more for each defender after the first reaching
+ * How many dots (or pops): `minCount` from stretch 5, one more every
+ * `moreEvery` stretches; one more for each defender after the first reaching
  * for the ball; one fewer when the receiver's Hands beat the best defender's
  * by `handsGap`, one more the other way; and `more` (the tip drill's extra
  * pop). Held to `minCount`–`maxCount`.
  */
 export function catchCount(c: CatchSituation, more = 0): number {
-  // By the series number (docs/SNAG.md), the series' count in the run.
-  const bySeries = ct.minCount + Math.floor(Math.max(0, c.series - ct.fromSeries) / ct.moreEvery);
+  // By the stretch number (docs/SNAG.md), the stretch's count in the run; `series` is its old name.
+  const bySeries = ct.minCount + Math.floor(Math.max(0, c.series - ct.fromStretch) / ct.moreEvery);
   const hands = c.handsGap >= ct.handsGap ? -1 : c.handsGap <= -ct.handsGap ? 1 : 0;
   return clamp(bySeries + Math.max(0, c.crowd - 1) + hands + more, ct.minCount, ct.maxCount);
 }
 
-/** The share of their usual length a catch test's times take on this series: 1, then less past series 10. */
+/** The share of their usual length a catch test's times take on this down's stretch: 1, then less past stretch 10. */
 export function paceShare(series: number): number {
   const past = Math.max(0, series - ct.fasterAfter);
   return Math.max(ct.floor, 1 - ct.perSeries * past);
