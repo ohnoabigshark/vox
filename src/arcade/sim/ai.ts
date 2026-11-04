@@ -151,10 +151,10 @@ export function defenderTarget(state: RunState, d: Defender): Vec | null {
     }
   }
   if (d.kind === 'bat' || d.kind === 'crow') {
-    const corner = d.patrol?.[d.patrolIndex];
-    if (!corner || !d.patrol) return null;
-    if (dist(d.pos, corner) < 0.3) d.patrolIndex = (d.patrolIndex + 1) % d.patrol.length;
-    return d.patrol[d.patrolIndex] ?? null;
+    const corner = d.beat?.[d.beatIndex];
+    if (!corner || !d.beat) return null;
+    if (dist(d.pos, corner) < 0.3) d.beatIndex = (d.beatIndex + 1) % d.beat.length;
+    return d.beat[d.beatIndex] ?? null;
   }
   if (state.phase !== 'play') return null;
   const carrier = carrierOf(state);

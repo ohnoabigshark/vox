@@ -9,7 +9,8 @@ the item numbers below are the map's.
 
 - **Each series' own line-up stays** (d1): the hand-made defenses of 4 to 9
   defenders are esrauch's design. Only hard mode's extra defenders change.
-- **One extra defender a zone, at most 12 on the field** (d2), instead of
+- **One extra defender a zone, at most 12 in a down's defense** (d2; since
+  the long field the patrols ahead don't count), instead of
   two a zone without limit. The busiest series of each zone:
 
   | Zone | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
@@ -70,7 +71,8 @@ pin, and the runs are seeded), so its all-human run was skipped.
 
 At +15, fewer defenders made hard mode easier, so the user approved +20
 (map item r1): about as hard as before, with four times the batted passes
-and at most 12 defenders on the field. The bot seldom gets past zone 4, so
+and at most 12 defenders on the field (since the long field, at most 12 in
+a down's defense, with the patrols ahead besides). The bot seldom gets past zone 4, so
 Break it!'s tightening past the Farm barely shows here.
 
 # The long field
@@ -135,6 +137,10 @@ the distance. Every comparison also runs it with handoffs
   from before the snap and dives within 3 yards. A Crow flies its lane and
   dives within 4. They can bat a pass or contest a catch. Hard mode's cap
   of 12 counts only the down's defense.
+- **Seeded deals changed.** Each down's deal is seeded by the next body
+  id, and the patrols take ids, so a seeded run (`?seed=N`) deals other
+  hands than it did before the patrols. Accepted as a side effect; the
+  playbook test's recorded hands were re-recorded.
 - **The Candy Queendom stays as it is** (p4). Only the Queen's Court has
   patrols. If Candy's touchdown rate stands out after the patrols, round 3
   gives Gingerbread Row and Broomstick Alley some.
@@ -185,7 +191,7 @@ mode, each with three bots: the default, which only throws
 | --- | --- | --- |
 | Long plays (20+ yards) that score, all six pooled | 71% | 50% |
 | Long plays, % of the Forest's downs, pooled | 18% | 16% |
-| Long plays stopped by a patrol (Bat, Crow or Scarecrow) | — | 21–35% |
+| Long plays stopped by a Bat, Crow or Scarecrow (the kinds that patrol) | 0% | 21–35% |
 | Touchdowns on hard mode's downs (pass · handoffs · runs) | 12 · 11 · 11% | 12 · 12 · 11% |
 | Normal mode beaten (pass · handoffs · runs) | 83 · 83 · 73% | 78 · 73 · 88% |
 | Hard mode's series won at p10 (pass · handoffs · runs) | 2 · 2 · 2 | 3 · 3 · 2 |
@@ -193,9 +199,10 @@ mode, each with three bots: the default, which only throws
 
 What it says:
 
-- **The patrols stop about a quarter of long plays** that would have
-  scored, but long plays still score half the time, against a target of
-  10–20%.
+- **Bats, Crows and Scarecrows, which stopped no long plays before, now
+  stop about a quarter of them.** The count is by kind, so a down's own
+  count too, but before the patrols they stopped none. Long plays still
+  score half the time, against a target of 10–20%.
 - **The Forest is where the long plays are.** In the Candy Queendom and the
   Farm, long plays are 0–7% of downs. In the Forest they are 13–20%. The
   Forest lines up one Owl. The others line up two Safeties.

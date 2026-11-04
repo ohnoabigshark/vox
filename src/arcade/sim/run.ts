@@ -44,6 +44,11 @@ import type {
 
 export const SERIES_KINDS: readonly SeriesKind[] = ['intro', 'challenge', 'gimmick', 'boss'];
 
+/** A stretch's kind: the Boss stretch for any past the last. */
+export function stretchKind(stretch: number): SeriesKind {
+  return SERIES_KINDS[stretch] ?? 'boss';
+}
+
 /**
  * A down's stretch number in the run (1-based): Froggy's Forest's stretches
  * are 1-4, the Candy Queendom's 5-8, and so on (docs/LONG_FIELD.md, r2).
@@ -90,7 +95,7 @@ function lineStretch(
 ): { at: Pick<Series, 'stretch' | 'kind' | 'name'>; spec: DefenseSpec } {
   const stretch = stretchOf(los);
   const spec = seriesDefense(state, area, stretch);
-  return { at: { stretch, kind: SERIES_KINDS[stretch] ?? 'boss', name: spec.name }, spec };
+  return { at: { stretch, kind: stretchKind(stretch), name: spec.name }, spec };
 }
 
 /** Seven plain humans (sim/team.ts). */
@@ -99,22 +104,25 @@ export { startingRoster };
 /** The defense for a series: the area's Intro, Challenge, a seeded Gimmick, or its Boss. */
 export function defenseFor(area: number, stretch: number): DefenseSpec {
   const a = areaAt(area);
-  switch (SERIES_KINDS[stretch]) {
+  const kind = stretchKind(stretch);
+  switch (kind) {
     case 'intro':
       return a.intro;
     case 'challenge':
       return a.challenge;
     case 'gimmick':
       return a.gimmick;
-    default:
+    case 'boss':
       return a.boss;
+    default:
+      return assertNever(kind);
   }
 }
 
 /**
  * A series' defense as it lines up: its spec, plus in hard mode one more
- * defender for every zone after the first (never past `maxDefenders` on the
- * field), alternately a Cover and a Bat, spread over the field.
+ * defender for every zone after the first (never past `maxDefenders` in the
+ * down's defense; the patrols ahead don't count), alternately a Cover and a Bat, spread over the field.
  */
 export function seriesDefense(state: RunState, area: number, stretch: number): DefenseSpec {
   const spec = defenseFor(area, stretch);
@@ -367,7 +375,9 @@ function patrolsAhead(state: RunState, firstId: number): Defender[] {
       ...spec,
       defenders: spec.defenders.filter((d) => DEFENDERS[d.kind].patrols),
     };
-    const boost = defenseBoost(state, area, SERIES_KINDS[k] ?? 'boss', spec);
+    const boost = defenseBoost(state, area, stretchKind(k), spec);
+    // Lined up from the stretch's start. The down's first-down line rides along, but only a
+    // Safety reads it (bodies.ts), and Safeties never patrol.
     const from = { ...state.series, los: stretchStart(k) };
     ahead.push(...lineUpDefense(patrolling, from, boost, firstId + ahead.length));
   }

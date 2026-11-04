@@ -262,7 +262,8 @@ export const tuningDefaults = {
   hard: {
     /**
      * Every zone after the first lines up this many more defenders than the
-     * one before, never past this many on the field: harder, not busier
+     * one before, never past this many in a down's defense (the patrols
+     * ahead don't count): harder, not busier
      * (docs/DIFFICULTY.md)…
      */
     extraDefendersPerZone: 1,
