@@ -93,6 +93,10 @@ For the bot, 40 runs each:
 - **Normal mode:** the game beaten in 75% of runs or fewer (83% now).
   Touchdowns on about 8% of downs.
 - **Areas cleared** stay near today's: 2.4 in hard mode, 2.7 in normal.
+- **Long plays that score:** 10–20% of downs gaining 20 yards or more end
+  in a touchdown. Before the patrols it was 64–77% (normal mode, with
+  handoffs and runs only). _User, 2026-11-04: "I def don't want that high a
+  % of long plays scoring. likely want it closer to like 10-20%."_
 
 These numbers are a guide. The user's play decides.
 
