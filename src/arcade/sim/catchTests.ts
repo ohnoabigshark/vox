@@ -16,9 +16,12 @@ const ct = arcadeTuning.catchTests;
 /** The catch tests: SNAG IT! and the tip drill. */
 export type CatchTest = 'snag' | 'tip';
 
-/** Whether a contested ball goes to a catch test on this series. */
+/** Whether ?snag=1 or ?tip=1 is on: every contested ball a catch test, from the first series. */
+const forcedByLink = (state: RunState): boolean => state.snagAlways || state.tipAlways;
+
+/** Whether a contested ball can go to a catch test on this series. */
 export function catchTestsOn(state: RunState): boolean {
-  return state.snagAlways || state.tipAlways || seriesNumber(state.series) >= ct.fromSeries;
+  return forcedByLink(state) || seriesNumber(state.series) >= ct.fromSeries;
 }
 
 /**
@@ -26,21 +29,21 @@ export function catchTestsOn(state: RunState): boolean {
  * ?snag=1 or ?tip=1 forces, or else either, half and half, from the run's
  * seed.
  */
-export function whichCatchTest(state: RunState): CatchTest {
+function whichCatchTest(state: RunState): CatchTest {
   if (state.snagAlways !== state.tipAlways) return state.snagAlways ? 'snag' : 'tip';
   return rngFor(state.seed, 'catch', state.step).next() < 0.5 ? 'snag' : 'tip';
 }
 
 /**
  * The catch test this contested ball goes to, or null for today's rule:
- * none before series 5; from then on `chance` of them, from the run's seed;
- * every one with ?snag=1 or ?tip=1.
+ * none before `fromSeries`; from then on `chance` of them, from the run's
+ * seed; every one with ?snag=1 or ?tip=1. The roll has its own label, so it
+ * draws a number apart from the pick's.
  */
 export function catchTestFor(state: RunState): CatchTest | null {
   if (!catchTestsOn(state)) return null;
-  const forced = state.snagAlways || state.tipAlways;
-  if (!forced && rngFor(state.seed, 'catchChance', state.step).next() >= ct.chance) return null;
-  return whichCatchTest(state);
+  const rolled = rngFor(state.seed, 'catchChance', state.step).next() < ct.chance;
+  return forcedByLink(state) || rolled ? whichCatchTest(state) : null;
 }
 
 /** The freeze: the ball hangs a yard short of the receiver's hands, on its way from `from`. */

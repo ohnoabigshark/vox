@@ -98,7 +98,9 @@ describe('1. the pick (t2, t3, g5)', () => {
       else {
         expect(s.snag).toBeNull();
         expect(s.tip).toBeNull();
-        expect(s.field.ball.at).not.toBe('contested');
+        // Settled just as the same lob is before series 5, by today's rule.
+        expect(s.field.ball).toEqual(lobArrives(seed, 4).field.ball);
+        expect(s.field.ball).toEqual({ at: 'carried', by: 2 });
       }
     }
     expect(tests / 400).toBeGreaterThan(0.72);
