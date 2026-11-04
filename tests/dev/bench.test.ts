@@ -348,9 +348,13 @@ describe('the reps', () => {
     });
     expect(result.grade).toBe('great');
     if (result.timing.test !== 'mash') throw new Error('not mash');
-    // Every tap after the go counts (it takes 11 at 0.1 a tap: ten tenths add up to just under 1).
+    // Every tap after the go counts: ten at 0.1 a tap, though ten tenths add up to just under 1 (B3).
+    const tackle = rep.state.tackle;
+    if (tackle?.kind !== 'mash') throw new Error('not a mash');
+    expect(tackle.perTap).toBe(0.1);
     expect(result.timing.taps).toBe(Math.ceil(n / 3));
-    expect(result.timing.fill).toBe(1);
+    expect(result.timing.taps).toBe(10);
+    expect(result.timing.fill).toBeCloseTo(1, 9);
     // Taps a second: the taps over the screen time from the go to the last of them.
     expect(result.timing.perSecond).toBeCloseTo(result.timing.taps / ((last - go) / TIME_SCALE), 9);
     expect(timingText(result.timing)).toMatch(/^\d+ taps · \d+\.\d a second · 100%$/);

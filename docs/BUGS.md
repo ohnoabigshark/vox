@@ -25,7 +25,7 @@ a timeout on that one test; then, when a second sim test ("teammates spread
 out") turned out to take 4.6-4.9 s here too, with `testTimeout: 20_000` for
 every test in `vite.config.ts`. `npm run check` passes on the droplet.
 
-## B3. A full mash in the Forest takes 11 taps, not 10
+## B3. A full mash in the Forest takes 11 taps, not 10 (fixed)
 
 The mash adds `perTap` to `fill` and breaks at `fill >= 1`
 (`judgeBreakIt`, `sim/breakit.ts`). In the Forest `perTap` is 0.1, and ten
@@ -38,6 +38,11 @@ which doesn't change play. Options: count taps as a whole number and compare
 
 - 2026-10-31: fix it on a small branch of its own after `test-bench`
   (decision n2 on the bench rework map), since it changes play.
+- 2026-11-04: **fixed** on the `b3-mash-taps` branch, the first option's
+  allowance without its tap count: the mash reaches full, and drags, when
+  its fill is within a billionth of the mark (`filledTo` in
+  `sim/breakit.ts`). A full mash in the Forest takes ten taps, and the
+  bench's readout says 10.
 
 ## B4. SNAG IT! on the test bench sometimes shows only its first two dots (fixed)
 
