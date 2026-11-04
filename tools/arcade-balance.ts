@@ -52,6 +52,15 @@ import type {
 } from '../src/arcade/sim/types';
 import { dist } from '../src/arcade/sim/vec';
 import { litPlayers } from '../src/arcade/render/sweep';
+import {
+  DownWatch,
+  LONG_PLAY,
+  byStretch,
+  isLong,
+  seriesSpread,
+  stops,
+  type DownSummary,
+} from './balanceCount';
 import type { Rng } from '../src/sim/rng';
 
 const RUNS = Number(process.argv[2]) || 200;
@@ -166,6 +175,8 @@ interface Tally {
   snagResults: Map<string, number>;
   /** Tip drill grades, the same way. */
   tipResults: Map<string, number>;
+  /** Every down summed up, for long plays (docs/DIFFICULTY.md, "The long field"). */
+  watch: DownWatch;
 }
 
 const bump = <K>(m: Map<K, number>, k: K, by = 1): void => {
@@ -460,6 +471,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       const called = dispatch(state, { type: 'call', hand }).state;
       const hiked = dispatch(called, { type: 'hike' });
       count(t, hiked.events, state, ran);
+      t.watch.step(state, hiked.state, hiked.events);
       state = hiked.state;
       continue;
     }
@@ -467,6 +479,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     if (r.events.some((e) => e.type === 'downEnded')) bump(t.attempts, key);
     if (r.events.some((e) => e.type === 'seriesWon')) bump(t.wins, key);
     count(t, r.events, state, ran);
+    t.watch.step(state, r.state, r.events);
     state = r.state;
   }
   t.runs++;
@@ -512,13 +525,10 @@ function report(scenario: Scenario, t: Tally): void {
   console.log(
     `  touchdowns (areas cleared) ${((t.results.get('touchdown') ?? 0) / t.runs).toFixed(2)} a run`,
   );
-  if (scenario.hard) {
-    const sorted = [...t.perRun].sort((a, b) => a - b);
-    const at = (q: number): number =>
-      sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
-    console.log(
-      `  hard mode: series won p10 ${at(0.1)} · median ${at(0.5)} · p90 ${at(0.9)} · best ${at(1)} (up to ${SERIES_KINDS.length} series a zone)`,
-    );
+  // Every run, not only hard mode's: a harder defense thins the squad (docs/DIFFICULTY.md, o2).
+  {
+    const { p10, median, p90, best } = seriesSpread(t.perRun);
+    console.log(`  series won a run: p10 ${p10} · median ${median} · p90 ${p90} · best ${best}`);
   }
   const results = [...t.results.entries()]
     .sort((a, b) => b[1] - a[1])
@@ -559,6 +569,7 @@ function report(scenario: Scenario, t: Tally): void {
       `  handoffs first grabbed at (yards past the line) p10 ${q(0.1)} · median ${q(0.5)} · p90 ${q(0.9)} · by ${by}`,
     );
   }
+  longPlays(t.watch.downs);
   console.log('  downs from each stretch that won a series:');
   [0, 1, 2].forEach((area) => {
     const row = SERIES_KINDS.map((k) => {
@@ -567,6 +578,51 @@ function report(scenario: Scenario, t: Tally): void {
     }).join('  ');
     console.log(`  area ${['I  ', 'II ', 'III'][area]}  ${row}`);
   });
+}
+
+/** "zone 3, bat 2" for a count, biggest first. */
+const listed = <K>(m: ReadonlyMap<K, number>, of: number): string =>
+  [...m.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => `${String(k)} ${pct(n, of).trim()}`)
+    .join(' · ');
+
+/** Long plays: how often, run or pass, by area; what stopped them; where touchdowns start; breaking clear. */
+function longPlays(downs: readonly DownSummary[]): void {
+  const runs = downs.filter((d) => d.kind === 'run');
+  const passes = downs.filter((d) => d.kind === 'pass');
+  const share = (of: readonly DownSummary[]): string =>
+    `${pct(of.filter(isLong).length, of.length).trim()} of ${of.length}`;
+  console.log(
+    `  long plays (${LONG_PLAY}+ yards): ${share(downs)} downs · runs ${share(runs)} · passes ${share(passes)}`,
+  );
+  const areas = [...new Set(downs.map((d) => d.area))].sort((a, b) => a - b);
+  for (const area of areas) {
+    const here = downs.filter((d) => d.area === area);
+    const tds = (of: readonly DownSummary[]): string =>
+      pct(of.filter((d) => d.result === 'touchdown').length, of.length).trim();
+    console.log(
+      `    area ${area + 1}: long ${share(here)} (runs ${share(here.filter((d) => d.kind === 'run'))}, passes ${share(here.filter((d) => d.kind === 'pass'))}) · ` +
+        `touchdowns ${tds(here)} (runs ${tds(here.filter((d) => d.kind === 'run'))}, passes ${tds(here.filter((d) => d.kind === 'pass'))})`,
+    );
+  }
+  const long = downs.filter(isLong);
+  const scored = long.filter((d) => d.result === 'touchdown').length;
+  console.log(
+    `  long plays end: ${[`touchdown ${pct(scored, long.length).trim()}`, listed(stops(long), long.length)].filter(Boolean).join(' · ')}`,
+  );
+  console.log(`  every down stopped by: ${listed(stops(downs), downs.length)}`);
+  const tds = downs.filter((d) => d.result === 'touchdown');
+  console.log(`  touchdowns from stretch: ${listed(byStretch(tds), tds.length)}`);
+  const clear = downs.filter((d) => d.pastLast !== null);
+  if (clear.length > 0) {
+    const after = clear.map((d) => d.pastLast ?? 0).sort((a, b) => a - b);
+    const median = after[Math.floor(after.length / 2)] ?? 0;
+    console.log(
+      `  broke clear of every defender: ${pct(clear.length, downs.length).trim()} of downs · then ran a median ${median.toFixed(1)} yards · ` +
+        `scored ${pct(clear.filter((d) => d.result === 'touchdown').length, clear.length).trim()}`,
+    );
+  }
 }
 
 console.log(`Arcade balance runs: ${RUNS} per scenario.`);
@@ -598,6 +654,7 @@ for (const scenario of SCENARIOS) {
     breakResults: new Map(),
     snagResults: new Map(),
     tipResults: new Map(),
+    watch: new DownWatch(),
   };
   for (let seed = 1; seed <= RUNS; seed++) playRun(seed, scenario, t);
   report(scenario, t);
