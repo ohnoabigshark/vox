@@ -22,21 +22,28 @@ const { fieldProps: tuning, field, series: seriesTuning } = arcadeTuning;
 /** How many series (10-yard stretches) each area has. */
 export const SERIES_PER_AREA = 4;
 
+/** An area's length, start to goal line: its four stretches (docs/LONG_FIELD.md, a1). */
+export const AREA_YARDS = SERIES_PER_AREA * seriesTuning.distance;
+
 /**
- * The props around a series, in its own coordinates (its start line at 0):
- * the stretch behind it, its own, and two ahead, so the field beyond the
- * first-down line is already dressed.
+ * The stretches (counted through the run) that dress an area's field, each
+ * with its shift onto the area's own yards (its start at 0): the one behind
+ * it, its own four, and two past the goal line.
  */
-export function propsForSeries(seed: number, area: number, index: number): FieldProp[] {
-  const here = area * SERIES_PER_AREA + index;
-  const out: FieldProp[] = [];
-  for (let k = here - 1; k <= here + 2; k++) {
-    if (k < 0) continue;
-    for (const p of stretchProps(seed, k)) {
-      out.push({ ...p, y: p.y + (k - here) * seriesTuning.distance });
-    }
+export function areaStretches(area: number): { k: number; shift: number }[] {
+  const first = area * SERIES_PER_AREA;
+  const out: { k: number; shift: number }[] = [];
+  for (let k = first - 1; k <= first + SERIES_PER_AREA + 1; k++) {
+    if (k >= 0) out.push({ k, shift: (k - first) * seriesTuning.distance });
   }
   return out;
+}
+
+/** The props of an area's whole field, in its own yards (docs/LONG_FIELD.md, a2). */
+export function propsForArea(seed: number, area: number): FieldProp[] {
+  return areaStretches(area).flatMap(({ k, shift }) =>
+    stretchProps(seed, k).map((p) => ({ ...p, y: p.y + shift })),
+  );
 }
 
 /**
@@ -52,17 +59,16 @@ export const BOSSES: Readonly<Record<BossName, PropKind>> = {
 };
 export const KING = BOSSES.king;
 
-/** Where a Boss stands on its series (the series' own coordinates): in the middle, just past the first-down line. */
-export const BOSS_SPOT: Vec = v(0, seriesTuning.distance + tuning.bossBeyond);
+/** Where a Boss stands on its area (the area's own yards): in the middle, just past the goal line. */
+export const BOSS_SPOT: Vec = v(0, AREA_YARDS + tuning.bossBeyond);
 
-/** The props of a series, its Boss among them on a Boss series. */
-export function seriesPropsWithBoss(
+/** The props of an area's field, its Boss among them, standing there from the area's first down. */
+export function areaPropsWithBoss(
   seed: number,
   area: number,
-  index: number,
   boss: BossName | undefined,
 ): FieldProp[] {
-  const props = propsForSeries(seed, area, index);
+  const props = propsForArea(seed, area);
   if (!boss) return props;
   const kind = BOSSES[boss];
   const { x, y } = BOSS_SPOT;

@@ -31,7 +31,7 @@ import { savedEventWarnings, type EventLook, type FieldEvent } from './content/f
 import { ArcadePickups } from './render/pickups';
 import { ArcadeIntro } from './render/intro';
 import { ArcadeOutro } from './render/outro';
-import { BOSS_SPOT } from './sim/props';
+import { AREA_YARDS, BOSS_SPOT } from './sim/props';
 import { AREA_SONGS, FARM_SONGS, hollowHop } from '../audio/songs';
 import { WIN_TRACK_BEAT } from './content/dance';
 import { areaAt } from './content/defense';
@@ -40,7 +40,7 @@ import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
-import { FIELD_AHEAD, FIELD_BEHIND, toWorld } from './render/world';
+import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toWorld } from './render/world';
 import { carrierOf, qbOf } from './sim/ai';
 import {
   SERIES_KINDS,
@@ -48,7 +48,6 @@ import {
   dispatch,
   downAndDistance,
   downOn,
-  seriesNumber,
   frozenForTest,
   setUpSeries,
   startingRoster,
@@ -503,9 +502,13 @@ export class ArcadeGame {
   }
 
   private after(events: readonly ArcadeEvent[], prev: RunState): void {
-    // A won series marches on: the new series' 0 is the old one's first-down line (not after the
-    // last). Hard mode's zones come round onto the same stretch of field (originOf).
+    // A cleared area marches on: the next area's 0 is the old one's goal line (not after the last),
+    // so the camera keeps its place on the field. Hard mode's zones come round onto the same
+    // stretch of field (originOf), which looks the same.
     if (events.some((e) => e.type === 'seriesWon') && this.state.phase !== 'won') {
+      if (this.state.series.area !== prev.series.area) {
+        this.focus = v(this.focus.x, this.focus.y - AREA_YARDS);
+      }
       this.origin = this.originOf(this.state.series);
     }
     // The outro asks the keeper whether a played run is being recorded (its card comes, or the
@@ -933,14 +936,9 @@ export class ArcadeGame {
     return this.originOf(this.state.series);
   }
 
-  /**
-   * Where a series' 0 sits on the long field: its area's stretch, then its
-   * series before it. The field only has the three areas, so hard mode's
-   * endless zones come round onto the same stretches (they look the same).
-   */
+  /** Where a series' yard 0 (its area's start) sits on the long field. */
   private originOf(series: Series): number {
-    const area = series.area % arcadeTuning.run.areas;
-    return (seriesNumber({ area, index: series.index }) - 1) * arcadeTuning.series.distance;
+    return areaOrigin(series.area);
   }
 
   /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */

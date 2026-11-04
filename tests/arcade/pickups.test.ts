@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
-import { pickupsForSeries } from '../../src/arcade/sim/pickups';
-import { seriesPropsWithBoss } from '../../src/arcade/sim/props';
+import { pickupsForArea } from '../../src/arcade/sim/pickups';
+import { areaPropsWithBoss } from '../../src/arcade/sim/props';
 import { createRun, dispatch, endDown, nextDown, setUpSeries } from '../../src/arcade/sim/run';
 import { step } from '../../src/arcade/sim/step';
 import type { Pickup, RunState } from '../../src/arcade/sim/types';
@@ -16,11 +16,10 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
   it('are laid the same for a seed: one bolt and one slick to every 10-yard stretch', () => {
     for (let seed = 1; seed <= 30; seed++) {
       const area = seed % 3;
-      const index = seed % 4;
-      const pickups = pickupsForSeries(seed, area, index);
-      expect(pickupsForSeries(seed, area, index)).toEqual(pickups);
-      // This series' own stretch, and the two ahead of it.
-      for (const from of [0, 10, 20]) {
+      const pickups = pickupsForArea(seed, area);
+      expect(pickupsForArea(seed, area)).toEqual(pickups);
+      // The area's four stretches, and the two past its goal line.
+      for (const from of [0, 10, 20, 30, 40, 50]) {
         const here = pickups.filter((p) => p.y >= from && p.y < from + 10);
         expect(here.map((p) => p.kind).sort(), `seed ${seed}, from ${from}`).toEqual([
           'bolt',
@@ -28,28 +27,29 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
         ]);
       }
     }
-    expect(pickupsForSeries(1, 0, 0)).not.toEqual(pickupsForSeries(2, 0, 0));
+    expect(pickupsForArea(1, 0)).not.toEqual(pickupsForArea(2, 0));
   });
 
-  it('a stretch keeps its pickups where they are, whichever series the field is showing', () => {
+  it('a stretch keeps its pickups where they are, whichever area the field is showing', () => {
     const round = (y: number): number => Math.round(y * 1e6) / 1e6;
-    const stretch = (seed: number, index: number, from: number) =>
-      pickupsForSeries(seed, 0, index)
+    const stretch = (seed: number, area: number, from: number) =>
+      pickupsForArea(seed, area)
         .filter((p) => p.y >= from && p.y < from + 10)
         .map((p) => ({ ...p, y: round(p.y - from) }));
     for (let seed = 1; seed <= 60; seed++) {
-      for (let index = 0; index < 3; index++) {
-        // Seen one series ahead, then two, as from the series before.
-        expect(stretch(seed, index + 1, 0), `seed ${seed}`).toEqual(stretch(seed, index, 10));
-        expect(stretch(seed, index + 1, 10), `seed ${seed}`).toEqual(stretch(seed, index, 20));
+      for (let area = 0; area < 2; area++) {
+        // Past the goal line, the next area's first two stretches; behind it, this area's last.
+        expect(stretch(seed, area + 1, 0), `seed ${seed}`).toEqual(stretch(seed, area, 40));
+        expect(stretch(seed, area + 1, 10), `seed ${seed}`).toEqual(stretch(seed, area, 50));
+        expect(stretch(seed, area + 1, -10), `seed ${seed}`).toEqual(stretch(seed, area, 30));
       }
     }
   });
 
   it('lie out of the middle lane, in from the sidelines, and clear of every prop, a Boss included', () => {
     for (let seed = 1; seed <= 30; seed++) {
-      const props = seriesPropsWithBoss(seed, 0, 3, 'misterFrog');
-      for (const p of pickupsForSeries(seed, 0, 3)) {
+      const props = areaPropsWithBoss(seed, 0, 'misterFrog');
+      for (const p of pickupsForArea(seed, 0)) {
         expect(Math.abs(p.x) - tuning.radius).toBeGreaterThanOrEqual(tuning.center - 1e-9);
         expect(Math.abs(p.x) + tuning.radius).toBeLessThanOrEqual(
           field.halfWidth - tuning.edge + 1e-9,
@@ -63,9 +63,9 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
     }
   });
 
-  it("a run starts with its first series' pickups on the field; practice has none", () => {
+  it("a run starts with its first area's pickups on the field; practice has none", () => {
     const s = createRun(4);
-    expect(s.field.pickups).toEqual(pickupsForSeries(4, 0, 0));
+    expect(s.field.pickups).toEqual(pickupsForArea(4, 0));
     expect(s.field.pickups.length).toBeGreaterThan(0);
     const play = PLAY_POOL[0] as Play;
     expect(createRun(4, undefined, 0, { practice: play }).field.pickups).toEqual([]);
