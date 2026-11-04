@@ -333,7 +333,9 @@ Open, for when the first new theme or set is planned:
     aiming already comes from the same rule, so it follows); the 2-yard
     catch circle for everyone.
   - **Built** on one branch, `lob-hands`, tests first (b1), reviewed, and
-    played in two-tap before it merges (b2).
+    played in two-tap before it merges (b2). Built 2026-11-04:
+    `lobNearness` in `sim/ball.ts`, with `handsReach` in `sim/bodies.ts`
+    the one rate.
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help

@@ -40,7 +40,8 @@ games trigger about 20% less."_ `?snag=1` and `?tip=1` still send every one.
   cover the ball where it is; on a lob (two-tap throwing), a receiver inside the
   catch circle and a defender who can reach the landing spot. Today the
   code settles it at once (`contact` and `lobLanding` in `sim/ball.ts`): on a
-  bullet the better Hands wins, on a lob the nearer one. With SNAG IT! on,
+  bullet the better Hands wins, on a lob the nearer one (each 10 Hands a
+  quarter-yard nearer since 2026-11-04, `lobNearness`). With SNAG IT! on,
   every contested ball goes to the test instead (four in five since
   2026-11-04, `catchTests.chance`), whichever way today's rule
   would have gone. An uncontested catch, a batted ball nobody of yours could
