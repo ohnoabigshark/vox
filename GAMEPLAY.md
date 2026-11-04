@@ -125,7 +125,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 ### Catching
 
 - **A catch is reach.** The bullet is caught by the first of your players whose reach it passes through, and **Hands is reach**: better Hands catch a bullet that would have gone by.
-- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from series 5 (the Candy Queendom's first), four contested balls in five are a catch test instead**, whichever way that rule would go: **SNAG IT! or the tip drill**, picked at random, half and half (below); the rule settles the fifth.
+- **A contested ball:** if a defender can reach it at the same moment, the one with **more Hands** wins it; if it's the defender, it's batted down (no interceptions). Ties go to you. *(Two-tap throwing's lob: the nearer one wins it.)* *(Fork:)* **from series 5 (the Candy Queendom's first), about four contested balls in five are a catch test instead** (each one rolled at random), whichever way that rule would go: **SNAG IT! or the tip drill**, picked at random, half and half (below); the rule settles the rest.
 
 ### SNAG IT! *(fork: the contested-catch test, `docs/SNAG.md`)*
 

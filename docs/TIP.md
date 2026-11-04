@@ -188,7 +188,7 @@ changed:
   so a third catch test can't be left out.
 - **Doc comments** back on what they describe.
 - **Kept as they are:** `?snag=1` alone making every contested ball
-  SNAG IT!, even from drive 5 (test 1, as approved); the buzz on a caught
+  SNAG IT!, even from series 5 (test 1, as approved); the buzz on a caught
   pop (t5: "sounds and buzz" as SNAG IT!'s); `tipPops`, which names the
   extra pop; the `sn`/`tp`/`ct` tuning aliases, the existing convention.
 - **Deferred:** gathering the link options into one run-options object, to
