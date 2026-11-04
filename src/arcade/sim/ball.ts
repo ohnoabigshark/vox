@@ -13,7 +13,8 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import type { Defender, Player, RunState, Vec } from './types';
-import { dist, lerp, v } from './vec';
+import { handsReach } from './bodies';
+import { clamp, dist, lerp, v } from './vec';
 
 const { sweep, throw: t, field } = arcadeTuning;
 
@@ -91,18 +92,46 @@ export function lobReceivers(state: RunState, from: Vec, at: Vec): Player[] {
 }
 
 /**
+ * How much nearer a lob's landing spot a defender counts than your receiver,
+ * for its Hands (Hands on a lob, h1, h2, n2): the reach its Hands give over
+ * theirs (negative when it has fewer), at most `handsEdgeCap` either way.
+ * Only Hands: a defender kind's extra reach lets it get to the ball, not win
+ * it. With no receiver of yours there, nothing.
+ */
+function handsEdge(defender: Defender, receiver: Player | undefined): number {
+  if (!receiver) return 0;
+  const cap = arcadeTuning.twoTap.handsEdgeCap;
+  const edge = handsReach(defender.stats.hands) - handsReach(receiver.stats.hands);
+  return clamp(edge, -cap, cap);
+}
+
+/** How far from the spot a defender counts against your receiver: its distance, less its Hands edge. */
+function countedDistance(defender: Defender, receiver: Player | undefined, at: Vec): number {
+  return dist(defender.pos, at) - handsEdge(defender, receiver);
+}
+
+/**
+ * The nearest the spot first, against your receiver (`countedDistance`);
+ * ties by id. With none of yours there, by plain distance.
+ */
+function nearestFirst(receiver: Player | undefined, at: Vec): (a: Defender, b: Defender) => number {
+  return (a, b) =>
+    countedDistance(a, receiver, at) - countedDistance(b, receiver, at) || a.id - b.id;
+}
+
+/**
  * Where a lob comes down (two-tap throwing): your player nearest the spot,
  * within the catch circle, catches it, unless a defender who can reach the
- * spot is nearer it (then it's batted down). Nobody there: incomplete.
+ * spot is nearer it, counting its Hands over your player's
+ * (`countedDistance`);
+ * then it's batted down, and a tie is yours. Nobody there: incomplete.
  */
 export function lobLanding(state: RunState, from: Vec, at: Vec): FlightOutcome {
   const receiver = lobReceivers(state, from, at)[0];
-  const reaching = reachingDefenders(state, at).sort(
-    (a, b) => dist(a.pos, at) - dist(b.pos, at) || a.id - b.id,
-  );
+  const reaching = reachingDefenders(state, at).sort(nearestFirst(receiver, at));
   const defender = reaching[0];
   const contest = receiver && defender ? { receiver, defenders: reaching } : undefined;
-  if (receiver && defender && dist(defender.pos, at) < dist(receiver.pos, at)) {
+  if (receiver && defender && countedDistance(defender, receiver, at) < dist(receiver.pos, at)) {
     return { kind: 'batted', by: defender.id, at: defender.pos, contest };
   }
   if (receiver) return { kind: 'caught', by: receiver, contest };

@@ -151,6 +151,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   **pop** is tapped as it lands on them, **clean**, a **bobble** or a
   **drop** (`docs/TIP.md`). TIP DRILL! on screen; in code, `tip`. SNAG IT!
   and the tip drill are the **catch tests**.
+- **Hands edge** _(ours)_: on a contested lob, how much nearer the spot a
+  defender counts than your receiver for its Hands over theirs: a
+  quarter-yard a 10 Hands, at most a yard either way (negative when yours
+  are better). In yards and defender-first, where a catch test's **Hands
+  gap** is raw Hands and receiver-first. In code, `handsEdge`.
 
 ## Results and stats _(ours)_
 
