@@ -84,7 +84,7 @@ carrier past the Safety ran clear to the goal. One down in five scored in
 normal mode, and one in eight in hard mode (bot, 40 runs). The user: "just
 the first level is a little too easy, I've had a few run plays that just go
 the distance". Planned by grilling on the decision map
-(https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), rounds 1 to 3,
+(https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), rounds 1 to 5,
 2026-11-04. The item numbers below are the map's. This pass is the
 defenders only. The curses and events are parked in `PLAN.md` (c1, c2).
 
@@ -99,10 +99,13 @@ For the bot, 40 runs each:
   10 yards, so the rate a down mostly counts how many downs an area takes:
   it held at 11–12% while long plays changed a lot.
 - **Areas cleared** stay near today's: 2.4 in hard mode, 2.7 in normal.
-- **Long plays that score:** 10–20% of downs gaining 20 yards or more end
-  in a touchdown. Before the patrols it was 64–77% (normal mode, with
-  handoffs and runs only). _User, 2026-11-04: "I def don't want that high a
-  % of long plays scoring. likely want it closer to like 10-20%."_
+- **Long plays are rare:** under 10% of downs in every area gain 20 yards
+  or more (t4). The Owls meet it: 5–9% in the Forest, 0–9% elsewhere.
+- _Dropped (t4):_ 10–20% of long plays scoring, which they did 64–77% of
+  the time before the patrols and about half the time after the Owls. The
+  user, after playing the Owls: "Long plays (20yds+) scoring 52% of the
+  time isn't actually so bad considering the field length." In their 3
+  runs, 2 of 59 downs went long.
 
 These numbers are a guide. The user's play decides.
 
@@ -194,10 +197,10 @@ Round 3 of the map, all approved, 2026-11-04.
   elsewhere. Each Forest defense has one more defender: the Clearing 5,
   Gnome Country 6, Bat Cave 7, the Pond 9. The Intro's −10 and the Rhino
   Beetle's fake stay, so the first level still starts gently near the line.
-- **The goal-line Owl waits for the numbers** (r3): if long plays still
-  score more than 20% after this, the Boss stretch's Safeties join the
-  patrols, 3 yards short of the goal line. When that is measured depends on
-  round 4 (b5, below).
+- **The goal-line Owl is parked** (r3, then t4): it was to come if long
+  plays still scored more than 20% after the Owls. They score about half
+  the time, but the scoring target is dropped, so it waits in `PLAN.md`
+  in case breakaways come back.
 - **Tests, written first** (t3): every Forest stretch lines up two Safeties
   at ±3.5; on the field each shadows the deepest player on its half; the
   Candy Queendom's and the Farm's defenses are unchanged
@@ -270,3 +273,30 @@ What it says:
   one long touchdown, sends more new players into the later areas. Forty
   runs are also noisy: each one deals other cards since the extra body id.
 
+## Rounds 4 and 5: the picks, the bolt, then the release
+
+All approved, 2026-11-04.
+
+- **The picks are counted** (n1, m2): the balance report counts the
+  TRICK OR TREAT! picks a run takes before each area, to test whether more
+  picks explain the passing runs' easier later areas. Built on
+  `difficulty-3` before it merges; the game doesn't change.
+- **The mischief bolt: `difficulty-4`** (b1–b6), on its own branch after
+  `difficulty-3` merges, measured on its own and played before it merges.
+  Once the ball is snapped, whoever runs through a bolt first takes it,
+  yours or a defender: the same 50% faster for 3 seconds for both sides
+  (b1, the user: "Same for both."). Any defender moving on the field takes
+  one, Bats and Crows included; not a planted Scarecrow, one hanging onto
+  the carrier, or one lying down (b2). Slicks stay your side's trick (b3).
+  Nobody steers for a bolt, and the balance counts the bolts each side
+  takes (b4). Its tests (b6): a defender takes one after the snap and not
+  before; a planted, hanging or downed defender doesn't; defenders still
+  leave slicks; your side's pickup tests pass unchanged; the balance counts
+  bolts by side.
+- **Then the public release** (v1): the difficulty changes are finished
+  when `difficulty-3` and `difficulty-4` have merged and the user has
+  played both; the release goes out when the user says so. Normal mode
+  beaten in 95% of the passing bot's runs, against 75%, doesn't hold it.
+  The ideas logged on 2026-11-04 (the play-call levers, more passes
+  blocked or dropped, stats for Jack) come after the release, on a map of
+  their own.

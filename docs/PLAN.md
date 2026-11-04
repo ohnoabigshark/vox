@@ -378,10 +378,18 @@ Open, for when the first new theme or set is planned:
   (https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), in
   `docs/DIFFICULTY.md` ("The long field"). First the balance tool counts
   long plays (`difficulty-1`), then the stretches ahead keep their patrols
-  (`difficulty-2`; both merged as PR #31). Next, two Owls in every Forest
-  stretch (`difficulty-3`), and the goal-line Owl only if long plays still
-  score more than 20%.
-- **The mischief bolt** (difficulty map round 4, b1–b6, awaiting answers):
+  (`difficulty-2`; both merged as PR #31). Then two Owls in every Forest
+  stretch and the picks counted (`difficulty-3`), then the mischief bolt
+  (`difficulty-4`), then the public release (map v1).
+- **The goal-line Owl** (difficulty map r3, parked by t4, 2026-11-04):
+  from the Intro or the Challenge, the Boss stretch's Safeties wait 3 yards
+  short of the goal line, with sure tackles. For if breakaways come back:
+  after the two Forest Owls a long play still scores about half the time,
+  and the user dropped the 10–20% target. _User: "Long plays (20yds+)
+  scoring 52% of the time isn't actually so bad considering the field
+  length."_
+- **The mischief bolt** (difficulty map round 4, b1–b6, approved
+  2026-11-04, for `difficulty-4`; the plan is in `docs/DIFFICULTY.md`):
   the lightning bolt becomes mischief, taken by whoever runs through it
   first once the ball is snapped, yours or a defender. _User, 2026-11-04:
   "we turn the lightning bolt power ups to be 'mischief' class where either
