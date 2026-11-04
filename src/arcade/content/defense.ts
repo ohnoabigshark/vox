@@ -20,6 +20,12 @@ export interface DefenderDef {
    * inside it is contested.
    */
   readonly reachBonus: number;
+  /**
+   * Stays home in its own stretch on every down, as a patrol ahead of the
+   * line (docs/DIFFICULTY.md, "The long field"): the Scarecrows, Bats and
+   * Crows, who don't chase across the field.
+   */
+  readonly patrols: boolean;
 }
 
 export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
@@ -30,6 +36,7 @@ export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
     radius: 0.6,
     planted: false,
     reachBonus: 0,
+    patrols: false,
   },
   cover: {
     name: 'Cover',
@@ -38,6 +45,7 @@ export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
     radius: 0.4,
     planted: false,
     reachBonus: 0,
+    patrols: false,
   },
   zone: {
     name: 'Zone',
@@ -46,6 +54,7 @@ export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
     radius: 0.55,
     planted: true,
     reachBonus: 1.2,
+    patrols: true,
   },
   safety: {
     name: 'Safety',
@@ -54,6 +63,7 @@ export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
     radius: 0.5,
     planted: false,
     reachBonus: 0,
+    patrols: false,
   },
   bat: {
     name: 'Bat',
@@ -62,6 +72,7 @@ export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
     radius: 0.4,
     planted: false,
     reachBonus: 0.3,
+    patrols: true,
   },
 
   crow: {
@@ -72,6 +83,7 @@ export const DEFENDERS: Readonly<Record<DefenderKind, DefenderDef>> = {
     radius: 0.4,
     planted: false,
     reachBonus: 0.3,
+    patrols: true,
   },
 };
 

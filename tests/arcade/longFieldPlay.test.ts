@@ -33,6 +33,12 @@ function ended(state: RunState, how: Parameters<typeof endDown>[1], at: number):
   return events;
 }
 
+/** The down's own defenders, by kind: those lined up before the patrols ahead (docs/DIFFICULTY.md). */
+function ownDefense(state: RunState): string[] {
+  const n = seriesDefense(state, state.series.area, state.series.stretch).defenders.length;
+  return state.field.defenders.slice(0, n).map((d) => d.kind);
+}
+
 /** Past TRICK OR TREAT!, to the next series' first down. */
 const skipDraft = (state: RunState): RunState => dispatch(state, { type: 'skipDraft' }).state;
 
@@ -62,11 +68,11 @@ describe('the long field, part 2', () => {
     let t = skipDraft(s);
     expect(t.series).toMatchObject({ stretch: 1, kind: 'challenge' });
     expect(t.series.name).toBe(seriesDefense(t, 0, 1).name);
-    expect(t.field.defenders).toHaveLength(seriesDefense(t, 0, 1).defenders.length);
+    expect(ownDefense(t)).toEqual(seriesDefense(t, 0, 1).defenders.map((d) => d.kind));
 
     ended(t, 'tackled', 21); // 2nd & 3: the line crossed 20.
     expect(t.series).toMatchObject({ down: 2, stretch: 2, kind: 'gimmick' });
-    expect(t.field.defenders).toHaveLength(seriesDefense(t, 0, 2).defenders.length);
+    expect(ownDefense(t)).toEqual(seriesDefense(t, 0, 2).defenders.map((d) => d.kind));
 
     ended(t, 'sacked', 18); // Back over 20: the Challenge's defense again.
     expect(t.series).toMatchObject({ down: 3, stretch: 1, kind: 'challenge', firstDown: 24 });

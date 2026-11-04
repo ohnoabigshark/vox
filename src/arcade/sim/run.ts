@@ -3,7 +3,7 @@
  * steps (the snap, moving on after a series). Steps are advanced by step()
  * in step.ts. See GAMEPLAY.md, The Run, A Series and A Down.
  */
-import { AREAS, areaAt, type DefenseSpec } from '../content/defense';
+import { AREAS, DEFENDERS, areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
 import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
@@ -31,6 +31,7 @@ import type {
   Action,
   ArcadeEvent,
   ArcadeResult,
+  Defender,
   DownResult,
   Series,
   SeriesKind,
@@ -323,8 +324,11 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   const players = lineUpTeam(state, play, state.flipped, series.los, state.nextId);
   state.nextId += players.length;
   const boost = defenseBoost(state, series.area, series.kind, spec);
-  const defenders = lineUpDefense(spec, series, boost, state.nextId);
+  const defenders = [...lineUpDefense(spec, series, boost, state.nextId)];
   state.nextId += defenders.length;
+  const ahead = patrolsAhead(state, state.nextId);
+  defenders.push(...ahead);
+  state.nextId += ahead.length;
   state.field = {
     players,
     defenders,
@@ -345,6 +349,29 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   state.result = null;
   state.tackle = null;
   events.push({ type: 'downStarted', down: series.down, toGo: series.firstDown - series.los });
+}
+
+/**
+ * The patrols ahead (docs/DIFFICULTY.md, "The long field"): each stretch past
+ * the line's own keeps its patrolling defenders on the field, lined up as if
+ * its defense stood at the stretch's start, with that stretch's stats. Hard
+ * mode's extra defenders are the down's only (p1), and its cap counts only
+ * the down's defense (p3).
+ */
+function patrolsAhead(state: RunState, firstId: number): Defender[] {
+  const { area, stretch } = state.series;
+  const ahead: Defender[] = [];
+  for (let k = stretch + 1; k < SERIES_KINDS.length; k++) {
+    const spec = defenseFor(area, k);
+    const patrolling = {
+      ...spec,
+      defenders: spec.defenders.filter((d) => DEFENDERS[d.kind].patrols),
+    };
+    const boost = defenseBoost(state, area, SERIES_KINDS[k] ?? 'boss', spec);
+    const from = { ...state.series, los: stretchStart(k) };
+    ahead.push(...lineUpDefense(patrolling, from, boost, firstId + ahead.length));
+  }
+  return ahead;
 }
 
 /**

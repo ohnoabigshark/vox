@@ -64,7 +64,8 @@ describe('a run', () => {
       'catcher',
       'catcher',
     ]);
-    expect(s.field.defenders.length).toBeLessThanOrEqual(4);
+    // A Quiet Clearing's four, and the five patrols ahead (docs/DIFFICULTY.md, "The long field").
+    expect(s.field.defenders).toHaveLength(4 + 5);
   });
 
   it('deals different hands, with handoff cards among them', () => {
@@ -849,7 +850,8 @@ describe('determinism', () => {
         }
       }
     }
-  });
+    // Long: since the patrols ahead, more bodies and longer downs (docs/DIFFICULTY.md).
+  }, 60_000);
 });
 
 it('dist is Euclidean', () => {
