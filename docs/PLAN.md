@@ -334,7 +334,7 @@ Open, for when the first new theme or set is planned:
     catch circle for everyone.
   - **Built** on one branch, `lob-hands`, tests first (b1), reviewed, and
     played in two-tap before it merges (b2). Built 2026-11-04: `handsEdge`
-    and `nearness` in `sim/ball.ts`, with `handsReach` in `sim/bodies.ts`
+    and `countedDistance` in `sim/ball.ts`, with `handsReach` in `sim/bodies.ts`
     the one rate. The review found a catch test's BAD batted by the first
     defender on the field rather than the rule's first; fixed, bullets too.
   - **Round 2**, decided the same day from the review: the Hands edge counts
