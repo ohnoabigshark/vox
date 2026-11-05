@@ -349,11 +349,17 @@ export class Hud {
   }
 
   /** A short pop above the controls: a catch rating, a block, a tackle. */
-  pop(text: string, tone: 'good' | 'bad'): void {
+  pop(text: string, tone: 'good' | 'bad', detail?: string): void {
     this.popEl.textContent = text;
+    // A line under it (a perk saying what it did) stays up a little longer, to be read.
+    if (detail) {
+      const small = document.createElement('small');
+      small.textContent = detail;
+      this.popEl.append(small);
+    }
     this.popEl.className = `hud-pop show ${tone}`;
     clearTimeout(this.popTimer);
-    this.popTimer = setTimeout(() => (this.popEl.className = 'hud-pop'), 900);
+    this.popTimer = setTimeout(() => (this.popEl.className = 'hud-pop'), detail ? 1500 : 900);
   }
 }
 

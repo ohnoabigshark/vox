@@ -595,6 +595,8 @@ export type ArcadeEvent =
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
   | { readonly type: 'seriesWon'; readonly stretch: number }
+  /** Candy Corn Magnet (a perk) caught a ball that would have fallen incomplete: this player has it. */
+  | { readonly type: 'magnet'; readonly id: number }
   /** A TRICK OR TREAT! card was taken. */
   | { readonly type: 'picked'; readonly card: OfferCard }
   | {

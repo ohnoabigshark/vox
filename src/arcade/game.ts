@@ -740,6 +740,13 @@ export class ArcadeGame {
         case 'joined':
           this.hud.pop(`${e.name.toUpperCase()} JOINS!`, 'good');
           break;
+        // A perk says so when it changes a play (docs/REWARDS.md, notes p4); neither is used up.
+        case 'magnet':
+          this.hud.pop('MAGNET!', 'good', 'Candy Corn Magnet pulled it in');
+          break;
+        case 'secondWind':
+          this.hud.pop('SECOND WIND!', 'good', 'back next series');
+          break;
         case 'pancake':
           play('burst');
           break;

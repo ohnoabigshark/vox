@@ -280,6 +280,19 @@ describe('the perks in play', () => {
     const magnet = withPerk(make(), { rarity: 'rare', kind: 'magnet' });
     const r = run(magnet, 3, throwAt(magnet, end));
     expect(ofType(r.events, 'caught')).toHaveLength(1);
+    // It says so, for the pop (docs/REWARDS.md, notes p4).
+    expect(ofType(r.events, 'magnet')).toEqual([{ type: 'magnet', id: 2 }]);
+  });
+
+  it('a catch in reach, with the Magnet held, is an ordinary catch: no magnet event', () => {
+    const at = v(0, 8);
+    const s = withPerk(playState([{ pos: at, job: stand(at) }]), {
+      rarity: 'rare',
+      kind: 'magnet',
+    });
+    const r = run(s, 3, throwAt(s, at));
+    expect(ofType(r.events, 'caught')).toHaveLength(1);
+    expect(ofType(r.events, 'magnet')).toEqual([]);
   });
 
   it('Second Wind: once a series, a BAD Break it! counts as OK', () => {

@@ -279,6 +279,9 @@ export class RunRecorder {
       // Growth from play: the record keeps no stats yet (docs/REWARDS.md); the play log has each gain.
       case 'grew':
         return;
+      // The perk's pop (docs/REWARDS.md, notes p4); the catch itself is counted by `caught`.
+      case 'magnet':
+        return;
       default:
         assertNever(e);
     }

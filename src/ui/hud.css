@@ -114,6 +114,14 @@
   text-shadow: var(--text-edge);
 }
 
+.hud-pop small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--bone);
+}
+
 .hud-pop.show {
   opacity: 1;
   transform: translateY(0);
@@ -533,7 +541,7 @@ button.hud-offer:active {
   color: var(--slime-green);
 }
 
-/* Stat bars: chunky segmented blocks, the slot's key stat in pumpkin. */
+/* Stat bars: chunky segmented blocks; the slot's key stat has its label in pumpkin, so a bar's green growth always shows (docs/REWARDS.md, notes p2). */
 .hud-stats {
   display: flex;
   flex-direction: column;
@@ -586,10 +594,6 @@ button.hud-offer:active {
 .hud-stat.key .hud-stat-label {
   color: var(--pumpkin);
   opacity: 1;
-}
-
-.hud-stat.key .hud-stat-bar i {
-  background: var(--pumpkin);
 }
 
 .hud-stat-value {
