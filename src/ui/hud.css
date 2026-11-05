@@ -691,6 +691,8 @@ button.hud-offer:active {
 }
 
 .hud-draft.offer .hud-draft-row {
+  /* With Skip's margin below, the cards and their dots sit centred between the lead and Skip. */
+  margin-top: auto;
   display: flex;
   gap: 10px;
   max-width: 520px;
