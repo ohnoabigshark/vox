@@ -31,8 +31,8 @@ pickups, more kinds and placing them in the editor are later rounds
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
   your team takes them, the carrier included, but never Jack: he stands
   still where the ball is spotted, so a slick under him couldn't be dodged,
-  and a bolt would do nothing. (Added by Claude with the midfield,
-  2026-11-05, for the user to confirm.) Defenders run over them and leave
+  and a bolt would do nothing. (Added by Claude with the midfield and
+  confirmed by the user, 2026-11-05.) Defenders run over them and leave
   them be. A player lined up on a pickup (it showed before the snap) takes
   it the moment the play starts. Since the midfield that includes a
   Blocker beside the ball, who goes down at the snap, and a handoff's
