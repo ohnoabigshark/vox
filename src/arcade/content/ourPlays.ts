@@ -13,7 +13,7 @@ const route = (...to: [number, number][]): Assignment => ({
   to: to.map(([x, y]) => ({ x, y })),
 });
 
-/** The in-game sketches kept: the first release's (release mode's map, s1-s3), 2026-10-31; Tight End Run and RB Left, 2026-11-04. */
+/** The user's in-game sketches, kept: pasted from Copy code, newest last (release mode's map, s1-s3). */
 export const OUR_PLAYS: readonly Play[] = [
   {
     id: 'crazy',
