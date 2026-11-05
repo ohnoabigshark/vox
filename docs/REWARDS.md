@@ -227,7 +227,8 @@ a mockup:
 - **p5, the offer's cards** (60aa55d, from p1 and q2): side by side,
   swiped across, a dot for each; a play card shows the play drawn the
   card's width; Skip is always at the bottom, and nothing scrolls up and
-  down.
+  down. The cards sit centred between "Take one" and Skip (842153f, the
+  user's note after p5).
 - **p6, names on the field** (977f812, from p3): your seven's full names
   under their feet until HIKE!, never Jack or the defense. **Scope the
   user accepted onto this branch** ("another idea that I will want to
