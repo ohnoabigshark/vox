@@ -676,9 +676,61 @@ button.hud-offer:active {
   display: none;
 }
 
-/* A play card's drawing and a perk's icon sit in a bigger photo box. */
-.hud-offer.play .hud-photo,
+/* A perk's icon sits in a bigger photo box. */
 .hud-offer.perk .hud-photo {
   width: 52px;
   height: 52px;
+}
+
+/* The offer (docs/REWARDS.md, notes p5): nothing scrolls up and down; the
+   cards sit side by side, each most of the width so the next peeks in, and
+   snap as they're swiped; Skip stays at the bottom. */
+.hud-draft.offer {
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+.hud-draft.offer .hud-draft-row {
+  display: flex;
+  gap: 10px;
+  max-width: 520px;
+  padding: 4px 11% 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.hud-draft.offer .hud-offer {
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+
+.hud-draft.offer .hud-skip {
+  margin-top: auto;
+}
+
+.hud-offer-drawing svg {
+  display: block;
+  width: 100%;
+  max-height: 46vh;
+  border: 3px solid var(--ink);
+}
+
+.hud-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.hud-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.35);
+}
+
+.hud-dots i.on {
+  background: var(--pumpkin);
 }

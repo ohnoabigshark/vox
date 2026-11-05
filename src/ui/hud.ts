@@ -268,9 +268,20 @@ export class Hud {
       h.textContent = text;
       return h;
     };
+    // The offer's cards side by side, swiped across, with a dot for each (docs/REWARDS.md, notes p5).
     const offer = document.createElement('div');
     offer.className = 'hud-draft-row';
     offer.append(...draft.offer.map((c, i) => offerButton(c, () => this.handlers.onDraft(i))));
+    const dots = document.createElement('div');
+    dots.className = 'hud-dots';
+    dots.append(...draft.offer.map(() => document.createElement('i')));
+    const showDot = (): void => {
+      const room = offer.scrollWidth - offer.clientWidth;
+      const at = room > 0 ? Math.round((offer.scrollLeft / room) * (draft.offer.length - 1)) : 0;
+      [...dots.children].forEach((d, i) => d.classList.toggle('on', i === at));
+    };
+    offer.addEventListener('scroll', showDot, { passive: true });
+    showDot();
     const onRoster = this.handlers.onRoster;
     const tap = (row: RosterRow) =>
       onRoster && draft.swappable ? () => onRoster(row.spot) : undefined;
@@ -321,7 +332,7 @@ export class Hud {
     goOn.textContent = draft.goOn ?? '';
     goOn.hidden = !draft.goOn;
     goOn.addEventListener('click', () => this.handlers.onSkip());
-    const top: HTMLElement[] = draft.offer.length > 0 ? [offer] : [];
+    const top: HTMLElement[] = draft.offer.length > 0 ? [offer, dots] : [];
     const lead: HTMLElement[] = [];
     if (draft.lead) {
       const p = document.createElement('p');
@@ -331,6 +342,8 @@ export class Hud {
     }
     // The offer has the screen to itself; Your team is a screen of its own.
     const team = draft.screen === 'team' ? [hand, roster] : [];
+    // On the offer nothing scrolls up and down, and Skip stays at the bottom (p5).
+    this.draft.classList.toggle('offer', draft.screen === 'offer');
     this.draft.replaceChildren(heading(draft.title), ...lead, ...top, ...team, goOn);
   }
 
@@ -417,9 +430,13 @@ function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
       return el;
     }
     case 'play': {
+      // Its name on top, then the play drawn the card's width, in its own tall shape (p5).
       const head = header(card.play.name, card.blurb, '');
-      head.querySelector('.hud-photo')?.replaceChildren(playDrawing(card.play));
-      el.append(head);
+      head.querySelector('.hud-photo')?.remove();
+      const drawing = document.createElement('div');
+      drawing.className = 'hud-offer-drawing';
+      drawing.append(playDrawing(card.play));
+      el.append(head, drawing);
       return el;
     }
     case 'perk': {
