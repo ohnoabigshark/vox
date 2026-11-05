@@ -138,7 +138,11 @@ export class Hud {
     root: HTMLElement,
     private readonly handlers: HudHandlers,
   ) {
-    root.innerHTML = `
+    // Added to what the root already holds, never replacing it: the names
+    // layer goes in before the Hud (game.ts), and innerHTML wiped it.
+    root.insertAdjacentHTML(
+      'beforeend',
+      `
       <div class="hud-top">
         <button class="hud-back interactive" hidden>‹ Sketch</button>
         <div class="hud-right">
@@ -157,7 +161,8 @@ export class Hud {
         </div>
       </div>
       <div class="hud-draft interactive" hidden></div>
-      <button class="hud-notice interactive" hidden></button>`;
+      <button class="hud-notice interactive" hidden></button>`,
+    );
     const q = <T extends HTMLElement>(sel: string): T => {
       const el = root.querySelector<T>(sel);
       if (!el) throw new Error(`HUD is missing ${sel}`);
