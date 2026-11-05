@@ -40,6 +40,10 @@ These go into [`CONTEXT.md`](../CONTEXT.md) with the rename (w1, w2, e3).
   carrier's run after a catch belongs to the pass. A **run** is still a
   whole game. **Jack** throws every pass; there is no QB player.
 - **Result:** what one play or one tap test came to, as the record keeps it.
+- **Plays** (a count, on the screens): the downs played, one play a down.
+  The screens say plays, not downs (the user, 2026-11-05); a **first down**
+  keeps its name. Not the run's **Plays** tab, which lists each play
+  called. In code the count is still `downs`.
 - **Target:** who a pass was meant for (t1, below).
 - **Air yards:** from the line of scrimmage to where a pass was caught,
   downfield only (p4). **Yards after the catch:** from there to where the
@@ -128,9 +132,7 @@ among plays called at least 3 times, a tie going to the one called more
 **The run's stats** (s1, w1):
 
 - how far: the drive reached (its area's name) and the series, whether the
-  run was won (normal mode only), plays (each down's play, so the downs
-  played; the screens say plays, the user, 2026-11-05), first downs,
-  touchdowns
+  run was won (normal mode only), plays run, first downs, touchdowns
 - passing: passes and completions, completion rate, passing yards, air
   yards, the longest pass play
 - rushing: rushes, rushing yards, yards per rush, the longest rush; rushes

@@ -294,7 +294,7 @@ describe('the stats section (v5)', () => {
       record: false,
     });
     // Plays, not downs (the user, 2026-11-05); a first down keeps its name.
-    const totals = all.sections[3]!.rows.map((r) => r.label);
+    const totals = all.sections.find((s) => s.title === 'Totals')!.rows.map((r) => r.label);
     expect(totals).toContain('Plays');
     expect(totals).toContain('First downs');
     expect(totals).not.toContain('Downs');
