@@ -143,6 +143,51 @@ and never skips. The numbers are a check; how it plays to the user decides.
 9. `?perks=1` starts a run holding both perks.
 10. The same seed and the same picks give the same offers.
 
+## As built: part 1 (`rewards-growth`, 2026-11-05)
+
+- **Where growth happens:** `sim/growth.ts`. `noteGrowth` folds each
+  step's and each action's events into the down's tally (`RunState.tally`,
+  by field slot) and, on `downEnded`, puts the gains on the roster
+  (`applyGains`), each a `grew` event. A block held is noted where contact
+  is resolved (`noteHeld` in `resolveContact`), since it isn't an event.
+  `RunState.gains` keeps each player's gains since the last TRICK OR
+  TREAT!, by id; leaving the draft clears it.
+- **Your team is the draft once the pick is made** (`phase: 'draft'`, no
+  offer), hard mode's old "Set your lineup" screen with a new title and
+  PLAY ON (`skipDraft`). Each row shows its bars, as the roster always
+  did, with the gains as green +N on them. The mockup had the bars open
+  on a tap; showing them on every row was simpler and already built.
+- **Test 13 is unit tests, not end-to-end:** vox has no browser suite, so
+  `tests/arcade/yourTeam.test.ts` covers the screen's view and the flow,
+  and the user's play covers the rest. Its hard-mode swap test passed on
+  its first run: the swaps already worked there.
+- **The record keeps no stats,** so it passes `grew` by; the play log has
+  every gain.
+
+### Balance, part 1
+
+`npm run balance:compare 40` on 2026-11-05: main (e8d8a52) against
+`rewards-growth` (8c665db). The report's new line gives, for each area,
+the median over the runs of the most one player grew there (all its stats)
+and the team's total.
+
+| Scenario    | Series won, main → branch | Beat the game / median series | Busiest player's growth, areas 1–3 |
+| ----------- | ------------------------- | ----------------------------- | ---------------------------------- |
+| normal-pass | 8.7 → 9.2                 | 80% → 95%                     | +45, +51, +45                      |
+| normal-mix  | 7.5 → 7.8                 | 88% → 95%                     | +50, +48, +45                      |
+| normal-run  | 7.2 → 7.3                 | 80% → 98%                     | +56, +54, +40                      |
+| hard-pass   | 7.7 → 10.4                | median 8 → 11                 | +45, +47, +46                      |
+| hard-mixed  | 7.9 → 10.8                | median 8 → 10                 | +50, +54, +47                      |
+| hard-run    | 6.2 → 9.8                 | median 6 → 10                 | +56, +63, +40                      |
+
+- **The sizes land on z1's aim,** about +45 an area for the busiest
+  player, and less in hard mode's later laps (the ceiling, and fewer downs
+  an area).
+- **Growth alone makes the game easier,** as expected: part 1 keeps a new
+  player at every TRICK OR TREAT!, and part 2 makes them rare. Whether
+  the two together feel right is for the user's play (b1), not these
+  numbers.
+
 ## Parked
 
 In `PLAN.md`, Later: Jack's stats and upgrades (k3); boost cards (k2);
