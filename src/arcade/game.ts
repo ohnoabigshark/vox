@@ -38,6 +38,8 @@ import { areaAt } from './content/defense';
 import type { Song } from '../audio/synth/render';
 import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
+import { ArcadeNames } from './render/names';
+import { nameTags } from './ui/nameTags';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
 import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toWorld } from './render/world';
@@ -218,6 +220,8 @@ export class ArcadeGame {
   private readonly sweep: ArcadeSweep;
   private readonly lines: ArcadeLines;
   private readonly routes: ArcadeRoutes;
+  /** Your players' names under them before the snap (docs/REWARDS.md, notes p6). */
+  private readonly names: ArcadeNames;
   /**
    * Each field event look's drawing and the sounds it goes off with: one
    * entry a look, so a new look won't compile until it has both (review r15).
@@ -307,6 +311,7 @@ export class ArcadeGame {
     setLights(this.view.hemi, this.view.sun, GAME_LIGHT);
     this.lines = new ArcadeLines(scene);
     this.routes = new ArcadeRoutes(scene);
+    this.names = new ArcadeNames(uiRoot);
     this.eventLooks = {
       frogRain: { draw: new ArcadeFrogRain(scene), sounds: ['burst', 'hop'] },
       plain: { draw: new ArcadePlainEvent(scene), sounds: ['burst'] },
@@ -621,6 +626,12 @@ export class ArcadeGame {
     const { state } = this;
     this.lines.update(state.series, this.origin);
     this.routes.update(state, this.origin, this.previewPlayers());
+    this.names.update(
+      this.live && !this.paused ? nameTags(state) : [],
+      this.origin,
+      this.view.camera,
+      this.view.canvas,
+    );
     // Keep the views in step with the field: a recruit joining or a swap changes who's where.
     this.bodies.sync(state);
     this.bodies.update(state, this.origin, dt, litPlayers(state));
