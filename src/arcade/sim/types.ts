@@ -93,7 +93,7 @@ export interface DownTally {
   /** A GREAT on SNAG IT! or the tip drill, once for each. */
   catchGreats: number[];
   /** Who took the handoff. */
-  rusher: number | null;
+  handoffTo: number | null;
   /** Who was grabbed last: the one a Break it! is for. */
   grabbed: number | null;
   /** A GREAT on Break it!, once for each. */

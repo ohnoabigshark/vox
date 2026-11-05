@@ -81,17 +81,17 @@ describe('what grows which stat (t1)', () => {
   });
 
   it('4. a rush of 10 yards or more grows the carrier’s Hustle; a 9-yard rush doesn’t', () => {
-    expect(gainsOf(tally({ rusher: 2 }), down(9.9))).toEqual([]);
-    expect(gainsOf(tally({ rusher: 2 }), down(10))).toEqual([
+    expect(gainsOf(tally({ handoffTo: 2 }), down(9.9))).toEqual([]);
+    expect(gainsOf(tally({ handoffTo: 2 }), down(10))).toEqual([
       { slot: 2, stat: 'hustle', by: g.rush },
     ]);
-    expect(gainsOf(tally({ rusher: 2 }), down(14.5))).toEqual([
+    expect(gainsOf(tally({ handoffTo: 2 }), down(14.5))).toEqual([
       { slot: 2, stat: 'hustle', by: g.rush + 4 * g.rushPerYard },
     ]);
   });
 
   it('5. a GREAT on Break it! grows the carrier’s Hustle, once for each', () => {
-    expect(gainsOf(tally({ rusher: 2, breakGreats: [2, 2] }), down(3))).toEqual([
+    expect(gainsOf(tally({ handoffTo: 2, breakGreats: [2, 2] }), down(3))).toEqual([
       { slot: 2, stat: 'hustle', by: 2 * g.breakGreat },
     ]);
   });

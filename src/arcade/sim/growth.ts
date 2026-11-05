@@ -21,7 +21,7 @@ export function newTally(): DownTally {
     catch: null,
     testFor: null,
     catchGreats: [],
-    rusher: null,
+    handoffTo: null,
     grabbed: null,
     breakGreats: [],
     pancakes: [],
@@ -42,8 +42,8 @@ export function gainsOf(tally: DownTally, down: { gained: number; los: number })
     add(tally.catch.slot, 'hustle', Math.floor(down.los - tally.catch.at) * g.yacPerYard);
   }
   for (const slot of tally.catchGreats) add(slot, 'hands', g.catchGreat);
-  if (tally.rusher !== null && !tally.catch && down.gained >= g.rushFrom) {
-    add(tally.rusher, 'hustle', g.rush + Math.floor(down.gained - g.rushFrom) * g.rushPerYard);
+  if (tally.handoffTo !== null && !tally.catch && down.gained >= g.rushFrom) {
+    add(tally.handoffTo, 'hustle', g.rush + Math.floor(down.gained - g.rushFrom) * g.rushPerYard);
   }
   for (const slot of tally.breakGreats) add(slot, 'hustle', g.breakGreat);
   for (const slot of tally.pancakes) add(slot, 'heft', g.pancake);
@@ -96,7 +96,7 @@ export function noteGrowth(state: RunState, events: ArcadeEvent[]): void {
         tally.testFor = null;
         break;
       case 'handoff':
-        tally.rusher = slotOf(state, e.id);
+        tally.handoffTo = slotOf(state, e.id);
         break;
       case 'grabbed':
         tally.grabbed = slotOf(state, e.id);
