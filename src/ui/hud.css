@@ -35,7 +35,8 @@
   gap: 8px;
 }
 
-.hud-flag {
+.hud-flag,
+.hud-names {
   font: inherit;
   font-size: 1.05rem;
   font-weight: 900;
@@ -83,6 +84,55 @@
 .hud-message.show {
   opacity: 1;
   transform: scale(1);
+}
+
+/* The selected player's card before the snap (docs/SELECT.md, s3): Your team's card, at the top in place of "Pick a play". */
+.hud-selected {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 58px);
+  left: 12px;
+  right: 12px;
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 8px 8px;
+  border: 3px solid var(--ink);
+  font-size: 0.8rem;
+  color: white;
+  background: rgb(20 14 36 / 0.88);
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.5);
+}
+
+.hud-selected[hidden] {
+  display: none;
+}
+
+.hud-selected .hud-player {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.hud-selected-close {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  font: inherit;
+  font-weight: 900;
+  color: var(--ink);
+  background: var(--bone);
+  border: 3px solid var(--ink);
+}
+
+/* Aa: the names on the field, on or off (docs/SELECT.md, n2), drawn as ⚑; struck through when off. */
+.hud-names.off {
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+  opacity: 0.75;
 }
 
 /* A note across the top that stays until tapped (a practice link the game couldn't read). */

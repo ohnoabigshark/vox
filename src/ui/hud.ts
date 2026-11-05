@@ -29,6 +29,10 @@ export interface HudHandlers {
   onBack?(): void;
   /** ⚑: mark this moment in the play log (docs/PLAY_LOG.md, l4). */
   onFlag?(): void;
+  /** Aa: show or hide the names on the field (docs/SELECT.md, n2). */
+  onNames?(): void;
+  /** ✕ on the selected player's card: clear the selection (s1). */
+  onUnselect?(): void;
 }
 
 /** ⚑'s look once shown (it starts hidden, and stays so with no play log): plain, or red when the log can't be reached. */
@@ -66,6 +70,18 @@ export interface RosterRow {
 }
 
 /** A player as a card: the photo, name and kind, stat bars (with any gains), a note. */
+/** The selected player's card before the snap (docs/SELECT.md, s3): Your team's card, with the position it plays. */
+export interface SelectedCard {
+  readonly name: string;
+  /** Its kind, e.g. "Human". */
+  readonly form: string;
+  /** The position it plays, e.g. "Runner". */
+  readonly position: string;
+  /** Its portrait: trusted SVG markup, drawn in the photo box. */
+  readonly icon: string;
+  readonly stats: readonly StatBar[];
+}
+
 export interface PlayerCard {
   readonly name: string;
   readonly form: string;
@@ -127,6 +143,9 @@ export class Hud {
   private readonly noticeEl: HTMLButtonElement;
   private readonly backButton: HTMLButtonElement;
   private readonly flagButton: HTMLButtonElement;
+  private readonly namesButton: HTMLButtonElement;
+  private readonly selected: HTMLElement;
+  private selectedKey = '';
   private readonly draft: HTMLElement;
   private popTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly bigEl: HTMLElement;
@@ -146,10 +165,12 @@ export class Hud {
       <div class="hud-top">
         <button class="hud-back interactive" hidden>‹ Sketch</button>
         <div class="hud-right">
+          <button class="hud-names interactive" aria-label="Show or hide the names on the field" hidden>Aa</button>
           <button class="hud-flag interactive" aria-label="Flag this moment in the play log" hidden>⚑</button>
           <div class="hud-downs"></div>
         </div>
       </div>
+      <div class="hud-selected interactive" hidden></div>
       <div class="hud-message"></div>
       <div class="hud-pop"></div>
       <div class="hud-big"></div>
@@ -182,6 +203,9 @@ export class Hud {
     this.backButton.addEventListener('click', () => handlers.onBack?.());
     this.flagButton = q<HTMLButtonElement>('.hud-flag');
     this.flagButton.addEventListener('click', () => handlers.onFlag?.());
+    this.namesButton = q<HTMLButtonElement>('.hud-names');
+    this.namesButton.addEventListener('click', () => handlers.onNames?.());
+    this.selected = q('.hud-selected');
     this.bigEl = q('.hud-big');
     this.draft = q('.hud-draft');
 
@@ -360,6 +384,36 @@ export class Hud {
   }
 
   /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */
+  /** The Aa switch: shown before the snap (true: names on, false: struck through), hidden when null. */
+  setNamesSwitch(on: boolean | null): void {
+    this.namesButton.hidden = on === null;
+    this.namesButton.classList.toggle('off', on === false);
+  }
+
+  /** The selected player's card at the top, with ✕ (docs/SELECT.md, s3). Null hides it. */
+  setSelected(card: SelectedCard | null): void {
+    const key = card ? JSON.stringify(card) : '';
+    if (key === this.selectedKey) return;
+    this.selectedKey = key;
+    this.selected.hidden = !card;
+    if (!card) {
+      this.selected.replaceChildren();
+      return;
+    }
+    const close = document.createElement('button');
+    close.className = 'hud-selected-close interactive';
+    close.setAttribute('aria-label', 'Close');
+    close.textContent = '✕';
+    close.addEventListener('click', () => this.handlers.onUnselect?.());
+    const body = document.createElement('div');
+    body.className = 'hud-player';
+    body.append(
+      header(card.name, `${card.form} · ${card.position}`, card.icon),
+      statBars(card.stats),
+    );
+    this.selected.replaceChildren(body, close);
+  }
+
   setFlag(look: FlagLook): void {
     this.flagButton.hidden = false;
     this.flagButton.classList.toggle('off', look === 'off');
