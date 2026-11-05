@@ -273,6 +273,7 @@ What it says:
   TRICK OR TREAT! pick, and a Forest won over several series, instead of by
   one long touchdown, sends more new players into the later areas. Forty
   runs are also noisy: each one deals other cards since the extra body id.
+  _Measured since (n1, below): not the picks._
 
 ## Rounds 4 and 5: the picks, the bolt, then the release
 
@@ -303,3 +304,34 @@ All approved, 2026-11-04.
   The ideas logged on 2026-11-04 (the play-call levers, more passes
   blocked or dropped, stats for Jack) come after the release, on a map of
   their own.
+
+## Balance: the picks (n1)
+
+The same six scenarios, 40 runs each, 2026-11-05: main at 347e6e4 (before
+the Owls) and `difficulty-3` at cd0a3dc, both with the pick count. Each
+cell is the draft picks a run had taken by its first snap in the area,
+averaged over the runs that got there.
+
+| Scenario | Area 2, before → after | Area 3, before → after | Game beaten (normal) |
+| --- | --- | --- | --- |
+| Normal, pass | 2.5 → 2.6 | 5.4 → 5.6 | 78% → 95% |
+| Normal, handoffs | 2.4 → 3.0 | 5.1 → 6.1 | 73% → 88% |
+| Normal, runs | 2.2 → 2.6 | 4.9 → 5.1 | 88% → 85% |
+| Hard, pass | 2.5 → 2.6 | 5.7 → 5.8 | |
+| Hard, handoffs | 2.4 → 3.0 | 5.5 → 6.2 | |
+| Hard, runs | 2.2 → 2.6 | 4.9 → 5.8 | |
+
+What it says:
+
+- **The picks don't explain the passing runs.** Where normal mode got
+  easiest (pass, 78% to 95%), the Owls left the picks almost where they
+  were, a fifth of a player more by the third area. The likeliest cause is
+  noise: the extra Owl's body id deals every run other cards, so these are
+  different games, and 31 against 38 wins of 40 is only about two
+  standard errors apart: suggestive, not settled.
+- **With handoffs, the Forest is ground out:** about one more pick by the
+  third area, as guessed, though normal mode's wins rose there too.
+- Both sets repeat the earlier runs' headline numbers exactly (the runs are
+  seeded).
+- No action: normal mode's 75% target doesn't hold the release (v1), and
+  the bolt's runs (`difficulty-4`) measure it again.
