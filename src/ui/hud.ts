@@ -431,8 +431,7 @@ function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
     }
     case 'play': {
       // Its name on top, then the play drawn the card's width, in its own tall shape (p5).
-      const head = header(card.play.name, card.blurb, '');
-      head.querySelector('.hud-photo')?.remove();
+      const head = header(card.play.name, card.blurb, null);
       const drawing = document.createElement('div');
       drawing.className = 'hud-offer-drawing';
       drawing.append(playDrawing(card.play));
@@ -451,13 +450,16 @@ function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
   }
 }
 
-/** The photo box, then the name with its kind under it. */
-function header(name: string, form: string, icon: string): HTMLElement {
+/** The photo box (none when `icon` is null, as on a play card), then the name with its kind under it. */
+function header(name: string, form: string, icon: string | null): HTMLElement {
   const head = document.createElement('div');
   head.className = 'hud-player-head';
-  const photo = document.createElement('span');
-  photo.className = 'hud-photo';
-  photo.innerHTML = icon;
+  if (icon !== null) {
+    const photo = document.createElement('span');
+    photo.className = 'hud-photo';
+    photo.innerHTML = icon;
+    head.append(photo);
+  }
   const text = document.createElement('span');
   text.className = 'hud-name';
   const n = document.createElement('strong');
@@ -465,7 +467,7 @@ function header(name: string, form: string, icon: string): HTMLElement {
   const kind = document.createElement('small');
   kind.textContent = form;
   text.append(n, kind);
-  head.append(photo, text);
+  head.append(text);
   return head;
 }
 
