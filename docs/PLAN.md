@@ -378,6 +378,20 @@ Open, for when the first new theme or set is planned:
     now. What it needs first: a way to show that your players can be tapped
     (a hint on the first down, a pulse on them, or the tutorial below).
 
+- **Two new tap tests: a spin-o-rama and a DDR-style one.** _User,
+  2026-11-05: "spinorama quick event. ddr like quick event. both for notes
+  in future planning."_ For a grilling of their own. What's there to build
+  on: the tap tests today are Break it! (a break, a drag or a tackle, with
+  MASH! and JUKE!), SNAG IT! and the tip drill, each with a countdown and
+  GREAT/OK/BAD, and each on the test bench.
+  - **Spin-o-rama:** the carrier spins out of a tackle, a move beside
+    Break it!'s JUKE!. Open: what you tap or swipe, and when it's offered.
+  - **DDR-style:** arrows to hit in time, like Dance Dance Revolution. The
+    game already keeps time to its music (`src/beat`, with tap-latency
+    calibration in the settings), so the arrows could land on the song's
+    beat. Open: what it decides (a catch, a block, a break) and how many
+    arrows.
+
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
   teach people how to play, esp with the passing mechanic."_ Open for its
