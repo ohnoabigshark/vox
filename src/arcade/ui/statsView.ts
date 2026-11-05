@@ -182,7 +182,7 @@ export function cardView(
   const rate = completionRate(s.passing);
   return {
     title: won ? 'You got Jack back!' : 'Game Over!',
-    sub: `${won ? `All ${AREAS.length} areas` : where(record.reached)} · ${count(s.downs, 'down')}`,
+    sub: `${won ? `All ${AREAS.length} areas` : where(record.reached)} · ${count(s.downs, 'play')}`,
     tiles: [
       row(
         s.firstDowns === 1 ? 'first down' : 'first downs',
@@ -353,7 +353,7 @@ function teamSections(
       title: 'How far',
       rows: [
         row('Reached', end === 'won' ? 'Won' : where(reached)),
-        row('Downs', s.downs),
+        row('Plays', s.downs),
         row('First downs', s.firstDowns),
         row('Touchdowns', s.touchdowns),
         row('Yards', yds(s.yards)),
@@ -469,7 +469,7 @@ export function allTimeView(all: AllTime): AllTimeView {
       {
         title: 'Totals',
         rows: [
-          row('Downs', t.downs),
+          row('Plays', t.downs),
           row('Yards', yds(t.yards)),
           row('First downs', t.firstDowns),
           row('Touchdowns', t.touchdowns),
