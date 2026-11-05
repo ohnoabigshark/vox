@@ -40,6 +40,8 @@ import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
 import { ArcadeNames } from './render/names';
 import { nameTags } from './ui/nameTags';
+import { keptSelection, selectedCard, slotAt, tapSelect, teamPoints } from './ui/select';
+import { loadSettings, saveSettings } from '../settings';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
 import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toWorld } from './render/world';
@@ -177,6 +179,10 @@ const LOOK_AHEAD = 7;
 const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
 /** If the redirect hasn't taken the page away by now, it was blocked: show the button. */
 const SONG_LINK_DELAY_MS = 3000;
+/** How far a tap may land from one of your players and still select them: about a thumb's width (CSS pixels; docs/SELECT.md, s1). */
+const TAP_REACH = 40;
+/** Where a body's middle is, above its feet (world units): what a tap is measured to. */
+const BODY_MIDDLE = 0.9;
 /** The win's card comes up once GOT JACK BACK has landed (the cutscene's words, render/outro.ts), over the dance. */
 const WIN_CARD_DELAY_MS = 3500;
 const WIDTH_MARGIN = 1.06;
@@ -253,6 +259,10 @@ export class ArcadeGame {
   private pending: StepInput = {};
   /** TRICK OR TREAT!: the spot first tapped for a swap. */
   private swapFrom: number | null = null;
+  /** Before the snap: the selected player's roster slot, or null (docs/SELECT.md). */
+  private selected: number | null = null;
+  /** The Aa switch: your players' names on the field (remembered on the phone, n3). */
+  private namesOn = loadSettings().names;
   /** The first screen (just PLAY), until it's tapped. */
   private readonly startScreen: HTMLElement;
   /** PLAY was tapped and the music is getting ready (a second tap does nothing). */
@@ -332,6 +342,11 @@ export class ArcadeGame {
       onRoster: (spot) => this.onRoster(spot),
       onBack: () => this.backToEditor(),
       onFlag: () => this.flag(),
+      onNames: () => this.toggleNames(),
+      onUnselect: () => {
+        this.selected = null;
+        this.syncHud();
+      },
     });
     this.playLog = PLAY_LOG_URL ? this.startPlayLog(PLAY_LOG_URL) : null;
     this.statsScreens = options.stats ? new StatsScreens(uiRoot) : null;
@@ -352,6 +367,8 @@ export class ArcadeGame {
     });
 
     document.addEventListener('keydown', (e) => this.onKey(e));
+    // Before the snap, a tap on the field selects one of your seven (docs/SELECT.md, s1).
+    canvas.addEventListener('pointerdown', (e) => this.onFieldTap(e));
     // The first screen: just PLAY, on the backdrop; it starts the music and the intro.
     // Practice has none: it opens on the field.
     this.startScreen = document.createElement('div');
@@ -624,10 +641,11 @@ export class ArcadeGame {
 
   private draw(dt: number): void {
     const { state } = this;
+    const selected = keptSelection(state, this.selected);
     this.lines.update(state.series, this.origin);
-    this.routes.update(state, this.origin, this.previewPlayers());
+    this.routes.update(state, this.origin, this.previewPlayers(), selected);
     this.names.update(
-      this.live && !this.paused ? nameTags(state) : [],
+      this.live && !this.paused ? nameTags(state, { names: this.namesOn, selected }) : [],
       this.origin,
       this.view.camera,
       this.view.canvas,
@@ -864,15 +882,42 @@ export class ArcadeGame {
     this.hud.setDraft(
       ready && phase === 'draft' ? trickOrTreatView(this.state, this.swapFrom) : null,
     );
+    // The selected player's card takes "Pick a play"'s place (s3); HIKE! clears it.
+    this.selected = keptSelection(this.state, this.selected);
+    const before = ready && phase === 'setup';
+    this.hud.setSelected(before ? selectedCard(this.state, this.selected) : null);
+    this.hud.setNamesSwitch(before ? this.namesOn : null);
+    const pick = called === null && this.selected === null ? 'Pick a play' : null;
     if (!this.live) this.hud.setPrompt(null, null);
     else if (this.paused) this.hud.setPrompt('Paused', 'RESUME');
-    else if (phase === 'setup')
-      this.hud.setPrompt(called === null ? 'Pick a play' : null, called === null ? null : 'HIKE!');
+    else if (phase === 'setup') this.hud.setPrompt(pick, called === null ? null : 'HIKE!');
     // With the stats screens, Game Over is their card (v1), and its AGAIN.
     else if (phase === 'over' && this.statsScreens) this.hud.setPrompt(null, null);
     else if (phase === 'over') this.hud.setPrompt('Game Over!', 'AGAIN');
     else if (phase === 'won') this.hud.setPrompt(null, null);
     else this.hud.setPrompt(null, null);
+  }
+
+  /** Before the snap, a tap on the field: select the nearest of your seven, or clear it (docs/SELECT.md, s1). */
+  private onFieldTap(e: PointerEvent): void {
+    if (!this.live || this.paused || this.intro || this.state.phase !== 'setup') return;
+    const canvas = this.view.canvas;
+    const rect = canvas.getBoundingClientRect();
+    const points = teamPoints(this.state, (pos) => {
+      // A body's middle, a little above its feet.
+      const p = toWorld(pos, this.origin, BODY_MIDDLE).project(this.view.camera);
+      return { x: ((p.x + 1) / 2) * rect.width, y: ((1 - p.y) / 2) * rect.height };
+    });
+    const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top }, TAP_REACH);
+    this.selected = tapSelect(this.selected, hit);
+    this.syncHud();
+  }
+
+  /** Aa: the names on the field on or off, remembered on the phone (n2, n3). */
+  private toggleNames(): void {
+    this.namesOn = !this.namesOn;
+    saveSettings({ ...loadSettings(), names: this.namesOn });
+    this.syncHud();
   }
 
   /** The area's song (the intro plays the first area's). */

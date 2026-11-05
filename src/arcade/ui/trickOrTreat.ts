@@ -12,7 +12,7 @@ import { STAT_ORDER } from '../sim/stats';
 import { kindIcon } from './kindIcons';
 import { assertNever } from '../../assertNever';
 import type { Form, OfferCard, Perk, Position, RosterPlayer, RunState, Stats } from '../sim/types';
-import type { DraftView, OfferFace, RosterRow, StatBar } from '../../ui/hud';
+import type { DraftView, OfferFace, RosterRow, SelectedCard, StatBar } from '../../ui/hud';
 
 const STAT: Readonly<Record<keyof Stats, string>> = {
   hustle: 'Hustle',
@@ -39,6 +39,32 @@ const bars = (s: Stats, key?: keyof Stats, gained?: Stats): StatBar[] =>
     key: k === key,
     ...(gained?.[k] ? { delta: gained[k] } : {}),
   }));
+
+/** What a player's card shows on Your team, and as the selected player before the snap: name, kind, photo, bars. */
+function face(
+  state: RunState,
+  p: RosterPlayer,
+  stats: Stats,
+  key?: keyof Stats,
+): Pick<SelectedCard, 'name' | 'form' | 'icon' | 'stats'> {
+  return {
+    name: p.name,
+    form: KIND[p.kind],
+    icon: kindIcon(p.kind),
+    stats: bars(stats, key, state.gains[p.id]),
+  };
+}
+
+/** A field player's card, as selected before the snap (docs/SELECT.md, s3): Your team's, with its position. */
+export function fieldCard(state: RunState, slot: number): SelectedCard | null {
+  const p = state.roster[slot];
+  if (!p) return null;
+  const position = slotPosition(slot);
+  return {
+    ...face(state, p, playerStats(state, slot), POSITION_STAT[position]),
+    position: POSITION[position],
+  };
+}
 
 /** The position a field slot plays. */
 const slotPosition = (slot: number): Position => {
@@ -143,10 +169,7 @@ export function trickOrTreatView(state: RunState, selected: number | null): Draf
     spot,
     position,
     selected: selected === spot,
-    name: p.name,
-    form: KIND[p.kind],
-    icon: kindIcon(p.kind),
-    stats: bars(stats, key, state.gains[p.id]),
+    ...face(state, p, stats, key),
     note:
       position === 'Bench' || p.preferred !== slotPosition(spot)
         ? `prefers ${POSITION[p.preferred]}`

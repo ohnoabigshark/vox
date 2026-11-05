@@ -39,6 +39,8 @@ export class ArcadeNames {
         this.tags.set(tag.id, el);
       }
       if (el.textContent !== tag.name) el.textContent = tag.name;
+      // The selected player's name: in front of any it overlaps, bigger (docs/SELECT.md, s4).
+      el.classList.toggle('selected', tag.selected);
       const p = toWorld(tag.at, origin, 0).project(camera);
       el.style.left = `${((p.x + 1) / 2) * canvas.clientWidth}px`;
       el.style.top = `${((1 - p.y) / 2) * canvas.clientHeight + BELOW}px`;
