@@ -138,7 +138,7 @@ export class Hud {
   private readonly backButton: HTMLButtonElement;
   private readonly flagButton: HTMLButtonElement;
   private readonly namesButton: HTMLButtonElement;
-  private readonly selected: HTMLElement;
+  private readonly selectedCard: HTMLElement;
   private selectedKey = '';
   private readonly draft: HTMLElement;
   private popTimer: ReturnType<typeof setTimeout> | undefined;
@@ -199,7 +199,7 @@ export class Hud {
     this.flagButton.addEventListener('click', () => handlers.onFlag?.());
     this.namesButton = q<HTMLButtonElement>('.hud-names');
     this.namesButton.addEventListener('click', () => handlers.onNames?.());
-    this.selected = q('.hud-selected');
+    this.selectedCard = q('.hud-selected');
     this.bigEl = q('.hud-big');
     this.draft = q('.hud-draft');
 
@@ -388,9 +388,9 @@ export class Hud {
     const key = card ? JSON.stringify(card) : '';
     if (key === this.selectedKey) return;
     this.selectedKey = key;
-    this.selected.hidden = !card;
+    this.selectedCard.hidden = !card;
     if (!card) {
-      this.selected.replaceChildren();
+      this.selectedCard.replaceChildren();
       return;
     }
     const close = document.createElement('button');
@@ -404,7 +404,7 @@ export class Hud {
       header(card.name, `${card.form} · ${card.position}`, card.icon),
       statBars(card.stats),
     );
-    this.selected.replaceChildren(body, close);
+    this.selectedCard.replaceChildren(body, close);
   }
 
   /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */
