@@ -5,12 +5,15 @@ import {
   BoltWatch,
   PickWatch,
   GrowthWatch,
+  botPick,
   byStretch,
   isLong,
   noteBefore,
   seriesSpread,
   stops,
 } from '../../tools/balanceCount';
+import { PLAYS } from '../../src/arcade/content/plays';
+import { rngFor } from '../../src/arcade/sim/random';
 import type { ArcadeEvent, OfferCard, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, playState, stand } from '../arcade/helpers';
@@ -257,5 +260,33 @@ describe('growth from play (docs/REWARDS.md, b2)', () => {
       { busiest: 15, team: 15 },
     ]);
     expect(w.byArea.get(1)).toEqual([{ busiest: 10, team: 10 }]);
+  });
+});
+
+describe('the bot at TRICK OR TREAT! (docs/REWARDS.md, b2)', () => {
+  const play: OfferCard = { kind: 'play', play: PLAYS[0]! };
+  const perk: OfferCard = { kind: 'perk', perk: { rarity: 'common', kind: 'magnet' } };
+  const player = (id: number): OfferCard => ({
+    kind: 'recruit',
+    player: {
+      id,
+      name: `P${id}`,
+      kind: 'ghost',
+      preferred: 'catcher',
+      stats: { hustle: 60, hands: 90, heft: 50 },
+    },
+  });
+  const rng = rngFor(1, 'test');
+
+  it('takes a new player if one is offered, then a play, then a perk, and never skips', () => {
+    expect(botPick([perk, play, player(8)], rng)).toBe(2);
+    expect(botPick([perk, play], rng)).toBe(1);
+    expect(botPick([perk], rng)).toBe(0);
+  });
+
+  it('picks among the players at random when there are two', () => {
+    const seen = new Set<number>();
+    for (let i = 0; i < 40; i++) seen.add(botPick([play, player(8), player(9)], rng));
+    expect([...seen].sort()).toEqual([1, 2]);
   });
 });
