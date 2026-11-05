@@ -396,6 +396,18 @@ Open, for when the first new theme or set is planned:
   "we turn the lightning bolt power ups to be 'mischief' class where either
   side can take them, but only once the snap starts."_ Built on
   `difficulty-4` (`docs/PICKUPS.md`, "The mischief bolt").
+- **Replay a down, and keep it.** _User, 2026-11-05: "replay of a down.
+  I'd love to be able to see a replay and save it for later."_ What exists:
+  the sim is deterministic from the run's seed (`src/sim/rng.ts`: never
+  `Math.random`), so a down can be played again from its starting state and
+  the inputs of each step (taps, THROW, tap-test taps). That makes a saved
+  replay small. Open for its grilling: replay from inputs (small, but an
+  older replay plays differently once the sim changes, so each keeps the
+  build it came from) or from recorded positions (bigger, always the
+  same); when to offer it (right after the down, from the record's list of
+  plays, after a big play); what you can do while it plays (slow motion,
+  another camera, scrub back); where saved replays live (the phone, like
+  the record, `docs/STATS.md`) and how many; sharing one.
 - **Faster balance runs** (after the release; the plan, with diagrams:
   https://claude.ai/artifact/ASsZs8QaF34RpLhkscL2hA). A before-and-after
   comparison takes about 45 minutes. A profile of three runs (2026-11-05):
