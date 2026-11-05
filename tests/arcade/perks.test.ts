@@ -1,3 +1,4 @@
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { pocketTime, sweepSpeed } from '../../src/arcade/sim/ball';
@@ -34,27 +35,34 @@ const offering = (card: Perk | { kind: 'recruit'; player: RosterPlayer }): RunSt
 };
 
 describe('TRICK OR TREAT!', () => {
-  it('after a won series, TRICK OR TREAT! offers two cards', () => {
+  it('after a won series, TRICK OR TREAT! offers its cards', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = atDraft(seed);
       expect(s.phase).toBe('draft');
-      expect(s.offer).toHaveLength(2);
+      expect(s.offer).toHaveLength(arcadeTuning.offer.cards);
     }
   });
 
-  /** The offer in a zone (0 Forest, 1 Swamp, 2 Farm). */
+  /**
+   * The offer in a zone (0 Forest, 1 Swamp, 2 Farm), with every play and perk
+   * already held, so every card is a new player (docs/REWARDS.md, o1).
+   */
   const offerIn = (zone: number, seed: number) => {
     const s = atDraft(seed);
     s.series = { ...s.series, area: zone };
+    s.playbook = PLAY_POOL;
+    s.perks.secondWind = true;
+    s.perks.magnet = true;
     return { s, offer: rollOffer(s) };
   };
 
-  it('every offer is two new players, never of the same kind', () => {
+  it('new players on offer are never of the same kind', () => {
     for (let seed = 1; seed <= 40; seed++) {
-      const { offer } = offerIn(0, seed);
-      expect(offer.map((p) => p.kind)).toEqual(['recruit', 'recruit']);
-      const [a, b] = offer.map((p) => (p.kind === 'recruit' ? p.player.kind : null));
-      expect(a).not.toBe(b);
+      const kinds = offerIn(0, seed).offer.map((p) =>
+        p.kind === 'recruit' ? p.player.kind : null,
+      );
+      expect(kinds).not.toContain(null);
+      expect(new Set(kinds).size).toBe(kinds.length);
     }
   });
 
@@ -226,10 +234,11 @@ describe('TRICK OR TREAT!', () => {
     );
   });
 
-  it('skipping takes nothing and moves on', () => {
-    const s = dispatch(atDraft(), { type: 'skipDraft' }).state;
-    expect(s.phase).toBe('setup');
-    expect(s.perks).toEqual(noPerks());
+  it('skipping takes nothing, then Your team, then PLAY ON moves on (docs/REWARDS.md, x1)', () => {
+    const skipped = dispatch(atDraft(), { type: 'skipDraft' }).state;
+    expect(skipped.phase).toBe('draft');
+    expect(skipped.perks).toEqual(noPerks());
+    expect(dispatch(skipped, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 });
 

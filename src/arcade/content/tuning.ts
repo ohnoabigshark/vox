@@ -297,6 +297,14 @@ export const tuningDefaults = {
     /** No stat grows past this from play (z2). */
     ceiling: 150,
   },
+  /**
+   * TRICK OR TREAT!'s offer (docs/REWARDS.md, o1): this many cards, each
+   * drawn at random by these odds among the kinds with any left.
+   */
+  offer: {
+    cards: 3,
+    odds: { play: 3, recruit: 1, perk: 1 },
+  },
   trickOrTreat: {
     /**
      * Swap players on Your team (tap any two, then PLAY ON) in normal mode

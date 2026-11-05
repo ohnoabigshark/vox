@@ -276,9 +276,10 @@
   text-shadow: 2px 2px 0 var(--ink);
 }
 
+/* The offer's cards, stacked full width (docs/REWARDS.md, v1). */
 .hud-draft-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 8px;
   width: 100%;
   max-width: 460px;
@@ -453,7 +454,7 @@ button.hud-roster-row:active {
   opacity: 0.85;
 }
 
-/* TRICK OR TREAT!'s two new players: a big title over a player card, like the roster's. */
+/* TRICK OR TREAT!'s cards: a big title over a player card like the roster's, a play drawn small, or a perk. */
 .hud-offer {
   padding: 8px 10px 9px;
   font-size: 0.8rem;
@@ -669,4 +670,11 @@ button.hud-offer:active {
 
 .song-link[hidden] {
   display: none;
+}
+
+/* A play card's drawing and a perk's icon sit in a bigger photo box. */
+.hud-offer.play .hud-photo,
+.hud-offer.perk .hud-photo {
+  width: 52px;
+  height: 52px;
 }

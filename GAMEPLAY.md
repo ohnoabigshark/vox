@@ -207,19 +207,21 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 
 ## Building Up: TRICK OR TREAT!
 
-**After every won series: TRICK OR TREAT!** Under the heading it says plainly **"Choose a player to join your team"**, over two **New Player!** cards, which have the screen to themselves. Take one and **Your team** comes up *(fork, `docs/REWARDS.md`)*: the seven on the field down the left, by position, and the bench down the right, each player's bars showing what it has grown since the last TRICK OR TREAT!, a green stretch at the end of the bar and a green +N beside it; then **PLAY ON**. *(In hard mode you arrange the roster here, tapping any two players to swap them; in normal mode that's built but turned off: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got.
+**After every won series: TRICK OR TREAT!** *(Fork, `docs/REWARDS.md`.)* Under the heading it says plainly **"Take one"**, over three cards stacked down the screen, each drawn at random: a **New Play!** (about 3 in 5, drawn small, for your playbook), a **New Player!** (1 in 5) or a **Perk!** (1 in 5: Second Wind, Candy Corn Magnet). Nothing you already have is offered; when the plays and perks run out, every card is a new player. **Skip** takes nothing. Either way **Your team** comes up: the seven on the field down the left, by position, and the bench down the right, each player's bars showing what it has grown since the last TRICK OR TREAT!, a green stretch at the end of the bar and a green +N beside it; then **PLAY ON**. *(In hard mode you arrange the roster here, tapping any two players to swap them; in normal mode that's built but turned off: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got, and **your playbook starts with esrauch's five plays** (Slants, Deep Shot, Curl & Flat, Dive, Sweep) plus your sketches in the game; the rest are won.
 
 **Your players grow by playing** *(fork, `docs/REWARDS.md`)*: Hands from catches (more for a GREAT on SNAG IT! or the tip drill), Hustle from yards after the catch, long rushes and GREATs on Break it!, Heft from pancakes and from blocks held on downs that gain. Only the seven on the field grow, never past 150, and nothing shows on the field: you see it on Your team.
 
 ### The offer
 
-**Two new players, never of the same kind, and you take one:** there's no skipping (a new player can always sit on the bench). Each card is the player itself, drawn like a roster card: its photo, name and kind, its **Heft / Hustle / Hands** bars, and its **preferred position** (the one its best stat suits: Heft → Blocker, Hustle → Runner, Hands → Catcher).
+**A New Player! card** *(fork: one of three cards, and rarer, above; two on offer are never of the same kind)* is the player itself, drawn like a roster card: its photo, name and kind, its **Heft / Hustle / Hands** bars, and its **preferred position** (the one its best stat suits: Heft → Blocker, Hustle → Runner, Hands → Catcher).
 
 **A new player's stats add up to the zone's total:** **200** in Froggy's Forest, **250** in the Candy Queendom, **300** on Frederick's Farm, shared out in its kind's shape (a Ghost mostly Hands, a Golem mostly Heft, a Human evenly) and nudged a little, so no two are alike. The zone is the one of the series about to be played, so the offer after Froggy's Forest's Boss is already the Candy Queendom's.
 
-**Take one and it goes straight in:** into the field slot whose player it beats by the most total stats (on a tie, a slot of the position it prefers), and whoever was there sits on the bench. If it beats nobody, it sits on the bench itself. Positions are picked for you, and play goes on. Only the seven on the field play.
+**Take one and it goes straight in:** into the field slot whose player it beats by the most total stats (on a tie, a slot of the position it prefers), and whoever was there sits on the bench. If it beats nobody, it sits on the bench itself. Positions are picked for you, and Your team comes up. Only the seven on the field play.
 
-**The bench has no limit:** the newest sit at the top, and a full run ends with eleven players on it (one for each TRICK OR TREAT!).
+**The bench has no limit:** the newest sit at the top. *(Fork: with new players rare, it fills slowly.)*
+
+**A New Play! card** goes into your playbook for the rest of the run, so it can be dealt from the next down; **a Perk! card** lasts the run too. *(Fork, `docs/REWARDS.md`.)*
 
 > **Howlin' Hal** · Werewolf · *prefers Runner*
 > Heft 65 · Hands 40 · Hustle 95 *(a Froggy's Forest recruit: 200 in all)*

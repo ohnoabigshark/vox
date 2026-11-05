@@ -386,8 +386,9 @@ export type Perk = { readonly rarity: Rarity } & (
   | { readonly kind: 'hotArm' }
 );
 
-/** An offer card (CONTEXT.md): one TRICK OR TREAT! card, a new player or a perk. */
+/** An offer card (CONTEXT.md): one TRICK OR TREAT! card, a new play, a new player or a perk. */
 export type OfferCard =
+  | { readonly kind: 'play'; readonly play: Play }
   | { readonly kind: 'recruit'; readonly player: RosterPlayer }
   | { readonly kind: 'perk'; readonly perk: Perk };
 
@@ -447,7 +448,7 @@ export interface RunState {
    * The plays this run can deal (CONTEXT.md, playbook). The play pool unless the
    * run was started with its own; plays as rewards will grow it.
    */
-  readonly playbook: readonly Play[];
+  playbook: readonly Play[];
   /**
    * Practice (the play editor's Try it, docs/PLAY_EDITOR.md): the playbook is
    * one sketch, called at every setup, and every rep lines up the same spot.

@@ -2,7 +2,7 @@
  * TRICK OR TREAT! (GAMEPLAY.md, Building Up): what a new player is worth
  * in each zone, and the names of the players who might join you. The rules for taking a card are in sim/team.ts.
  */
-import type { Form, Position } from '../sim/types';
+import type { Form, Perk, Position } from '../sim/types';
 
 /**
  * Every offer is two new players (of different kinds). By zone (Forest,
@@ -36,3 +36,9 @@ export const RECRUIT_NAMES: Readonly<Record<Form, readonly string[]>> = {
 
 /** Every position, for recruits' preferences. */
 export const POSITIONS: readonly Position[] = ['blocker', 'runner', 'catcher'];
+
+/** The perks TRICK OR TREAT! offers, each once a run (docs/REWARDS.md, k6). */
+export const OFFERED_PERKS: readonly Perk[] = [
+  { rarity: 'common', kind: 'secondWind' },
+  { rarity: 'common', kind: 'magnet' },
+];

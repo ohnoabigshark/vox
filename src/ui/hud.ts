@@ -9,6 +9,9 @@
  * layout doesn't jump between downs.
  */
 import './hud.css';
+import { playDrawing } from './playDrawing';
+import { assertNever } from '../assertNever';
+import type { Play } from '../arcade/content/plays';
 
 export interface HudHandlers {
   /** The context button: PLAY, HIKE, resume, new run. */
@@ -72,11 +75,19 @@ export interface PlayerCard {
 }
 
 /** One card of TRICK OR TREAT!'s offer: a big title over a player card. */
-export interface OfferFace {
-  /** "New Player!". */
-  readonly title: string;
-  readonly player: PlayerCard;
-}
+/** One card on offer, as drawn (docs/REWARDS.md, v1): its big title, then what it is. */
+export type OfferFace =
+  | { readonly kind: 'player'; readonly title: string; readonly player: PlayerCard }
+  /** A new play: drawn small, its name, and "Pass play" or "Run play". */
+  | { readonly kind: 'play'; readonly title: string; readonly play: Play; readonly blurb: string }
+  /** A perk: its icon (trusted SVG markup), its name and what it does. */
+  | {
+      readonly kind: 'perk';
+      readonly title: string;
+      readonly name: string;
+      readonly blurb: string;
+      readonly icon: string;
+    };
 
 /** What TRICK OR TREAT! shows: the offer, your roster and bench, and what to do. */
 export interface DraftView {
@@ -379,22 +390,42 @@ function emptyBench(): HTMLElement {
   return el;
 }
 
-/** An offer card: its big title, then the player card; tap to take it. */
+/** A card on offer: its big title, then what it is (a player card, a play drawn small, a perk); tap to take it. */
 function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
   const el = document.createElement('button');
-  el.className = 'hud-offer interactive';
+  el.className = `hud-offer interactive ${card.kind}`;
   el.addEventListener('click', onTap);
   const title = document.createElement('strong');
   title.className = 'hud-offer-title';
   title.textContent = card.title;
-  const p = card.player;
-  el.append(title, header(p.name, p.form, p.icon), statBars(p.stats));
-  if (p.note) {
-    const note = document.createElement('em');
-    note.textContent = p.note;
-    el.append(note);
+  el.append(title);
+  switch (card.kind) {
+    case 'player': {
+      const p = card.player;
+      el.append(header(p.name, p.form, p.icon), statBars(p.stats));
+      if (p.note) {
+        const note = document.createElement('em');
+        note.textContent = p.note;
+        el.append(note);
+      }
+      return el;
+    }
+    case 'play': {
+      const head = header(card.play.name, card.blurb, '');
+      head.querySelector('.hud-photo')?.replaceChildren(playDrawing(card.play));
+      el.append(head);
+      return el;
+    }
+    case 'perk': {
+      const head = header(card.name, 'Perk', card.icon);
+      const blurb = document.createElement('em');
+      blurb.textContent = card.blurb;
+      el.append(head, blurb);
+      return el;
+    }
+    default:
+      return assertNever(card);
   }
-  return el;
 }
 
 /** The photo box, then the name with its kind under it. */

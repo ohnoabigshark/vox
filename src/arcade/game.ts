@@ -82,7 +82,7 @@ import { ArcadeControls } from './ui/controls';
 import { breakGrade, gradeCall, tapTestBuzz, tapTestSound } from './ui/tapTestCalls';
 import { breakView, shooShowing, snagView, tipView } from './ui/testViews';
 import type { Practice } from './content/playCode';
-import { PLAY_POOL } from './content/playPool';
+import { startingPlaybook } from './content/playPool';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
 
@@ -123,6 +123,8 @@ export interface ArcadeOptions {
   twoTapAim?: boolean;
   /** SNAG IT! from the first series (?snag=1), not only from series 5 (docs/SNAG.md). */
   snagAlways?: boolean;
+  /** ?perks=1: start holding every perk TRICK OR TREAT! offers (docs/REWARDS.md, o4). */
+  perks?: boolean;
   /** The tip drill from the first series (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
   tipAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
@@ -189,6 +191,7 @@ export class ArcadeGame {
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
   private readonly snagAlways: boolean;
+  private readonly perks: boolean;
   private readonly tipAlways: boolean;
   /**
    * Practice: a sketch's play and its key in the play editor (‹ Sketch), or a
@@ -276,6 +279,7 @@ export class ArcadeGame {
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
     this.snagAlways = options.snagAlways ?? false;
+    this.perks = options.perks ?? false;
     this.tipAlways = options.tipAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
@@ -929,7 +933,8 @@ export class ArcadeGame {
       twoTapAim: this.twoTapAim,
       snagAlways: this.snagAlways,
       tipAlways: this.tipAlways,
-      playbook: [...PLAY_POOL, ...sketches],
+      playbook: startingPlaybook(sketches),
+      perks: this.perks,
     });
   }
 

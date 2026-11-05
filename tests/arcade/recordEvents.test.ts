@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { createRun, dispatch, endDown, nextDown } from '../../src/arcade/sim/run';
 import { rollOffer, startingRoster } from '../../src/arcade/sim/team';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
@@ -13,6 +14,10 @@ import { ofType, playState, run, stand } from './helpers';
 
 /** A run just past its first won series: TRICK OR TREAT! is on. */
 const atDraft = (s: RunState = createRun(3)): RunState => {
+  // Every play and perk held, so every card on offer is a new player (docs/REWARDS.md, o1).
+  s.playbook = PLAY_POOL;
+  s.perks.secondWind = true;
+  s.perks.magnet = true;
   const events: ArcadeEvent[] = [];
   endDown(s, 'tackled', s.series.firstDown, events);
   nextDown(s, events);
@@ -64,14 +69,14 @@ describe('every player has an id for the run', () => {
 
   it('a recruit gets the next id, and says so as it joins', () => {
     const s = atDraft();
-    expect(rollOffer(s).map((p) => (p.kind === 'recruit' ? p.player.id : null))).toEqual([8, 8]);
+    expect(rollOffer(s).map((p) => (p.kind === 'recruit' ? p.player.id : null))).toEqual([8, 8, 8]);
     const joined = ofType(dispatch(s, { type: 'pick', offer: 0 }).events, 'joined');
     expect(joined[0]!.id).toBe(8);
   });
 
   it('two recruits of the same name are two players', () => {
     let s = atDraft();
-    s = dispatch(s, { type: 'pick', offer: 0 }).state;
+    s = dispatch(dispatch(s, { type: 'pick', offer: 0 }).state, { type: 'skipDraft' }).state;
     s = atDraft(s);
     const offer = s.offer[0]!;
     if (offer.kind !== 'recruit') throw new Error('not a recruit');

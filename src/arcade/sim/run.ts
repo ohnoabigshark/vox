@@ -5,7 +5,8 @@
  */
 import { newTally, noteGrowth } from './growth';
 import { AREAS, DEFENDERS, areaAt, type DefenseSpec } from '../content/defense';
-import { PLAY_POOL } from '../content/playPool';
+import { PLAY_POOL, startingPlaybook } from '../content/playPool';
+import { OFFERED_PERKS } from '../content/perks';
 import type { Play } from '../content/plays';
 import { playSlot } from '../content/team';
 import { assertNever } from '../../assertNever';
@@ -166,8 +167,10 @@ export function createRun(
     readonly snagAlways?: boolean;
     /** ?tip=1: the tip drill from the first series. */
     readonly tipAlways?: boolean;
-    /** The plays it deals from; the whole play pool if not given. */
+    /** The plays it deals from; the starting playbook if not given (event practice: the whole pool). */
     readonly playbook?: readonly Play[];
+    /** ?perks=1 (docs/REWARDS.md, o4): start holding every perk TRICK OR TREAT! offers. */
+    readonly perks?: boolean;
     /**
      * Practice (the play editor's Try it): this play is the whole playbook,
      * called at every setup, and every rep lines up the same spot again.
@@ -183,7 +186,10 @@ export function createRun(
 ): RunState {
   const state: RunState = {
     seed,
-    playbook: options.practice ? [options.practice] : (options.playbook ?? PLAY_POOL),
+    // A run starts with the starting playbook (o3); practice is unchanged: a sketch alone, or an event against the whole pool.
+    playbook: options.practice
+      ? [options.practice]
+      : (options.playbook ?? (options.eventPractice ? PLAY_POOL : startingPlaybook())),
     practice: options.practice !== undefined || options.eventPractice !== undefined,
     practiceEvent: options.eventPractice?.event ?? null,
     taken: [],
@@ -253,6 +259,8 @@ export function createRun(
   const area = Math.max(0, Math.min(startArea, arcadeTuning.run.areas - 1));
   state.seriesWon = area * SERIES_KINDS.length;
   setUpSeries(state, area, 0, [], true);
+  // ?perks=1 (o4): every perk TRICK OR TREAT! offers, from the start.
+  if (options.perks) for (const perk of OFFERED_PERKS) applyPerk(state.perks, perk);
   return state;
 }
 
@@ -415,7 +423,9 @@ export function dispatch(prev: RunState, action: Action): ArcadeResult {
       hike(state, events);
       break;
     case 'skipDraft':
-      if (state.phase === 'draft') leaveDraft(state);
+      // On the offer it's Skip, which takes nothing and goes on to Your team (x1); on Your team, PLAY ON.
+      if (state.phase === 'draft' && state.offer.length > 0) state.offer = [];
+      else if (state.phase === 'draft') leaveDraft(state);
       break;
     case 'pick':
       pick(state, action.offer, events);
@@ -496,6 +506,11 @@ function pick(state: RunState, index: number, events: ArcadeEvent[]): void {
   if (state.phase !== 'draft' || !card) return;
   events.push({ type: 'picked', card });
   state.offer = [];
+  if (card.kind === 'play') {
+    // In the playbook for the rest of the run (o2): dealt from the next down.
+    state.playbook = [...state.playbook, card.play];
+    return;
+  }
   if (card.kind === 'perk') {
     applyPerk(state.perks, card.perk);
     relineTeam(state);

@@ -66,11 +66,13 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   Royal Decree, the crows). A gimmick can be a field event (Frog Rain) or
   not (the decree bans a card).
 - **TRICK OR TREAT!:** the screen between series where the Coach takes one of
-  two new players (the **offer**), then sees **Your team**. In code it's the
+  three cards (the **offer**), or **Skip**s, then sees **Your team**. In code it's the
   **draft** (`phase: 'draft'`). Use "the draft" in docs and code, so it
   can't be confused with a trick or a treat on the field.
-- **Offer card** _(ours)_: one TRICK OR TREAT! card: a new player, or a
-  **perk** (`OfferCard`). The offer is the cards on show.
+- **Offer card** _(ours)_: one TRICK OR TREAT! card: a new play, a new
+  player, or a **perk** (`OfferCard`). The offer is the cards on show.
+- **Skip** _(ours)_: taking no card at TRICK OR TREAT! (`skipDraft` on the
+  offer); Your team comes up as after a pick.
 - **Perk:** a card that changes how your team plays for the rest of the
   run: Second Wind, Candy Corn Magnet (`Perk`; esrauch's word). Not a new
   player, and not a pickup on the field.

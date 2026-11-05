@@ -20,13 +20,38 @@ const atDraft = (seed = 3, hard = false): RunState => {
 };
 
 describe('Your team (t1, 13)', () => {
-  it('the offer shows only its cards, with no roster under them', () => {
-    const view = trickOrTreatView(atDraft(), null);
+  it('the offer shows only its cards under Take one, with Skip, and no roster (v1, x1)', () => {
+    const s = atDraft();
+    const view = trickOrTreatView(s, null);
     expect(view.screen).toBe('offer');
     expect(view.title).toBe('TRICK OR TREAT!');
-    expect(view.offer).toHaveLength(2);
+    expect(view.lead).toBe('Take one');
+    expect(view.goOn).toBe('Skip');
     expect(view.roster).toEqual([]);
     expect(view.bench).toEqual([]);
+    // A face for each card, saying what kind it is.
+    const title = { play: 'New Play!', recruit: 'New Player!', perk: 'Perk!' };
+    expect(view.offer.map((f) => f.title)).toEqual(s.offer.map((c) => title[c.kind]));
+  });
+
+  it('a play card names the play and whether it’s a pass or a run; a perk card says what it does', () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const s = atDraft(seed);
+      trickOrTreatView(s, null).offer.forEach((face, i) => {
+        const card = s.offer[i]!;
+        if (card.kind === 'play' && face.kind === 'play') {
+          expect(face.play).toBe(card.play);
+          expect(face.blurb).toBe(card.play.handoff === undefined ? 'Pass play' : 'Run play');
+        } else if (card.kind === 'perk' && face.kind === 'perk') {
+          expect(face.name).toBe(
+            card.perk.kind === 'secondWind' ? 'Second Wind' : 'Candy Corn Magnet',
+          );
+          expect(face.blurb.length).toBeGreaterThan(0);
+        } else {
+          expect([card.kind, face.kind]).toEqual(['recruit', 'player']);
+        }
+      });
+    }
   });
 
   it('after a pick Your team stays up, in normal mode too, until PLAY ON', () => {
