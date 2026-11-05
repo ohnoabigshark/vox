@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createRun, dispatch } from '../../src/arcade/sim/run';
+import { createRun } from '../../src/arcade/sim/run';
 import { canThrow, step, stepInPlace } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState, StepInput } from '../../src/arcade/sim/types';
+import { betweenDowns } from './helpers';
 
 /**
  * Stepping in place (docs/PLAN.md, "Faster balance runs", change 1): the
@@ -23,15 +24,14 @@ function play(seed: number, n: number, how: typeof step): { s: RunState; events:
   let s = createRun(seed);
   const events: ArcadeEvent[] = [];
   for (let i = 0; i < n && s.phase !== 'over' && s.phase !== 'won'; i++) {
-    if (s.phase === 'draft') {
-      s = dispatch(s, { type: 'skipDraft' }).state;
-    } else if (s.phase === 'setup') {
-      s = dispatch(dispatch(s, { type: 'call', hand: i % 3 }).state, { type: 'hike' }).state;
-    } else {
-      const r = how(s, input(s));
-      events.push(...r.events);
-      s = r.state;
+    const next = betweenDowns(s, i);
+    if (next) {
+      s = next;
+      continue;
     }
+    const r = how(s, input(s));
+    events.push(...r.events);
+    s = r.state;
   }
   return { s, events };
 }

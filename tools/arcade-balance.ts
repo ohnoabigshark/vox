@@ -63,7 +63,7 @@ import {
   quantile,
   seriesSpread,
   stops,
-  type Before,
+  type NotedBefore,
   type DownSummary,
 } from './balanceCount';
 import type { Rng } from '../src/sim/rng';
@@ -321,7 +321,7 @@ function botInput(state: RunState, rng: Rng, plan: Plan): StepInput {
 function count(
   t: Tally,
   events: readonly ArcadeEvent[],
-  before: Before,
+  before: NotedBefore,
   ran: { now: boolean; grabbed: boolean },
 ): void {
   for (const e of events) {

@@ -3,7 +3,7 @@ import { DT, arcadeTuning } from '../../src/arcade/content/tuning';
 import { BASE_STATS, ROLE_RADIUS } from '../../src/arcade/content/team';
 import { defenderPhysics, physicsOf } from '../../src/arcade/sim/bodies';
 import { scanTime } from '../../src/arcade/sim/ball';
-import { createRun } from '../../src/arcade/sim/run';
+import { createRun, dispatch } from '../../src/arcade/sim/run';
 import { breakMarker } from '../../src/arcade/sim/breakit';
 import { step } from '../../src/arcade/sim/step';
 import type {
@@ -206,4 +206,17 @@ export function untilGrabbed(
     events.push(...r.events);
   }
   return { state: s, events };
+}
+
+/**
+ * Between downs of a seeded run: skips TRICK OR TREAT!, or calls a card (the
+ * `i`th in turn of three; a banned one changes nothing, and the next try
+ * moves on) and hikes. Null while a down is being played.
+ */
+export function betweenDowns(s: RunState, i: number): RunState | null {
+  if (s.phase === 'draft') return dispatch(s, { type: 'skipDraft' }).state;
+  if (s.phase === 'setup') {
+    return dispatch(dispatch(s, { type: 'call', hand: i % 3 }).state, { type: 'hike' }).state;
+  }
+  return null;
 }

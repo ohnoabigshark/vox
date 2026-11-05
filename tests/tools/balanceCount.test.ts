@@ -229,7 +229,10 @@ describe('balance counts for the long field', () => {
       snappedAt: 2,
       tackleKind: null,
       defenders: [{ id: 100, kind: 'safety' }],
-      players: expect.arrayContaining([{ id: 2, y: 40 }]),
+      players: [
+        { id: 1, y: -4 },
+        { id: 2, y: 40 },
+      ],
     });
   });
 });

@@ -9,6 +9,7 @@ import type {
   DefenderKind,
   DownResult,
   RunState,
+  Series,
 } from '../src/arcade/sim/types';
 
 /**
@@ -16,8 +17,9 @@ import type {
  * step: the balance tool steps the run in place (`stepInPlace`), so after the
  * step the state it started from is gone.
  */
-export interface Before {
-  readonly series: { readonly area: number; readonly stretch: number; readonly los: number };
+export interface NotedBefore {
+  /** The parts of the series the counts read. */
+  readonly series: Pick<Series, 'area' | 'stretch' | 'los'>;
   readonly time: number;
   readonly snappedAt: number;
   /** The Break it! under way, if any. */
@@ -28,7 +30,7 @@ export interface Before {
   readonly players: readonly { readonly id: number; readonly y: number }[];
 }
 
-export function noteBefore(state: RunState): Before {
+export function noteBefore(state: RunState): NotedBefore {
   const { area, stretch, los } = state.series;
   return {
     series: { area, stretch, los },
@@ -70,13 +72,13 @@ export class DownWatch {
   private stoppedBy: Stop | null = null;
   private clearAt: number | null = null;
 
-  step(before: Before, after: RunState, events: readonly ArcadeEvent[]): void {
+  step(before: NotedBefore, after: RunState, events: readonly ArcadeEvent[]): void {
     // Where the carrier stands after this step, before a down that ends in it is summed up and forgotten.
     this.clearAt ??= clearOf(after);
     for (const e of events) this.event(before, after, e);
   }
 
-  private event(before: Before, after: RunState, e: ArcadeEvent): void {
+  private event(before: NotedBefore, after: RunState, e: ArcadeEvent): void {
     switch (e.type) {
       case 'handoff':
         this.handedOff = true;
@@ -153,7 +155,7 @@ export class PickWatch {
   private reached = -1;
 
   /** `before` is noted from the state the step started from (its series is the one being drafted for or snapped). */
-  step(before: Before, events: readonly ArcadeEvent[]): void {
+  step(before: NotedBefore, events: readonly ArcadeEvent[]): void {
     const { area } = before.series;
     for (const e of events) {
       if (e.type === 'perk') this.taken++;

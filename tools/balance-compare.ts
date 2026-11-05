@@ -34,6 +34,7 @@ import {
   partialBaseline,
   type Scenario,
 } from './balanceCompare';
+import { now } from '../src/clock';
 
 const runs = Number(process.argv[2]) || 40;
 const git = (cwd: string, ...args: string[]): string =>
@@ -74,6 +75,10 @@ function runJob(job: Job): Promise<number> {
   );
   children.add(child);
   return new Promise((done) => {
+    // A child that can't start (no tsx in the tree) says why in its report, and fails.
+    child.on('error', (e) => {
+      writeFileSync(join(job.out, job.s.file), `${e.message}\n`);
+    });
     child.on('close', (code) => {
       children.delete(child);
       closeSync(fd);
@@ -119,13 +124,13 @@ function mainWithOurTools(): string {
 async function runAll(jobs: Job[]): Promise<Job[]> {
   const failed: Job[] = [];
   const queue = [...jobs];
-  const start = Date.now();
+  const start = now();
   let finished = 0;
   const worker = async (): Promise<void> => {
     for (let job = queue.shift(); job; job = queue.shift()) {
       const code = await runJob(job);
       finished++;
-      const mins = ((Date.now() - start) / 60000).toFixed(1);
+      const mins = ((now() - start) / 60000).toFixed(1);
       console.log(
         `  ${finished}/${jobs.length} ${job.side} ${job.s.file}: ${code === 0 ? 'done' : `FAILED (exit ${code})`}, ${mins} min`,
       );

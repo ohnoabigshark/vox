@@ -1,9 +1,10 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   SIX,
+  TOOL_FILES,
   baselineKey,
   keepBaseline,
   keptBaseline,
@@ -95,5 +96,25 @@ describe('the six scenarios', () => {
         { runOnly: true },
       ],
     ]);
+  });
+});
+
+describe('the tool’s code', () => {
+  it('is every file of tools/ the balance tool imports, so a change to any of them runs main again', () => {
+    const imported = (path: string): string[] =>
+      [...readFileSync(path, 'utf8').matchAll(/from '\.\/([\w-]+)'/g)].map(
+        (m) => `tools/${m[1]}.ts`,
+      );
+    const seen = new Set<string>();
+    const walk = (path: string): void => {
+      if (seen.has(path)) return;
+      seen.add(path);
+      imported(path).forEach(walk);
+    };
+    walk('tools/arcade-balance.ts');
+    walk('tools/balance-compare.ts');
+    // The command itself runs only here, never on main's side.
+    seen.delete('tools/balance-compare.ts');
+    expect([...TOOL_FILES].sort()).toEqual([...seen].sort());
   });
 });

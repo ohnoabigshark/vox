@@ -32,13 +32,15 @@ export const SIX: readonly Scenario[] = (
 );
 
 /**
- * The files whose code makes the report. A baseline runs main's game with the
- * branch's copies of these, so a change to what the report counts runs main
- * again, once.
+ * The files whose code makes the report: the balance tool and every file of
+ * tools/ it imports (a test walks the imports to keep this whole). A baseline
+ * runs main's game with the branch's copies of these, so a change to the bot
+ * or to what the report counts runs main again, once.
  */
 export const TOOL_FILES = [
   'tools/arcade-balance.ts',
   'tools/balanceCount.ts',
+  'tools/balanceLookahead.ts',
   'tools/balanceCompare.ts',
 ] as const;
 
