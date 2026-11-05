@@ -372,6 +372,11 @@ Open, for when the first new theme or set is planned:
   https://claude.ai/artifact/8PEvNHSLuK3X92urZb2usp; the design and tests
   are in `docs/SELECT.md`; built on `player-select`, after B7's fix
   (`names-fix`).
+  - **Parked: select only, no Aa switch.** _User, 2026-11-05, after playing
+    it: "I think eventually I want select only but it's hard to know you
+    can tap on players to select them. we can park that."_ Both stay for
+    now. What it needs first: a way to show that your players can be tapped
+    (a hint on the first down, a pulse on them, or the tutorial below).
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
@@ -410,6 +415,13 @@ Open, for when the first new theme or set is planned:
   - **The offer cards' text a bit bigger, and their headings centred**
     (user, 2026-11-05, after part 2's playtest: "notes for later (not
     implementing now)").
+  - **Hands grows more slowly for Catchers** (balance). _User, 2026-11-05,
+    after playing `player-select`: "I think hands should scale more slowly
+    for catchers"._ Today a catch is +15 Hands and a catch-test GREAT +15
+    more (`tuning.growth`), up to 150, the same for every position; part 1's
+    balance runs had the busiest player at about +45 to +60 an area.
+    Open: smaller catch sizes, a curve that slows nearer the ceiling, or
+    Catchers alone growing slower. Measure with `GrowthWatch` first.
   - **Draw up a play and Select any play** are rewards in this system,
     grilled and built after both parts (k5; **Plays as rewards**, below).
 
