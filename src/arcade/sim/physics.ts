@@ -36,8 +36,8 @@ export function moveBodies(state: RunState): void {
   const carrier = state.field.players.find((p) => p.id === carrierId);
   const hanging = state.field.defenders.filter((d) => d.latch !== null);
   for (const b of allBodies(state)) {
-    // A lightning bolt wears off (docs/PICKUPS.md).
-    if (b.side === 'team' && b.boltLeft > 0) b.boltLeft = Math.max(0, b.boltLeft - DT);
+    // A lightning bolt wears off (docs/PICKUPS.md), on either side.
+    if (b.boltLeft > 0) b.boltLeft = Math.max(0, b.boltLeft - DT);
     // Tacklers hanging on ride along with the carrier (below).
     if (b.side === 'defense' && b.latch) continue;
     if (b.down > 0) {
@@ -58,11 +58,10 @@ export function moveBodies(state: RunState): void {
     let desired = v(0, 0);
     if (target) {
       const to = sub(target, b.pos);
-      const top =
-        b.side === 'team' && b.boltLeft > 0 ? b.speed * (1 + pickupTuning.bolt.faster) : b.speed;
+      const top = b.boltLeft > 0 ? b.speed * (1 + pickupTuning.bolt.faster) : b.speed;
       const speed =
         b.side === 'defense'
-          ? b.speed * blockedShare(state, b, carrierId)
+          ? top * blockedShare(state, b, carrierId)
           : b.id === carrierId
             ? top * (b.mass / (b.mass + hanging.reduce((m, d) => m + d.mass, 0)))
             : top;

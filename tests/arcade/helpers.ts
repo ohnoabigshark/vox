@@ -91,6 +91,7 @@ export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = [])
       stats,
       ...defenderPhysics(stats, def.reachBonus),
       down: 0,
+      boltLeft: 0,
       home: spec.pos,
       mark: spec.mark ?? null,
       latch: null,

@@ -118,7 +118,8 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   (`docs/FIELD_EVENTS.md`). Frog Rain is the first. _Avoid:_ "event" alone,
   which is the sim's `ArcadeEvent`.
 - **Blessing, hex, mischief:** a field event that can only help you, only
-  hurt you, or do both.
+  hurt you, or do both. A **mischief** pickup is one either side can take
+  (the lightning bolt).
 - **Event editor:** the dev page where field events are made, tuned and
   tried (`/dev/events.html`).
 
@@ -150,9 +151,10 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   field.
 - **Prop:** a solid object on the field that bodies steer around, such as a
   Scarecrow (`sim/props.ts`).
-- **Pickup** _(ours)_: an object one of your players **takes** by running
-  through it, after which it's gone for good (`docs/PICKUPS.md`). A **treat**
-  helps: the **lightning bolt** (a burst of speed). A **trick** hurts: the
+- **Pickup** _(ours)_: an object a body **takes** by running through it,
+  after which it's gone for good (`docs/PICKUPS.md`). A **treat** helps: the
+  **lightning bolt** (a burst of speed), which is **mischief**, taken by
+  either side once the ball is snapped. A **trick** hurts: the
   **oil slick** (the player slips and lies down; a carrier is tackled,
   SLIPPED!). A pickup that moves (not built) follows a **path**. _Avoid:_
   "power-up", which covers only treats, and "route" for a pickup's path.

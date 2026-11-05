@@ -100,7 +100,7 @@ describe('tricks and treats: taking them', () => {
     const plain = run(runner([]), 2).state;
     const { state: boosted, events } = run(runner([{ id: 7, kind: 'bolt', x: 5, y: 0.5 }]), 2);
     expect(ofType(events, 'pickupTaken')).toEqual([
-      { type: 'pickupTaken', id: 2, kind: 'bolt', pickup: 7 },
+      { type: 'pickupTaken', id: 2, side: 'team', kind: 'bolt', pickup: 7 },
     ]);
     expect(boosted.field.pickups).toEqual([]);
     expect(boosted.taken).toEqual([7]);
@@ -131,7 +131,7 @@ describe('tricks and treats: taking them', () => {
   it('an oil slick trips whoever runs through it: they lie on the turf for a moment', () => {
     const { state, events } = run(runner([{ id: 8, kind: 'slick', x: 5, y: 0.5 }]), 0.2);
     expect(ofType(events, 'pickupTaken')).toEqual([
-      { type: 'pickupTaken', id: 2, kind: 'slick', pickup: 8 },
+      { type: 'pickupTaken', id: 2, side: 'team', kind: 'slick', pickup: 8 },
     ]);
     expect(body(state, 2).down).toBeGreaterThan(slick.time - 0.25);
     expect(state.field.pickups).toEqual([]);
@@ -157,12 +157,9 @@ describe('tricks and treats: taking them', () => {
     expect(state.field.players.find((p) => p.id === 1)?.boltLeft).toBe(0);
   });
 
-  it('defenders run over them and leave them be (only offense, for now)', () => {
-    const pickups: Pickup[] = [
-      { id: 7, kind: 'bolt', x: -5, y: 3 },
-      { id: 8, kind: 'slick', x: -5, y: 1 },
-    ];
-    // A Cover standing on the slick, heading over the bolt to its mark.
+  it('a defender standing on a slick leaves it and stays on its feet (bolts: tests/arcade/mischiefBolt.test.ts)', () => {
+    const pickups: Pickup[] = [{ id: 8, kind: 'slick', x: -5, y: 1 }];
+    // A Cover standing on the slick, heading off to its mark.
     const s = runner(pickups, [{ kind: 'cover', pos: v(-5, 1), mark: 2 }]);
     const { state, events } = run(s, 0.5);
     expect(ofType(events, 'pickupTaken')).toEqual([]);

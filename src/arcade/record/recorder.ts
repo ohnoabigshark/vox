@@ -232,7 +232,8 @@ export class RunRecorder {
         this.draftOf(prev).fieldEvents.push(e.event);
         return;
       case 'pickupTaken':
-        this.draftOf(prev).pickups.push(e.kind);
+        // Your pickups: a bolt a defender took is the defense's (the mischief bolt).
+        if (e.side === 'team') this.draftOf(prev).pickups.push(e.kind);
         return;
       case 'sacked':
         this.draftOf(prev).sacked = true;

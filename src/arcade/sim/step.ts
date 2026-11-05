@@ -370,7 +370,9 @@ function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
  * runs through a pickup takes it, and it's gone for good (never Jack, who stands
  * still: a slick under the ball's spot couldn't be dodged). A bolt speeds it up
  * for a while; a slick trips it, and a carrier who slips is tackled there:
- * SLIPPED! Defenders run over them and leave them be (only offense, for now).
+ * SLIPPED! The bolt is mischief: a defender on the move takes one too (not one
+ * planted, hanging on or lying down), after yours in the same step, so a tie
+ * is yours. Defenders run over slicks and leave them be.
  */
 function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
   if (state.field.pickups.length === 0) return false;
@@ -382,7 +384,13 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     if (!pickup) continue;
     state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
     state.taken.push(pickup.id);
-    events.push({ type: 'pickupTaken', id: p.id, kind: pickup.kind, pickup: pickup.id });
+    events.push({
+      type: 'pickupTaken',
+      id: p.id,
+      side: 'team',
+      kind: pickup.kind,
+      pickup: pickup.id,
+    });
     switch (pickup.kind) {
       case 'bolt':
         p.boltLeft = arcadeTuning.pickups.bolt.time;
@@ -395,6 +403,23 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
       default:
         assertNever(pickup.kind);
     }
+  }
+  for (const d of state.field.defenders) {
+    if (d.down > 0 || d.planted || d.latch) continue;
+    const pickup = state.field.pickups.find(
+      (q) => q.kind === 'bolt' && dist(d.pos, v(q.x, q.y)) <= d.radius + r,
+    );
+    if (!pickup) continue;
+    state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
+    state.taken.push(pickup.id);
+    events.push({
+      type: 'pickupTaken',
+      id: d.id,
+      side: 'defense',
+      kind: 'bolt',
+      pickup: pickup.id,
+    });
+    d.boltLeft = arcadeTuning.pickups.bolt.time;
   }
   if (!slipped) return false;
   events.push({ type: 'slipped', id: slipped.id });

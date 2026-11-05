@@ -153,7 +153,7 @@ export class ArcadePickups {
   private trailSparks(state: RunState, origin: number): void {
     let n = 0;
     const flicker = Math.floor(state.time * 20);
-    for (const p of state.field.players) {
+    for (const p of [...state.field.players, ...state.field.defenders]) {
       if (p.boltLeft <= 0) continue;
       const speed = Math.hypot(p.vel.x, p.vel.y) || 1;
       const back = v(-p.vel.x / speed, -p.vel.y / speed);

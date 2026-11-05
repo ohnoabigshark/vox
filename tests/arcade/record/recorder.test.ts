@@ -331,7 +331,10 @@ describe('along the way', () => {
         events: [{ type: 'fieldEventWentOff', event: 'frogRain', look: 'frogRain', hit: [] }],
       },
       {
-        events: [{ type: 'pickupTaken', id: 2, kind: 'bolt', pickup: 7 }, { type: 'crowsShooed' }],
+        events: [
+          { type: 'pickupTaken', id: 2, side: 'team', kind: 'bolt', pickup: 7 },
+          { type: 'crowsShooed' },
+        ],
       },
       thrown,
       {
@@ -346,6 +349,25 @@ describe('along the way', () => {
     expect(r.fieldEvents).toEqual(['frogRain']);
     expect(r.pickups).toEqual(['bolt']);
     expect(r.crowsShooed).toBe(1);
+  });
+
+  it('a bolt a defender took isn’t one of your pickups (the mischief bolt, b4)', () => {
+    const r = only([
+      snapped,
+      { events: [{ type: 'pickupTaken', id: 100, side: 'defense', kind: 'bolt', pickup: 7 }] },
+      {
+        events: [{ type: 'pickupTaken', id: 2, side: 'team', kind: 'slick', pickup: 8 }],
+      },
+      thrown,
+      {
+        events: [
+          { type: 'incomplete', at: v(0, 9) },
+          { type: 'downEnded', result: 'incomplete', gained: 0 },
+        ],
+        set: deadAt(9, 'incomplete'),
+      },
+    ]);
+    expect(r.pickups).toEqual(['slick']);
   });
 
   it('a down over the goal line is a touchdown, from any stretch (long field test 7)', () => {
