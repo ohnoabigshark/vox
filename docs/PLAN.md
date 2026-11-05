@@ -396,6 +396,22 @@ Open, for when the first new theme or set is planned:
   "we turn the lightning bolt power ups to be 'mischief' class where either
   side can take them, but only once the snap starts."_ Built on
   `difficulty-4` (`docs/PICKUPS.md`, "The mischief bolt").
+- **Faster balance runs** (after the release; the plan, with diagrams:
+  https://claude.ai/artifact/ASsZs8QaF34RpLhkscL2hA). A before-and-after
+  comparison takes about 45 minutes. A profile of three runs (2026-11-05):
+  80% of the time is the passing bot's lookahead (`predictsCatch`), and 66%
+  is copying the state, since `step()` copies the whole run every step.
+  _User: "yeah after the release. 2 especially."_
+  1. **Keep main's results** (first): the six-scenario script moves into
+     `tools/`, and each baseline is kept under a key of main's commit, the
+     tool's code and the run count, so only the branch side runs.
+  2. **Step in place in the balance tool:** `step()` becomes a copy plus a
+     new `stepInPlace()`; the tool and its lookahead call `stepInPlace`
+     (the lookahead copies once, not up to 121 times), noting the few
+     "before" facts its counters read. The game keeps `step()`. Tests
+     first: the same seeded run, state and events, either way; `step()`
+     leaves its input alone; the lookahead leaves the real run alone; the
+     same report. About 3× faster, by the profile; measured before and after.
 - **Play-call levers: no flip, a random play, hidden routes.** Three
   ways to make a down harder before the snap, each likely set by a
   stretch or a Boss rather than for the whole run, and each also a toggle
