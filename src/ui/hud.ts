@@ -69,7 +69,6 @@ export interface RosterRow {
   readonly fits?: boolean;
 }
 
-/** A player as a card: the photo, name and kind, stat bars (with any gains), a note. */
 /** The selected player's card before the snap (docs/SELECT.md, s3): Your team's card, with the position it plays. */
 export interface SelectedCard {
   readonly name: string;
@@ -82,6 +81,7 @@ export interface SelectedCard {
   readonly stats: readonly StatBar[];
 }
 
+/** A player as a card: the photo, name and kind, stat bars (with any gains), a note. */
 export interface PlayerCard {
   readonly name: string;
   readonly form: string;
@@ -383,7 +383,6 @@ export class Hud {
     this.bigTimer = setTimeout(() => (this.bigEl.className = 'hud-big'), 1000);
   }
 
-  /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */
   /** The Aa switch: shown before the snap (true: names on, false: struck through), hidden when null. */
   setNamesSwitch(on: boolean | null): void {
     this.namesButton.hidden = on === null;
@@ -414,6 +413,7 @@ export class Hud {
     this.selected.replaceChildren(body, close);
   }
 
+  /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */
   setFlag(look: FlagLook): void {
     this.flagButton.hidden = false;
     this.flagButton.classList.toggle('off', look === 'off');
