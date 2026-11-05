@@ -389,7 +389,7 @@ export type Perk = { readonly rarity: Rarity } & (
 /** An offer card (CONTEXT.md): one TRICK OR TREAT! card, a new play, a new player or a perk. */
 export type OfferCard =
   | { readonly kind: 'play'; readonly play: Play }
-  | { readonly kind: 'recruit'; readonly player: RosterPlayer }
+  | { readonly kind: 'player'; readonly player: RosterPlayer }
   | { readonly kind: 'perk'; readonly perk: Perk };
 
 /** Everything the perks taken so far add up to. */

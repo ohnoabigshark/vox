@@ -267,7 +267,7 @@ describe('the bot at TRICK OR TREAT! (docs/REWARDS.md, b2)', () => {
   const play: OfferCard = { kind: 'play', play: PLAYS[0]! };
   const perk: OfferCard = { kind: 'perk', perk: { rarity: 'common', kind: 'magnet' } };
   const player = (id: number): OfferCard => ({
-    kind: 'recruit',
+    kind: 'player',
     player: {
       id,
       name: `P${id}`,

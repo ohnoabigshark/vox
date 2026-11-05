@@ -69,7 +69,7 @@ describe('every player has an id for the run', () => {
 
   it('a recruit gets the next id, and says so as it joins', () => {
     const s = atDraft();
-    expect(rollOffer(s).map((p) => (p.kind === 'recruit' ? p.player.id : null))).toEqual([8, 8, 8]);
+    expect(rollOffer(s).map((p) => (p.kind === 'player' ? p.player.id : null))).toEqual([8, 8, 8]);
     const joined = ofType(dispatch(s, { type: 'pick', offer: 0 }).events, 'joined');
     expect(joined[0]!.id).toBe(8);
   });
@@ -79,7 +79,7 @@ describe('every player has an id for the run', () => {
     s = dispatch(dispatch(s, { type: 'pick', offer: 0 }).state, { type: 'skipDraft' }).state;
     s = atDraft(s);
     const offer = s.offer[0]!;
-    if (offer.kind !== 'recruit') throw new Error('not a recruit');
+    if (offer.kind !== 'player') throw new Error('not a recruit');
     const first = [...s.roster, ...s.bench].find((p) => p.id === 8)!;
     s.offer = [{ ...offer, player: { ...offer.player, name: first.name } }, ...s.offer.slice(1)];
     const after = dispatch(s, { type: 'pick', offer: 0 }).state;

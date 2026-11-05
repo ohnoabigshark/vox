@@ -29,8 +29,8 @@ describe('Your team (t1, 13)', () => {
     expect(view.goOn).toBe('Skip');
     expect(view.roster).toEqual([]);
     expect(view.bench).toEqual([]);
-    // A face for each card, saying what kind it is.
-    const title = { play: 'New Play!', recruit: 'New Player!', perk: 'Perk!' };
+    // A face for each card, saying what it is.
+    const title = { play: 'New Play!', player: 'New Player!', perk: 'Perk!' };
     expect(view.offer.map((f) => f.title)).toEqual(s.offer.map((c) => title[c.kind]));
   });
 
@@ -48,7 +48,7 @@ describe('Your team (t1, 13)', () => {
           );
           expect(face.blurb.length).toBeGreaterThan(0);
         } else {
-          expect([card.kind, face.kind]).toEqual(['recruit', 'player']);
+          expect([card.kind, face.kind]).toEqual(['player', 'player']);
         }
       });
     }

@@ -125,7 +125,7 @@ export function holdsPerk(perks: Perks, perk: Perk): boolean {
 /**
  * TRICK OR TREAT!'s cards (docs/REWARDS.md, o1): `offer.cards` of them,
  * each a new play, a new player or a perk, drawn by `offer.odds` among the
- * kinds with any left. Nothing the team holds is offered, no card twice,
+ * card types with any left. Nothing the team holds is offered, no card twice,
  * and new players are each of a different kind, their stats adding up to
  * the zone's total (ZONE_OFFER, by the zone of the series about to be
  * played). When the plays and perks run out, every card is a player.
@@ -141,7 +141,7 @@ export function rollOffer(state: RunState): OfferCard[] {
   const held = new Set(state.playbook.map((p) => p.id));
   const left = {
     play: PLAY_POOL.filter((p) => !held.has(p.id)),
-    recruit: [...KINDS],
+    player: [...KINDS],
     perk: OFFERED_PERKS.filter((p) => !holdsPerk(state.perks, p)),
   };
   // Whichever player is taken is the team's next (the team only grows).
@@ -149,34 +149,33 @@ export function rollOffer(state: RunState): OfferCard[] {
   const { cards, odds } = arcadeTuning.offer;
   const offer: OfferCard[] = [];
   for (let n = 0; n < cards; n++) {
-    const open = OFFER_KINDS.filter((k) => left[k].length > 0);
-    let roll = rng.next() * open.reduce((sum, k) => sum + odds[k], 0);
-    const kind = open.find((k) => (roll -= odds[k]) < 0) ?? open[open.length - 1];
+    const open = CARD_TYPES.filter((t) => left[t].length > 0);
+    let roll = rng.next() * open.reduce((sum, t) => sum + odds[t], 0);
+    const type = open.find((t) => (roll -= odds[t]) < 0) ?? open[open.length - 1];
     const take = <T>(from: T[]): T => from.splice(rng.int(0, from.length - 1), 1)[0] as T;
-    switch (kind) {
+    switch (type) {
       case 'play':
-        offer.push({ kind, play: take(left.play) });
+        offer.push({ kind: type, play: take(left.play) });
         break;
-      case 'recruit': {
-        const form = take(left.recruit);
-        const player = makeRecruit(rng, id, total, form);
-        offer.push({ kind, player: state.hard ? slowHands(player, total) : player });
+      case 'player': {
+        const player = makeRecruit(rng, id, total, take(left.player));
+        offer.push({ kind: type, player: state.hard ? slowHands(player, total) : player });
         break;
       }
       case 'perk':
-        offer.push({ kind, perk: take(left.perk) });
+        offer.push({ kind: type, perk: take(left.perk) });
         break;
       case undefined:
         return offer;
       default:
-        return assertNever(kind);
+        return assertNever(type);
     }
   }
   return offer;
 }
 
-/** The kinds of offer card, in the order their odds are rolled. */
-const OFFER_KINDS: readonly OfferCard['kind'][] = ['play', 'recruit', 'perk'];
+/** The types of offer card, in the order their odds are rolled. */
+const CARD_TYPES: readonly OfferCard['kind'][] = ['play', 'player', 'perk'];
 
 /** The position a player's best stat suits (a tie, at random among them). */
 function suits(rng: Rng, stats: Stats): Position {

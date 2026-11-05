@@ -970,7 +970,7 @@ export class ArcadeGame {
     for (let i = 0; i < arcadeTuning.run.areas * SERIES_KINDS.length - 1; i++) {
       s.seriesWon = i;
       const offer = rollOffer(s)[i % 2];
-      if (offer?.kind === 'recruit') s.bench.unshift(offer.player);
+      if (offer?.kind === 'player') s.bench.unshift(offer.player);
     }
     s.seriesWon = arcadeTuning.run.areas * SERIES_KINDS.length;
     s.phase = 'won';

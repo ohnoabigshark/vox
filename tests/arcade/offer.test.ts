@@ -23,7 +23,7 @@ const atDraft = (seed = 3, run: RunState = createRun(seed)): RunState => {
 const what = (c: OfferCard): string =>
   c.kind === 'play'
     ? `play ${c.play.id}`
-    : c.kind === 'recruit'
+    : c.kind === 'player'
       ? `player ${c.player.kind}`
       : `perk ${c.perk.kind}`;
 
@@ -69,13 +69,13 @@ describe('the offer (t2)', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = createRun(seed, undefined, 0, { playbook: PLAY_POOL, perks: true });
       const { offer } = atDraft(seed, s);
-      expect(offer.map((c) => c.kind)).toEqual(['recruit', 'recruit', 'recruit']);
+      expect(offer.map((c) => c.kind)).toEqual(['player', 'player', 'player']);
       expect(new Set(offer.map(what)).size).toBe(3);
     }
   });
 
   it('4. over many seeds, cards come out near 3 in 5 plays, 1 in 5 players, 1 in 5 perks', () => {
-    const count = { play: 0, recruit: 0, perk: 0 };
+    const count = { play: 0, player: 0, perk: 0 };
     let all = 0;
     for (let seed = 1; seed <= 400; seed++) {
       for (const c of atDraft(seed).offer) {
@@ -85,8 +85,8 @@ describe('the offer (t2)', () => {
     }
     expect(count.play / all).toBeGreaterThan(0.53);
     expect(count.play / all).toBeLessThan(0.67);
-    expect(count.recruit / all).toBeGreaterThan(0.14);
-    expect(count.recruit / all).toBeLessThan(0.26);
+    expect(count.player / all).toBeGreaterThan(0.14);
+    expect(count.player / all).toBeLessThan(0.26);
     expect(count.perk / all).toBeGreaterThan(0.14);
     expect(count.perk / all).toBeLessThan(0.26);
   });

@@ -255,7 +255,7 @@ export function quantile(sorted: readonly number[], q: number): number {
 }
 
 /** The bot's order of choice at TRICK OR TREAT! (docs/REWARDS.md, b2). */
-const BOT_CHOICE: readonly OfferCard['kind'][] = ['recruit', 'play', 'perk'];
+const BOT_CHOICE: readonly OfferCard['kind'][] = ['player', 'play', 'perk'];
 
 /**
  * Which card the bot takes, by index: a new player if one is offered (at

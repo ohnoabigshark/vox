@@ -27,9 +27,9 @@ const atDraft = (seed = 3): RunState => {
 };
 
 /** A run at TRICK OR TREAT! with this card on offer first: a perk, or a new player. */
-const offering = (card: Perk | { kind: 'recruit'; player: RosterPlayer }): RunState => {
+const offering = (card: Perk | { kind: 'player'; player: RosterPlayer }): RunState => {
   const s = atDraft();
-  const first: OfferCard = card.kind === 'recruit' ? card : { kind: 'perk', perk: card };
+  const first: OfferCard = card.kind === 'player' ? card : { kind: 'perk', perk: card };
   s.offer = [first, ...s.offer.slice(1)];
   return s;
 };
@@ -58,9 +58,7 @@ describe('TRICK OR TREAT!', () => {
 
   it('new players on offer are never of the same kind', () => {
     for (let seed = 1; seed <= 40; seed++) {
-      const kinds = offerIn(0, seed).offer.map((p) =>
-        p.kind === 'recruit' ? p.player.kind : null,
-      );
+      const kinds = offerIn(0, seed).offer.map((p) => (p.kind === 'player' ? p.player.kind : null));
       expect(kinds).not.toContain(null);
       expect(new Set(kinds).size).toBe(kinds.length);
     }
@@ -70,7 +68,7 @@ describe('TRICK OR TREAT!', () => {
     ZONE_OFFER.forEach((zone, i) => {
       for (let seed = 1; seed <= 20; seed++) {
         for (const p of offerIn(i, seed).offer) {
-          if (p.kind !== 'recruit') throw new Error('offer');
+          if (p.kind !== 'player') throw new Error('offer');
           const st = p.player.stats;
           expect(st.hustle + st.hands + st.heft).toBe(zone.recruitTotal);
         }
@@ -81,7 +79,7 @@ describe('TRICK OR TREAT!', () => {
   it('a new player is shaped like its kind: a Ghost mostly Hands, a Golem mostly Heft', () => {
     for (let seed = 1; seed <= 60; seed++) {
       const recruit = offerIn(0, seed).offer[0]!;
-      if (recruit.kind !== 'recruit') continue;
+      if (recruit.kind !== 'player') continue;
       const { kind, stats } = recruit.player;
       if (kind === 'ghost') expect(stats.hands).toBeGreaterThan(stats.heft);
       if (kind === 'golem') expect(stats.heft).toBeGreaterThan(stats.hustle);
@@ -128,7 +126,7 @@ describe('TRICK OR TREAT!', () => {
     let seen = 0;
     for (let seed = 1; seed <= 60; seed++) {
       for (const perk of rollOffer(createRun(seed))) {
-        if (perk.kind !== 'recruit') continue;
+        if (perk.kind !== 'player') continue;
         seen++;
         const { stats, preferred } = perk.player;
         expect(stats[POSITION_STAT[preferred]]).toBe(
@@ -152,7 +150,7 @@ describe('TRICK OR TREAT!', () => {
   };
 
   const take = (player: typeof boo) =>
-    dispatch(offering({ kind: 'recruit', player }), { type: 'pick', offer: 0 });
+    dispatch(offering({ kind: 'player', player }), { type: 'pick', offer: 0 });
 
   it('a new player goes straight into the slot it improves most, a slot it prefers on a tie', () => {
     // 200 in all against seven plain 150s: it beats them all by the same, so it goes to a Catcher slot.
@@ -179,7 +177,7 @@ describe('TRICK OR TREAT!', () => {
 
   it('it goes in for the weakest player, wherever it plays', () => {
     const s = offering({
-      kind: 'recruit',
+      kind: 'player',
       player: { ...boo, stats: { hustle: 60, hands: 100, heft: 40 } },
     });
     s.roster[1] = { ...s.roster[1]!, stats: { hustle: 30, hands: 30, heft: 30 } };
@@ -195,7 +193,7 @@ describe('TRICK OR TREAT!', () => {
 
   it('the bench has no limit, and the newest sit at the top', () => {
     const s = offering({
-      kind: 'recruit',
+      kind: 'player',
       player: { ...boo, stats: { hustle: 60, hands: 100, heft: 40 } },
     });
     s.bench = Array.from({ length: 6 }, (_, i) => ({ ...s.roster[0]!, name: `Sub ${i}` }));

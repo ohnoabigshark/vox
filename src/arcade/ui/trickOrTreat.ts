@@ -90,7 +90,7 @@ function offerFace(state: RunState, card: OfferCard): OfferFace {
         play: card.play,
         blurb: card.play.handoff === undefined ? 'Pass play' : 'Run play',
       };
-    case 'recruit': {
+    case 'player': {
       const p = card.player;
       return {
         kind: 'player',

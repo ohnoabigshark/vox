@@ -299,11 +299,11 @@ export const tuningDefaults = {
   },
   /**
    * TRICK OR TREAT!'s offer (docs/REWARDS.md, o1): this many cards, each
-   * drawn at random by these odds among the kinds with any left.
+   * drawn at random by these odds among the card types with any left.
    */
   offer: {
     cards: 3,
-    odds: { play: 3, recruit: 1, perk: 1 },
+    odds: { play: 3, player: 1, perk: 1 },
   },
   trickOrTreat: {
     /**

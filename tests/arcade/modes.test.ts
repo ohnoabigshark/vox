@@ -82,7 +82,7 @@ describe('hard mode', () => {
       const s = createRun(5, undefined, 0, { hard: true });
       setUpSeries(s, area, 10, [], false);
       for (const perk of rollOffer(s)) {
-        if (perk.kind !== 'recruit') continue;
+        if (perk.kind !== 'player') continue;
         expect(total(perk.player)).toBe(200 + 30 * area);
         // Far below where its share of a 470 total would put it.
         if (area === 9) expect(perk.player.stats.hands).toBeLessThan(140);
