@@ -72,5 +72,8 @@ over: the check B7 lacked.
   its route.
 - The card is the roster card's dark panel, not the bone of the mockup, so
   it matches Your team. The HUD's pixel font draws **Aa** as "AA".
+- From the mockup, beyond s4's "at the front and bigger" (review x4, kept):
+  the selected name has a slime-green outline, after the mockup's green
+  ring, and **Aa** is struck through while the names are off.
 - Checked in a headless browser on the served build (seed 3): selecting,
   the switch off, ✕, and HIKE! clearing it all.
