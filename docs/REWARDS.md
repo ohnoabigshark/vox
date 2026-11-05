@@ -193,6 +193,50 @@ and the team's total.
   the two together feel right is for the user's play (b1), not these
   numbers.
 
+## As built: part 2 (`rewards-offer`, 2026-11-05)
+
+- **Offer cards** (n1): `OfferCard` is a play, a recruit or a perk; `Perk`
+  is only the perks; the pick event is `picked`. The HUD's card face is
+  `OfferFace`, one per kind.
+- **The draw** (`rollOffer`, `sim/team.ts`): `offer.cards` cards, each kind
+  rolled by `offer.odds` among the kinds with any left, then a card of
+  that kind at random: a play from the pool not in the playbook, a perk
+  not held (`holdsPerk`), a player of a kind not yet on offer.
+- **Skip is `skipDraft` on the offer** (x1): it clears the offer, so Your
+  team comes up; `skipDraft` on Your team is PLAY ON.
+- **The starting playbook** (`startingPlaybook`, `content/playPool.ts`) is
+  `createRun`'s default and what the game passes with its sketches.
+  Event practice keeps the whole pool: an old test caught it starting
+  with five, and practice is unchanged (o3).
+- **`?perks=1`** is read in `main.ts` and passed to `createRun`'s `perks`.
+- **The screen:** the cards stack full width; a play card shows the play
+  drawn small (`playDrawing`, as on the stats screen) and "Pass play" or
+  "Run play"; a perk card its icon and what it does.
+
+### Balance, part 2
+
+`npm run balance:compare 40` on 2026-11-05: main (ad179d1, part 1)
+against `rewards-offer` (032dc4d). The bot takes a player if offered,
+then a play, then a perk (`botPick`), and never skips.
+
+| Scenario    | Series won, part 1 → part 2 | Beat the game / median series | Before rewards (e8d8a52) |
+| ----------- | --------------------------- | ----------------------------- | ------------------------ |
+| normal-pass | 9.2 → 8.5                   | 95% → 93%                     | 8.7, 80%                 |
+| normal-mix  | 7.8 → 7.8                   | 95% → 90%                     | 7.5, 88%                 |
+| normal-run  | 7.3 → 7.0                   | 98% → 90%                     | 7.2, 80%                 |
+| hard-pass   | 10.4 → 9.2                  | median 11 → 10                | 7.7, median 8            |
+| hard-mixed  | 10.8 → 9.2                  | median 10 → 10                | 7.9, median 8            |
+| hard-run    | 9.8 → 10.2                  | median 10 → 11                | 6.2, median 6            |
+
+- **Part 2 takes back about half of what part 1 gave,** but the game
+  stays easier for the bot than before the rewards. How it plays to the
+  user decides (b1).
+- **Growth holds up** with players rare: the busiest player still grows
+  about +45 to +60 an area. In the Forest the running bot's busiest grows
+  +79, since with five plays it hands off to the same two Runners more.
+- **Picks:** by each area the bot has taken about 3 cards, 6 by the third.
+  The main side's pick counts read 0, since it doesn't send `picked`.
+
 ## Parked
 
 In `PLAN.md`, Later: Jack's stats and upgrades (k3); boost cards (k2);
