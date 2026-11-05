@@ -20,7 +20,7 @@ Items marked **▲** are recommendations or details still open to change. Every 
 
 ## The Game in One Breath
 
-Tap PLAY and you're on the field. **Pick one of three play cards** and the ball is snapped: your Blockers shove the pass rush, your Catchers break for open grass, and an **aim line sweeps** back and forth from the QB. **Tap THROW** as it crosses an open receiver and a bullet zips out. Once someone has the ball it charges upfield on its own, and every time a gnome or an owl grabs it, **Break it!**: one well-timed tap shakes them off. See how far you get before they bury you. Four downs to make 10 yards. Make it and it's **TRICK OR TREAT!**: pick one of two new players (a Ghost, a Golem, a Werewolf, a keen Human) and it goes straight into your lineup. Miss on 4th down and the run is over. You start as a team of plain, weak humans against a sleepy defense; by the third area you're a pack of monsters against the whole forest.
+Tap PLAY and you're on the field. **Pick one of three play cards** and the ball is snapped: your Blockers shove the pass rush, your Catchers break for open grass, and an **aim line sweeps** back and forth from the QB. **Tap THROW** as it crosses an open receiver and a bullet zips out. Once someone has the ball it charges upfield on its own, and every time a gnome or an owl grabs it, **Break it!**: one well-timed tap shakes them off. See how far you get before they bury you. Four downs to make 10 yards. Make it and it's **TRICK OR TREAT!**: take one of three cards, a new play, a new player (a Ghost, a Golem, a Werewolf, a keen Human) or a perk, or skip them; and your players get better the more they play. Miss on 4th down and the run is over. You start as a team of plain, weak humans against a sleepy defense; by the third area you're a pack of monsters against the whole forest.
 
 ---
 
@@ -159,7 +159,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **A contested ball** *(fork, from series 5)* | **Tap each dot** as its ring closes | SNAG IT! |
 | **A contested ball** *(fork, from series 5)* | **Tap** anywhere in the box as the ball lands on the hands | The tip drill |
 | **The King's crows land** | **SHOO CROWS!** | Drive them off. |
-| **Between series** | **Tap a card** | Take one of the two new players. |
+| **Between series** | **Tap a card** | Take it: a new play, a new player or a perk. **Skip** takes none. |
 | **Between series** | **Tap a New Player! card** | Take that player (it goes where it helps most). |
 
 **One thumb, portrait, no aiming.** Everything is a tap at the right moment.
@@ -207,7 +207,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 
 ## Building Up: TRICK OR TREAT!
 
-**After every won series: TRICK OR TREAT!** *(Fork, `docs/REWARDS.md`.)* Under the heading it says plainly **"Take one"**, over three cards stacked down the screen, each drawn at random: a **New Play!** (about 3 in 5, drawn small, for your playbook), a **New Player!** (1 in 5) or a **Perk!** (1 in 5: Second Wind, Candy Corn Magnet). Nothing you already have is offered; when the plays and perks run out, every card is a new player. **Skip** takes nothing. Either way **Your team** comes up: the seven on the field down the left, by position, and the bench down the right, each player's bars showing what it has grown since the last TRICK OR TREAT!, a green stretch at the end of the bar and a green +N beside it; then **PLAY ON**. *(In hard mode you arrange the roster here, tapping any two players to swap them; in normal mode that's built but turned off: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got, and **your playbook starts with esrauch's five plays** (Slants, Deep Shot, Curl & Flat, Dive, Sweep) plus your sketches in the game; the rest are won.
+**After every won series: TRICK OR TREAT!** *(Fork, `docs/REWARDS.md`.)* Under the heading it says plainly **"Take one"**, over three cards side by side, swiped across with a dot for each, each drawn at random: a **New Play!** (about 3 in 5, drawn the card's width, for your playbook), a **New Player!** (1 in 5) or a **Perk!** (1 in 5: Second Wind, Candy Corn Magnet). Nothing you already have is offered; when the plays and perks run out, every card is a new player. **Skip** takes nothing. Either way **Your team** comes up: the seven on the field down the left, by position, and the bench down the right, each player's bars showing what it has grown since the last TRICK OR TREAT!, a green stretch at the end of the bar and a green +N beside it; then **PLAY ON**. *(In hard mode you arrange the roster here, tapping any two players to swap them; in normal mode that's built but turned off: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got, and **your playbook starts with esrauch's five plays** (Slants, Deep Shot, Curl & Flat, Dive, Sweep) plus your sketches in the game; the rest are won.
 
 **Your players grow by playing** *(fork, `docs/REWARDS.md`)*: Hands from catches (more for a GREAT on SNAG IT! or the tip drill), Hustle from yards after the catch, long rushes and GREATs on Break it!, Heft from pancakes and from blocks held on downs that gain. Only the seven on the field grow, never past 150, and nothing shows on the field: you see it on Your team.
 
@@ -305,7 +305,7 @@ The smallest version that proves the fun, most of it built:
 - **A down:** three random play cards with Flip and HIKE!, the sweep and THROW, handoffs with the play fake, Break it!.
 - **The third-person camera** behind and above the QB, following the play.
 - **The defense:** Rushers, Covers, Safeties, Scarecrows, Bats and Crows, scaling by series and area.
-- **TRICK OR TREAT!** after each won series: two new players to choose from, the roster and bench.
+- **TRICK OR TREAT!** after each won series: three cards (a new play, a new player or a perk) or Skip, then Your team.
 - **Impact:** hit-pause, shake, flying bodies, the catch slow-mo, sound on every contact.
 
 **Then:** real levels, defenders and Bosses; a second area.

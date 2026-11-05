@@ -359,8 +359,10 @@ Open, for when the first new theme or set is planned:
   Planned by grilling, three rounds and a confirmation, 2026-11-05, on the
   map https://claude.ai/artifact/AUGh5MeCe8ZZJfxSBQdYVT; the design, the
   tests and the order of work are in `docs/REWARDS.md`. Built in two parts,
-  each played before it merges: growth from play (`rewards-growth`), then
-  the offer (`rewards-offer`).
+  each played before it merges: growth from play (`rewards-growth`, merged
+  as PR #38), then the offer (`rewards-offer`, built and playtested
+  2026-11-05, notes p2-p6; reviewed on
+  https://claude.ai/artifact/6Qk66hbs7FoMpEprdTd3cW).
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help

@@ -208,10 +208,12 @@ and the team's total.
   `createRun`'s default and what the game passes with its sketches.
   Event practice keeps the whole pool: an old test caught it starting
   with five, and practice is unchanged (o3).
-- **`?perks=1`** is read in `main.ts` and passed to `createRun`'s `perks`.
-- **The screen:** the cards stack full width; a play card shows the play
-  drawn small (`playDrawing`, as on the stats screen) and "Pass play" or
-  "Run play"; a perk card its icon and what it does.
+- **`?perks=1`** is read in `main.ts` and passed to `createRun`'s
+  `startWithPerks` (named `perks` until review v6).
+- **The screen:** first built as cards stacked full width, a play drawn
+  small; p5, below, made them side by side, swiped. A play card shows the
+  play (`playDrawing`, as on the stats screen) and "Pass play" or "Run
+  play"; a perk card its icon and what it does.
 
 ### Playtest notes, part 2 (map https://claude.ai/artifact/GLb2gi5djSAvcndrBwzfp2)
 
