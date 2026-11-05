@@ -118,3 +118,20 @@ drive. To confirm with a failing test before fixing.
   bounds at or past the line into a first down, so every path follows one
   rule. The catch tests keep their own check, so a catch past the line
   scores without a tackle shown first.
+
+## B7. Names on the field never showed (fixed)
+
+The names under your players before the snap (`docs/REWARDS.md`, notes p6,
+977f812, merged in PR #39) never appeared in play. `ArcadeNames` put its
+layer into the UI root before the Hud was built, and the Hud's constructor
+set `root.innerHTML`, wiping it, so every tag went on a detached element.
+`nameTags` (the pure part) was tested; the layer was never looked at on a
+screen. Found by the user, 2026-11-05: "I'm not seeing them on what we have
+on the tailnet server".
+
+**2026-11-05: fixed** on `names-fix` (ddd1966): the Hud adds its markup with
+`insertAdjacentHTML('beforeend', …)`, keeping what the root already holds.
+Checked in a headless browser against the served build: before the fix
+there was no `.arcade-names` element on the page; after it, the seven names
+show at the first down. Tests run without a DOM, so there's no unit test.
+Seen with it: full names at the line overlap (the risk p6 accepted).
