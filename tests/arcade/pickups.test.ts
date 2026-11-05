@@ -46,21 +46,28 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
     }
   });
 
-  it('lie out of the middle lane, in from the sidelines, and clear of every prop, a Boss included', () => {
+  it('lie anywhere in from the sidelines, the middle included, clear of every prop and each area’s Boss', () => {
+    const bosses = ['misterFrog', 'queen', 'king'] as const;
+    let inTheMiddle = 0;
     for (let seed = 1; seed <= 30; seed++) {
-      const props = areaPropsWithBoss(seed, 0, 'misterFrog');
-      for (const p of pickupsForArea(seed, 0)) {
-        expect(Math.abs(p.x) - tuning.radius).toBeGreaterThanOrEqual(tuning.center - 1e-9);
-        expect(Math.abs(p.x) + tuning.radius).toBeLessThanOrEqual(
-          field.halfWidth - tuning.edge + 1e-9,
-        );
-        for (const prop of props) {
-          expect(dist(v(p.x, p.y), v(prop.x, prop.y))).toBeGreaterThanOrEqual(
-            prop.radius + tuning.radius + tuning.gap - 1e-9,
+      for (const [area, boss] of bosses.entries()) {
+        const props = areaPropsWithBoss(seed, area, boss);
+        for (const p of pickupsForArea(seed, area)) {
+          expect(Math.abs(p.x) + tuning.radius).toBeLessThanOrEqual(
+            field.halfWidth - tuning.edge + 1e-9,
           );
+          for (const prop of props) {
+            expect(
+              dist(v(p.x, p.y), v(prop.x, prop.y)),
+              `seed ${seed}, area ${area}, prop ${prop.id}`,
+            ).toBeGreaterThanOrEqual(prop.radius + tuning.radius + tuning.gap - 1e-9);
+          }
+          // Where the old rule kept them out: the middle lane, 2.2 yards either side.
+          if (Math.abs(p.x) < 2.2) inTheMiddle++;
         }
       }
     }
+    expect(inTheMiddle).toBeGreaterThan(0);
   });
 
   it("a run starts with its first area's pickups on the field; practice has none", () => {
@@ -135,6 +142,18 @@ describe('tricks and treats: taking them', () => {
     expect(ofType(events, 'slipped')).toEqual([{ type: 'slipped', id: 2 }]);
     expect(ofType(events, 'tackled')[0]?.id).toBe(2);
     expect(state.phase).toBe('downOver');
+  });
+
+  it('Jack never takes one: a slick or a bolt where he stands stays put, and he stays on his feet', () => {
+    const s = runner([
+      { id: 8, kind: 'slick', x: 0, y: -4 },
+      { id: 9, kind: 'bolt', x: 0.3, y: -4 },
+    ]);
+    const { state, events } = run(s, 0.5);
+    expect(ofType(events, 'pickupTaken')).toEqual([]);
+    expect(state.field.pickups.map((p) => p.id)).toEqual([8, 9]);
+    expect(body(state, 1).down).toBe(0);
+    expect(state.field.players.find((p) => p.id === 1)?.boltLeft).toBe(0);
   });
 
   it('defenders run over them and leave them be (only offense, for now)', () => {

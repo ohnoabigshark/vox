@@ -367,7 +367,8 @@ function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
 
 /**
  * Tricks and treats (docs/PICKUPS.md): one of your players on its feet who
- * runs through a pickup takes it, and it's gone for good. A bolt speeds it up
+ * runs through a pickup takes it, and it's gone for good (never Jack, who stands
+ * still: a slick under the ball's spot couldn't be dodged). A bolt speeds it up
  * for a while; a slick trips it, and a carrier who slips is tackled there:
  * SLIPPED! Defenders run over them and leave them be (only offense, for now).
  */
@@ -376,7 +377,7 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
   const r = arcadeTuning.pickups.radius;
   let slipped: Player | null = null;
   for (const p of state.field.players) {
-    if (p.down > 0) continue;
+    if (p.down > 0 || p.role === 'qb') continue;
     const pickup = state.field.pickups.find((q) => dist(p.pos, v(q.x, q.y)) <= p.radius + r);
     if (!pickup) continue;
     state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
