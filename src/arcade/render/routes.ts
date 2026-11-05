@@ -14,6 +14,7 @@ import type { Player, RunState, Vec } from '../sim/types';
 import { routeLook } from '../ui/select';
 import { dist, lerp } from '../sim/vec';
 import { toWorld } from './world';
+import { assertNever } from '../../assertNever';
 
 /** Yards between dots. */
 const SPACING = 0.6;
@@ -69,10 +70,23 @@ export class ArcadeRoutes {
     for (const p of players) {
       if (p.job.kind !== 'route') continue;
       const carries = handoff !== undefined && p.slot === playSlot(handoff, state.play.flipped);
-      const look = routeLook(p.slot, selected);
       const usual = carries ? this.carry : p.role === 'runner' ? this.run : this.pass;
-      const material = look === 'dim' ? this.dim(usual) : usual;
-      const big = carries || look === 'bright';
+      const look = routeLook(p.slot, selected);
+      let material: THREE.MeshBasicMaterial;
+      let big: boolean;
+      switch (look) {
+        case 'plain':
+          [material, big] = [usual, carries];
+          break;
+        case 'bright':
+          [material, big] = [usual, true];
+          break;
+        case 'dim':
+          [material, big] = [this.dim(usual), carries];
+          break;
+        default:
+          assertNever(look);
+      }
       const dotGeo = big ? this.bigDotGeo : this.dotGeo;
       if (carries) {
         const ring = new THREE.Mesh(this.ringGeo, material);
