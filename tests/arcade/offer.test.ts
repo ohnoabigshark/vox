@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { PLAY_POOL, startingPlaybook } from '../../src/arcade/content/playPool';
 import { PLAYS } from '../../src/arcade/content/plays';
 import { createRun, dispatch, endDown, nextDown, setUpDown } from '../../src/arcade/sim/run';
-import { rollOffer } from '../../src/arcade/sim/team';
 import type { ArcadeEvent, OfferCard, RunState } from '../../src/arcade/sim/types';
 
 /**
@@ -147,12 +146,24 @@ describe('the offer (t2)', () => {
     expect(createRun(1).perks.secondWind).toBe(false);
   });
 
-  it('10. the same seed and the same picks give the same offers', () => {
+  it('10. the same seed and the same picks give the same offers, later ones too', () => {
+    /** Three TRICK OR TREAT!s, taking the card at `picks[n]` from each; every offer seen. */
+    const offers = (seed: number, picks: readonly number[]): OfferCard[][] => {
+      let s = createRun(seed);
+      const seen: OfferCard[][] = [];
+      for (const i of picks) {
+        s = atDraft(seed, s);
+        seen.push(s.offer);
+        s = dispatch(dispatch(s, { type: 'pick', offer: i }).state, { type: 'skipDraft' }).state;
+      }
+      return seen;
+    };
     for (let seed = 1; seed <= 10; seed++) {
-      const a = atDraft(seed);
-      const b = atDraft(seed);
-      expect(b.offer).toEqual(a.offer);
-      expect(rollOffer(b)).toEqual(a.offer);
+      const a = offers(seed, [0, 1, 2]);
+      expect(a).toHaveLength(3);
+      expect(offers(seed, [0, 1, 2])).toEqual(a);
+      // A different pick changes what's held, and so what comes next, but not the first offer.
+      expect(offers(seed, [1, 1, 2])[0]).toEqual(a[0]);
     }
   });
 });
