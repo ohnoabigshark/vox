@@ -3,7 +3,42 @@
  * field"): each down summed up as it ends, from the sim's events and the
  * states around them, for tools/arcade-balance.ts to report.
  */
-import type { ArcadeEvent, DefenderKind, DownResult, RunState } from '../src/arcade/sim/types';
+import type {
+  ArcadeEvent,
+  BreakKind,
+  DefenderKind,
+  DownResult,
+  RunState,
+} from '../src/arcade/sim/types';
+
+/**
+ * What the counts read from the state a step started from, noted before the
+ * step: the balance tool steps the run in place (`stepInPlace`), so after the
+ * step the state it started from is gone.
+ */
+export interface Before {
+  readonly series: { readonly area: number; readonly stretch: number; readonly los: number };
+  readonly time: number;
+  readonly snappedAt: number;
+  /** The Break it! under way, if any. */
+  readonly tackleKind: BreakKind | null;
+  /** Every defender on the field, so one who tackled and left in the step can still be named. */
+  readonly defenders: readonly { readonly id: number; readonly kind: DefenderKind }[];
+  /** Where each of your players stood (yards upfield). */
+  readonly players: readonly { readonly id: number; readonly y: number }[];
+}
+
+export function noteBefore(state: RunState): Before {
+  const { area, stretch, los } = state.series;
+  return {
+    series: { area, stretch, los },
+    time: state.time,
+    snappedAt: state.snappedAt,
+    tackleKind: state.tackle?.kind ?? null,
+    defenders: state.field.defenders.map(({ id, kind }) => ({ id, kind })),
+    players: state.field.players.map(({ id, pos }) => ({ id, y: pos.y })),
+  };
+}
 
 /** A down gaining this many yards or more is a long play. */
 export const LONG_PLAY = 20;
@@ -27,7 +62,7 @@ export interface DownSummary {
 
 export const isLong = (d: DownSummary): boolean => d.gained >= LONG_PLAY;
 
-/** Sums up each down as it's played: feed it every step's events with the states before and after. */
+/** Sums up each down as it's played: feed it every step's events with what was noted before it and the state after. */
 export class DownWatch {
   readonly downs: DownSummary[] = [];
   private handedOff = false;
@@ -35,13 +70,13 @@ export class DownWatch {
   private stoppedBy: Stop | null = null;
   private clearAt: number | null = null;
 
-  step(before: RunState, after: RunState, events: readonly ArcadeEvent[]): void {
+  step(before: Before, after: RunState, events: readonly ArcadeEvent[]): void {
     // Where the carrier stands after this step, before a down that ends in it is summed up and forgotten.
     this.clearAt ??= clearOf(after);
     for (const e of events) this.event(before, after, e);
   }
 
-  private event(before: RunState, after: RunState, e: ArcadeEvent): void {
+  private event(before: Before, after: RunState, e: ArcadeEvent): void {
     switch (e.type) {
       case 'handoff':
         this.handedOff = true;
@@ -50,7 +85,7 @@ export class DownWatch {
         this.thrown = true;
         return;
       case 'tackled': {
-        const by = [...before.field.defenders, ...after.field.defenders].find((d) => d.id === e.by);
+        const by = [...before.defenders, ...after.field.defenders].find((d) => d.id === e.by);
         this.stoppedBy = by?.kind ?? null;
         return;
       }
@@ -117,9 +152,9 @@ export class PickWatch {
   private taken = 0;
   private reached = -1;
 
-  /** `state` is the state the step started from (its series is the one being drafted for or snapped). */
-  step(state: RunState, events: readonly ArcadeEvent[]): void {
-    const { area } = state.series;
+  /** `before` is noted from the state the step started from (its series is the one being drafted for or snapped). */
+  step(before: Before, events: readonly ArcadeEvent[]): void {
+    const { area } = before.series;
     for (const e of events) {
       if (e.type === 'perk') this.taken++;
       if (e.type === 'snapped' && area > this.reached) {

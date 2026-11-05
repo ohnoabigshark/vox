@@ -168,7 +168,12 @@ async function compare(): Promise<number> {
       const report = readFileSync(join(job.out, job.s.file), 'utf8').split('\n');
       console.error(`\n${job.side} ${job.s.file} failed:\n${report.slice(-15).join('\n')}`);
     }
-    console.error(base ? '' : `\nMain's results weren't kept; the next run tries again.`);
+    if (!base) console.error(`\nMain's results weren't kept; the next run tries again.`);
+    if (failed.some((j) => j.side === 'main')) {
+      console.error(
+        `Main runs with this checkout's balance tool: if it needs sim code main doesn't have yet, compare by hand with npm run balance:arcade.`,
+      );
+    }
     return 1;
   }
   base ??= keepBaseline(store, key, partial);

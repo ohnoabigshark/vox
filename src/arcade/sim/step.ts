@@ -66,8 +66,22 @@ export function forceBreakKind(kind: BreakKind | undefined): void {
   forcedBreak = kind;
 }
 
+/**
+ * One step of the sim, 1/60 of a second. Pure: it works on a copy, so the
+ * game (the HUD, the recorder, the play log) can compare the state before
+ * with the state after.
+ */
 export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
-  const state = cloneRun(prev);
+  return stepInPlace(cloneRun(prev), input);
+}
+
+/**
+ * The same step, changing the state it's handed and handing it back. For the
+ * balance tool, which steps whole runs and would otherwise spend most of its
+ * time copying (docs/PLAN.md, "Faster balance runs"); anything that needs the
+ * state before the step notes it first.
+ */
+export function stepInPlace(state: RunState, input: StepInput = {}): ArcadeResult {
   const events: ArcadeEvent[] = [];
   state.step += 1;
   state.time = state.step * DT;

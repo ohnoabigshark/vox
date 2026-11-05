@@ -39,7 +39,7 @@ import { breakMarker, jukeShowing } from '../src/arcade/sim/breakit';
 import { arcadeTuning, DT } from '../src/arcade/content/tuning';
 import { dotOpen } from '../src/arcade/sim/snag';
 import { tipLanding } from '../src/arcade/sim/tip';
-import { canThrow, step } from '../src/arcade/sim/step';
+import { canThrow, stepInPlace } from '../src/arcade/sim/step';
 import type {
   ArcadeEvent,
   DownResult,
@@ -59,12 +59,15 @@ import {
   PickWatch,
   byStretch,
   isLong,
+  noteBefore,
   quantile,
   seriesSpread,
   stops,
+  type Before,
   type DownSummary,
 } from './balanceCount';
 import type { Rng } from '../src/sim/rng';
+import { predictsCatch, wantedDepth } from './balanceLookahead';
 
 const RUNS = Number(process.argv[2]) || 200;
 
@@ -236,30 +239,6 @@ function readsOpen(state: RunState, left: number): boolean {
   );
 }
 
-/** The depth it wants a catch at: the first-down line early in the pocket, the line of scrimmage at the end. */
-function wantedDepth(state: RunState, left: number): number {
-  const { los, firstDown } = state.series;
-  return los + (firstDown - los) * Math.min(1, left / 0.6);
-}
-
-/** Throw now (in a copy) and follow the ball: is it caught, at or past the depth it wants? */
-function predictsCatch(state: RunState, left: number): boolean {
-  let s = structuredClone(state);
-  for (let i = 0; i < 120; i++) {
-    const r = step(s, i === 0 ? { throw: true } : {});
-    s = r.state;
-    for (const e of r.events) {
-      if (e.type === 'caught' || e.type === 'snagStarted' || e.type === 'tipStarted') {
-        const id = e.type === 'caught' ? e.id : e.receiver;
-        const by = s.field.players.find((p) => p.id === id);
-        return (by?.pos.y ?? -Infinity) >= wantedDepth(state, left);
-      }
-      if (e.type === 'batted' || e.type === 'incomplete' || e.type === 'downEnded') return false;
-    }
-  }
-  return false;
-}
-
 function botInput(state: RunState, rng: Rng, plan: Plan): StepInput {
   if (state.phase === 'snag' && state.snag) {
     const t = state.snag;
@@ -338,10 +317,11 @@ function botInput(state: RunState, rng: Rng, plan: Plan): StepInput {
   return {};
 }
 
+/** Tallies a step's events; `before` is noted from the state the step started from. */
 function count(
   t: Tally,
   events: readonly ArcadeEvent[],
-  state: RunState,
+  before: Before,
   ran: { now: boolean; grabbed: boolean },
 ): void {
   for (const e of events) {
@@ -357,10 +337,10 @@ function count(
         t.grabs++;
         if (ran.now && !ran.grabbed) {
           ran.grabbed = true;
-          const c = state.field.players.find((p) => p.id === e.id);
-          if (c) t.runGrabs.push(c.pos.y - state.series.los);
+          const c = before.players.find((p) => p.id === e.id);
+          if (c) t.runGrabs.push(c.y - before.series.los);
           for (const id of e.by) {
-            const d = state.field.defenders.find((x) => x.id === id);
+            const d = before.defenders.find((x) => x.id === id);
             bump(t.runGrabbers, d?.kind ?? '?');
           }
         }
@@ -376,12 +356,12 @@ function count(
         t.pancakes++;
         break;
       case 'batted': {
-        const by = state.field.defenders.find((d) => d.id === e.by);
+        const by = before.defenders.find((d) => d.id === e.by);
         bump(t.battedBy, `${by ? by.kind : '?'}${e.contested ? ' (contested)' : ''}`);
         break;
       }
       case 'breakResult':
-        bump(t.breakResults, `${state.tackle?.kind ?? '?'} ${e.outcome}`);
+        bump(t.breakResults, `${before.tackleKind ?? '?'} ${e.outcome}`);
         break;
       case 'snagResult':
         bump(t.snagResults, e.grade);
@@ -395,7 +375,7 @@ function count(
       case 'downEnded':
         t.downs++;
         t.yards += e.gained;
-        t.downTime += state.time - state.snappedAt;
+        t.downTime += before.time - before.snappedAt;
         bump(t.results, e.result);
         {
           const kind = ran.now ? t.run : t.pass;
@@ -422,7 +402,7 @@ function draftPick(state: RunState, rng: Rng, scenario: Scenario, picks: PickWat
     return dispatch(state, { type: 'skipDraft' }).state;
   }
   const r = dispatch(state, { type: 'pick', offer: rng.int(0, state.offer.length - 1) });
-  picks.step(state, r.events);
+  picks.step(noteBefore(state), r.events);
   return r.state.phase === 'draft' ? dispatch(r.state, { type: 'skipDraft' }).state : r.state;
 }
 
@@ -478,21 +458,23 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
             : (rng.pick([...runs, ...passes])?.i ?? 0);
       const called = dispatch(state, { type: 'call', hand }).state;
       const hiked = dispatch(called, { type: 'hike' });
-      count(t, hiked.events, state, ran);
-      t.watch.step(state, hiked.state, hiked.events);
-      t.picks.step(state, hiked.events);
+      const before = noteBefore(state);
+      count(t, hiked.events, before, ran);
+      t.watch.step(before, hiked.state, hiked.events);
+      t.picks.step(before, hiked.events);
       t.bolts.step(hiked.events);
       state = hiked.state;
       continue;
     }
-    const r = step(state, botInput(state, rng, plan));
+    // Stepped in place, so what the counts read from before the step is noted first.
+    const before = noteBefore(state);
+    const r = stepInPlace(state, botInput(state, rng, plan));
     if (r.events.some((e) => e.type === 'downEnded')) bump(t.attempts, key);
     if (r.events.some((e) => e.type === 'seriesWon')) bump(t.wins, key);
-    count(t, r.events, state, ran);
-    t.watch.step(state, r.state, r.events);
-    t.picks.step(state, r.events);
+    count(t, r.events, before, ran);
+    t.watch.step(before, r.state, r.events);
+    t.picks.step(before, r.events);
     t.bolts.step(r.events);
-    state = r.state;
   }
   t.picks.endRun();
   t.runs++;

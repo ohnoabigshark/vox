@@ -428,6 +428,11 @@ Open, for when the first new theme or set is planned:
      first: the same seeded run, state and events, either way; `step()`
      leaves its input alone; the lookahead leaves the real run alone; the
      same report. About 3× faster, by the profile; measured before and after.
+     _Built 2026-11-05 on `balance-speed`. Measured on the same three runs
+     (normal mode, passing bot): 72.4 s before, 23.7 s after, 3.1×; all six
+     scenarios, 3 runs each: 1 min 50 s before, 42 s after, with every
+     report the same line for line. The lookahead is
+     `tools/balanceLookahead.ts`._
 - **Play-call levers: no flip, a random play, hidden routes.** Three
   ways to make a down harder before the snap, each likely set by a
   stretch or a Boss rather than for the whole run, and each also a toggle
