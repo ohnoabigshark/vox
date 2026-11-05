@@ -5,13 +5,14 @@
  * show before the snap. Anywhere in from the sidelines, the middle included,
  * but never on a prop, or on the Boss who stands just past an area's goal line.
  */
+import { areaAt } from '../content/defense';
 import { arcadeTuning } from '../content/tuning';
 import {
   AREA_YARDS,
-  BOSSES,
   BOSS_SPOT,
   SERIES_PER_AREA,
   areaStretches,
+  bossProp,
   stretchProps,
 } from './props';
 import { rngFor } from './random';
@@ -22,14 +23,15 @@ const { pickups: tuning, field, series: seriesTuning } = arcadeTuning;
 
 const KINDS: readonly PickupKind[] = ['bolt', 'slick'];
 
-/** Where any area's Boss stands, in the yards of the stretch past its goal line, as big as the biggest. */
-const BOSS_IN_STRETCH: FieldProp = {
-  ...BOSSES.misterFrog,
-  id: -1,
-  x: BOSS_SPOT.x,
-  y: BOSS_SPOT.y - AREA_YARDS,
-  radius: Math.max(...Object.values(BOSSES).map((b) => b.radius)),
-};
+/**
+ * The Boss standing in stretch `n`, in its own yards, if any: an area's first
+ * stretch lies just past the last area's goal line, where that area's Boss stands.
+ */
+function bossIn(n: number): FieldProp | null {
+  if (n <= 0 || n % SERIES_PER_AREA !== 0) return null;
+  const boss = areaAt(n / SERIES_PER_AREA - 1).boss.boss;
+  return boss ? bossProp(boss, v(BOSS_SPOT.x, BOSS_SPOT.y - AREA_YARDS)) : null;
+}
 
 /** The pickups of an area's whole field, in its own yards, on the same stretches as its props. */
 export function pickupsForArea(seed: number, area: number): Pickup[] {
@@ -40,7 +42,7 @@ export function pickupsForArea(seed: number, area: number): Pickup[] {
 
 /**
  * One stretch's bolt and slick (y from 0 to 10 within it), clear of its own
- * props and its neighbours', so it lies in the same place whichever area's field is
+ * props and Boss and its neighbours', so it lies in the same place whichever area's field is
  * showing it. Ids are unique in the run.
  */
 function stretchPickups(seed: number, k: number): Pickup[] {
@@ -49,9 +51,9 @@ function stretchPickups(seed: number, k: number): Pickup[] {
     if (n < 0) continue;
     const shift = (n - k) * seriesTuning.distance;
     props.push(...stretchProps(seed, n).map((p) => ({ ...p, y: p.y + shift })));
+    const boss = bossIn(n);
+    if (boss) props.push({ ...boss, y: boss.y + shift });
   }
-  // An area's first stretch lies just past the last area's goal line, where that area's Boss stands.
-  if (k > 0 && k % SERIES_PER_AREA === 0) props.push(BOSS_IN_STRETCH);
   const rng = rngFor(seed, 'pickups', k);
   const outer = field.halfWidth - tuning.edge - tuning.radius;
   const out: Pickup[] = [];

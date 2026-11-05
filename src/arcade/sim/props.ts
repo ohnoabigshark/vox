@@ -74,12 +74,16 @@ export function areaPropsWithBoss(
   const props = propsForArea(seed, area);
   if (!boss) return props;
   const kind = BOSSES[boss];
-  const { x, y } = BOSS_SPOT;
   // Make room: no other prop where the Boss stands.
   const clear = props.filter(
     (p) => dist(v(p.x, p.y), BOSS_SPOT) > p.radius + kind.radius + tuning.gap,
   );
-  return [...clear, { id: -1, x, y, ...kind }];
+  return [...clear, bossProp(boss, BOSS_SPOT)];
+}
+
+/** A Boss as a prop, standing at `at`. */
+export function bossProp(boss: BossName, at: Vec): FieldProp {
+  return { id: -1, x: at.x, y: at.y, ...BOSSES[boss] };
 }
 
 /** One 10-yard stretch's props (y from 0 to 10 within it), the same every time for this seed. */

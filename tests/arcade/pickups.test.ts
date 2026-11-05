@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
+import { areaAt } from '../../src/arcade/content/defense';
 import { pickupsForArea } from '../../src/arcade/sim/pickups';
 import { areaPropsWithBoss } from '../../src/arcade/sim/props';
 import { createRun, dispatch, endDown, nextDown, setUpSeries } from '../../src/arcade/sim/run';
@@ -47,11 +48,11 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
   });
 
   it('lie anywhere in from the sidelines, the middle included, clear of every prop and each area’s Boss', () => {
-    const bosses = ['misterFrog', 'queen', 'king'] as const;
     let inTheMiddle = 0;
-    for (let seed = 1; seed <= 30; seed++) {
-      for (const [area, boss] of bosses.entries()) {
-        const props = areaPropsWithBoss(seed, area, boss);
+    // Enough seeds to put a pickup by the goal line, near the Boss beyond it, more than once.
+    for (let seed = 1; seed <= 300; seed++) {
+      for (const area of [0, 1, 2]) {
+        const props = areaPropsWithBoss(seed, area, areaAt(area).boss.boss);
         for (const p of pickupsForArea(seed, area)) {
           expect(Math.abs(p.x) + tuning.radius).toBeLessThanOrEqual(
             field.halfWidth - tuning.edge + 1e-9,

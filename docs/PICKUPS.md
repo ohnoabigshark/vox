@@ -29,11 +29,15 @@ pickups, more kinds and placing them in the editor are later rounds
   map said "for the rest of the drive"; a pickup used up ahead would otherwise
   reappear when that series starts). The rest stay put.
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
-  your team takes them, the carrier included, but never Jack (since
-  2026-11-05): he stands still where the ball is spotted, so a slick under
-  him couldn't be dodged, and a bolt would do nothing. Defenders run over
-  them and leave them be. A player lined up on a pickup (it showed before
-  the snap) takes it the moment the play starts, a Blocker included.
+  your team takes them, the carrier included, but never Jack: he stands
+  still where the ball is spotted, so a slick under him couldn't be dodged,
+  and a bolt would do nothing. (Added by Claude with the midfield,
+  2026-11-05, for the user to confirm.) Defenders run over them and leave
+  them be. A player lined up on a pickup (it showed before the snap) takes
+  it the moment the play starts. Since the midfield that includes a
+  Blocker beside the ball, who goes down at the snap, and a handoff's
+  Runner, tackled there before the play starts (SLIPPED!). Flip moves the
+  Runner, not the Blockers.
 - **One of each, nearly always:** each kind gets 40 tries to find a clear
   spot in its stretch; if every try lands on a prop, that kind is left out
   of that stretch. In 12,000 stretches tried (1,000 seeds) none was, again
@@ -85,6 +89,11 @@ never aims for or away from pickups (k7):
 Within the noise of 40 runs (the win rate is 14 runs against 12): bolts add
 a little to passes, slicks take a little away. The bot calls handoffs only
 when it has no pass card, 9 a scenario, too few to read.
+
+Opening the middle (2026-11-05) went in without a balance run, at the
+user's word. A probe of 500 seeds, three areas, a snap from every yard:
+7% of snaps then have a slick under a Blocker beside the ball, and 13%
+under a Blocker or a Runner lined up a yard off the middle.
 
 ## On screen
 
