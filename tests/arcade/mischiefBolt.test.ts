@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
-import { createRun } from '../../src/arcade/sim/run';
+import { createRun, dispatch } from '../../src/arcade/sim/run';
 import { step } from '../../src/arcade/sim/step';
 import type { Defender, Pickup, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
@@ -85,6 +85,26 @@ describe('the mischief bolt', () => {
     for (let i = 0; i < 300; i++) s = step(s).state;
     expect(s.field.pickups).toEqual(laid);
     expect(s.field.defenders.every((d) => d.boltLeft === 0)).toBe(true);
+  });
+
+  it('2b: after the snap, a Bat whose loop crosses a bolt takes it', () => {
+    let s = createRun(3);
+    const bat = s.field.defenders.find((d) => d.kind === 'bat' && d.beat);
+    if (!bat?.beat) throw new Error('test needs a Bat in the opening line-up');
+    s = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
+    // A bolt on the corner it's flying to next.
+    const corner = bat.beat[bat.beatIndex % bat.beat.length];
+    if (!corner) throw new Error('no corner');
+    s.field.pickups = [{ id: 99, kind: 'bolt', x: corner.x, y: corner.y }];
+    const taken = [];
+    for (let i = 0; i < 400 && s.phase === 'play'; i++) {
+      const r = step(s);
+      taken.push(...ofType(r.events, 'pickupTaken'));
+      s = r.state;
+    }
+    expect(taken).toEqual([
+      { type: 'pickupTaken', id: bat.id, side: 'defense', kind: 'bolt', pickup: 99 },
+    ]);
   });
 
   it('3: a planted Scarecrow, a defender hanging onto the carrier and one lying down leave a bolt be', () => {

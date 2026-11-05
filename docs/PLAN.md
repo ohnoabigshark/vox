@@ -85,8 +85,9 @@ Open, for when the first new theme or set is planned:
     play for good. Built on the `sketches-in-game` branch.
 - **Tricks and treats**, the first slice: a lightning bolt and an oil slick
   on every 10-yard stretch, taken by running through them. Round 7, decided
-  2026-10-30 (k1–k9); the design is `docs/PICKUPS.md`. Only your team takes
-  them for now (_user's note on k3 and k4: "Only offense for now"_). Built on
+  2026-10-30 (k1–k9); the design is `docs/PICKUPS.md`. Only your team took
+  them at first (_user's note on k3 and k4: "Only offense for now"_); since
+  the mischief bolt (`difficulty-4`) a defender takes a bolt too. Built on
   the `pickups` branch.
 - **Harder, not busier** (hard mode): one extra defender a zone, at most 12,
   with stats growing faster and Break it! tightening past zone 3. Round 9,
@@ -393,8 +394,8 @@ Open, for when the first new theme or set is planned:
   the lightning bolt becomes mischief, taken by whoever runs through it
   first once the ball is snapped, yours or a defender. _User, 2026-11-04:
   "we turn the lightning bolt power ups to be 'mischief' class where either
-  side can take them, but only once the snap starts."_ Only your side takes
-  pickups today (`docs/PICKUPS.md` k4).
+  side can take them, but only once the snap starts."_ Built on
+  `difficulty-4` (`docs/PICKUPS.md`, "The mischief bolt").
 - **Play-call levers: no flip, a random play, hidden routes.** Three
   ways to make a down harder before the snap, each likely set by a
   stretch or a Boss rather than for the whole run, and each also a toggle
@@ -684,7 +685,8 @@ Open, for when the first new theme or set is planned:
   2026-10-28._
   - **Pickups can move** across the field the way players do, so taking one
     is a matter of timing as well as of route. _User, 2026-10-28._
-  - The first slice is planned (round 7, above). Still open: defenders
-    taking them (the user: "only offense for now"); more kinds; moving
+  - The first slice is planned (round 7, above). Defenders take bolts since
+    the mischief bolt (2026-11-05). Still open: defenders taking other
+    kinds; more kinds; moving
     pickups and whether a path is drawn before the snap; placing them in the
     editor; pickups in practice.

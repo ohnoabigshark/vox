@@ -24,16 +24,17 @@ pickups, more kinds and placing them in the editor are later rounds
   every stretch is laid out from its first series. They
   show before the snap, so you can call a play, or Flip it, to run through a
   bolt and clear of a slick.
-- **Taken** (k3): the first of your players to run through a pickup takes it,
-  and it's gone: it doesn't come back at the next down or the next series (the
+- **Taken** (k3): the first body allowed to take it (k4) that runs through a
+  pickup takes it, and it's gone for everyone: it doesn't come back at the next down or the next series (the
   map said "for the rest of the drive"; a pickup used up ahead would otherwise
   reappear when that series starts). The rest stay put.
-- **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
-  your team takes them, the carrier included, but never Jack: he stands
+- **Who** (k4, the user's note on k3 and k4: "Only offense for now"; since
+  2026-11-05 the bolt is mischief, below): your team takes them, the carrier
+  included, but never Jack: he stands
   still where the ball is spotted, so a slick under him couldn't be dodged,
   and a bolt would do nothing. (Added by Claude with the midfield and
   confirmed by the user, 2026-11-05.) Defenders run over slicks and leave
-  them be; bolts are mischief since 2026-11-05 (below). A player lined up on a pickup (it showed before the snap) takes
+  them be, but take bolts (the mischief bolt, below). A player lined up on a pickup (it showed before the snap) takes
   it the moment the play starts. Since the midfield that includes a
   Blocker beside the ball, who goes down at the snap, and a handoff's
   Runner, tackled there before the play starts (SLIPPED!). Flip moves the

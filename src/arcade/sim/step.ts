@@ -41,6 +41,7 @@ import type {
   Body,
   BreakKind,
   Grade,
+  Pickup,
   Player,
   RunState,
   StepInput,
@@ -382,15 +383,7 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     if (p.down > 0 || p.role === 'qb') continue;
     const pickup = state.field.pickups.find((q) => dist(p.pos, v(q.x, q.y)) <= p.radius + r);
     if (!pickup) continue;
-    state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
-    state.taken.push(pickup.id);
-    events.push({
-      type: 'pickupTaken',
-      id: p.id,
-      side: 'team',
-      kind: pickup.kind,
-      pickup: pickup.id,
-    });
+    take(state, p, pickup, events);
     switch (pickup.kind) {
       case 'bolt':
         p.boltLeft = arcadeTuning.pickups.bolt.time;
@@ -410,21 +403,26 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
       (q) => q.kind === 'bolt' && dist(d.pos, v(q.x, q.y)) <= d.radius + r,
     );
     if (!pickup) continue;
-    state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
-    state.taken.push(pickup.id);
-    events.push({
-      type: 'pickupTaken',
-      id: d.id,
-      side: 'defense',
-      kind: 'bolt',
-      pickup: pickup.id,
-    });
+    take(state, d, pickup, events);
     d.boltLeft = arcadeTuning.pickups.bolt.time;
   }
   if (!slipped) return false;
   events.push({ type: 'slipped', id: slipped.id });
   tackle(state, slipped, -1, events);
   return true;
+}
+
+/** A pickup is taken: gone for good, for everyone (k3), and said so. */
+function take(state: RunState, by: Body, pickup: Pickup, events: ArcadeEvent[]): void {
+  state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
+  state.taken.push(pickup.id);
+  events.push({
+    type: 'pickupTaken',
+    id: by.id,
+    side: by.side,
+    kind: pickup.kind,
+    pickup: pickup.id,
+  });
 }
 
 /** A carrier dragging tacklers goes down once it reaches the end of the drag. */

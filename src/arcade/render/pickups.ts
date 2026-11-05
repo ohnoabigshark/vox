@@ -94,7 +94,8 @@ export class ArcadePickups {
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
-    for (let i = 0; i < SPARKS * 3; i++) {
+    // Enough for eight bodies on a bolt at once, either side (the mischief bolt).
+    for (let i = 0; i < SPARKS * 8; i++) {
       const m = new THREE.Mesh(box, spark);
       m.scale.setScalar(1.8);
       m.visible = false;

@@ -89,7 +89,7 @@ Three events gain fields, and each player an id:
   yards after contact (none if never grabbed), and whether it was a tackle
   for loss
 - along the way: tackles broken, drags, pancakes and by whom, field events,
-  pickups taken, crows
+  pickups taken (yours only: a defender's bolt isn't counted), crows
 - its tap tests
 
 **A tap test's result** (p2): the test, the player, the grade, and each tap's
@@ -138,7 +138,7 @@ among plays called at least 3 times, a tie going to the one called more
 - blocking: pancakes
 - tap tests: how many of each grade, for each test
 - plays: the most used and the most successful
-- the rest: pickups taken, field events that went off, crows shooed
+- the rest: pickups taken (yours), field events that went off, crows shooed
 
 ## Keeping it
 
