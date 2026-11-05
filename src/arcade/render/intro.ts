@@ -14,6 +14,7 @@
 import * as THREE from 'three';
 import { getGeometry, voxelMaterial } from '../../voxel/models';
 import { Embers } from './embers';
+import { toScreen } from './world';
 import './intro.css';
 
 /** Where it's staged (world): on the turf behind the start of the field. */
@@ -186,12 +187,9 @@ export class ArcadeIntro {
   ): void {
     el.classList.toggle('show', show);
     if (!show) return;
-    const p = at
-      .clone()
-      .setY(at.y + above)
-      .project(camera);
-    el.style.left = `${((p.x + 1) / 2) * canvas.clientWidth}px`;
-    el.style.top = `${((1 - p.y) / 2) * canvas.clientHeight}px`;
+    const p = toScreen(at.clone().setY(at.y + above), camera, canvas);
+    el.style.left = `${p.x}px`;
+    el.style.top = `${p.y}px`;
   }
 
   /**

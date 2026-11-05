@@ -44,7 +44,7 @@ import { fieldPoints, keptSelection, slotAt, tapSelect } from './ui/select';
 import { loadSettings, saveSettings } from '../settings';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
-import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toWorld } from './render/world';
+import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toScreen, toWorld } from './render/world';
 import { carrierOf, qbOf } from './sim/ai';
 import {
   SERIES_KINDS,
@@ -906,11 +906,10 @@ export class ArcadeGame {
     if (!this.beforeSnap()) return;
     const canvas = this.view.canvas;
     const rect = canvas.getBoundingClientRect();
-    const points = fieldPoints(this.state, (pos) => {
-      // A body's middle, a little above its feet.
-      const p = toWorld(pos, this.origin, BODY_MIDDLE).project(this.view.camera);
-      return { x: ((p.x + 1) / 2) * rect.width, y: ((1 - p.y) / 2) * rect.height };
-    });
+    // Each body's middle, a little above its feet.
+    const points = fieldPoints(this.state, (pos) =>
+      toScreen(toWorld(pos, this.origin, BODY_MIDDLE), this.view.camera, canvas),
+    );
     const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     this.selected = tapSelect(this.selected, hit);
     this.syncHud();

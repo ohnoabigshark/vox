@@ -15,6 +15,20 @@ export function toWorld(p: Vec, origin: number, height = 0): THREE.Vector3 {
   return new THREE.Vector3(p.x, height, -(origin + p.y));
 }
 
+/**
+ * Where a point in the world shows on the canvas, in CSS pixels from its top
+ * left. The names, the intro's bubbles and a tap on the field all measure by
+ * this, so a tap lands where a name is drawn (review x9).
+ */
+export function toScreen(
+  at: THREE.Vector3,
+  camera: THREE.Camera,
+  canvas: Pick<HTMLCanvasElement, 'clientWidth' | 'clientHeight'>,
+): { x: number; y: number } {
+  const p = at.clone().project(camera);
+  return { x: ((p.x + 1) / 2) * canvas.clientWidth, y: ((1 - p.y) / 2) * canvas.clientHeight };
+}
+
 /** The biome at a yard of the long field (from the run's start): each area takes its four series' worth. */
 export function biomeAtYard(yard: number): Biome {
   return areaAt(Math.floor(Math.max(0, yard) / AREA_YARDS)).biome;
