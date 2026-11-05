@@ -366,7 +366,11 @@ export interface RosterPlayer {
 /** How rare a perk is: how often it turns up. */
 export type Rarity = 'common' | 'rare' | 'epic';
 
-/** A TRICK OR TREAT! perk (GAMEPLAY.md, Building Up). */
+/**
+ * A perk (CONTEXT.md): a TRICK OR TREAT! card that changes how your team
+ * plays for the rest of the run. esrauch's pool; Second Wind and Candy Corn
+ * Magnet are offered (docs/REWARDS.md, k6), the rest are parked.
+ */
 export type Perk = { readonly rarity: Rarity } & (
   | { readonly kind: 'allStat'; readonly stat: keyof Stats; readonly amount: number }
   | {
@@ -380,8 +384,13 @@ export type Perk = { readonly rarity: Rarity } & (
   | { readonly kind: 'secondWind' }
   | { readonly kind: 'magnet' }
   | { readonly kind: 'hotArm' }
-  | { readonly kind: 'recruit'; readonly player: RosterPlayer }
 );
+
+/** An offer card (CONTEXT.md): one TRICK OR TREAT! card, a new play, a new player or a perk. */
+export type OfferCard =
+  | { readonly kind: 'play'; readonly play: Play }
+  | { readonly kind: 'player'; readonly player: RosterPlayer }
+  | { readonly kind: 'perk'; readonly perk: Perk };
 
 /** Everything the perks taken so far add up to. */
 export interface Perks {
@@ -436,10 +445,11 @@ export interface RunState {
   phase: Phase;
   series: Series;
   /**
-   * The plays this run can deal (CONTEXT.md, playbook). The play pool unless the
-   * run was started with its own; plays as rewards will grow it.
+   * The plays this run can deal (CONTEXT.md, playbook): esrauch's five and
+   * your sketches (`startingPlaybook`) unless the run was started with its
+   * own; a play card taken at TRICK OR TREAT! adds to it (docs/REWARDS.md, o1).
    */
-  readonly playbook: readonly Play[];
+  playbook: readonly Play[];
   /**
    * Practice (the play editor's Try it, docs/PLAY_EDITOR.md): the playbook is
    * one sketch, called at every setup, and every rep lines up the same spot.
@@ -481,8 +491,8 @@ export interface RunState {
   tally: DownTally;
   /** …and what each player has gained since the last TRICK OR TREAT!, by its id (Your team shows it). */
   gains: Record<number, Stats>;
-  /** TRICK OR TREAT!: the three perks on offer… */
-  offer: Perk[];
+  /** TRICK OR TREAT!: the cards on offer (none once one is taken: Your team)… */
+  offer: OfferCard[];
   field: Field;
   /** When this down was snapped (sim time). */
   snappedAt: number;
@@ -519,7 +529,7 @@ export type Action =
   /** HIKE: start the called play. */
   | { readonly type: 'hike' }
   | { readonly type: 'skipDraft' }
-  /** TRICK OR TREAT!: take one of the perks on offer. */
+  /** TRICK OR TREAT!: take the offer card at this index (a new play, a new player or a perk). */
   | { readonly type: 'pick'; readonly offer: number }
   /** Swap two players' spots, field or bench (between series). Spots: 0-6 are the field slots, 7 up the bench seats. */
   | { readonly type: 'swap'; readonly a: number; readonly b: number };
@@ -586,7 +596,10 @@ export type ArcadeEvent =
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
   | { readonly type: 'seriesWon'; readonly stretch: number }
-  | { readonly type: 'perk'; readonly perk: Perk }
+  /** Candy Corn Magnet (a perk) caught a ball that would have fallen incomplete: this player has it. */
+  | { readonly type: 'magnet'; readonly id: number }
+  /** A TRICK OR TREAT! card was taken. */
+  | { readonly type: 'picked'; readonly card: OfferCard }
   | {
       readonly type: 'joined';
       readonly id: number;

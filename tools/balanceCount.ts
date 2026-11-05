@@ -8,9 +8,11 @@ import type {
   BreakKind,
   DefenderKind,
   DownResult,
+  OfferCard,
   RunState,
   Series,
 } from '../src/arcade/sim/types';
+import type { Rng } from '../src/sim/rng';
 
 /**
  * What the counts read from the state a step started from, noted before the
@@ -158,7 +160,7 @@ export class PickWatch {
   step(before: NotedBefore, events: readonly ArcadeEvent[]): void {
     const { area } = before.series;
     for (const e of events) {
-      if (e.type === 'perk') this.taken++;
+      if (e.type === 'picked') this.taken++;
       if (e.type === 'snapped' && area > this.reached) {
         this.reached = area;
         this.onEntering.set(area, [...(this.onEntering.get(area) ?? []), this.taken]);
@@ -250,4 +252,19 @@ export function seriesSpread(perRun: readonly number[]): {
 /** The value a share `q` of the way up numbers sorted low to high (0 when there are none). */
 export function quantile(sorted: readonly number[], q: number): number {
   return sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+}
+
+/** The bot's order of choice at TRICK OR TREAT! (docs/REWARDS.md, b2). */
+const BOT_CHOICE: readonly OfferCard['kind'][] = ['player', 'play', 'perk'];
+
+/**
+ * Which card the bot takes, by index: a new player if one is offered (at
+ * random among them), then a play, then a perk. It never skips.
+ */
+export function botPick(offer: readonly OfferCard[], rng: Rng): number {
+  for (const kind of BOT_CHOICE) {
+    const of = offer.flatMap((c, i) => (c.kind === kind ? [i] : []));
+    if (of.length > 0) return rng.pick(of);
+  }
+  return 0;
 }

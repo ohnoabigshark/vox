@@ -1,0 +1,19 @@
+/* Names on the field (docs/REWARDS.md, notes p6): small dark tags under your players' feet. */
+.arcade-names {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.arcade-name {
+  position: absolute;
+  translate: -50% 0;
+  padding: 1px 4px;
+  white-space: nowrap;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--bone);
+  background: rgb(20 14 36 / 0.78);
+}

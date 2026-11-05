@@ -1,3 +1,4 @@
+import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { describe, expect, it } from 'vitest';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import type { Play } from '../../src/arcade/content/plays';
@@ -114,7 +115,7 @@ describe('the long field, part 2', () => {
     ]);
     expect(ofType(events, 'seriesWon')).toHaveLength(1);
     expect(r.state.phase).toBe('draft');
-    expect(r.state.offer).toHaveLength(2);
+    expect(r.state.offer).toHaveLength(arcadeTuning.offer.cards);
     expect(r.state.series).toMatchObject({ start: 17, firstDown: 27 });
   });
 
@@ -140,7 +141,7 @@ describe('the long field, part 2', () => {
     expect(ofType(events, 'areaCleared')).toEqual([{ type: 'areaCleared', area: 0 }]);
     expect(ofType(events, 'seriesWon')).toHaveLength(1);
     expect(r.state.phase).toBe('draft');
-    expect(r.state.offer).toHaveLength(2);
+    expect(r.state.offer).toHaveLength(arcadeTuning.offer.cards);
     expect(r.state.series).toMatchObject({ area: 1, start: 0, los: 0, stretch: 0 });
 
     // On the Farm in normal mode, it's the win.

@@ -1,3 +1,4 @@
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { pocketTime, sweepSpeed } from '../../src/arcade/sim/ball';
@@ -6,7 +7,13 @@ import { forceBreakKind } from '../../src/arcade/sim/step';
 import { ZONE_OFFER } from '../../src/arcade/content/perks';
 import { POSITION_STAT, ROSTER_ROLES } from '../../src/arcade/content/team';
 import { applyPerk, noPerks, playerStats, rollOffer } from '../../src/arcade/sim/team';
-import type { ArcadeEvent, Perk, RunState } from '../../src/arcade/sim/types';
+import type {
+  ArcadeEvent,
+  OfferCard,
+  Perk,
+  RosterPlayer,
+  RunState,
+} from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, ofType, playState, run, stand, tapAt, throwAt, untilGrabbed } from './helpers';
 
@@ -19,36 +26,41 @@ const atDraft = (seed = 3): RunState => {
   return s;
 };
 
-/** A run at TRICK OR TREAT! with this perk on offer first. */
-const offering = (perk: Perk): RunState => {
+/** A run at TRICK OR TREAT! with this card on offer first: a perk, or a new player. */
+const offering = (card: Perk | { kind: 'player'; player: RosterPlayer }): RunState => {
   const s = atDraft();
-  s.offer = [perk, ...s.offer.slice(1)];
+  const first: OfferCard = card.kind === 'player' ? card : { kind: 'perk', perk: card };
+  s.offer = [first, ...s.offer.slice(1)];
   return s;
 };
 
 describe('TRICK OR TREAT!', () => {
-  it('after a won series, TRICK OR TREAT! offers two cards', () => {
+  it('after a won series, TRICK OR TREAT! offers its cards', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const s = atDraft(seed);
       expect(s.phase).toBe('draft');
-      expect(s.offer).toHaveLength(2);
-      for (const p of s.offer) expect(['common', 'rare', 'epic']).toContain(p.rarity);
+      expect(s.offer).toHaveLength(arcadeTuning.offer.cards);
     }
   });
 
-  /** The offer in a zone (0 Forest, 1 Swamp, 2 Farm). */
+  /**
+   * The offer in a zone (0 Forest, 1 Swamp, 2 Farm), with every play and perk
+   * already held, so every card is a new player (docs/REWARDS.md, o1).
+   */
   const offerIn = (zone: number, seed: number) => {
     const s = atDraft(seed);
     s.series = { ...s.series, area: zone };
+    s.playbook = PLAY_POOL;
+    s.perks.secondWind = true;
+    s.perks.magnet = true;
     return { s, offer: rollOffer(s) };
   };
 
-  it('every offer is two new players, never of the same kind', () => {
+  it('new players on offer are never of the same kind', () => {
     for (let seed = 1; seed <= 40; seed++) {
-      const { offer } = offerIn(0, seed);
-      expect(offer.map((p) => p.kind)).toEqual(['recruit', 'recruit']);
-      const [a, b] = offer.map((p) => (p.kind === 'recruit' ? p.player.kind : null));
-      expect(a).not.toBe(b);
+      const kinds = offerIn(0, seed).offer.map((p) => (p.kind === 'player' ? p.player.kind : null));
+      expect(kinds).not.toContain(null);
+      expect(new Set(kinds).size).toBe(kinds.length);
     }
   });
 
@@ -56,7 +68,7 @@ describe('TRICK OR TREAT!', () => {
     ZONE_OFFER.forEach((zone, i) => {
       for (let seed = 1; seed <= 20; seed++) {
         for (const p of offerIn(i, seed).offer) {
-          if (p.kind !== 'recruit') throw new Error('offer');
+          if (p.kind !== 'player') throw new Error('offer');
           const st = p.player.stats;
           expect(st.hustle + st.hands + st.heft).toBe(zone.recruitTotal);
         }
@@ -67,7 +79,7 @@ describe('TRICK OR TREAT!', () => {
   it('a new player is shaped like its kind: a Ghost mostly Hands, a Golem mostly Heft', () => {
     for (let seed = 1; seed <= 60; seed++) {
       const recruit = offerIn(0, seed).offer[0]!;
-      if (recruit.kind !== 'recruit') continue;
+      if (recruit.kind !== 'player') continue;
       const { kind, stats } = recruit.player;
       if (kind === 'ghost') expect(stats.hands).toBeGreaterThan(stats.heft);
       if (kind === 'golem') expect(stats.heft).toBeGreaterThan(stats.hustle);
@@ -114,7 +126,7 @@ describe('TRICK OR TREAT!', () => {
     let seen = 0;
     for (let seed = 1; seed <= 60; seed++) {
       for (const perk of rollOffer(createRun(seed))) {
-        if (perk.kind !== 'recruit') continue;
+        if (perk.kind !== 'player') continue;
         seen++;
         const { stats, preferred } = perk.player;
         expect(stats[POSITION_STAT[preferred]]).toBe(
@@ -138,7 +150,7 @@ describe('TRICK OR TREAT!', () => {
   };
 
   const take = (player: typeof boo) =>
-    dispatch(offering({ rarity: 'common', kind: 'recruit', player }), { type: 'pick', offer: 0 });
+    dispatch(offering({ kind: 'player', player }), { type: 'pick', offer: 0 });
 
   it('a new player goes straight into the slot it improves most, a slot it prefers on a tie', () => {
     // 200 in all against seven plain 150s: it beats them all by the same, so it goes to a Catcher slot.
@@ -165,8 +177,7 @@ describe('TRICK OR TREAT!', () => {
 
   it('it goes in for the weakest player, wherever it plays', () => {
     const s = offering({
-      rarity: 'common',
-      kind: 'recruit',
+      kind: 'player',
       player: { ...boo, stats: { hustle: 60, hands: 100, heft: 40 } },
     });
     s.roster[1] = { ...s.roster[1]!, stats: { hustle: 30, hands: 30, heft: 30 } };
@@ -182,8 +193,7 @@ describe('TRICK OR TREAT!', () => {
 
   it('the bench has no limit, and the newest sit at the top', () => {
     const s = offering({
-      rarity: 'common',
-      kind: 'recruit',
+      kind: 'player',
       player: { ...boo, stats: { hustle: 60, hands: 100, heft: 40 } },
     });
     s.bench = Array.from({ length: 6 }, (_, i) => ({ ...s.roster[0]!, name: `Sub ${i}` }));
@@ -222,10 +232,11 @@ describe('TRICK OR TREAT!', () => {
     );
   });
 
-  it('skipping takes nothing and moves on', () => {
-    const s = dispatch(atDraft(), { type: 'skipDraft' }).state;
-    expect(s.phase).toBe('setup');
-    expect(s.perks).toEqual(noPerks());
+  it('skipping takes nothing, then Your team, then PLAY ON moves on (docs/REWARDS.md, x1)', () => {
+    const skipped = dispatch(atDraft(), { type: 'skipDraft' }).state;
+    expect(skipped.phase).toBe('draft');
+    expect(skipped.perks).toEqual(noPerks());
+    expect(dispatch(skipped, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 });
 
@@ -267,6 +278,19 @@ describe('the perks in play', () => {
     const magnet = withPerk(make(), { rarity: 'rare', kind: 'magnet' });
     const r = run(magnet, 3, throwAt(magnet, end));
     expect(ofType(r.events, 'caught')).toHaveLength(1);
+    // It says so, for the pop (docs/REWARDS.md, notes p4).
+    expect(ofType(r.events, 'magnet')).toEqual([{ type: 'magnet', id: 2 }]);
+  });
+
+  it('a catch in reach, with the Magnet held, is an ordinary catch: no magnet event', () => {
+    const at = v(0, 8);
+    const s = withPerk(playState([{ pos: at, job: stand(at) }]), {
+      rarity: 'rare',
+      kind: 'magnet',
+    });
+    const r = run(s, 3, throwAt(s, at));
+    expect(ofType(r.events, 'caught')).toHaveLength(1);
+    expect(ofType(r.events, 'magnet')).toEqual([]);
   });
 
   it('Second Wind: once a series, a BAD Break it! counts as OK', () => {

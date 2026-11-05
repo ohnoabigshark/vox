@@ -173,7 +173,13 @@ export interface Contest {
 
 /** Where a flight ends; `contest` when your player and a defender both had a hand to it (contested). */
 export type FlightOutcome =
-  | { readonly kind: 'caught'; readonly by: Player; readonly contest?: Contest | undefined }
+  | {
+      readonly kind: 'caught';
+      readonly by: Player;
+      readonly contest?: Contest | undefined;
+      /** Candy Corn Magnet made this catch (the ball would have fallen incomplete). */
+      readonly magnet?: true;
+    }
   | {
       readonly kind: 'batted';
       readonly by: number;
@@ -237,7 +243,7 @@ export function contact(
           )
           .sort((a, b) => dist(a.pos, at) - dist(b.pos, at) || a.id - b.id)[0]
       : undefined;
-    if (magnet) return { kind: 'caught', by: magnet };
+    if (magnet) return { kind: 'caught', by: magnet, magnet: true };
     return { kind: 'incomplete', at: end };
   }
   return null;

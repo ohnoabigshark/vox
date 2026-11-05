@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PLAY_POOL } from '../../src/arcade/content/playPool';
+import { PLAY_POOL, startingPlaybook } from '../../src/arcade/content/playPool';
 import { PLAYS } from '../../src/arcade/content/plays';
 import { FROG_RAIN } from '../../src/arcade/content/fieldEvents';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
@@ -72,8 +72,9 @@ describe('a run', () => {
   it('deals different hands, with handoff cards among them', () => {
     const seen = new Set<number>();
     for (let seed = 1; seed <= 40; seed++) createRun(seed).hand.forEach((i) => seen.add(i));
-    expect(seen.size).toBe(PLAY_POOL.length);
-    expect(PLAY_POOL.some((p) => p.handoff !== undefined)).toBe(true);
+    // A run deals from its starting playbook (docs/REWARDS.md, o3).
+    expect(seen.size).toBe(startingPlaybook().length);
+    expect(startingPlaybook().some((p) => p.handoff !== undefined)).toBe(true);
   });
 
   it('nobody but the Bats moves before the call', () => {
@@ -736,7 +737,9 @@ describe('series and the run', () => {
     const s = winSeries(createRun(3));
     expect(s.phase).toBe('draft');
     expect(s.series).toMatchObject({ stretch: 1, kind: 'challenge', down: 1, los: 10 });
-    expect(dispatch(s, { type: 'skipDraft' }).state.phase).toBe('setup');
+    // Skip, then PLAY ON on Your team (docs/REWARDS.md, x1).
+    const skipped = dispatch(s, { type: 'skipDraft' }).state;
+    expect(dispatch(skipped, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 
   it('failing on 4th down is game over', () => {

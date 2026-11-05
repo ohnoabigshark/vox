@@ -359,8 +359,10 @@ Open, for when the first new theme or set is planned:
   Planned by grilling, three rounds and a confirmation, 2026-11-05, on the
   map https://claude.ai/artifact/AUGh5MeCe8ZZJfxSBQdYVT; the design, the
   tests and the order of work are in `docs/REWARDS.md`. Built in two parts,
-  each played before it merges: growth from play (`rewards-growth`), then
-  the offer (`rewards-offer`).
+  each played before it merges: growth from play (`rewards-growth`, merged
+  as PR #38), then the offer (`rewards-offer`, built and playtested
+  2026-11-05, notes p2-p6; reviewed on
+  https://claude.ai/artifact/6Qk66hbs7FoMpEprdTd3cW).
 
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
@@ -396,6 +398,9 @@ Open, for when the first new theme or set is planned:
     quick tap test buys him another second to throw (z2). Belongs with
     **Stats for Jack**, below, which stays parked too (k3: "keep this a bit
     smaller").
+  - **The offer cards' text a bit bigger, and their headings centred**
+    (user, 2026-11-05, after part 2's playtest: "notes for later (not
+    implementing now)").
   - **Draw up a play and Select any play** are rewards in this system,
     grilled and built after both parts (k5; **Plays as rewards**, below).
 

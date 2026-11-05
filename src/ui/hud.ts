@@ -9,6 +9,9 @@
  * layout doesn't jump between downs.
  */
 import './hud.css';
+import { playDrawing } from './playDrawing';
+import { assertNever } from '../assertNever';
+import type { Play } from '../arcade/content/plays';
 
 export interface HudHandlers {
   /** The context button: PLAY, HIKE, resume, new run. */
@@ -71,12 +74,19 @@ export interface PlayerCard {
   readonly note: string;
 }
 
-/** One card of TRICK OR TREAT!'s offer: a big title over a player card. */
-export interface OfferCard {
-  /** "New Player!". */
-  readonly title: string;
-  readonly player: PlayerCard;
-}
+/** One card on offer, as drawn (docs/REWARDS.md, v1): its big title, then what it is. */
+export type OfferFace =
+  | { readonly kind: 'player'; readonly title: string; readonly player: PlayerCard }
+  /** A new play: its name, "Pass play" or "Run play", and the play drawn the card's width. */
+  | { readonly kind: 'play'; readonly title: string; readonly play: Play; readonly blurb: string }
+  /** A perk: its icon (trusted SVG markup), its name and what it does. */
+  | {
+      readonly kind: 'perk';
+      readonly title: string;
+      readonly name: string;
+      readonly blurb: string;
+      readonly icon: string;
+    };
 
 /** What TRICK OR TREAT! shows: the offer, your roster and bench, and what to do. */
 export interface DraftView {
@@ -86,7 +96,7 @@ export interface DraftView {
   readonly title: string;
   /** …and a plain line under it saying what to do, or null. */
   readonly lead: string | null;
-  readonly offer: readonly OfferCard[];
+  readonly offer: readonly OfferFace[];
   /** The players on the field, in lineup order… */
   readonly roster: readonly RosterRow[];
   /** …and the bench, newest first. */
@@ -257,9 +267,20 @@ export class Hud {
       h.textContent = text;
       return h;
     };
+    // The offer's cards side by side, swiped across, with a dot for each (docs/REWARDS.md, notes p5).
     const offer = document.createElement('div');
     offer.className = 'hud-draft-row';
     offer.append(...draft.offer.map((c, i) => offerButton(c, () => this.handlers.onDraft(i))));
+    const dots = document.createElement('div');
+    dots.className = 'hud-dots';
+    dots.append(...draft.offer.map(() => document.createElement('i')));
+    const showDot = (): void => {
+      const room = offer.scrollWidth - offer.clientWidth;
+      const at = room > 0 ? Math.round((offer.scrollLeft / room) * (draft.offer.length - 1)) : 0;
+      [...dots.children].forEach((d, i) => d.classList.toggle('on', i === at));
+    };
+    offer.addEventListener('scroll', showDot, { passive: true });
+    showDot();
     const onRoster = this.handlers.onRoster;
     const tap = (row: RosterRow) =>
       onRoster && draft.swappable ? () => onRoster(row.spot) : undefined;
@@ -310,7 +331,7 @@ export class Hud {
     goOn.textContent = draft.goOn ?? '';
     goOn.hidden = !draft.goOn;
     goOn.addEventListener('click', () => this.handlers.onSkip());
-    const top: HTMLElement[] = draft.offer.length > 0 ? [offer] : [];
+    const top: HTMLElement[] = draft.offer.length > 0 ? [offer, dots] : [];
     const lead: HTMLElement[] = [];
     if (draft.lead) {
       const p = document.createElement('p');
@@ -320,6 +341,8 @@ export class Hud {
     }
     // The offer has the screen to itself; Your team is a screen of its own.
     const team = draft.screen === 'team' ? [hand, roster] : [];
+    // On the offer nothing scrolls up and down, and Skip stays at the bottom (p5).
+    this.draft.classList.toggle('offer', draft.screen === 'offer');
     this.draft.replaceChildren(heading(draft.title), ...lead, ...top, ...team, goOn);
   }
 
@@ -338,11 +361,17 @@ export class Hud {
   }
 
   /** A short pop above the controls: a catch rating, a block, a tackle. */
-  pop(text: string, tone: 'good' | 'bad'): void {
+  pop(text: string, tone: 'good' | 'bad', detail?: string): void {
     this.popEl.textContent = text;
+    // A line under it (a perk saying what it did) stays up a little longer, to be read.
+    if (detail) {
+      const small = document.createElement('small');
+      small.textContent = detail;
+      this.popEl.append(small);
+    }
     this.popEl.className = `hud-pop show ${tone}`;
     clearTimeout(this.popTimer);
-    this.popTimer = setTimeout(() => (this.popEl.className = 'hud-pop'), 900);
+    this.popTimer = setTimeout(() => (this.popEl.className = 'hud-pop'), detail ? 1500 : 900);
   }
 }
 
@@ -379,31 +408,57 @@ function emptyBench(): HTMLElement {
   return el;
 }
 
-/** An offer card: its big title, then the player card; tap to take it. */
-function offerButton(card: OfferCard, onTap: () => void): HTMLElement {
+/** A card on offer: its big title, then what it is (a player card, a play drawn the card's width, a perk); tap to take it. */
+function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
   const el = document.createElement('button');
-  el.className = 'hud-offer interactive';
+  el.className = `hud-offer interactive ${card.kind}`;
   el.addEventListener('click', onTap);
   const title = document.createElement('strong');
   title.className = 'hud-offer-title';
   title.textContent = card.title;
-  const p = card.player;
-  el.append(title, header(p.name, p.form, p.icon), statBars(p.stats));
-  if (p.note) {
-    const note = document.createElement('em');
-    note.textContent = p.note;
-    el.append(note);
+  el.append(title);
+  switch (card.kind) {
+    case 'player': {
+      const p = card.player;
+      el.append(header(p.name, p.form, p.icon), statBars(p.stats));
+      if (p.note) {
+        const note = document.createElement('em');
+        note.textContent = p.note;
+        el.append(note);
+      }
+      return el;
+    }
+    case 'play': {
+      // Its name on top, then the play drawn the card's width, in its own tall shape (p5).
+      const head = header(card.play.name, card.blurb, null);
+      const drawing = document.createElement('div');
+      drawing.className = 'hud-offer-drawing';
+      drawing.append(playDrawing(card.play));
+      el.append(head, drawing);
+      return el;
+    }
+    case 'perk': {
+      const head = header(card.name, 'Perk', card.icon);
+      const blurb = document.createElement('em');
+      blurb.textContent = card.blurb;
+      el.append(head, blurb);
+      return el;
+    }
+    default:
+      return assertNever(card);
   }
-  return el;
 }
 
-/** The photo box, then the name with its kind under it. */
-function header(name: string, form: string, icon: string): HTMLElement {
+/** The photo box (none when `icon` is null, as on a play card), then the name with its kind under it. */
+function header(name: string, form: string, icon: string | null): HTMLElement {
   const head = document.createElement('div');
   head.className = 'hud-player-head';
-  const photo = document.createElement('span');
-  photo.className = 'hud-photo';
-  photo.innerHTML = icon;
+  if (icon !== null) {
+    const photo = document.createElement('span');
+    photo.className = 'hud-photo';
+    photo.innerHTML = icon;
+    head.append(photo);
+  }
   const text = document.createElement('span');
   text.className = 'hud-name';
   const n = document.createElement('strong');
@@ -411,7 +466,7 @@ function header(name: string, form: string, icon: string): HTMLElement {
   const kind = document.createElement('small');
   kind.textContent = form;
   text.append(n, kind);
-  head.append(photo, text);
+  head.append(text);
   return head;
 }
 

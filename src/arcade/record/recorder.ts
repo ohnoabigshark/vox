@@ -270,7 +270,7 @@ export class RunRecorder {
       case 'crowsStruck':
       case 'outOfBounds':
       case 'seriesWon':
-      case 'perk':
+      case 'picked':
       case 'eventTackled':
       case 'slipped':
       case 'seriesStarted':
@@ -278,6 +278,9 @@ export class RunRecorder {
         return;
       // Growth from play: the record keeps no stats yet (docs/REWARDS.md); the play log has each gain.
       case 'grew':
+        return;
+      // The perk's pop (docs/REWARDS.md, notes p4); the catch itself is counted by `caught`.
+      case 'magnet':
         return;
       default:
         assertNever(e);

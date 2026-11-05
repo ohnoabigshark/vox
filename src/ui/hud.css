@@ -114,6 +114,14 @@
   text-shadow: var(--text-edge);
 }
 
+.hud-pop small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--bone);
+}
+
 .hud-pop.show {
   opacity: 1;
   transform: translateY(0);
@@ -274,14 +282,6 @@
   text-align: center;
   color: var(--pumpkin);
   text-shadow: 2px 2px 0 var(--ink);
-}
-
-.hud-draft-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  width: 100%;
-  max-width: 460px;
 }
 
 .hud-skip {
@@ -453,7 +453,7 @@ button.hud-roster-row:active {
   opacity: 0.85;
 }
 
-/* TRICK OR TREAT!'s two new players: a big title over a player card, like the roster's. */
+/* TRICK OR TREAT!'s cards: a big title over a player card like the roster's, a play drawn the card's width, or a perk. */
 .hud-offer {
   padding: 8px 10px 9px;
   font-size: 0.8rem;
@@ -532,7 +532,7 @@ button.hud-offer:active {
   color: var(--slime-green);
 }
 
-/* Stat bars: chunky segmented blocks, the slot's key stat in pumpkin. */
+/* Stat bars: chunky segmented blocks; the slot's key stat has its label in pumpkin, so a bar's green growth always shows (docs/REWARDS.md, notes p2). */
 .hud-stats {
   display: flex;
   flex-direction: column;
@@ -585,10 +585,6 @@ button.hud-offer:active {
 .hud-stat.key .hud-stat-label {
   color: var(--pumpkin);
   opacity: 1;
-}
-
-.hud-stat.key .hud-stat-bar i {
-  background: var(--pumpkin);
 }
 
 .hud-stat-value {
@@ -669,4 +665,67 @@ button.hud-offer:active {
 
 .song-link[hidden] {
   display: none;
+}
+
+/* A perk's icon sits in a bigger photo box. */
+.hud-offer.perk .hud-photo {
+  width: 52px;
+  height: 52px;
+}
+
+/* The offer (docs/REWARDS.md, notes p5): nothing scrolls up and down; the
+   cards sit side by side, each most of the width so the next peeks in, and
+   snap as they're swiped; Skip stays at the bottom. */
+.hud-draft.offer {
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+/* The offer's cards side by side, swiped across (docs/REWARDS.md, notes p5); only the offer has the row. */
+.hud-draft.offer .hud-draft-row {
+  /* With Skip's margin below, the cards and their dots sit centred between the lead and Skip. */
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 520px;
+  padding: 4px 11% 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.hud-draft.offer .hud-offer {
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+
+.hud-draft.offer .hud-skip {
+  margin-top: auto;
+}
+
+.hud-offer-drawing svg {
+  display: block;
+  width: 100%;
+  max-height: 46vh;
+  border: 3px solid var(--ink);
+}
+
+.hud-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.hud-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.35);
+}
+
+.hud-dots i.on {
+  background: var(--pumpkin);
 }

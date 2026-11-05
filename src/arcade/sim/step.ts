@@ -569,6 +569,7 @@ function flight(state: RunState, events: ArcadeEvent[]): boolean {
   if (outcome.kind === 'caught') {
     giveBall(state, outcome.by);
     events.push({ type: 'caught', id: outcome.by.id, contested: outcome.contest !== undefined });
+    if (outcome.magnet) events.push({ type: 'magnet', id: outcome.by.id });
     return checkCarrier(state, events);
   }
   if (outcome.kind === 'batted') {

@@ -38,6 +38,8 @@ import { areaAt } from './content/defense';
 import type { Song } from '../audio/synth/render';
 import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
+import { ArcadeNames } from './render/names';
+import { nameTags } from './ui/nameTags';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
 import { FIELD_AHEAD, FIELD_BEHIND, areaOrigin, toWorld } from './render/world';
@@ -82,7 +84,7 @@ import { ArcadeControls } from './ui/controls';
 import { breakGrade, gradeCall, tapTestBuzz, tapTestSound } from './ui/tapTestCalls';
 import { breakView, shooShowing, snagView, tipView } from './ui/testViews';
 import type { Practice } from './content/playCode';
-import { PLAY_POOL } from './content/playPool';
+import { startingPlaybook } from './content/playPool';
 import type { Play } from './content/plays';
 import { trickOrTreatView } from './ui/trickOrTreat';
 
@@ -123,6 +125,8 @@ export interface ArcadeOptions {
   twoTapAim?: boolean;
   /** SNAG IT! from the first series (?snag=1), not only from series 5 (docs/SNAG.md). */
   snagAlways?: boolean;
+  /** ?perks=1: start holding every perk TRICK OR TREAT! offers (docs/REWARDS.md, o4). */
+  startWithPerks?: boolean;
   /** The tip drill from the first series (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
   tipAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
@@ -189,6 +193,7 @@ export class ArcadeGame {
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
   private readonly snagAlways: boolean;
+  private readonly startWithPerks: boolean;
   private readonly tipAlways: boolean;
   /**
    * Practice: a sketch's play and its key in the play editor (‹ Sketch), or a
@@ -215,6 +220,8 @@ export class ArcadeGame {
   private readonly sweep: ArcadeSweep;
   private readonly lines: ArcadeLines;
   private readonly routes: ArcadeRoutes;
+  /** Your players' names under them before the snap (docs/REWARDS.md, notes p6). */
+  private readonly names: ArcadeNames;
   /**
    * Each field event look's drawing and the sounds it goes off with: one
    * entry a look, so a new look won't compile until it has both (review r15).
@@ -276,6 +283,7 @@ export class ArcadeGame {
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
     this.snagAlways = options.snagAlways ?? false;
+    this.startWithPerks = options.startWithPerks ?? false;
     this.tipAlways = options.tipAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
@@ -303,6 +311,7 @@ export class ArcadeGame {
     setLights(this.view.hemi, this.view.sun, GAME_LIGHT);
     this.lines = new ArcadeLines(scene);
     this.routes = new ArcadeRoutes(scene);
+    this.names = new ArcadeNames(uiRoot);
     this.eventLooks = {
       frogRain: { draw: new ArcadeFrogRain(scene), sounds: ['burst', 'hop'] },
       plain: { draw: new ArcadePlainEvent(scene), sounds: ['burst'] },
@@ -617,6 +626,12 @@ export class ArcadeGame {
     const { state } = this;
     this.lines.update(state.series, this.origin);
     this.routes.update(state, this.origin, this.previewPlayers());
+    this.names.update(
+      this.live && !this.paused ? nameTags(state) : [],
+      this.origin,
+      this.view.camera,
+      this.view.canvas,
+    );
     // Keep the views in step with the field: a recruit joining or a swap changes who's where.
     this.bodies.sync(state);
     this.bodies.update(state, this.origin, dt, litPlayers(state));
@@ -735,6 +750,13 @@ export class ArcadeGame {
           break;
         case 'joined':
           this.hud.pop(`${e.name.toUpperCase()} JOINS!`, 'good');
+          break;
+        // A perk says so when it changes a play (docs/REWARDS.md, notes p4); neither is used up.
+        case 'magnet':
+          this.hud.pop('MAGNET!', 'good', 'Candy Corn Magnet pulled it in');
+          break;
+        case 'secondWind':
+          this.hud.pop('SECOND WIND!', 'good', 'back next series');
           break;
         case 'pancake':
           play('burst');
@@ -929,7 +951,8 @@ export class ArcadeGame {
       twoTapAim: this.twoTapAim,
       snagAlways: this.snagAlways,
       tipAlways: this.tipAlways,
-      playbook: [...PLAY_POOL, ...sketches],
+      playbook: startingPlaybook(sketches),
+      startWithPerks: this.startWithPerks,
     });
   }
 
@@ -939,15 +962,17 @@ export class ArcadeGame {
     this.focus = v(0, this.state.series.los - 4);
   }
 
-  /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */
+  /** ?win=1: the run as if just won (on the King's series, eleven new players on the bench), and the win cutscene. */
   private skipToWin(): void {
     const s = createRun(this.seed, firstRoster(this.monsters), arcadeTuning.run.areas - 1);
     setUpSeries(s, s.series.area, stretchStart(SERIES_KINDS.length - 1), [], true);
-    // One recruit for every TRICK OR TREAT! a full run has.
-    for (let i = 0; i < arcadeTuning.run.areas * SERIES_KINDS.length - 1; i++) {
+    // A new player for every TRICK OR TREAT! a full run has: most cards are
+    // plays, so offers are rolled until that many players have come up.
+    const players = arcadeTuning.run.areas * SERIES_KINDS.length - 1;
+    for (let i = 0; s.bench.length < players && i < 50 * players; i++) {
       s.seriesWon = i;
-      const offer = rollOffer(s)[i % 2];
-      if (offer?.kind === 'recruit') s.bench.unshift(offer.player);
+      const card = rollOffer(s).find((c) => c.kind === 'player');
+      if (card?.kind === 'player') s.bench.unshift(card.player);
     }
     s.seriesWon = arcadeTuning.run.areas * SERIES_KINDS.length;
     s.phase = 'won';

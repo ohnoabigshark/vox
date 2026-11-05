@@ -58,6 +58,7 @@ import {
   LONG_PLAY,
   PickWatch,
   GrowthWatch,
+  botPick,
   byStretch,
   isLong,
   noteBefore,
@@ -396,15 +397,16 @@ function count(
 }
 
 /**
- * TRICK OR TREAT! for the bot: with `perks` on, one of the two new players
- * at random (it places itself: the sim's bestSpot); then Done. With `perks`
- * off, it skips (the never-upgrade baseline: the game itself has no Skip).
+ * TRICK OR TREAT! for the bot: with `perks` on, a new player if one is
+ * offered, then a play, then a perk (botPick; it places a player itself:
+ * the sim's bestSpot); then PLAY ON. With `perks` off, it skips (the
+ * never-upgrade baseline).
  */
 function draftPick(state: RunState, rng: Rng, scenario: Scenario, picks: PickWatch): RunState {
   if (!scenario.perks || state.offer.length === 0) {
     return dispatch(state, { type: 'skipDraft' }).state;
   }
-  const r = dispatch(state, { type: 'pick', offer: rng.int(0, state.offer.length - 1) });
+  const r = dispatch(state, { type: 'pick', offer: botPick(state.offer, rng) });
   picks.step(noteBefore(state), r.events);
   return r.state.phase === 'draft' ? dispatch(r.state, { type: 'skipDraft' }).state : r.state;
 }

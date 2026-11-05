@@ -26,8 +26,7 @@ const offeringRecruit = (): RunState => {
   nextDown(s, events);
   s.offer = [
     {
-      rarity: 'common',
-      kind: 'recruit',
+      kind: 'player',
       player: {
         id: 8,
         name: 'Boo Radish',

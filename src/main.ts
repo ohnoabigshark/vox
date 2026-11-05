@@ -35,6 +35,7 @@ const eventPractice = readEventPractice(location.search);
 const modes = readModes(params);
 // ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area.
 // ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first series, not series 5.
+// ?perks=1 starts holding every perk TRICK OR TREAT! offers (Second Wind, Candy Corn Magnet).
 // ?win=1 goes straight from PLAY to the win cutscene (with ?video=1, frame by frame for
 // the sing-along video's capture, tools/video/render.ts); ?farmSong=2 plays the second
 // Frederick's Farm song candidate (Spooky Cow) instead of Harvest Moon Hoedown.
@@ -47,6 +48,7 @@ const game = new ArcadeGame(canvas, ui, {
   ...modes,
   snagAlways: params.get('snag') === '1',
   tipAlways: params.get('tip') === '1',
+  startWithPerks: params.get('perks') === '1',
   farmSong: Number(params.get('farmSong')) || 1,
   ...(practice ? { practice } : {}),
   ...(eventPractice ? { eventPractice } : {}),
