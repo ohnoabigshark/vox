@@ -445,8 +445,9 @@ export interface RunState {
   phase: Phase;
   series: Series;
   /**
-   * The plays this run can deal (CONTEXT.md, playbook). The play pool unless the
-   * run was started with its own; plays as rewards will grow it.
+   * The plays this run can deal (CONTEXT.md, playbook): esrauch's five and
+   * your sketches (`startingPlaybook`) unless the run was started with its
+   * own; a play card taken at TRICK OR TREAT! adds to it (docs/REWARDS.md, o1).
    */
   playbook: readonly Play[];
   /**
@@ -528,7 +529,7 @@ export type Action =
   /** HIKE: start the called play. */
   | { readonly type: 'hike' }
   | { readonly type: 'skipDraft' }
-  /** TRICK OR TREAT!: take one of the perks on offer. */
+  /** TRICK OR TREAT!: take the offer card at this index (a new play, a new player or a perk). */
   | { readonly type: 'pick'; readonly offer: number }
   /** Swap two players' spots, field or bench (between series). Spots: 0-6 are the field slots, 7 up the bench seats. */
   | { readonly type: 'swap'; readonly a: number; readonly b: number };

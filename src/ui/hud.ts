@@ -74,11 +74,10 @@ export interface PlayerCard {
   readonly note: string;
 }
 
-/** One card of TRICK OR TREAT!'s offer: a big title over a player card. */
 /** One card on offer, as drawn (docs/REWARDS.md, v1): its big title, then what it is. */
 export type OfferFace =
   | { readonly kind: 'player'; readonly title: string; readonly player: PlayerCard }
-  /** A new play: drawn small, its name, and "Pass play" or "Run play". */
+  /** A new play: its name, "Pass play" or "Run play", and the play drawn the card's width. */
   | { readonly kind: 'play'; readonly title: string; readonly play: Play; readonly blurb: string }
   /** A perk: its icon (trusted SVG markup), its name and what it does. */
   | {
@@ -409,7 +408,7 @@ function emptyBench(): HTMLElement {
   return el;
 }
 
-/** A card on offer: its big title, then what it is (a player card, a play drawn small, a perk); tap to take it. */
+/** A card on offer: its big title, then what it is (a player card, a play drawn the card's width, a perk); tap to take it. */
 function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
   const el = document.createElement('button');
   el.className = `hud-offer interactive ${card.kind}`;

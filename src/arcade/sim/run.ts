@@ -493,13 +493,14 @@ function hike(state: RunState, events: ArcadeEvent[]): void {
 // ── TRICK OR TREAT! ─────────────────────────────────────────────────────────
 
 /**
- * Take a new player on offer. It goes straight into the field slot it
- * improves most (bestSpot), and whoever was there sits on the bench; if it
- * beats nobody, it sits on the bench itself. The bench has no limit and the
- * newest sit at the top. Then Your team (docs/REWARDS.md, v2) stays up,
- * with each player's growth, until PLAY ON; in hard mode (or with
- * `trickOrTreat.setLineup` on) its players can be swapped there.
- * (Any other perk applies, and Your team comes up the same way.)
+ * Take an offer card (docs/REWARDS.md, o1). A new play goes into the
+ * playbook. A perk applies for the rest of the run. A new player goes
+ * straight into the field slot it improves most (bestSpot), and whoever was
+ * there sits on the bench; if it beats nobody, it sits on the bench itself.
+ * The bench has no limit and the newest sit at the top. Whichever it is,
+ * Your team (docs/REWARDS.md, v2) then stays up, with each player's growth,
+ * until PLAY ON; in hard mode (or with `trickOrTreat.setLineup` on) its
+ * players can be swapped there.
  */
 function pick(state: RunState, index: number, events: ArcadeEvent[]): void {
   const card = state.offer[index];

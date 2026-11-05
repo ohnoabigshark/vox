@@ -284,15 +284,6 @@
   text-shadow: 2px 2px 0 var(--ink);
 }
 
-/* The offer's cards, stacked full width (docs/REWARDS.md, v1). */
-.hud-draft-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  width: 100%;
-  max-width: 460px;
-}
-
 .hud-skip {
   margin-top: 6px;
   padding: 8px 18px;
@@ -462,7 +453,7 @@ button.hud-roster-row:active {
   opacity: 0.85;
 }
 
-/* TRICK OR TREAT!'s cards: a big title over a player card like the roster's, a play drawn small, or a perk. */
+/* TRICK OR TREAT!'s cards: a big title over a player card like the roster's, a play drawn the card's width, or a perk. */
 .hud-offer {
   padding: 8px 10px 9px;
   font-size: 0.8rem;
@@ -690,11 +681,13 @@ button.hud-offer:active {
   justify-content: flex-start;
 }
 
+/* The offer's cards side by side, swiped across (docs/REWARDS.md, notes p5); only the offer has the row. */
 .hud-draft.offer .hud-draft-row {
   /* With Skip's margin below, the cards and their dots sit centred between the lead and Skip. */
   margin-top: auto;
   display: flex;
   gap: 10px;
+  width: 100%;
   max-width: 520px;
   padding: 4px 11% 10px;
   overflow-x: auto;
