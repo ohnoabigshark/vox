@@ -396,6 +396,9 @@ Open, for when the first new theme or set is planned:
     quick tap test buys him another second to throw (z2). Belongs with
     **Stats for Jack**, below, which stays parked too (k3: "keep this a bit
     smaller").
+  - **The offer cards' text a bit bigger, and their headings centred**
+    (user, 2026-11-05, after part 2's playtest: "notes for later (not
+    implementing now)").
   - **Draw up a play and Select any play** are rewards in this system,
     grilled and built after both parts (k5; **Plays as rewards**, below).
 
