@@ -54,6 +54,7 @@ import { dist } from '../src/arcade/sim/vec';
 import { litPlayers } from '../src/arcade/render/sweep';
 import {
   DownWatch,
+  BoltWatch,
   LONG_PLAY,
   PickWatch,
   byStretch,
@@ -181,6 +182,8 @@ interface Tally {
   watch: DownWatch;
   /** Draft picks taken by the time each area is reached (docs/DIFFICULTY.md, n1). */
   picks: PickWatch;
+  /** Bolts taken by each side (the mischief bolt, b4). */
+  bolts: BoltWatch;
 }
 
 const bump = <K>(m: Map<K, number>, k: K, by = 1): void => {
@@ -478,6 +481,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       count(t, hiked.events, state, ran);
       t.watch.step(state, hiked.state, hiked.events);
       t.picks.step(state, hiked.events);
+      t.bolts.step(hiked.events);
       state = hiked.state;
       continue;
     }
@@ -487,6 +491,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     count(t, r.events, state, ran);
     t.watch.step(state, r.state, r.events);
     t.picks.step(state, r.events);
+    t.bolts.step(r.events);
     state = r.state;
   }
   t.picks.endRun();
@@ -587,6 +592,12 @@ function report(scenario: Scenario, t: Tally): void {
       });
     console.log(`  draft picks taken on reaching each area: ${each.join(' · ')}`);
   }
+  {
+    const { team, defense } = t.bolts.bySide;
+    console.log(
+      `  bolts taken a run: yours ${(team / t.runs).toFixed(1)} · the defense's ${(defense / t.runs).toFixed(1)}`,
+    );
+  }
   console.log('  downs from each stretch that won a series:');
   [0, 1, 2].forEach((area) => {
     const row = SERIES_KINDS.map((k) => {
@@ -673,6 +684,7 @@ for (const scenario of SCENARIOS) {
     tipResults: new Map(),
     watch: new DownWatch(),
     picks: new PickWatch(),
+    bolts: new BoltWatch(),
   };
   for (let seed = 1; seed <= RUNS; seed++) playRun(seed, scenario, t);
   report(scenario, t);

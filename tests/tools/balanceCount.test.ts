@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DownWatch,
   LONG_PLAY,
+  BoltWatch,
   PickWatch,
   byStretch,
   isLong,
@@ -185,5 +186,17 @@ describe('balance counts for the long field', () => {
       [1, [2]],
       [2, [3]],
     ]);
+  });
+
+  it('7: bolts taken by each side, yours and the defense’s (the mischief bolt, b4)', () => {
+    const w = new BoltWatch();
+    w.step([{ type: 'pickupTaken', id: 2, side: 'team', kind: 'bolt', pickup: 7 }]);
+    w.step([
+      { type: 'pickupTaken', id: 100, side: 'defense', kind: 'bolt', pickup: 17 },
+      // A slick isn't a bolt.
+      { type: 'pickupTaken', id: 3, side: 'team', kind: 'slick', pickup: 8 },
+    ]);
+    w.step([{ type: 'pickupTaken', id: 101, side: 'defense', kind: 'bolt', pickup: 27 }]);
+    expect(w.bySide).toEqual({ team: 1, defense: 2 });
   });
 });
