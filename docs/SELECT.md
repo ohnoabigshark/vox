@@ -51,3 +51,20 @@ about that player that pops up somewhere near the top of the screen"._
 
 Then the game is looked at running in a headless browser before it's handed
 over: the check B7 lacked.
+
+## As built (2026-11-05, `player-select`)
+
+- `ui/select.ts`: the hit test (`teamPoints`, `slotAt`), what a tap does
+  (`tapSelect`), `keptSelection` (only before the snap) and `routeLook`;
+  `selectedCard` is Your team's card through `fieldCard` in
+  `ui/trickOrTreat.ts`, which Your team's rows share.
+- The game listens for a press on the canvas before the snap (the HUD lets
+  taps through, `#ui`); the reach is 40 CSS pixels from a body's middle
+  (`TAP_REACH`, `BODY_MIDDLE` in `game.ts`).
+- Routes dim to 30% of their opacity; the selected route uses the big dots
+  and arrow, as the handoff Runner's does. On a handoff the ring dims with
+  its route.
+- The card is the roster card's dark panel, not the bone of the mockup, so
+  it matches Your team. The HUD's pixel font draws **Aa** as "AA".
+- Checked in a headless browser on the served build (seed 3): selecting,
+  the switch off, ✕, and HIKE! clearing it all.
