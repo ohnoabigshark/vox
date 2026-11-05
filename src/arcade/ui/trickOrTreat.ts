@@ -7,6 +7,7 @@
  */
 import { POSITION_STAT, ROSTER_ROLES } from '../content/team';
 import { atSpot, BENCH_START, fieldedStats, playerStats, setsLineup } from '../sim/team';
+import { STAT_ORDER } from '../sim/stats';
 import { kindIcon } from './kindIcons';
 import type { Form, Perk, Position, RosterPlayer, RunState, Stats } from '../sim/types';
 import type { DraftView, OfferCard, RosterRow, StatBar } from '../../ui/hud';
@@ -27,8 +28,6 @@ const POSITION: Readonly<Record<Position, string>> = {
   runner: 'Runner',
   catcher: 'Catcher',
 };
-
-const STAT_ORDER: readonly (keyof Stats)[] = ['heft', 'hustle', 'hands'];
 
 /** A player's bars, its main stat marked, with what it gained (Your team) drawn on them. */
 const bars = (s: Stats, key?: keyof Stats, gained?: Stats): StatBar[] =>
@@ -67,6 +66,19 @@ function offerCard(state: RunState, perk: Perk): OfferCard | null {
  * PLAY ON.
  */
 export function trickOrTreatView(state: RunState, selected: number | null): DraftView {
+  // The cards have the screen to themselves (k4): the team comes after.
+  if (state.offer.length > 0) {
+    return {
+      screen: 'offer',
+      title: 'TRICK OR TREAT!',
+      lead: 'Choose a player to join your team',
+      offer: state.offer.map((p) => offerCard(state, p)).filter((c): c is OfferCard => c !== null),
+      roster: [],
+      bench: [],
+      hand: null,
+      swappable: false,
+    };
+  }
   // ★ on the position heading the tapped player prefers.
   const starred = (selected === null ? undefined : atSpot(state, selected))?.preferred;
   const row = (
@@ -106,26 +118,15 @@ export function trickOrTreatView(state: RunState, selected: number | null): Draf
     : from
       ? `Now tap who ${from.name} swaps with (or ${from.name} again to cancel).`
       : 'Tap any two players to swap them, field or bench.';
-  if (state.offer.length === 0) {
-    return {
-      title: 'Your team',
-      lead: null,
-      offer: [],
-      roster,
-      bench,
-      hand,
-      skip: 'PLAY ON',
-      swappable,
-    };
-  }
-  // The cards have the screen to themselves (k4): the team comes after.
   return {
-    title: 'TRICK OR TREAT!',
-    lead: 'Choose a player to join your team',
-    offer: state.offer.map((p) => offerCard(state, p)).filter((c): c is OfferCard => c !== null),
-    roster: [],
-    bench: [],
-    hand: null,
-    swappable: false,
+    screen: 'team',
+    title: 'Your team',
+    lead: null,
+    offer: [],
+    roster,
+    bench,
+    hand,
+    goOn: 'PLAY ON',
+    swappable,
   };
 }

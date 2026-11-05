@@ -583,7 +583,10 @@ function report(scenario: Scenario, t: Tally): void {
   {
     // Growth from play (docs/REWARDS.md, b2): the medians over the runs that grew anyone in each area.
     const median = (ns: number[]): number =>
-      [...ns].sort((a, b) => a - b)[Math.floor((ns.length - 1) / 2)] ?? 0;
+      quantile(
+        [...ns].sort((a, b) => a - b),
+        0.5,
+      );
     const each = [...t.growth.byArea.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(

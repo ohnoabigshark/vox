@@ -22,6 +22,7 @@ const atDraft = (seed = 3, hard = false): RunState => {
 describe('Your team (t1, 13)', () => {
   it('the offer shows only its cards, with no roster under them', () => {
     const view = trickOrTreatView(atDraft(), null);
+    expect(view.screen).toBe('offer');
     expect(view.title).toBe('TRICK OR TREAT!');
     expect(view.offer).toHaveLength(2);
     expect(view.roster).toEqual([]);
@@ -34,7 +35,8 @@ describe('Your team (t1, 13)', () => {
     expect(picked.offer).toEqual([]);
     const view = trickOrTreatView(picked, null);
     expect(view.title).toBe('Your team');
-    expect(view.skip).toBe('PLAY ON');
+    expect(view.screen).toBe('team');
+    expect(view.goOn).toBe('PLAY ON');
     expect(view.roster).toHaveLength(7);
     expect(view.swappable).toBe(false);
     expect(dispatch(picked, { type: 'skipDraft' }).state.phase).toBe('setup');

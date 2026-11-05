@@ -39,7 +39,7 @@ export interface StatBar {
   readonly value: number;
   /** The stat this position leans on (Heft for a Blocker, Hustle for a Runner, Hands for a Catcher). */
   readonly key?: boolean;
-  /** What it would change by (placing a recruit here), when non-zero. */
+  /** What it gained since the last TRICK OR TREAT! (Your team), when non-zero: drawn green on the bar and as +N. */
   readonly delta?: number;
 }
 
@@ -80,6 +80,8 @@ export interface OfferCard {
 
 /** What TRICK OR TREAT! shows: the offer, your roster and bench, and what to do. */
 export interface DraftView {
+  /** The offer, its cards on their own, or Your team once the pick is made (docs/REWARDS.md, v2). */
+  readonly screen: 'offer' | 'team';
   /** The heading over the offer… */
   readonly title: string;
   /** …and a plain line under it saying what to do, or null. */
@@ -92,7 +94,7 @@ export interface DraftView {
   /** What to do now, under the roster heading. */
   readonly hand: string | null;
   /** The button that moves on (e.g. "Done"); none while there's a choice to make. */
-  readonly skip?: string;
+  readonly goOn?: string;
   /** Whether tapping players swaps them (setting the lineup); otherwise the team is only shown. */
   readonly swappable: boolean;
 }
@@ -303,11 +305,11 @@ export class Hud {
     const hand = document.createElement('p');
     hand.className = 'hud-roster-hand';
     hand.textContent = draft.hand ?? '';
-    const skip = document.createElement('button');
-    skip.className = 'hud-skip';
-    skip.textContent = draft.skip ?? '';
-    skip.hidden = !draft.skip;
-    skip.addEventListener('click', () => this.handlers.onSkip());
+    const goOn = document.createElement('button');
+    goOn.className = 'hud-skip';
+    goOn.textContent = draft.goOn ?? '';
+    goOn.hidden = !draft.goOn;
+    goOn.addEventListener('click', () => this.handlers.onSkip());
     const top: HTMLElement[] = draft.offer.length > 0 ? [offer] : [];
     const lead: HTMLElement[] = [];
     if (draft.lead) {
@@ -316,9 +318,9 @@ export class Hud {
       p.textContent = draft.lead;
       lead.push(p);
     }
-    // The offer has the screen to itself; Your team is a screen of its own, titled as such.
-    const team = draft.roster.length > 0 ? [hand, roster] : [];
-    this.draft.replaceChildren(heading(draft.title), ...lead, ...top, ...team, skip);
+    // The offer has the screen to itself; Your team is a screen of its own.
+    const team = draft.screen === 'team' ? [hand, roster] : [];
+    this.draft.replaceChildren(heading(draft.title), ...lead, ...top, ...team, goOn);
   }
 
   /** A big word in the middle of the screen, for a moment: how a Break it! went. */
@@ -427,9 +429,18 @@ function statBars(stats: readonly StatBar[]): HTMLElement {
     label.textContent = s.label;
     const bar = document.createElement('span');
     bar.className = 'hud-stat-bar';
+    const share = (n: number): string => `${Math.max(0, Math.min(1, n / BAR_MAX)) * 100}%`;
     const fill = document.createElement('i');
-    fill.style.width = `${Math.max(0, Math.min(1, s.value / BAR_MAX)) * 100}%`;
+    fill.style.width = share(s.value);
     bar.append(fill);
+    // A gain (Your team's growth) is the green stretch at the end of the fill.
+    if (s.delta && s.delta > 0) {
+      const gain = document.createElement('i');
+      gain.className = 'gain';
+      gain.style.left = share(s.value - s.delta);
+      gain.style.width = share(s.delta);
+      bar.append(gain);
+    }
     const value = document.createElement('span');
     value.className = 'hud-stat-value';
     value.textContent = String(s.value);

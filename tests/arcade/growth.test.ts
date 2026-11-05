@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { physicsOf } from '../../src/arcade/sim/bodies';
 import { applyGains, gainsOf, newTally, noteGrowth } from '../../src/arcade/sim/growth';
-import { createRun, setUpDown } from '../../src/arcade/sim/run';
+import { createRun, dispatch, endDown, nextDown, setUpDown } from '../../src/arcade/sim/run';
 import { canThrow, step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, DownTally, RunState, StepInput } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
-import { betweenDowns, ofType, playState, run, stand, throwAt } from './helpers';
+import { betweenDowns, carry, ofType, playState, run, stand, throwAt } from './helpers';
 
 /**
  * Growth from play (docs/REWARDS.md, map items g2, z1–z3, t1): each stat
@@ -17,6 +17,28 @@ const g = arcadeTuning.growth;
 
 /** A tally with only these things done. */
 const tally = (done: Partial<DownTally>): DownTally => ({ ...newTally(), ...done });
+
+/** A run at TRICK OR TREAT! offering first a 200 recruit (it beats a weak starter). */
+const offeringRecruit = (): RunState => {
+  const s = createRun(3);
+  const events: ArcadeEvent[] = [];
+  endDown(s, 'tackled', s.series.firstDown, events);
+  nextDown(s, events);
+  s.offer = [
+    {
+      rarity: 'common',
+      kind: 'recruit',
+      player: {
+        id: 8,
+        name: 'Boo Radish',
+        kind: 'ghost',
+        preferred: 'catcher',
+        stats: { hustle: 60, hands: 100, heft: 40 },
+      },
+    },
+  ];
+  return s;
+};
 
 /** A down that gained `gained` yards from the line at 0. */
 const down = (gained: number) => ({ gained, los: gained });
@@ -86,6 +108,55 @@ describe('what grows which stat (t1)', () => {
   });
 });
 
+describe('noted from the events (t1, through the real events)', () => {
+  /** A down from the line at 0, your player in slot 0 (body id 2), that ends `gained` yards on. */
+  const ended = (s: RunState, gained: number): void => {
+    s.series = { ...s.series, los: gained };
+    noteGrowth(s, [{ type: 'downEnded', result: 'tackled', gained }]);
+  };
+
+  it('4b. a handoff then 12 yards grows the Runner’s Hustle', () => {
+    const s = playState([{ role: 'runner', pos: v(0, -1) }]);
+    const before = s.roster[0]!.stats.hustle;
+    noteGrowth(s, [{ type: 'handoff', id: 2 }]);
+    ended(s, 12);
+    expect(s.roster[0]!.stats.hustle).toBe(before + g.rush + 2 * g.rushPerYard);
+  });
+
+  it('5b. a Break it! GREAT (grabbed, then a break) grows the carrier’s Hustle; a drag doesn’t', () => {
+    const s = playState([{ role: 'runner', pos: v(0, 2) }]);
+    const before = s.roster[0]!.stats.hustle;
+    noteGrowth(s, [
+      { type: 'grabbed', id: 2, by: [100] },
+      { type: 'breakResult', outcome: 'break' },
+      { type: 'grabbed', id: 2, by: [101] },
+      { type: 'breakResult', outcome: 'drag' },
+    ]);
+    ended(s, 3);
+    expect(s.roster[0]!.stats.hustle).toBe(before + g.breakGreat);
+  });
+
+  it('6c. a Blocker on a defender in a real down that gains grows Heft by the block held', () => {
+    const carrier = v(6, 2);
+    const s0 = carry(
+      playState(
+        [
+          { role: 'blocker', pos: v(0, 1), job: { kind: 'block' } },
+          { pos: carrier, job: stand(carrier) },
+        ],
+        [{ kind: 'rusher', pos: v(0, 1.9) }],
+      ),
+      3,
+    );
+    const before = s0.roster[0]!.stats.heft;
+    const r = run(s0, 12);
+    const end = ofType(r.events, 'downEnded')[0];
+    expect(end?.gained).toBeGreaterThan(0);
+    expect(ofType(r.events, 'pancake')).toEqual([]);
+    expect(r.state.roster[0]!.stats.heft).toBe(before + g.blockHeld);
+  });
+});
+
 describe('putting gains on the roster', () => {
   it('7. no stat grows past the ceiling, and one already past it doesn’t grow', () => {
     const s = createRun(1);
@@ -103,17 +174,27 @@ describe('putting gains on the roster', () => {
     expect(events).toEqual([{ type: 'grew', id: s.roster[0]!.id, stat: 'hustle', by: 5 }]);
   });
 
-  it('8. Jack never grows, and a benched player keeps what it gained', () => {
+  it('8. Jack never grows', () => {
     const s = playState([{ pos: v(0, 6) }]);
     noteGrowth(s, [{ type: 'caught', id: 1, contested: false }]);
     expect(s.tally.catch).toBeNull();
+  });
 
-    const events: ArcadeEvent[] = [];
-    applyGains(s, [{ slot: 0, stat: 'heft', by: 8 }], events);
-    const grown = s.roster[0]!;
-    s.bench.unshift(grown);
-    s.roster[0] = s.roster[1]!;
-    expect(s.bench[0]!.stats.heft).toBe(58);
+  it('8c. a player benched by a real pick keeps what it gained, and doesn’t grow on the bench', () => {
+    const s = offeringRecruit();
+    // The weakest starter has grown a little; the recruit goes in for it (bestSpot).
+    s.roster[1] = { ...s.roster[1]!, stats: { hustle: 30, hands: 30, heft: 30 } };
+    applyGains(s, [{ slot: 1, stat: 'heft', by: g.pancake }], []);
+    const grown = s.roster[1]!;
+    const picked = dispatch(s, { type: 'pick', offer: 0 }).state;
+    expect(picked.bench[0]).toEqual(grown);
+    // A down where whoever now plays slot 1 catches: the bench player stays as it was.
+    const r = dispatch(picked, { type: 'skipDraft' }).state;
+    const slot1 = r.field.players.find((p) => p.slot === 1)!;
+    noteGrowth(r, [{ type: 'caught', id: slot1.id, contested: false }]);
+    noteGrowth(r, [{ type: 'downEnded', result: 'tackled', gained: 0 }]);
+    expect(r.bench[0]).toEqual(grown);
+    expect(r.roster[1]!.stats.hands).toBe(picked.roster[1]!.stats.hands + g.catch);
   });
 
   it('8b. the gains since the last TRICK OR TREAT! are kept by player id', () => {

@@ -148,7 +148,7 @@ describe('TRICK OR TREAT!', () => {
     expect(ROSTER_ROLES[slot]).toBe('catcher');
     expect(r.state.bench).toHaveLength(1);
     expect(ofType(r.events, 'joined')[0]).toMatchObject({ slot, replaced: r.state.bench[0]!.name });
-    // Your team comes up (docs/REWARDS.md, v2), with the lineup already set for you; PLAY ON goes on.
+    // Your team comes up (docs/REWARDS.md, v2), with the roster already arranged for you; PLAY ON goes on.
     expect(r.state.phase).toBe('draft');
     expect(r.state.offer).toEqual([]);
     expect(r.state.field.players.some((p) => p.form === 'ghost')).toBe(true);

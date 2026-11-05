@@ -374,6 +374,9 @@ Open, for when the first new theme or set is planned:
 
 ## Later (not yet in order)
 
+- **No penalties, ever.** _User, 2026-11-05 (rewards review, l2): "I don't
+  think I ever want there to be penalties in this game. Let the players
+  play."_ No holding, no flags: an idea that needs one is out.
 - **Parked from the rewards map** (`docs/REWARDS.md`, 2026-11-05):
   - **A candy shop:** candy earned by the yard and spent at TRICK OR
     TREAT! (w1). _User: "Ohhhhhh I love the shop idea...but we will park

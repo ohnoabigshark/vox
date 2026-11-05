@@ -5,6 +5,7 @@
  * the ceiling. Jack, the bench and practice never grow.
  */
 import { arcadeTuning } from '../content/tuning';
+import { plus, STAT_ORDER, ZERO } from './stats';
 import type { ArcadeEvent, DownTally, RunState, Stats } from './types';
 
 /** One stat gained by the player in a field slot. */
@@ -28,17 +29,13 @@ export function newTally(): DownTally {
   };
 }
 
-/** The order a player's gains are listed in: as the stat bars show them. */
-const STAT_ORDER: readonly (keyof Stats)[] = ['heft', 'hustle', 'hands'];
-
 /** What a finished down grows, from its tally, the yards it gained and where the ball was downed. */
 export function gainsOf(tally: DownTally, down: { gained: number; los: number }): Gain[] {
   const g = arcadeTuning.growth;
   const sums = new Map<number, Stats>();
   const add = (slot: number, stat: keyof Stats, by: number): void => {
     if (by <= 0) return;
-    const had = sums.get(slot) ?? { hustle: 0, hands: 0, heft: 0 };
-    sums.set(slot, { ...had, [stat]: had[stat] + by });
+    sums.set(slot, plus(sums.get(slot) ?? ZERO, { ...ZERO, [stat]: by }));
   };
   if (tally.catch) {
     add(tally.catch.slot, 'hands', g.catch);
@@ -133,8 +130,7 @@ export function applyGains(state: RunState, gains: readonly Gain[], events: Arca
     const now = Math.min(ceiling, had + by);
     if (now <= had) continue;
     state.roster[slot] = { ...p, stats: { ...p.stats, [stat]: now } };
-    const sum = state.gains[p.id] ?? { hustle: 0, hands: 0, heft: 0 };
-    state.gains[p.id] = { ...sum, [stat]: sum[stat] + now - had };
+    state.gains[p.id] = plus(state.gains[p.id] ?? ZERO, { ...ZERO, [stat]: now - had });
     events.push({ type: 'grew', id: p.id, stat, by: now - had });
   }
 }

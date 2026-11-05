@@ -155,7 +155,9 @@ and never skips. The numbers are a check; how it plays to the user decides.
 - **Your team is the draft once the pick is made** (`phase: 'draft'`, no
   offer), hard mode's old "Set your lineup" screen with a new title and
   PLAY ON (`skipDraft`). Each row shows its bars, as the roster always
-  did, with the gains as green +N on them. The mockup had the bars open
+  did: a gain is the green stretch at the end of a bar, with a green +N
+  beside it (review d1: the user "really did like the green stretch on the
+  bar"). There's no total beside the player. The mockup had the bars open
   on a tap; showing them on every row was simpler and already built.
 - **Test 13 is unit tests, not end-to-end:** vox has no browser suite, so
   `tests/arcade/yourTeam.test.ts` covers the screen's view and the flow,
@@ -163,6 +165,9 @@ and never skips. The numbers are a check; how it plays to the user decides.
   its first run: the swaps already worked there.
 - **The record keeps no stats,** so it passes `grew` by; the play log has
   every gain.
+- **The balance report gives the busiest player and the team,** not each
+  player's gain per area as b2 said: the busiest is what z1 aims at, and
+  seven numbers a player would be noise (review d2).
 
 ### Balance, part 1
 
