@@ -13,9 +13,12 @@ pickups, more kinds and placing them in the editor are later rounds
 
 - **Where** (k2): each 10-yard stretch of the field gets one **lightning
   bolt** and one **oil slick**, laid from the run's seed the way props are
-  (`sim/props.ts`), so a seeded run lays them out the same every time. Never
-  in the middle lane, against a sideline or on a prop (a Boss included: it
-  stands in the middle lane). Each stretch keeps clear of its own props and
+  (`sim/props.ts`), so a seeded run lays them out the same every time.
+  Anywhere in from the sidelines, the middle lane included, but never on a
+  prop, or on the Boss standing just past an area's goal line. _The middle
+  was left out until the user, 2026-11-05: "we can have bolts and slicks in
+  the midfield too. not sure why I excluded that previously."_ Each stretch
+  keeps clear of its own props and
   its neighbours', so a pickup seen ahead lies in the same place when its
   series comes. Since the long field (`docs/LONG_FIELD.md`, a2) an area's
   every stretch is laid out from its first series. They
@@ -26,14 +29,19 @@ pickups, more kinds and placing them in the editor are later rounds
   map said "for the rest of the drive"; a pickup used up ahead would otherwise
   reappear when that series starts). The rest stay put.
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
-  your team takes them, Jack and the carrier included. Defenders run over
-  them and leave them be. Jack stands in the middle until he runs, and
-  pickups are never in the middle lane, so in practice it's a scrambling or
-  handoff carrier, not Jack in the pocket. A player lined up on a pickup (it
-  showed before the snap) takes it the moment the play starts.
+  your team takes them, the carrier included, but never Jack: he stands
+  still where the ball is spotted, so a slick under him couldn't be dodged,
+  and a bolt would do nothing. (Added by Claude with the midfield,
+  2026-11-05, for the user to confirm.) Defenders run over them and leave
+  them be. A player lined up on a pickup (it showed before the snap) takes
+  it the moment the play starts. Since the midfield that includes a
+  Blocker beside the ball, who goes down at the snap, and a handoff's
+  Runner, tackled there before the play starts (SLIPPED!). Flip moves the
+  Runner, not the Blockers.
 - **One of each, nearly always:** each kind gets 40 tries to find a clear
   spot in its stretch; if every try lands on a prop, that kind is left out
-  of that stretch. In 12,000 stretches tried (1,000 seeds) none was.
+  of that stretch. In 12,000 stretches tried (1,000 seeds) none was, again
+  with the middle open (2026-11-05).
 - **The bolt** (k5): whoever takes it runs 50% faster for 3 seconds, trailing
   sparks, with a zap. Both numbers are in `tuning.ts`.
 - **The slick** (k6): whoever runs through it slips and lies on the turf for
@@ -52,7 +60,8 @@ pickups, more kinds and placing them in the editor are later rounds
 ## Tests, written first (k9)
 
 1. **Placement:** a seeded run lays the same pickups every time, one of each
-   per stretch, clear of the middle lane, the sidelines and props.
+   per stretch, clear of the sidelines, props and each area's Boss, and
+   sometimes in the middle lane. Jack never takes one.
 2. **The bolt:** running through it speeds that player by half for 3 seconds,
    then back; it's taken, and nobody else gets it.
 3. **The slick:** a player who runs through it lies down; a carrier is
@@ -80,6 +89,11 @@ never aims for or away from pickups (k7):
 Within the noise of 40 runs (the win rate is 14 runs against 12): bolts add
 a little to passes, slicks take a little away. The bot calls handoffs only
 when it has no pass card, 9 a scenario, too few to read.
+
+Opening the middle (2026-11-05) went in without a balance run, at the
+user's word. A probe of 500 seeds, three areas, a snap from every yard:
+7% of snaps then have a slick under a Blocker beside the ball, and 13%
+under a Blocker or a Runner lined up a yard off the middle.
 
 ## On screen
 

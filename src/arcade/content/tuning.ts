@@ -338,10 +338,9 @@ export const tuningDefaults = {
   pickups: {
     /** A pickup's size (yards): one of your players whose body touches it takes it. */
     radius: 0.75,
-    /** Kept this far out of the middle (the pumpkin's lane), this far in from the sidelines… */
-    center: 2.2,
+    /** Kept this far in from the sidelines… */
     edge: 1,
-    /** …and this far from any prop (edge to edge). */
+    /** …and this far from any prop or Boss (edge to edge). */
     gap: 0.6,
     /** The lightning bolt: this much faster (a share of top speed), for this long (seconds). */
     bolt: { faster: 0.5, time: 3 },
