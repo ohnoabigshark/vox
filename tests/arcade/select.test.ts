@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { applyGains } from '../../src/arcade/sim/growth';
 import { createRun, dispatch } from '../../src/arcade/sim/run';
-import type { RunState } from '../../src/arcade/sim/types';
+import { arcadeTuning } from '../../src/arcade/content/tuning';
+import type { RunState, Vec } from '../../src/arcade/sim/types';
 import { nameTags } from '../../src/arcade/ui/nameTags';
 import {
+  TAP_REACH,
+  fieldPoints,
   keptSelection,
   routeLook,
   selectedCard,
   slotAt,
   tapSelect,
-  teamPoints,
 } from '../../src/arcade/ui/select';
 import { trickOrTreatView } from '../../src/arcade/ui/trickOrTreat';
 
@@ -21,9 +23,6 @@ import { trickOrTreatView } from '../../src/arcade/ui/trickOrTreat';
 
 /** A run before its first snap, with the first card called. */
 const called = (): RunState => dispatch(createRun(1), { type: 'call', hand: 0 }).state;
-
-/** Where each body stands, as a "screen": x and y straight from the field (the test's own projection). */
-const flat = (s: RunState) => teamPoints(s, (pos) => ({ x: pos.x, y: pos.y }));
 
 describe('names and the switch (1)', () => {
   it('the switch on: all seven, none selected', () => {
@@ -49,25 +48,52 @@ describe('names and the switch (1)', () => {
 });
 
 describe('the hit test (2)', () => {
-  it('picks the nearest of your seven within reach, by roster slot', () => {
+  // At the game's own reach, on a phone: 390 CSS pixels across show the field's width (and a little margin).
+  const PX_PER_YARD = 390 / (2 * arcadeTuning.field.halfWidth * 1.06);
+  const phone = (s: RunState) =>
+    fieldPoints(s, (pos) => ({ x: pos.x * PX_PER_YARD, y: -pos.y * PX_PER_YARD }));
+  const at = (pos: Vec) => ({ x: pos.x * PX_PER_YARD, y: -pos.y * PX_PER_YARD });
+
+  it('every body on the field is a point: your seven by roster slot, Jack and the defense with none', () => {
     const s = createRun(1);
-    const points = flat(s);
+    const points = phone(s);
+    expect(points).toHaveLength(s.field.players.length + s.field.defenders.length);
+    const slots = points.flatMap((p) => (p.slot === null ? [] : [p.slot]));
+    expect(slots.sort()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  it('a tap on one of your seven picks them, by roster slot', () => {
+    const s = createRun(1);
+    for (const body of s.field.players.filter((p) => p.slot >= 0)) {
+      expect(slotAt(phone(s), at(body.pos))).toBe(body.slot);
+    }
+  });
+
+  it('a tap a little off one of them still picks them', () => {
+    const s = createRun(1);
     const body = s.field.players.find((p) => p.slot === 5)!;
-    expect(slotAt(points, { x: body.pos.x + 0.3, y: body.pos.y - 0.2 }, 1)).toBe(5);
+    const tap = at(body.pos);
+    expect(slotAt(phone(s), { x: tap.x + 6, y: tap.y - 4 })).toBe(5);
   });
 
-  it('nothing for a tap out of reach of all of them', () => {
+  it('nothing for a tap out of reach of every body', () => {
     const s = createRun(1);
-    expect(slotAt(flat(s), { x: 0, y: s.series.los + 40 }, 1)).toBeNull();
+    expect(slotAt(phone(s), at({ x: 0, y: s.series.los - 40 }))).toBeNull();
   });
 
-  it('Jack and the defense are never among the points', () => {
+  it('a tap on Jack picks nobody, though the Runners stand within reach of him', () => {
     const s = createRun(1);
-    const points = flat(s);
-    expect(points.map((p) => p.slot).sort()).toEqual([0, 1, 2, 3, 4, 5, 6]);
     const jack = s.field.players.find((p) => p.role === 'qb')!;
-    const near = slotAt(points, jack.pos, 0.5);
-    expect(near).toBeNull();
+    const runner = s.field.players.find((p) => p.role === 'runner')!;
+    const apart = Math.hypot(at(jack.pos).x - at(runner.pos).x, at(jack.pos).y - at(runner.pos).y);
+    expect(apart).toBeLessThan(TAP_REACH);
+    expect(slotAt(phone(s), at(jack.pos))).toBeNull();
+  });
+
+  it('a tap on a defender picks nobody', () => {
+    const s = createRun(1);
+    expect(s.field.defenders.length).toBeGreaterThan(0);
+    for (const d of s.field.defenders) expect(slotAt(phone(s), at(d.pos))).toBeNull();
   });
 });
 

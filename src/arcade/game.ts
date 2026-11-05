@@ -40,7 +40,7 @@ import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
 import { ArcadeNames } from './render/names';
 import { nameTags } from './ui/nameTags';
-import { keptSelection, selectedCard, slotAt, tapSelect, teamPoints } from './ui/select';
+import { fieldPoints, keptSelection, selectedCard, slotAt, tapSelect } from './ui/select';
 import { loadSettings, saveSettings } from '../settings';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
@@ -179,8 +179,6 @@ const LOOK_AHEAD = 7;
 const WIN_SONG_URL = 'https://www.youtube.com/watch?v=7A2Udh11ASo';
 /** If the redirect hasn't taken the page away by now, it was blocked: show the button. */
 const SONG_LINK_DELAY_MS = 3000;
-/** How far a tap may land from one of your players and still select them: about a thumb's width (CSS pixels; docs/SELECT.md, s1). */
-const TAP_REACH = 40;
 /** Where a body's middle is, above its feet (world units): what a tap is measured to. */
 const BODY_MIDDLE = 0.9;
 /** The win's card comes up once GOT JACK BACK has landed (the cutscene's words, render/outro.ts), over the dance. */
@@ -898,17 +896,17 @@ export class ArcadeGame {
     else this.hud.setPrompt(null, null);
   }
 
-  /** Before the snap, a tap on the field: select the nearest of your seven, or clear it (docs/SELECT.md, s1). */
+  /** Before the snap, a tap on the field: select the one of your seven it's on, or clear it (docs/SELECT.md, s1). */
   private onFieldTap(e: PointerEvent): void {
     if (!this.live || this.paused || this.intro || this.state.phase !== 'setup') return;
     const canvas = this.view.canvas;
     const rect = canvas.getBoundingClientRect();
-    const points = teamPoints(this.state, (pos) => {
+    const points = fieldPoints(this.state, (pos) => {
       // A body's middle, a little above its feet.
       const p = toWorld(pos, this.origin, BODY_MIDDLE).project(this.view.camera);
       return { x: ((p.x + 1) / 2) * rect.width, y: ((1 - p.y) / 2) * rect.height };
     });
-    const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top }, TAP_REACH);
+    const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     this.selected = tapSelect(this.selected, hit);
     this.syncHud();
   }

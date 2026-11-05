@@ -8,33 +8,42 @@ import type { RunState, Vec } from '../sim/types';
 import type { SelectedCard } from '../../ui/hud';
 import { fieldCard } from './trickOrTreat';
 
-/** One of your seven where it stands on the screen (pixels), by roster slot. */
+/** How far a tap may land from a body and still be on it: about a thumb's width (CSS pixels; docs/SELECT.md, s1). */
+export const TAP_REACH = 40;
+
+/** A body on the field where it stands on the screen (pixels): one of your seven by roster slot, or Jack or a defender (no slot). */
 export interface ScreenPoint {
-  readonly slot: number;
+  readonly slot: number | null;
   readonly x: number;
   readonly y: number;
 }
 
-/** Your seven on the screen, through `project` (field yards → screen); never Jack or a defender. */
-export function teamPoints(
+/** Every body on the field on the screen, through `project` (field yards → screen). */
+export function fieldPoints(
   state: RunState,
   project: (pos: Vec) => { x: number; y: number },
 ): ScreenPoint[] {
-  return state.field.players
-    .filter((p) => p.slot >= 0)
-    .map((p) => ({ slot: p.slot, ...project(p.pos) }));
+  const { players, defenders } = state.field;
+  return [
+    ...players.map((p) => ({ slot: p.slot >= 0 ? p.slot : null, ...project(p.pos) })),
+    ...defenders.map((d) => ({ slot: null, ...project(d.pos) })),
+  ];
 }
 
-/** The nearest of `points` to a tap, if within `reach`; otherwise null. */
+/**
+ * Who a tap is on: the nearest body within reach, and its roster slot. A tap
+ * nearest Jack or a defender, or out of reach of every body, is on nobody
+ * (null), so it clears the selection; it never reaches past them to one of
+ * your seven.
+ */
 export function slotAt(
   points: readonly ScreenPoint[],
   tap: { x: number; y: number },
-  reach: number,
 ): number | null {
-  let best: { slot: number; d: number } | null = null;
+  let best: { slot: number | null; d: number } | null = null;
   for (const p of points) {
     const d = Math.hypot(p.x - tap.x, p.y - tap.y);
-    if (d <= reach && (!best || d < best.d)) best = { slot: p.slot, d };
+    if (d <= TAP_REACH && (!best || d < best.d)) best = { slot: p.slot, d };
   }
   return best?.slot ?? null;
 }
