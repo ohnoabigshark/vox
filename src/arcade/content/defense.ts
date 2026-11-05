@@ -109,8 +109,12 @@ export interface DefenseSpec {
 }
 
 const d = (kind: DefenderKind, x: number, y: number): DefenseSpot => ({ kind, x, y });
-/** The Owl always hangs deep (sim/run.ts places it at least past the first-down line). */
-const owl = d('safety', 0, 12);
+/**
+ * The Forest's two Owls, one each side, as the other areas' Safeties stand
+ * (docs/DIFFICULTY.md, f3: one in the middle let long plays through). They
+ * always hang deep (sim/run.ts places them at least past the first-down line).
+ */
+const owls = [d('safety', -3.5, 12), d('safety', 3.5, 12)];
 
 /** How an area looks: its turf, floor and sideline props (render/scenery.ts, render/field.ts). */
 export type Biome = 'forest' | 'candy' | 'farm';
@@ -142,7 +146,7 @@ export const FOREST: ArcadeArea = {
   intro: {
     name: 'A Quiet Clearing',
     boost: -10,
-    defenders: [d('rusher', -1.8, 1), d('cover', -6.3, 4), d('cover', 4.2, 5), owl],
+    defenders: [d('rusher', -1.8, 1), d('cover', -6.3, 4), d('cover', 4.2, 5), ...owls],
   },
   challenge: {
     name: 'Gnome Country',
@@ -152,7 +156,7 @@ export const FOREST: ArcadeArea = {
       d('cover', -6.3, 4),
       d('cover', 6.3, 5),
       d('zone', 2.8, 8),
-      owl,
+      ...owls,
     ],
   },
   gimmick: {
@@ -164,7 +168,7 @@ export const FOREST: ArcadeArea = {
       d('cover', 6.3, 4),
       d('bat', 2.1, 5),
       d('bat', 4.2, 11),
-      owl,
+      ...owls,
     ],
   },
 
@@ -181,7 +185,7 @@ export const FOREST: ArcadeArea = {
       d('cover', 3.5, 6),
       d('zone', -2.8, 9),
       d('bat', 1.4, 7),
-      d('safety', 0, 12),
+      ...owls,
     ],
   },
 };

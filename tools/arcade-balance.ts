@@ -55,6 +55,7 @@ import { litPlayers } from '../src/arcade/render/sweep';
 import {
   DownWatch,
   LONG_PLAY,
+  PickWatch,
   byStretch,
   isLong,
   quantile,
@@ -178,6 +179,8 @@ interface Tally {
   tipResults: Map<string, number>;
   /** Every down summed up, for long plays (docs/DIFFICULTY.md, "The long field"). */
   watch: DownWatch;
+  /** Draft picks taken by the time each area is reached (docs/DIFFICULTY.md, n1). */
+  picks: PickWatch;
 }
 
 const bump = <K>(m: Map<K, number>, k: K, by = 1): void => {
@@ -411,12 +414,13 @@ function count(
  * at random (it places itself: the sim's bestSpot); then Done. With `perks`
  * off, it skips (the never-upgrade baseline: the game itself has no Skip).
  */
-function draftPick(state: RunState, rng: Rng, scenario: Scenario): RunState {
+function draftPick(state: RunState, rng: Rng, scenario: Scenario, picks: PickWatch): RunState {
   if (!scenario.perks || state.offer.length === 0) {
     return dispatch(state, { type: 'skipDraft' }).state;
   }
-  const s = dispatch(state, { type: 'pick', offer: rng.int(0, state.offer.length - 1) }).state;
-  return s.phase === 'draft' ? dispatch(s, { type: 'skipDraft' }).state : s;
+  const r = dispatch(state, { type: 'pick', offer: rng.int(0, state.offer.length - 1) });
+  picks.step(state, r.events);
+  return r.state.phase === 'draft' ? dispatch(r.state, { type: 'skipDraft' }).state : r.state;
 }
 
 function playRun(seed: number, scenario: Scenario, t: Tally): void {
@@ -452,7 +456,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     // The down's stretch (docs/LONG_FIELD.md): the table counts downs from it, and those that won a series.
     const key = `${state.series.area}:${state.series.kind}`;
     if (state.phase === 'draft') {
-      state = draftPick(state, rng, scenario);
+      state = draftPick(state, rng, scenario, t.picks);
       continue;
     }
     if (state.phase === 'setup') {
@@ -473,6 +477,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       const hiked = dispatch(called, { type: 'hike' });
       count(t, hiked.events, state, ran);
       t.watch.step(state, hiked.state, hiked.events);
+      t.picks.step(state, hiked.events);
       state = hiked.state;
       continue;
     }
@@ -481,8 +486,10 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     if (r.events.some((e) => e.type === 'seriesWon')) bump(t.wins, key);
     count(t, r.events, state, ran);
     t.watch.step(state, r.state, r.events);
+    t.picks.step(state, r.events);
     state = r.state;
   }
+  t.picks.endRun();
   t.runs++;
   t.seriesWon += state.seriesWon;
   t.perRun.push(state.seriesWon);
@@ -571,6 +578,15 @@ function report(scenario: Scenario, t: Tally): void {
     );
   }
   longPlays(t.watch.downs);
+  {
+    const each = [...t.picks.onEntering.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([area, held]) => {
+        const mean = held.reduce((a, n) => a + n, 0) / held.length;
+        return `area ${area + 1} ${mean.toFixed(1)} (${held.length} runs)`;
+      });
+    console.log(`  draft picks taken on reaching each area: ${each.join(' · ')}`);
+  }
   console.log('  downs from each stretch that won a series:');
   [0, 1, 2].forEach((area) => {
     const row = SERIES_KINDS.map((k) => {
@@ -656,6 +672,7 @@ for (const scenario of SCENARIOS) {
     snagResults: new Map(),
     tipResults: new Map(),
     watch: new DownWatch(),
+    picks: new PickWatch(),
   };
   for (let seed = 1; seed <= RUNS; seed++) playRun(seed, scenario, t);
   report(scenario, t);

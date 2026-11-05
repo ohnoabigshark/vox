@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   DownWatch,
   LONG_PLAY,
+  PickWatch,
   byStretch,
   isLong,
   seriesSpread,
   stops,
 } from '../../tools/balanceCount';
-import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
+import type { ArcadeEvent, Perk, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, playState, stand } from '../arcade/helpers';
 
@@ -152,5 +153,37 @@ describe('balance counts for the long field', () => {
     const perRun = [7, 2, 9, 4, 12, 5, 6, 3, 8, 10];
     expect(seriesSpread(perRun)).toEqual({ p10: 3, median: 7, p90: 12, best: 12 });
     expect(seriesSpread([])).toEqual({ p10: 0, median: 0, p90: 0, best: 0 });
+  });
+
+  it('6: the draft picks a run has taken when it first snaps the ball in each area, among runs that reach it (n1)', () => {
+    const w = new PickWatch();
+    const inArea = (area: number): RunState => down({ area });
+    const perk: Perk = { rarity: 'common', kind: 'extraSweep' };
+    // A run that reaches area 3.
+    w.step(inArea(0), [{ type: 'snapped' }]);
+    w.step(inArea(0), [{ type: 'perk', perk }]);
+    // The draft after a touchdown is in front of the next area's first series; a new player is one pick, though it brings a `joined` too.
+    w.step(inArea(1), [
+      { type: 'perk', perk },
+      { type: 'joined', id: 9, name: 'Example', slot: 2, replaced: null },
+    ]);
+    w.step(inArea(1), [{ type: 'snapped' }]);
+    // Only the area's first snap counts.
+    w.step(inArea(1), [{ type: 'perk', perk }]);
+    w.step(inArea(1), [{ type: 'snapped' }]);
+    // Winning a series isn't a pick.
+    w.step(inArea(1), [{ type: 'seriesWon', stretch: 0 }]);
+    w.step(inArea(2), [{ type: 'snapped' }]);
+    w.endRun();
+    // A run that never leaves area 1.
+    w.step(inArea(0), [{ type: 'snapped' }]);
+    w.step(inArea(0), [{ type: 'perk', perk }]);
+    w.endRun();
+
+    expect([...w.onEntering.entries()]).toEqual([
+      [0, [0, 0]],
+      [1, [2]],
+      [2, [3]],
+    ]);
   });
 });

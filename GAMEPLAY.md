@@ -176,7 +176,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Runner** | 2 | Takes handoffs; on a pass, runs a short route past the line | **Hustle** |
 | **Catcher** | 3 | Gets open, catches | **Hands** |
 
-▲ *Up to eight defenders against them.*
+▲ *Up to nine defenders against them; in hard mode, up to twelve.*
 
 **The camera sits behind and above the QB**, lower than a top-down view: a third-person look down the field, like standing just behind your own line, always wide enough for both sidelines. It follows the play upfield. Every kind has to read from there at phone size.
 
@@ -233,7 +233,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Rusher** | Rhino Beetle | Charges the QB. Your Blockers have to out-shove it. |
 | **Cover** | Garden Gnome | Shadows a Catcher; after the catch, chases the carrier. Small, quick, light: easy to shove, hard to shake. |
 | **Zone** | Scarecrow | Planted: its long arms reach a **wide purple ring** on the turf, and any low ball coming down inside it is contested: its Hands beat a plain Catcher's, so it's a patch of field to throw away from (a Catcher with great Hands, like a Ghost, can still win it). Running into one stops you dead. |
-| **Safety** | Owl | Hangs deep, between the ball and the first-down line, and comes down to meet the carrier. *(In the Candy Queendom the Safety is a Witch.)* **Froggy's Forest has one, in the middle, shadowing your deepest player; the Candy Queendom and Frederick's Farm have two, one each side, each shadowing the deepest player on its half.** They line up deep (14 yards past the line), and once someone has the ball they **get between it and the end zone**, meeting the carrier head on. **A Safety's tackle is sure: no Break it!** Your blockers can still shove and pancake them. |
+| **Safety** | Owl | Hangs deep, between the ball and the first-down line, and comes down to meet the carrier. *(In the Candy Queendom the Safety is a Witch.)* **Every area has two, one each side, each shadowing the deepest player on its half** *(fork: Froggy's Forest had one, in the middle, until `docs/DIFFICULTY.md` f3)*. They line up deep (14 yards past the line), and once someone has the ball they **get between it and the end zone**, meeting the carrier head on. **A Safety's tackle is sure: no Break it!** Your blockers can still shove and pancake them. |
 | **Bat** | Bat | Guards its patch of air: it loops a square and swats passes that fly through it, and dives at a carrier that comes within 3 yards (back to its loop if the carrier gets away). |
 | **Frog** *(new)* | Frog | Covers like a Gnome until the carrier gets close, then crouches (the telegraph) and leaps onto it. |
 | **Gingerbread Man** *(Candy Queendom)* | Gingerbread Man | The Candy Queendom's Cover: the same rule, a new look. |

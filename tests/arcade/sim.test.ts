@@ -64,8 +64,9 @@ describe('a run', () => {
       'catcher',
       'catcher',
     ]);
-    // A Quiet Clearing's four, and the five patrols ahead (docs/DIFFICULTY.md, "The long field").
-    expect(s.field.defenders).toHaveLength(4 + 5);
+    // A Quiet Clearing's five (two Owls since f3), and the five patrols ahead
+    // (docs/DIFFICULTY.md, "The long field").
+    expect(s.field.defenders).toHaveLength(5 + 5);
   });
 
   it('deals different hands, with handoff cards among them', () => {

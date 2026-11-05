@@ -7,7 +7,7 @@ the item numbers below are the map's.
 
 ## What changes (hard mode: the default; `?hard=0` turns it off)
 
-- **Each series' own line-up stays** (d1): the hand-made defenses of 4 to 9
+- **Each series' own line-up stays** (d1): the hand-made defenses of 5 to 9
   defenders are esrauch's design. Only hard mode's extra defenders change.
 - **One extra defender a zone, at most 12 in a down's defense** (d2; since
   the long field the patrols ahead don't count), instead of
@@ -17,6 +17,7 @@ the item numbers below are the map's.
   | --- | --- | --- | --- | --- | --- | --- | --- |
   | Before | 8 | 11 | 13 | 14 | 17 | 19 | 20 |
   | After | 8 | 10 | 11 | 11 | 12 | 12 | 12 |
+  | Since the Forest's second Owl (f3) | 9 | 10 | 11 | 12 | 12 | 12 | 12 |
 
 - **Break it! keeps tightening past zone 3** (d3), a step a zone (a narrower
   sweet spot, slower mash fill, a shorter juke window), down to a floor where
@@ -83,7 +84,7 @@ carrier past the Safety ran clear to the goal. One down in five scored in
 normal mode, and one in eight in hard mode (bot, 40 runs). The user: "just
 the first level is a little too easy, I've had a few run plays that just go
 the distance". Planned by grilling on the decision map
-(https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), rounds 1 and 2,
+(https://claude.ai/artifact/QA9UrG4Tammp58npg1uP7v), rounds 1 to 5,
 2026-11-04. The item numbers below are the map's. This pass is the
 defenders only. The curses and events are parked in `PLAN.md` (c1, c2).
 
@@ -91,14 +92,20 @@ defenders only. The curses and events are parked in `PLAN.md` (c1, c2).
 
 For the bot, 40 runs each:
 
-- **Hard mode** (the default): touchdowns on about 5% of downs (12% now).
-- **Normal mode:** the game beaten in 75% of runs or fewer (83% now).
-  Touchdowns on about 8% of downs.
+- **Normal mode:** the game beaten in 75% of runs or fewer (83% before the
+  patrols).
+- _Dropped (g3):_ touchdowns on about 5% of hard mode's downs, and 8% of
+  normal mode's. Every area ends in a touchdown, most of them from the last
+  10 yards, so the rate a down mostly counts how many downs an area takes:
+  it held at 11–12% while long plays changed a lot.
 - **Areas cleared** stay near today's: 2.4 in hard mode, 2.7 in normal.
-- **Long plays that score:** 10–20% of downs gaining 20 yards or more end
-  in a touchdown. Before the patrols it was 64–77% (normal mode, with
-  handoffs and runs only). _User, 2026-11-04: "I def don't want that high a
-  % of long plays scoring. likely want it closer to like 10-20%."_
+- **Long plays are rare:** under 10% of downs in every area gain 20 yards
+  or more (t4). The Owls meet it: 5–9% in the Forest, 0–9% elsewhere.
+- _Dropped (t4):_ 10–20% of long plays scoring, which they did 64–77% of
+  the time before the patrols and about half the time after the Owls. The
+  user, after playing the Owls: "Long plays (20yds+) scoring 52% of the
+  time isn't actually so bad considering the field length." In their 3
+  runs, 2 of 59 downs went long.
 
 These numbers are a guide. The user's play decides.
 
@@ -179,6 +186,28 @@ the distance. Every comparison also runs it with handoffs
 Balance runs before and after, against the targets. The user plays it
 before it merges.
 
+## Two Owls in the Forest: `difficulty-3` (f3, r3, t3)
+
+Round 3 of the map, all approved, 2026-11-04.
+
+- **Every Forest stretch lines up two Owls,** at −3.5 and 3.5, as deep as
+  every Safety (`safetyDepth`), each shadowing your deepest player on its
+  half (f3). That is how the
+  Candy Queendom's and the Farm's Safeties already stand. The Forest had one
+  in the middle, and 13–20% of its downs went 20+ yards, against 0–7%
+  elsewhere. Each Forest defense has one more defender: the Clearing 5,
+  Gnome Country 6, Bat Cave 7, the Pond 9. The Intro's −10 and the Rhino
+  Beetle's fake stay, so the first level still starts gently near the line.
+- **The goal-line Owl is parked** (r3, then t4): it was to come if long
+  plays still scored more than 20% after the Owls. They score about half
+  the time, but the scoring target is dropped, so it waits in `PLAN.md`
+  in case breakaways come back.
+- **Tests, written first** (t3): every Forest stretch lines up two Safeties
+  at ±3.5; on the field each shadows the deepest player on its half; the
+  Candy Queendom's and the Farm's defenses are unchanged
+  (`tests/arcade/forestOwls.test.ts`). The extra Owl takes a body id, so the
+  seeded deals were re-recorded again.
+
 ## Balance: the patrols (difficulty-2)
 
 `npm run balance:arcade 40`, "A new player every time", normal and hard
@@ -215,3 +244,94 @@ What it says:
 The "broke clear of every defender" counts from these runs are left out. A
 bug counted the last down's scorer, still standing in the end zone, toward
 the next down (fixed in 5128f56, with a test).
+
+## Balance: two Owls in the Forest (difficulty-3)
+
+The same six scenarios, 40 runs each, 2026-11-04. Before is the patrols'
+"after" (main at 347e6e4 plays the same); after is 167be7c.
+
+| | Before | After |
+| --- | --- | --- |
+| Long plays (20+ yards), all six pooled | 234 | 164 |
+| Long plays that score, pooled | 50% | 52% |
+| Long plays, % of the Forest's downs (by scenario) | 13–20% | 5–9% |
+| Normal mode beaten (pass · handoffs · runs) | 78 · 73 · 88% | 95 · 88 · 85% |
+| Hard mode's series won a run (pass · handoffs · runs) | 6.9 · 7.0 · 6.0 | 8.2 · 8.2 · 6.5 |
+| Hard mode's series won at p10 (pass · handoffs · runs) | 3 · 3 · 2 | 4 · 4 · 2 |
+| Touchdowns from the Boss stretch | 61–74% | 64–80% |
+
+What it says:
+
+- **The Forest is in line now.** Its long plays fell from 13–20% of downs
+  to 5–9%, near the other areas' 0–9%, and long plays overall fell by
+  nearly a third.
+- **A long play still scores half the time,** so r3's condition (over 20%)
+  is met.
+- **The passing runs got easier, but not in the Forest.** Its stretches
+  were won about as often as before; the gains are in the Candy Queendom
+  and the Farm. A likely cause, not yet measured: every series won brings a
+  TRICK OR TREAT! pick, and a Forest won over several series, instead of by
+  one long touchdown, sends more new players into the later areas. Forty
+  runs are also noisy: each one deals other cards since the extra body id.
+  _Measured since (n1, below): not the picks._
+
+## Rounds 4 and 5: the picks, the bolt, then the release
+
+All approved, 2026-11-04.
+
+- **The picks are counted** (n1, m2): the balance report gives, for each
+  area, the draft picks (TRICK OR TREAT!) a run has taken by its first snap
+  there, averaged over the runs that reach it (`PickWatch` in
+  `tools/balanceCount.ts`). It tests whether more picks explain the passing
+  runs' easier later areas. Built on
+  `difficulty-3` before it merges; the game doesn't change.
+- **The mischief bolt: `difficulty-4`** (b1–b6), on its own branch after
+  `difficulty-3` merges, measured on its own and played before it merges.
+  Once the ball is snapped, whoever runs through a bolt first takes it,
+  yours or a defender: the same 50% faster for 3 seconds for both sides
+  (b1, the user: "Same for both."). Any defender moving on the field takes
+  one, Bats and Crows included; not a planted Scarecrow, one hanging onto
+  the carrier, or one lying down (b2). Slicks stay your side's trick (b3).
+  Nobody steers for a bolt, and the balance counts the bolts each side
+  takes (b4). Its tests (b6): a defender takes one after the snap and not
+  before; a planted, hanging or downed defender doesn't; defenders still
+  leave slicks; your side's pickup tests pass unchanged; the balance counts
+  bolts by side.
+- **Then the public release** (v1): the difficulty changes are finished
+  when `difficulty-3` and `difficulty-4` have merged and the user has
+  played both; the release goes out when the user says so. Normal mode
+  beaten in 95% of the passing bot's runs, against 75%, doesn't hold it.
+  The ideas logged on 2026-11-04 (the play-call levers, more passes
+  blocked or dropped, stats for Jack) come after the release, on a map of
+  their own.
+
+## Balance: the picks (n1)
+
+The same six scenarios, 40 runs each, 2026-11-05: main at 347e6e4 (before
+the Owls) and `difficulty-3` at cd0a3dc, both with the pick count. Each
+cell is the draft picks a run had taken by its first snap in the area,
+averaged over the runs that got there.
+
+| Scenario | Area 2, before → after | Area 3, before → after | Game beaten (normal) |
+| --- | --- | --- | --- |
+| Normal, pass | 2.5 → 2.6 | 5.4 → 5.6 | 78% → 95% |
+| Normal, handoffs | 2.4 → 3.0 | 5.1 → 6.1 | 73% → 88% |
+| Normal, runs | 2.2 → 2.6 | 4.9 → 5.1 | 88% → 85% |
+| Hard, pass | 2.5 → 2.6 | 5.7 → 5.8 | |
+| Hard, handoffs | 2.4 → 3.0 | 5.5 → 6.2 | |
+| Hard, runs | 2.2 → 2.6 | 4.9 → 5.8 | |
+
+What it says:
+
+- **The picks don't explain the passing runs.** Where normal mode got
+  easiest (pass, 78% to 95%), the Owls left the picks almost where they
+  were, a fifth of a player more by the third area. The likeliest cause is
+  noise: the extra Owl's body id deals every run other cards, so these are
+  different games, and 31 against 38 wins of 40 is only about two
+  standard errors apart: suggestive, not settled.
+- **With handoffs, the Forest is ground out:** about one more pick by the
+  third area, as guessed, though normal mode's wins rose there too.
+- Both sets repeat the earlier runs' headline numbers exactly (the runs are
+  seeded).
+- No action: normal mode's 75% target doesn't hold the release (v1), and
+  the bolt's runs (`difficulty-4`) measure it again.

@@ -9,8 +9,9 @@
  * - **The carrier** charges upfield in its lane, picking the emptiest lane
  *   itself (chooseLane).
  * - **Rushers** charge the QB. **Covers** trail their mark. **Scarecrows** are
- *   planted. **The Owl** hangs deep, level with your deepest player, and
- *   comes down to meet the carrier. **Bats** loop their square, diving at a
+ *   planted. **Safeties** (the Forest's Owls) hang deep, two to a defense,
+ *   each level with your deepest player on its half, and come down to meet
+ *   the carrier. **Bats** loop their square, diving at a
  *   carrier that comes close; **Crows** fly their lane. After the
  *   catch, everyone who moves chases the carrier; after a handoff, once the
  *   play fake wears off (fooled).

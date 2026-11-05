@@ -54,10 +54,11 @@ describe('hard mode', () => {
     const busiest = [0, 1, 2, 3, 4, 5, 6, 7].map(
       (area) => seriesDefense(hard, area, 3).defenders.length,
     );
-    expect(busiest).toEqual([8, 10, 11, 11, 12, 12, 12, 12]);
-    // Normal mode's own line-ups, the busiest series of each area, are as they were.
+    // The Forest's Pond has 9 since its second Owl (docs/DIFFICULTY.md, f3).
+    expect(busiest).toEqual([9, 10, 11, 12, 12, 12, 12, 12]);
+    // Normal mode's own line-ups, the busiest series of each area.
     expect([0, 1, 2].map((area) => seriesDefense(easy, area, 3).defenders.length)).toEqual([
-      8, 9, 9,
+      9, 9, 9,
     ]);
   });
 
