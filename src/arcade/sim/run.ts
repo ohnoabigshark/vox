@@ -3,6 +3,7 @@
  * steps (the snap, moving on after a series). Steps are advanced by step()
  * in step.ts. See GAMEPLAY.md, The Run, A Series and A Down.
  */
+import { newTally, noteGrowth } from './growth';
 import { AREAS, DEFENDERS, areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL } from '../content/playPool';
 import type { Play } from '../content/plays';
@@ -216,6 +217,8 @@ export function createRun(
     roster,
     bench: [],
     perks: noPerks(),
+    tally: newTally(),
+    gains: {},
     offer: [],
     field: {
       players: [],
@@ -421,6 +424,7 @@ export function dispatch(prev: RunState, action: Action): ArcadeResult {
       swap(state, action.a, action.b);
       break;
   }
+  noteGrowth(state, events);
   return { state, events };
 }
 

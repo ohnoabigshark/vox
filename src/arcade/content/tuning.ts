@@ -274,6 +274,29 @@ export const tuningDefaults = {
     recruitTotal: 200,
     recruitPerZone: 30,
   },
+  /** Growth from play (docs/REWARDS.md, z1): what each thing a player does adds to its stats. */
+  growth: {
+    /** A catch: the catcher's Hands… */
+    catch: 15,
+    /** …and this much more for a GREAT on SNAG IT! or the tip drill. */
+    catchGreat: 15,
+    /** The catcher's Hustle, for each whole yard it carried after the catch. */
+    yacPerYard: 1,
+    /** A rush of this many yards or more grows the carrier's Hustle… */
+    rushFrom: 10,
+    /** …by this, */
+    rush: 10,
+    /** …and this for each whole yard past it. */
+    rushPerYard: 1,
+    /** A GREAT on Break it!: the carrier's Hustle. */
+    breakGreat: 10,
+    /** A pancake: the blocker's Heft. */
+    pancake: 8,
+    /** A Blocker who touched a defender on a down that gains: its Heft. */
+    blockHeld: 3,
+    /** No stat grows past this from play (z2). */
+    ceiling: 150,
+  },
   trickOrTreat: {
     /**
      * After taking a recruit, set your lineup (tap any two players to swap

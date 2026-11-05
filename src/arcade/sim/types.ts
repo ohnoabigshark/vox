@@ -80,6 +80,30 @@ export interface Defender extends BodyBase {
 
 export type Body = Player | Defender;
 
+/**
+ * Growth from play (docs/REWARDS.md): what one down has done that grows a
+ * player, each by its field slot (0-6; Jack never grows). Built from the
+ * down's events as they happen, and spent when it ends.
+ */
+export interface DownTally {
+  /** Who caught the ball, and where (y), for its yards after the catch. */
+  catch: { readonly slot: number; readonly at: number } | null;
+  /** Who the catch test under way is for, until it's graded. */
+  testFor: number | null;
+  /** A GREAT on SNAG IT! or the tip drill, once for each. */
+  catchGreats: number[];
+  /** Who took the handoff. */
+  rusher: number | null;
+  /** Who was grabbed last: the one a Break it! is for. */
+  grabbed: number | null;
+  /** A GREAT on Break it!, once for each. */
+  breakGreats: number[];
+  /** A pancake, once for each. */
+  pancakes: number[];
+  /** The Blockers who touched a defender this down, once each. */
+  held: number[];
+}
+
 export type Ball =
   | { readonly at: 'qb' }
   | {
@@ -453,6 +477,10 @@ export interface RunState {
   bench: RosterPlayer[];
   /** What the perks taken so far add up to. */
   perks: Perks;
+  /** Growth from play (docs/REWARDS.md): what this down has done so far, by slot… */
+  tally: DownTally;
+  /** …and what each player has gained since the last TRICK OR TREAT!, by its id (Your team shows it). */
+  gains: Record<number, Stats>;
   /** TRICK OR TREAT!: the three perks on offer… */
   offer: Perk[];
   field: Field;
@@ -524,6 +552,8 @@ export type ArcadeEvent =
     }
   | { readonly type: 'incomplete'; readonly at: Vec }
   | { readonly type: 'pancake'; readonly blocker: number; readonly defender: number }
+  /** Growth from play: a player (by its roster id) gained this much of a stat from the down just ended. */
+  | { readonly type: 'grew'; readonly id: number; readonly stat: keyof Stats; readonly by: number }
   /** A defender grabbed the carrier: Break it! starts. */
   | { readonly type: 'grabbed'; readonly id: number; readonly by: readonly number[] }
   /** Second Wind (a perk) turned this Break it!'s BAD into a drag: the breakResult that follows says drag. */
