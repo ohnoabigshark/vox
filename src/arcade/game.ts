@@ -496,6 +496,8 @@ export class ArcadeGame {
     const prev = this.state;
     const { state, events } = dispatch(prev, action);
     this.state = state;
+    // HIKE! clears the selection (docs/SELECT.md, s1).
+    if (action.type === 'hike') this.selected = null;
     this.after(events, prev);
     this.syncHud();
   }
@@ -639,7 +641,7 @@ export class ArcadeGame {
 
   private draw(dt: number): void {
     const { state } = this;
-    const selected = keptSelection(state, this.selected);
+    const selected = this.selectionNow();
     this.lines.update(state.series, this.origin);
     this.routes.update(state, this.origin, this.previewPlayers(), selected);
     this.names.update(
@@ -850,6 +852,8 @@ export class ArcadeGame {
       this.hud.setDowns(null);
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
+      this.hud.setSelected(null);
+      this.hud.setNamesSwitch(null);
       this.hud.setPrompt(null, null);
       return;
     }
@@ -858,6 +862,8 @@ export class ArcadeGame {
       this.hud.setDowns(null);
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
+      this.hud.setSelected(null);
+      this.hud.setNamesSwitch(null);
       this.hud.setPrompt(null, null);
       return;
     }
@@ -880,12 +886,11 @@ export class ArcadeGame {
     this.hud.setDraft(
       ready && phase === 'draft' ? trickOrTreatView(this.state, this.swapFrom) : null,
     );
-    // The selected player's card takes "Pick a play"'s place (s3); HIKE! clears it.
-    this.selected = keptSelection(this.state, this.selected);
-    const before = ready && phase === 'setup';
-    this.hud.setSelected(before ? selectedCard(this.state, this.selected) : null);
-    this.hud.setNamesSwitch(before ? this.namesOn : null);
-    const pick = called === null && this.selected === null ? 'Pick a play' : null;
+    // The selected player's card takes "Pick a play"'s place (s3).
+    const selected = this.selectionNow();
+    this.hud.setSelected(selectedCard(this.state, selected));
+    this.hud.setNamesSwitch(this.beforeSnap() ? this.namesOn : null);
+    const pick = called === null && selected === null ? 'Pick a play' : null;
     if (!this.live) this.hud.setPrompt(null, null);
     else if (this.paused) this.hud.setPrompt('Paused', 'RESUME');
     else if (phase === 'setup') this.hud.setPrompt(pick, called === null ? null : 'HIKE!');
@@ -898,7 +903,7 @@ export class ArcadeGame {
 
   /** Before the snap, a tap on the field: select the one of your seven it's on, or clear it (docs/SELECT.md, s1). */
   private onFieldTap(e: PointerEvent): void {
-    if (!this.live || this.paused || this.intro || this.state.phase !== 'setup') return;
+    if (!this.beforeSnap()) return;
     const canvas = this.view.canvas;
     const rect = canvas.getBoundingClientRect();
     const points = fieldPoints(this.state, (pos) => {
@@ -909,6 +914,16 @@ export class ArcadeGame {
     const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top });
     this.selected = tapSelect(this.selected, hit);
     this.syncHud();
+  }
+
+  /** Before the snap, with the game in your hands: the only time a selection shows or a tap makes one (review x5). */
+  private beforeSnap(): boolean {
+    return this.live && !this.paused && !this.intro && !this.outro && this.state.phase === 'setup';
+  }
+
+  /** The selection as it shows now, for the routes, the names and the card alike: null but before the snap. */
+  private selectionNow(): number | null {
+    return this.beforeSnap() ? keptSelection(this.state, this.selected) : null;
   }
 
   /** Aa: the names on the field on or off, remembered on the phone (n2, n3). */
