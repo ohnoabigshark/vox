@@ -48,7 +48,7 @@ const game = new ArcadeGame(canvas, ui, {
   ...modes,
   snagAlways: params.get('snag') === '1',
   tipAlways: params.get('tip') === '1',
-  perks: params.get('perks') === '1',
+  startWithPerks: params.get('perks') === '1',
   farmSong: Number(params.get('farmSong')) || 1,
   ...(practice ? { practice } : {}),
   ...(eventPractice ? { eventPractice } : {}),

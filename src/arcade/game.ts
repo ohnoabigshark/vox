@@ -126,7 +126,7 @@ export interface ArcadeOptions {
   /** SNAG IT! from the first series (?snag=1), not only from series 5 (docs/SNAG.md). */
   snagAlways?: boolean;
   /** ?perks=1: start holding every perk TRICK OR TREAT! offers (docs/REWARDS.md, o4). */
-  perks?: boolean;
+  startWithPerks?: boolean;
   /** The tip drill from the first series (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
   tipAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
@@ -193,7 +193,7 @@ export class ArcadeGame {
   private readonly hard: boolean;
   private readonly twoTapAim: boolean;
   private readonly snagAlways: boolean;
-  private readonly perks: boolean;
+  private readonly startWithPerks: boolean;
   private readonly tipAlways: boolean;
   /**
    * Practice: a sketch's play and its key in the play editor (‹ Sketch), or a
@@ -283,7 +283,7 @@ export class ArcadeGame {
     this.hard = options.hard ?? false;
     this.twoTapAim = options.twoTapAim ?? false;
     this.snagAlways = options.snagAlways ?? false;
-    this.perks = options.perks ?? false;
+    this.startWithPerks = options.startWithPerks ?? false;
     this.tipAlways = options.tipAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
@@ -952,7 +952,7 @@ export class ArcadeGame {
       snagAlways: this.snagAlways,
       tipAlways: this.tipAlways,
       playbook: startingPlaybook(sketches),
-      perks: this.perks,
+      startWithPerks: this.startWithPerks,
     });
   }
 

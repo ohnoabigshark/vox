@@ -170,7 +170,7 @@ export function createRun(
     /** The plays it deals from; the starting playbook if not given (event practice: the whole pool). */
     readonly playbook?: readonly Play[];
     /** ?perks=1 (docs/REWARDS.md, o4): start holding every perk TRICK OR TREAT! offers. */
-    readonly perks?: boolean;
+    readonly startWithPerks?: boolean;
     /**
      * Practice (the play editor's Try it): this play is the whole playbook,
      * called at every setup, and every rep lines up the same spot again.
@@ -260,7 +260,7 @@ export function createRun(
   state.seriesWon = area * SERIES_KINDS.length;
   setUpSeries(state, area, 0, [], true);
   // ?perks=1 (o4): every perk TRICK OR TREAT! offers, from the start.
-  if (options.perks) for (const perk of OFFERED_PERKS) applyPerk(state.perks, perk);
+  if (options.startWithPerks) for (const perk of OFFERED_PERKS) applyPerk(state.perks, perk);
   return state;
 }
 

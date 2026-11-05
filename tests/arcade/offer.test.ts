@@ -66,7 +66,7 @@ describe('the offer (t2)', () => {
 
   it('3. when plays and perks have run out, all three cards are players', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      const s = createRun(seed, undefined, 0, { playbook: PLAY_POOL, perks: true });
+      const s = createRun(seed, undefined, 0, { playbook: PLAY_POOL, startWithPerks: true });
       const { offer } = atDraft(seed, s);
       expect(offer.map((c) => c.kind)).toEqual(['player', 'player', 'player']);
       expect(new Set(offer.map(what)).size).toBe(3);
@@ -140,7 +140,7 @@ describe('the offer (t2)', () => {
   });
 
   it('9. ?perks=1 starts a run holding both perks', () => {
-    const s = createRun(1, undefined, 0, { perks: true });
+    const s = createRun(1, undefined, 0, { startWithPerks: true });
     expect(s.perks.secondWind).toBe(true);
     expect(s.perks.magnet).toBe(true);
     expect(createRun(1).perks.secondWind).toBe(false);
