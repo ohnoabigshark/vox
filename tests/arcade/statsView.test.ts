@@ -103,9 +103,9 @@ const downs = [
 describe('the Game Over card (v1)', () => {
   const card = cardView(record('a', downs), null, []);
 
-  it('how far: the area’s name and the series, and the downs played', () => {
+  it('how far: the area’s name and the series, and the plays run', () => {
     expect(card.title).toBe('Game Over!');
-    expect(card.sub).toBe('Candy Queendom · Broomstick Alley · 7 downs');
+    expect(card.sub).toBe('Candy Queendom · Broomstick Alley · 7 plays');
   });
 
   it('first downs, touchdowns, passing, rushes and yards; yards whole', () => {
@@ -159,7 +159,7 @@ describe('the Game Over card (v1)', () => {
       null,
       [],
     );
-    expect(c.sub).toBe('Candy Queendom · round 2 · Gumdrop Lane · 0 downs');
+    expect(c.sub).toBe('Candy Queendom · round 2 · Gumdrop Lane · 0 plays');
   });
 
   it('a win (v3): its own title, all three areas', () => {
@@ -172,7 +172,7 @@ describe('the Game Over card (v1)', () => {
       [],
     );
     expect(c.title).toBe('You got Jack back!');
-    expect(c.sub).toBe('All 3 areas · 7 downs');
+    expect(c.sub).toBe('All 3 areas · 7 plays');
   });
 });
 
@@ -197,6 +197,13 @@ describe('a run’s stats (v2)', () => {
     const mags = view.players.find((p) => p.name === 'Mags')!;
     expect(mags.details).toContainEqual({ label: 'Longest rush', value: '10', record: false });
     expect(mags.details).toContainEqual({ label: 'Touchdowns', value: '1', record: false });
+  });
+
+  it('the screens count plays, not downs; a first down keeps its name (user, 2026-11-05)', () => {
+    const labels = view.team.find((s) => s.title === 'How far')!.rows.map((r) => r.label);
+    expect(labels).toContain('Plays');
+    expect(labels).toContain('First downs');
+    expect(labels).not.toContain('Downs');
   });
 
   it('Team: the run’s stats in sections; rushing says rushes', () => {
@@ -286,6 +293,11 @@ describe('the stats section (v5)', () => {
       value: '12 · Nov 1',
       record: false,
     });
+    // Plays, not downs (the user, 2026-11-05); a first down keeps its name.
+    const totals = all.sections[3]!.rows.map((r) => r.label);
+    expect(totals).toContain('Plays');
+    expect(totals).toContain('First downs');
+    expect(totals).not.toContain('Downs');
   });
 
   it('a mode with a win: the furthest is the win', () => {

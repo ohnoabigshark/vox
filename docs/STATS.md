@@ -128,7 +128,9 @@ among plays called at least 3 times, a tie going to the one called more
 **The run's stats** (s1, w1):
 
 - how far: the drive reached (its area's name) and the series, whether the
-  run was won (normal mode only), downs played, first downs, touchdowns
+  run was won (normal mode only), plays (each down's play, so the downs
+  played; the screens say plays, the user, 2026-11-05), first downs,
+  touchdowns
 - passing: passes and completions, completion rate, passing yards, air
   yards, the longest pass play
 - rushing: rushes, rushing yards, yards per rush, the longest rush; rushes
@@ -333,7 +335,7 @@ draws a play small. Settled while building:
   first run in a mode breaks none. The card waits for the run to close
   and compares it with what was kept before; a run that couldn't be kept
   still gets its card.
-- **The card also shows** the downs played (beside how far), the run's
+- **The card also shows** the plays run (beside how far), the run's
   yards, and a single player's best run as its own row when it broke a
   record (best receiving, rushing or blocking run).
 - **The stats section says which it is:** loading, can't be read, or no
