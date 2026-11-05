@@ -417,6 +417,10 @@ Open, for when the first new theme or set is planned:
   1. **Keep main's results** (first): the six-scenario script moves into
      `tools/`, and each baseline is kept under a key of main's commit, the
      tool's code and the run count, so only the branch side runs.
+     _Built 2026-11-05 on `balance-speed`: `npm run balance:compare`
+     (`tools/balance-compare.ts`), its reports in `.balance/`. Main runs
+     with the branch's balance tool, so a change to what the report counts
+     runs main again once._
   2. **Step in place in the balance tool:** `step()` becomes a copy plus a
      new `stepInPlace()`; the tool and its lookahead call `stepInPlace`
      (the lookahead copies once, not up to 121 times), noting the few

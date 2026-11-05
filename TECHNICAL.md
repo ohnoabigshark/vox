@@ -353,6 +353,7 @@ Everything a future session (human or Claude) needs to carry on without the orig
 | `npm run check` | Lint, Prettier check, typecheck, tests, asset-license check. **Run before every commit.** |
 | `npm run build` / `build:release` | The build with dev pages included (for phone testing) / without them. |
 | `npm run balance:arcade [runs]` | Headless balance runs (§17). E.g. `BOT='{"runOnly":true}' BALANCE_SCENARIO='{"name":"runs"}' npm run balance:arcade 24`. |
+| `npm run balance:compare [runs]` | This checkout's balance against main's: the six difficulty scenarios (normal and hard mode, each with the passing, mixed and running bot; default 40 runs each) on both sides, sharing the cores. Main's reports are kept in `.balance/` (gitignored) under a key of main's commit, the balance tool's code and the run count, so the next comparison runs only this side. Run it from the branch's checkout or worktree. |
 | `npm run preview-models [ids…]` | Headless PNG turntables → `previews/<id>.png`, plus a contact sheet per folder. |
 | `npm run screenshot [seed] [setup\|call\|play] [query] [name]` | A headless phone-size (375×812 @2x) capture → `previews/game.png`, `game-call.png` (a card called, routes drawn) or `game-play.png` (just after HIKE!). |
 | `npm run render-audio [song:id \| stem:song/stem \| sfx:id …]` | WAVs and waveform PNGs in `previews/audio/`, with levels and a loop-seam check. |
@@ -373,7 +374,7 @@ Everything a future session (human or Claude) needs to carry on without the orig
 ### Testing changes
 
 - **Rule changes:** add or adjust a sim test first. `tests/arcade/helpers.ts` has `playState(players, defenders)` (a down already snapped with exactly these bodies: the QB at (0, −4) with the ball, players from id 2, defenders from id 100, scrimmage 0, first down 10), plus `run(state, seconds, input)`, `carry`, `stand`, `throwAt` (times the sweep so the next THROW goes at a point), `tapAt` and `untilGrabbed` for Break it!, `body` and `ofType`. `forceBreakKind` (in `step.ts`) picks the next Break it! test.
-- **Balance changes:** compare a few dozen runs of `npm run balance:arcade` before and after, with the same scenario and bot.
+- **Balance changes:** `npm run balance:compare` from the branch (main's side is reused when kept), or a few dozen runs of `npm run balance:arcade` before and after, with the same scenario and bot.
 - **Visual changes:** `npm run check`, then a look in the browser (the user's, or a headless one when asked).
 
 ### Gotchas
