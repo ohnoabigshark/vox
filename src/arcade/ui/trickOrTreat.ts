@@ -66,8 +66,8 @@ function perkFace(perk: Perk): { name: string; blurb: string; icon: string } {
     case 'extraSweep':
     case 'slowSweep':
     case 'hotArm':
-      // Parked: never offered (docs/REWARDS.md, k2, k3).
-      return { name: perk.kind, blurb: '', icon: '' };
+      // Parked: never offered (docs/REWARDS.md, k2, k3). One that is has no card yet.
+      throw new Error(`No card for the perk ${perk.kind}: it is parked, and not in OFFERED_PERKS`);
     default:
       return assertNever(perk);
   }

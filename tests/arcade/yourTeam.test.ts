@@ -105,4 +105,10 @@ describe('Your team (t1, 13)', () => {
       a,
     ]);
   });
+
+  it('a parked perk on offer is an error naming it, not a blank card (review v5)', () => {
+    const s = atDraft();
+    s.offer = [{ kind: 'perk', perk: { kind: 'hotArm', rarity: 'common' } }];
+    expect(() => trickOrTreatView(s, null)).toThrow(/hotArm/);
+  });
 });
