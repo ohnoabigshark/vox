@@ -69,6 +69,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   two new players (the **offer**), then sees **Your team**. In code it's the
   **draft** (`phase: 'draft'`). Use "the draft" in docs and code, so it
   can't be confused with a trick or a treat on the field.
+- **Offer card** _(ours)_: one TRICK OR TREAT! card: a new player, or a
+  **perk** (`OfferCard`). The offer is the cards on show.
+- **Perk:** a card that changes how your team plays for the rest of the
+  run: Second Wind, Candy Corn Magnet (`Perk`; esrauch's word). Not a new
+  player, and not a pickup on the field.
 - **Your team** _(ours)_: the draft once the pick is made: the roster, each
   player's growth since the last TRICK OR TREAT! on its bars, then PLAY ON.
   In hard mode it's where players are swapped (`docs/REWARDS.md`, v2).

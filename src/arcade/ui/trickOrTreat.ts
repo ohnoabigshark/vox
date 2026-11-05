@@ -9,8 +9,8 @@ import { POSITION_STAT, ROSTER_ROLES } from '../content/team';
 import { atSpot, BENCH_START, fieldedStats, playerStats, setsLineup } from '../sim/team';
 import { STAT_ORDER } from '../sim/stats';
 import { kindIcon } from './kindIcons';
-import type { Form, Perk, Position, RosterPlayer, RunState, Stats } from '../sim/types';
-import type { DraftView, OfferCard, RosterRow, StatBar } from '../../ui/hud';
+import type { Form, OfferCard, Position, RosterPlayer, RunState, Stats } from '../sim/types';
+import type { DraftView, OfferFace, RosterRow, StatBar } from '../../ui/hud';
 
 const STAT: Readonly<Record<keyof Stats, string>> = {
   hustle: 'Hustle',
@@ -45,9 +45,9 @@ const slotPosition = (slot: number): Position => {
 };
 
 /** A new player on offer, as a player card. */
-function offerCard(state: RunState, perk: Perk): OfferCard | null {
-  if (perk.kind !== 'recruit') return null;
-  const p = perk.player;
+function offerFace(state: RunState, card: OfferCard): OfferFace | null {
+  if (card.kind !== 'recruit') return null;
+  const p = card.player;
   return {
     title: 'New Player!',
     player: {
@@ -72,7 +72,7 @@ export function trickOrTreatView(state: RunState, selected: number | null): Draf
       screen: 'offer',
       title: 'TRICK OR TREAT!',
       lead: 'Choose a player to join your team',
-      offer: state.offer.map((p) => offerCard(state, p)).filter((c): c is OfferCard => c !== null),
+      offer: state.offer.map((c) => offerFace(state, c)).filter((f): f is OfferFace => f !== null),
       roster: [],
       bench: [],
       hand: null,

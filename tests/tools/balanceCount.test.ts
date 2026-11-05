@@ -11,7 +11,7 @@ import {
   seriesSpread,
   stops,
 } from '../../tools/balanceCount';
-import type { ArcadeEvent, Perk, RunState } from '../../src/arcade/sim/types';
+import type { ArcadeEvent, OfferCard, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, playState, stand } from '../arcade/helpers';
 
@@ -162,18 +162,18 @@ describe('balance counts for the long field', () => {
   it('6: the draft picks a run has taken when it first snaps the ball in each area, among runs that reach it (n1)', () => {
     const w = new PickWatch();
     const inArea = (area: number) => noteBefore(down({ area }));
-    const perk: Perk = { rarity: 'common', kind: 'extraSweep' };
+    const card: OfferCard = { kind: 'perk', perk: { rarity: 'common', kind: 'extraSweep' } };
     // A run that reaches area 3.
     w.step(inArea(0), [{ type: 'snapped' }]);
-    w.step(inArea(0), [{ type: 'perk', perk }]);
+    w.step(inArea(0), [{ type: 'picked', card }]);
     // The draft after a touchdown is in front of the next area's first series; a new player is one pick, though it brings a `joined` too.
     w.step(inArea(1), [
-      { type: 'perk', perk },
+      { type: 'picked', card },
       { type: 'joined', id: 9, name: 'Example', slot: 2, replaced: null },
     ]);
     w.step(inArea(1), [{ type: 'snapped' }]);
     // Only the area's first snap counts.
-    w.step(inArea(1), [{ type: 'perk', perk }]);
+    w.step(inArea(1), [{ type: 'picked', card }]);
     w.step(inArea(1), [{ type: 'snapped' }]);
     // Winning a series isn't a pick.
     w.step(inArea(1), [{ type: 'seriesWon', stretch: 0 }]);
@@ -181,7 +181,7 @@ describe('balance counts for the long field', () => {
     w.endRun();
     // A run that never leaves area 1.
     w.step(inArea(0), [{ type: 'snapped' }]);
-    w.step(inArea(0), [{ type: 'perk', perk }]);
+    w.step(inArea(0), [{ type: 'picked', card }]);
     w.endRun();
 
     expect([...w.onEntering.entries()]).toEqual([

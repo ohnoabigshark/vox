@@ -6,7 +6,13 @@ import { forceBreakKind } from '../../src/arcade/sim/step';
 import { ZONE_OFFER } from '../../src/arcade/content/perks';
 import { POSITION_STAT, ROSTER_ROLES } from '../../src/arcade/content/team';
 import { applyPerk, noPerks, playerStats, rollOffer } from '../../src/arcade/sim/team';
-import type { ArcadeEvent, Perk, RunState } from '../../src/arcade/sim/types';
+import type {
+  ArcadeEvent,
+  OfferCard,
+  Perk,
+  RosterPlayer,
+  RunState,
+} from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, ofType, playState, run, stand, tapAt, throwAt, untilGrabbed } from './helpers';
 
@@ -19,10 +25,11 @@ const atDraft = (seed = 3): RunState => {
   return s;
 };
 
-/** A run at TRICK OR TREAT! with this perk on offer first. */
-const offering = (perk: Perk): RunState => {
+/** A run at TRICK OR TREAT! with this card on offer first: a perk, or a new player. */
+const offering = (card: Perk | { kind: 'recruit'; player: RosterPlayer }): RunState => {
   const s = atDraft();
-  s.offer = [perk, ...s.offer.slice(1)];
+  const first: OfferCard = card.kind === 'recruit' ? card : { kind: 'perk', perk: card };
+  s.offer = [first, ...s.offer.slice(1)];
   return s;
 };
 
@@ -32,7 +39,6 @@ describe('TRICK OR TREAT!', () => {
       const s = atDraft(seed);
       expect(s.phase).toBe('draft');
       expect(s.offer).toHaveLength(2);
-      for (const p of s.offer) expect(['common', 'rare', 'epic']).toContain(p.rarity);
     }
   });
 
@@ -138,7 +144,7 @@ describe('TRICK OR TREAT!', () => {
   };
 
   const take = (player: typeof boo) =>
-    dispatch(offering({ rarity: 'common', kind: 'recruit', player }), { type: 'pick', offer: 0 });
+    dispatch(offering({ kind: 'recruit', player }), { type: 'pick', offer: 0 });
 
   it('a new player goes straight into the slot it improves most, a slot it prefers on a tie', () => {
     // 200 in all against seven plain 150s: it beats them all by the same, so it goes to a Catcher slot.
@@ -165,7 +171,6 @@ describe('TRICK OR TREAT!', () => {
 
   it('it goes in for the weakest player, wherever it plays', () => {
     const s = offering({
-      rarity: 'common',
       kind: 'recruit',
       player: { ...boo, stats: { hustle: 60, hands: 100, heft: 40 } },
     });
@@ -182,7 +187,6 @@ describe('TRICK OR TREAT!', () => {
 
   it('the bench has no limit, and the newest sit at the top', () => {
     const s = offering({
-      rarity: 'common',
       kind: 'recruit',
       player: { ...boo, stats: { hustle: 60, hands: 100, heft: 40 } },
     });

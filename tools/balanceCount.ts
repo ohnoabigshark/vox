@@ -158,7 +158,7 @@ export class PickWatch {
   step(before: NotedBefore, events: readonly ArcadeEvent[]): void {
     const { area } = before.series;
     for (const e of events) {
-      if (e.type === 'perk') this.taken++;
+      if (e.type === 'picked') this.taken++;
       if (e.type === 'snapped' && area > this.reached) {
         this.reached = area;
         this.onEntering.set(area, [...(this.onEntering.get(area) ?? []), this.taken]);

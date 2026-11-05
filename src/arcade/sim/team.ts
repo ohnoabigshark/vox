@@ -9,7 +9,16 @@ import { BASE_STATS, FORM_STATS, POSITION_STAT, ROSTER_ROLES } from '../content/
 import type { Rng } from '../../sim/rng';
 import { rngFor } from './random';
 import { even, plus, ZERO } from './stats';
-import type { Form, Perk, Perks, Position, RosterPlayer, RunState, Stats } from './types';
+import type {
+  Form,
+  OfferCard,
+  Perk,
+  Perks,
+  Position,
+  RosterPlayer,
+  RunState,
+  Stats,
+} from './types';
 
 const STATS: readonly (keyof Stats)[] = ['hustle', 'hands', 'heft'];
 const KINDS: readonly Form[] = ['human', 'ghost', 'golem', 'werewolf'];
@@ -92,7 +101,7 @@ export function bestSpot(state: RunState, recruit: RosterPlayer): number | null 
  * their stats adding up to the zone's total (ZONE_OFFER, by the zone of the
  * series about to be played).
  */
-export function rollOffer(state: RunState): Perk[] {
+export function rollOffer(state: RunState): OfferCard[] {
   const rng = rngFor(state.seed, 'perks', state.seriesWon);
   const zone = ZONE_OFFER[Math.min(state.series.area, ZONE_OFFER.length - 1)] ?? ZONE_OFFER[0];
   if (!zone) return [];
@@ -105,7 +114,6 @@ export function rollOffer(state: RunState): Perk[] {
   // Whichever is taken is the team's next player (the team only grows).
   const id = state.roster.length + state.bench.length + 1;
   return [first, second].map((kind) => ({
-    rarity: 'common',
     kind: 'recruit',
     player: state.hard
       ? slowHands(makeRecruit(rng, id, total, kind), total)
@@ -200,8 +208,6 @@ export function applyPerk(perks: Perks, perk: Perk): void {
       break;
     case 'hotArm':
       perks.throwScale *= 2;
-      break;
-    case 'recruit':
       break;
   }
 }

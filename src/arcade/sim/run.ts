@@ -492,16 +492,16 @@ function hike(state: RunState, events: ArcadeEvent[]): void {
  * (Any other perk applies, and Your team comes up the same way.)
  */
 function pick(state: RunState, index: number, events: ArcadeEvent[]): void {
-  const perk = state.offer[index];
-  if (state.phase !== 'draft' || !perk) return;
-  events.push({ type: 'perk', perk });
+  const card = state.offer[index];
+  if (state.phase !== 'draft' || !card) return;
+  events.push({ type: 'picked', card });
   state.offer = [];
-  if (perk.kind !== 'recruit') {
-    applyPerk(state.perks, perk);
+  if (card.kind === 'perk') {
+    applyPerk(state.perks, card.perk);
     relineTeam(state);
     return;
   }
-  const recruit = perk.player;
+  const recruit = card.player;
   const slot = bestSpot(state, recruit);
   const replaced = slot === null ? null : (state.roster[slot] ?? null);
   if (slot !== null) state.roster[slot] = recruit;

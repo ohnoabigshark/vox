@@ -72,7 +72,7 @@ export interface PlayerCard {
 }
 
 /** One card of TRICK OR TREAT!'s offer: a big title over a player card. */
-export interface OfferCard {
+export interface OfferFace {
   /** "New Player!". */
   readonly title: string;
   readonly player: PlayerCard;
@@ -86,7 +86,7 @@ export interface DraftView {
   readonly title: string;
   /** …and a plain line under it saying what to do, or null. */
   readonly lead: string | null;
-  readonly offer: readonly OfferCard[];
+  readonly offer: readonly OfferFace[];
   /** The players on the field, in lineup order… */
   readonly roster: readonly RosterRow[];
   /** …and the bench, newest first. */
@@ -380,7 +380,7 @@ function emptyBench(): HTMLElement {
 }
 
 /** An offer card: its big title, then the player card; tap to take it. */
-function offerButton(card: OfferCard, onTap: () => void): HTMLElement {
+function offerButton(card: OfferFace, onTap: () => void): HTMLElement {
   const el = document.createElement('button');
   el.className = 'hud-offer interactive';
   el.addEventListener('click', onTap);

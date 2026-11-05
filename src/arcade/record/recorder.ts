@@ -270,7 +270,7 @@ export class RunRecorder {
       case 'crowsStruck':
       case 'outOfBounds':
       case 'seriesWon':
-      case 'perk':
+      case 'picked':
       case 'eventTackled':
       case 'slipped':
       case 'seriesStarted':

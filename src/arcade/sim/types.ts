@@ -366,7 +366,11 @@ export interface RosterPlayer {
 /** How rare a perk is: how often it turns up. */
 export type Rarity = 'common' | 'rare' | 'epic';
 
-/** A TRICK OR TREAT! perk (GAMEPLAY.md, Building Up). */
+/**
+ * A perk (CONTEXT.md): a TRICK OR TREAT! card that changes how your team
+ * plays for the rest of the run. esrauch's pool; Second Wind and Candy Corn
+ * Magnet are offered (docs/REWARDS.md, k6), the rest are parked.
+ */
 export type Perk = { readonly rarity: Rarity } & (
   | { readonly kind: 'allStat'; readonly stat: keyof Stats; readonly amount: number }
   | {
@@ -380,8 +384,12 @@ export type Perk = { readonly rarity: Rarity } & (
   | { readonly kind: 'secondWind' }
   | { readonly kind: 'magnet' }
   | { readonly kind: 'hotArm' }
-  | { readonly kind: 'recruit'; readonly player: RosterPlayer }
 );
+
+/** An offer card (CONTEXT.md): one TRICK OR TREAT! card, a new player or a perk. */
+export type OfferCard =
+  | { readonly kind: 'recruit'; readonly player: RosterPlayer }
+  | { readonly kind: 'perk'; readonly perk: Perk };
 
 /** Everything the perks taken so far add up to. */
 export interface Perks {
@@ -481,8 +489,8 @@ export interface RunState {
   tally: DownTally;
   /** …and what each player has gained since the last TRICK OR TREAT!, by its id (Your team shows it). */
   gains: Record<number, Stats>;
-  /** TRICK OR TREAT!: the three perks on offer… */
-  offer: Perk[];
+  /** TRICK OR TREAT!: the cards on offer (none once one is taken: Your team)… */
+  offer: OfferCard[];
   field: Field;
   /** When this down was snapped (sim time). */
   snappedAt: number;
@@ -586,7 +594,8 @@ export type ArcadeEvent =
   | { readonly type: 'outOfBounds'; readonly id: number }
   | { readonly type: 'downEnded'; readonly result: DownResult; readonly gained: number }
   | { readonly type: 'seriesWon'; readonly stretch: number }
-  | { readonly type: 'perk'; readonly perk: Perk }
+  /** A TRICK OR TREAT! card was taken. */
+  | { readonly type: 'picked'; readonly card: OfferCard }
   | {
       readonly type: 'joined';
       readonly id: number;
