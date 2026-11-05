@@ -12,7 +12,14 @@ import { STAT_ORDER } from '../sim/stats';
 import { kindIcon } from './kindIcons';
 import { assertNever } from '../../assertNever';
 import type { Form, OfferCard, Perk, Position, RosterPlayer, RunState, Stats } from '../sim/types';
-import type { DraftView, OfferFace, RosterRow, SelectedCard, StatBar } from '../../ui/hud';
+import type {
+  DraftView,
+  OfferFace,
+  PlayerCard,
+  RosterRow,
+  SelectedCard,
+  StatBar,
+} from '../../ui/hud';
 
 const STAT: Readonly<Record<keyof Stats, string>> = {
   hustle: 'Hustle',
@@ -46,7 +53,7 @@ function face(
   p: RosterPlayer,
   stats: Stats,
   key?: keyof Stats,
-): Pick<SelectedCard, 'name' | 'form' | 'icon' | 'stats'> {
+): Omit<PlayerCard, 'note'> {
   return {
     name: p.name,
     form: KIND[p.kind],

@@ -69,18 +69,6 @@ export interface RosterRow {
   readonly fits?: boolean;
 }
 
-/** The selected player's card before the snap (docs/SELECT.md, s3): Your team's card, with the position it plays. */
-export interface SelectedCard {
-  readonly name: string;
-  /** Its kind, e.g. "Human". */
-  readonly form: string;
-  /** The position it plays, e.g. "Runner". */
-  readonly position: string;
-  /** Its portrait: trusted SVG markup, drawn in the photo box. */
-  readonly icon: string;
-  readonly stats: readonly StatBar[];
-}
-
 /** A player as a card: the photo, name and kind, stat bars (with any gains), a note. */
 export interface PlayerCard {
   readonly name: string;
@@ -89,6 +77,12 @@ export interface PlayerCard {
   readonly stats: readonly StatBar[];
   readonly note: string;
 }
+
+/** The selected player's card before the snap (docs/SELECT.md, s3): Your team's card, without the note, with the position it plays. */
+export type SelectedCard = Omit<PlayerCard, 'note'> & {
+  /** The position it plays, e.g. "Runner". */
+  readonly position: string;
+};
 
 /** One card on offer, as drawn (docs/REWARDS.md, v1): its big title, then what it is. */
 export type OfferFace =
