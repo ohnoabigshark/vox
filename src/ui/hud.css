@@ -595,6 +595,10 @@ button.hud-offer:active {
   text-align: right;
 }
 
+.hud-stat-bar i.gain {
+  background: var(--slime-green);
+}
+
 .hud-stat-delta.up {
   color: var(--slime-green);
 }

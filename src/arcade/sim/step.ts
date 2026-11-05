@@ -23,6 +23,7 @@
  * and the tip drill (sim/tip.ts).
  * Before the snap and between series only the Bats move.
  */
+import { noteGrowth, noteHeld } from './growth';
 import { assertNever } from '../../assertNever';
 import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
@@ -82,6 +83,14 @@ export function step(prev: RunState, input: StepInput = {}): ArcadeResult {
  * state before the step notes it first.
  */
 export function stepInPlace(state: RunState, input: StepInput = {}): ArcadeResult {
+  const result = stepBody(state, input);
+  // Growth from play (docs/REWARDS.md): what this step did, noted once all of it is in.
+  noteGrowth(state, result.events);
+  return result;
+}
+
+/** One step's work, before growth notes what it did. */
+function stepBody(state: RunState, input: StepInput): ArcadeResult {
   const events: ArcadeEvent[] = [];
   state.step += 1;
   state.time = state.step * DT;
@@ -201,6 +210,7 @@ function resolveContact(state: RunState, events: ArcadeEvent[]): boolean {
     if (p.down > 0 || !blocking) continue;
     for (const d of upDefenders) {
       if (d.planted || d.down > 0 || !touching(p, d)) continue;
+      if (p.role === 'blocker') noteHeld(state.tally, p.slot);
       const ratio = handedOff(state) ? contact.runPancakeRatio : contact.pancakeRatio;
       if (p.mass < ratio * d.mass) continue;
       knockFlying(d, p.pos, contact.pancakeTime, contact.knockSpeed);

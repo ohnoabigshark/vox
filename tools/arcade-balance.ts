@@ -57,6 +57,7 @@ import {
   BoltWatch,
   LONG_PLAY,
   PickWatch,
+  GrowthWatch,
   byStretch,
   isLong,
   noteBefore,
@@ -187,6 +188,8 @@ interface Tally {
   picks: PickWatch;
   /** Bolts taken by each side (the mischief bolt, b4). */
   bolts: BoltWatch;
+  /** Growth from play, by area (docs/REWARDS.md, b2). */
+  growth: GrowthWatch;
 }
 
 const bump = <K>(m: Map<K, number>, k: K, by = 1): void => {
@@ -463,6 +466,7 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
       t.watch.step(before, hiked.state, hiked.events);
       t.picks.step(before, hiked.events);
       t.bolts.step(hiked.events);
+      t.growth.step(before, hiked.events);
       state = hiked.state;
       continue;
     }
@@ -475,8 +479,10 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     t.watch.step(before, r.state, r.events);
     t.picks.step(before, r.events);
     t.bolts.step(r.events);
+    t.growth.step(before, r.events);
   }
   t.picks.endRun();
+  t.growth.endRun();
   t.runs++;
   t.seriesWon += state.seriesWon;
   t.perRun.push(state.seriesWon);
@@ -575,6 +581,21 @@ function report(scenario: Scenario, t: Tally): void {
     console.log(`  draft picks taken on reaching each area: ${each.join(' · ')}`);
   }
   {
+    // Growth from play (docs/REWARDS.md, b2): the medians over the runs that grew anyone in each area.
+    const median = (ns: number[]): number =>
+      quantile(
+        [...ns].sort((a, b) => a - b),
+        0.5,
+      );
+    const each = [...t.growth.byArea.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(
+        ([area, runs]) =>
+          `area ${area + 1} busiest +${median(runs.map((r) => r.busiest))}, team +${median(runs.map((r) => r.team))} (${runs.length} runs)`,
+      );
+    console.log(`  growth a run, medians: ${each.length > 0 ? each.join(' · ') : 'none'}`);
+  }
+  {
     const { team, defense } = t.bolts.bySide;
     console.log(
       `  bolts taken a run: yours ${(team / t.runs).toFixed(1)} · the defense's ${(defense / t.runs).toFixed(1)}`,
@@ -667,6 +688,7 @@ for (const scenario of SCENARIOS) {
     watch: new DownWatch(),
     picks: new PickWatch(),
     bolts: new BoltWatch(),
+    growth: new GrowthWatch(),
   };
   for (let seed = 1; seed <= RUNS; seed++) playRun(seed, scenario, t);
   report(scenario, t);

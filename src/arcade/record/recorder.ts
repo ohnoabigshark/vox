@@ -276,6 +276,9 @@ export class RunRecorder {
       case 'seriesStarted':
       case 'areaCleared':
         return;
+      // Growth from play: the record keeps no stats yet (docs/REWARDS.md); the play log has each gain.
+      case 'grew':
+        return;
       default:
         assertNever(e);
     }

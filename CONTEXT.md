@@ -66,9 +66,15 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   Royal Decree, the crows). A gimmick can be a field event (Frog Rain) or
   not (the decree bans a card).
 - **TRICK OR TREAT!:** the screen between series where the Coach takes one of
-  two new players (the **offer**) and arranges the roster. In code it's the
+  two new players (the **offer**), then sees **Your team**. In code it's the
   **draft** (`phase: 'draft'`). Use "the draft" in docs and code, so it
   can't be confused with a trick or a treat on the field.
+- **Your team** _(ours)_: the draft once the pick is made: the roster, each
+  player's growth since the last TRICK OR TREAT! on its bars, then PLAY ON.
+  In hard mode it's where players are swapped (`docs/REWARDS.md`, v2).
+- **Growth** _(ours)_: what a player's stats gain from what it does in play:
+  Hands from catches, Hustle from yards and GREATs, Heft from blocks and
+  pancakes (`sim/growth.ts`, `docs/REWARDS.md`). _Avoid:_ XP, levelling.
 
 ## Plays
 

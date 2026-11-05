@@ -4,6 +4,7 @@ import {
   LONG_PLAY,
   BoltWatch,
   PickWatch,
+  GrowthWatch,
   byStretch,
   isLong,
   noteBefore,
@@ -234,5 +235,27 @@ describe('balance counts for the long field', () => {
         { id: 2, y: 40 },
       ],
     });
+  });
+});
+
+describe('growth from play (docs/REWARDS.md, b2)', () => {
+  it('for each area a run played in: the most one player grew there, and the team’s total', () => {
+    const w = new GrowthWatch();
+    const inArea = (area: number) => noteBefore(down({ area }));
+    w.step(inArea(0), [
+      { type: 'grew', id: 5, stat: 'hands', by: 15 },
+      { type: 'grew', id: 5, stat: 'hustle', by: 6 },
+      { type: 'grew', id: 1, stat: 'heft', by: 8 },
+    ]);
+    w.step(inArea(0), [{ type: 'grew', id: 1, stat: 'heft', by: 3 }]);
+    w.step(inArea(1), [{ type: 'grew', id: 2, stat: 'hustle', by: 10 }]);
+    w.endRun();
+    w.step(inArea(0), [{ type: 'grew', id: 3, stat: 'hands', by: 15 }]);
+    w.endRun();
+    expect(w.byArea.get(0)).toEqual([
+      { busiest: 21, team: 32 },
+      { busiest: 15, team: 15 },
+    ]);
+    expect(w.byArea.get(1)).toEqual([{ busiest: 10, team: 10 }]);
   });
 });

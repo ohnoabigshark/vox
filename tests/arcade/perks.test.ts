@@ -80,7 +80,8 @@ describe('TRICK OR TREAT!', () => {
       type: 'pick',
       offer: 0,
     }).state;
-    expect(s.phase).toBe('setup');
+    // Your team comes up next (docs/REWARDS.md, v2), the team already lined up with the perk.
+    expect(s.phase).toBe('draft');
     s.roster.forEach((p, slot) => expect(playerStats(s, slot).hands).toBe(p.stats.hands + 10));
     const catcher = s.field.players.find((p) => p.slot === 4)!;
     expect(catcher.stats.hands).toBe(s.roster[4]!.stats.hands + 10);
@@ -147,10 +148,11 @@ describe('TRICK OR TREAT!', () => {
     expect(ROSTER_ROLES[slot]).toBe('catcher');
     expect(r.state.bench).toHaveLength(1);
     expect(ofType(r.events, 'joined')[0]).toMatchObject({ slot, replaced: r.state.bench[0]!.name });
-    // Play goes straight on (the lineup is set for you).
-    expect(r.state.phase).toBe('setup');
+    // Your team comes up (docs/REWARDS.md, v2), with the roster already arranged for you; PLAY ON goes on.
+    expect(r.state.phase).toBe('draft');
     expect(r.state.offer).toEqual([]);
     expect(r.state.field.players.some((p) => p.form === 'ghost')).toBe(true);
+    expect(dispatch(r.state, { type: 'skipDraft' }).state.phase).toBe('setup');
   });
 
   it('with setting the lineup turned on, the roster stays open to rearrange, then Done', () => {

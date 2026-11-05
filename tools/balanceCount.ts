@@ -172,6 +172,36 @@ export class PickWatch {
   }
 }
 
+/**
+ * Growth from play (docs/REWARDS.md, b2): feed it every step's events. For
+ * each area, one entry a run that grew anyone there: the most one player
+ * grew in it (all its stats together), and the team's total.
+ */
+export class GrowthWatch {
+  readonly byArea = new Map<number, { busiest: number; team: number }[]>();
+  /** This run's gains: by area, then by player id. */
+  private run = new Map<number, Map<number, number>>();
+
+  step(before: NotedBefore, events: readonly ArcadeEvent[]): void {
+    for (const e of events) {
+      if (e.type !== 'grew') continue;
+      const area = before.series.area;
+      const players = this.run.get(area) ?? new Map<number, number>();
+      players.set(e.id, (players.get(e.id) ?? 0) + e.by);
+      this.run.set(area, players);
+    }
+  }
+
+  endRun(): void {
+    for (const [area, players] of this.run) {
+      const gains = [...players.values()];
+      const entry = { busiest: Math.max(...gains), team: gains.reduce((a, n) => a + n, 0) };
+      this.byArea.set(area, [...(this.byArea.get(area) ?? []), entry]);
+    }
+    this.run = new Map();
+  }
+}
+
 /** Bolts taken by each side (the mischief bolt, difficulty map b4): feed it every step's events. */
 export class BoltWatch {
   readonly bySide = { team: 0, defense: 0 };

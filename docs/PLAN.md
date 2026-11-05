@@ -350,6 +350,18 @@ Open, for when the first new theme or set is planned:
   (`long-field-1`, built 2026-11-04), then football's downs and the long
   play (`long-field-2`, its tests on the map's round 3).
 
+- **Rewards: growth from play and a new offer.** Your players get better
+  by playing (Hands from catches, Hustle from yards and GREATs, Heft from
+  blocks and pancakes, up to 150), shown on a Your team screen after each
+  TRICK OR TREAT!; then TRICK OR TREAT! offers three random cards, a new
+  play, a rarer new player or a perk (Second Wind, Candy Corn Magnet), with
+  a Skip, and a run starts with esrauch's five plays. _User, 2026-11-05._
+  Planned by grilling, three rounds and a confirmation, 2026-11-05, on the
+  map https://claude.ai/artifact/AUGh5MeCe8ZZJfxSBQdYVT; the design, the
+  tests and the order of work are in `docs/REWARDS.md`. Built in two parts,
+  each played before it merges: growth from play (`rewards-growth`), then
+  the offer (`rewards-offer`).
+
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
   teach people how to play, esp with the passing mechanic."_ Open for its
@@ -361,6 +373,31 @@ Open, for when the first new theme or set is planned:
   open it again or skip it); with mockups.
 
 ## Later (not yet in order)
+
+- **No penalties, ever.** _User, 2026-11-05 (rewards review, l2): "I don't
+  think I ever want there to be penalties in this game. Let the players
+  play."_ No holding, no flags: an idea that needs one is out.
+- **Parked from the rewards map** (`docs/REWARDS.md`, 2026-11-05):
+  - **A candy shop:** candy earned by the yard and spent at TRICK OR
+    TREAT! (w1). _User: "Ohhhhhh I love the shop idea...but we will park
+    that."_ Rarity raised by a long play is parked with it: on top of
+    growth from play it "may result in too much compounding".
+  - **A card that takes a play out of your playbook** (o2): _"kind of
+    interesting for the future so park it."_
+  - **The playbook on the Your team screen** (v2): _"Don't show the
+    playbook for now."_
+  - **Boost cards** for one player's stats (k2, rejected for growth from
+    play), if growth alone can't carry the squad.
+  - **Fewer defenders** if play can't carry the stats, after the first
+    playtests (g3).
+  - **A BAD wipes out the gains:** a BAD on a tap test could undo that
+    player's growth (t1): _"We can explore that. Later."_
+  - **A tap event for Jack against a sack:** instead of an instant sack, a
+    quick tap test buys him another second to throw (z2). Belongs with
+    **Stats for Jack**, below, which stays parked too (k3: "keep this a bit
+    smaller").
+  - **Draw up a play and Select any play** are rewards in this system,
+    grilled and built after both parts (k5; **Plays as rewards**, below).
 
 - **The Boss as the extra point:** the Boss's series becomes a set of downs
   of its own, played after the area's touchdown, a Boss battle as the
@@ -626,7 +663,9 @@ Open, for when the first new theme or set is planned:
   more of a sense of progression and improvement of your team, not always
   bringing in new players but instead improving your squad."_ The user
   doesn't yet know what all its parts should look like, so it needs a lot
-  more work before it's split into branches. **Players skill up only
+  more work before it's split into branches. **Growth from play and
+  TRICK OR TREAT! rebalanced are planned in `docs/REWARDS.md`** (2026-11-05);
+  pickups that change a stat for good are still open. **Players skill up only
   within a run,** roguelite style; anything that lasts between runs is
   **Meta progression** (below). _Decided on the stats map, m1, 2026-11-02._
   The parts seen so far:
