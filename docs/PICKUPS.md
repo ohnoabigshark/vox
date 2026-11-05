@@ -24,16 +24,17 @@ pickups, more kinds and placing them in the editor are later rounds
   every stretch is laid out from its first series. They
   show before the snap, so you can call a play, or Flip it, to run through a
   bolt and clear of a slick.
-- **Taken** (k3): the first of your players to run through a pickup takes it,
-  and it's gone: it doesn't come back at the next down or the next series (the
+- **Taken** (k3): the first body allowed to take it (k4) that runs through a
+  pickup takes it, and it's gone for everyone: it doesn't come back at the next down or the next series (the
   map said "for the rest of the drive"; a pickup used up ahead would otherwise
   reappear when that series starts). The rest stay put.
-- **Who** (k4, the user's note on k3 and k4: "Only offense for now"): only
-  your team takes them, the carrier included, but never Jack: he stands
+- **Who** (k4, the user's note on k3 and k4: "Only offense for now"; since
+  2026-11-05 the bolt is mischief, below): your team takes them, the carrier
+  included, but never Jack: he stands
   still where the ball is spotted, so a slick under him couldn't be dodged,
-  and a bolt would do nothing. (Added by Claude with the midfield,
-  2026-11-05, for the user to confirm.) Defenders run over them and leave
-  them be. A player lined up on a pickup (it showed before the snap) takes
+  and a bolt would do nothing. (Added by Claude with the midfield and
+  confirmed by the user, 2026-11-05.) Defenders run over slicks and leave
+  them be, but take bolts (the mischief bolt, below). A player lined up on a pickup (it showed before the snap) takes
   it the moment the play starts. Since the midfield that includes a
   Blocker beside the ball, who goes down at the snap, and a handoff's
   Runner, tackled there before the play starts (SLIPPED!). Flip moves the
@@ -94,6 +95,34 @@ Opening the middle (2026-11-05) went in without a balance run, at the
 user's word. A probe of 500 seeds, three areas, a snap from every yard:
 7% of snaps then have a slick under a Blocker beside the ball, and 13%
 under a Blocker or a Runner lined up a yard off the middle.
+
+## The mischief bolt (difficulty map b1–b6)
+
+_User, 2026-11-04: "we turn the lightning bolt power ups to be 'mischief'
+class where either side can take them, but only once the snap starts."_
+Approved on the difficulty map, round 4, built on `difficulty-4`.
+
+- **Either side, after the snap** (b1): once the ball is snapped, whoever
+  runs through a bolt first takes it, yours or a defender, and it's gone for
+  everyone. A defender gets the same 50% for 3 seconds, trailing the same
+  sparks, with the zap (the user: "Same for both."). Before the snap nobody
+  takes one, so a Bat looping over a bolt while you call the play leaves it.
+  When one of yours and a defender reach the same bolt in the same step,
+  yours takes it.
+- **Which defenders** (b2): any on the move, Bats and Crows in the air
+  included; not a planted Scarecrow, one hanging onto the carrier, or one
+  lying down. The Boss is a prop, not a defender, and never takes one.
+- **Slicks stay your side's trick** (b3).
+- **Nobody steers for them** (b4, k7 stays): a defender takes one only when
+  its chase crosses it. The balance report counts bolts taken by each side
+  (`BoltWatch` in `tools/balanceCount.ts`).
+- **Your record** counts only your pickups: `pickupTaken` names the side
+  that took it, and a defender's bolt isn't one of yours.
+- **Tests** (b6, `tests/arcade/mischiefBolt.test.ts`): a defender takes one
+  after the snap, half as fast again, and it wears off; it's gone for your
+  players too; a Bat before the snap leaves it; a planted, hanging or downed
+  defender leaves it (fails if any of the three is dropped); a defender
+  leaves a slick; the record and the balance count by side.
 
 ## On screen
 

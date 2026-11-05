@@ -94,7 +94,8 @@ export class ArcadePickups {
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
-    for (let i = 0; i < SPARKS * 3; i++) {
+    // Enough for eight bodies on a bolt at once, either side (the mischief bolt).
+    for (let i = 0; i < SPARKS * 8; i++) {
       const m = new THREE.Mesh(box, spark);
       m.scale.setScalar(1.8);
       m.visible = false;
@@ -153,7 +154,7 @@ export class ArcadePickups {
   private trailSparks(state: RunState, origin: number): void {
     let n = 0;
     const flicker = Math.floor(state.time * 20);
-    for (const p of state.field.players) {
+    for (const p of [...state.field.players, ...state.field.defenders]) {
       if (p.boltLeft <= 0) continue;
       const speed = Math.hypot(p.vel.x, p.vel.y) || 1;
       const back = v(-p.vel.x / speed, -p.vel.y / speed);

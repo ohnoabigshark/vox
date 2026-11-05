@@ -335,3 +335,41 @@ What it says:
   seeded).
 - No action: normal mode's 75% target doesn't hold the release (v1), and
   the bolt's runs (`difficulty-4`) measure it again.
+
+## Balance: the mischief bolt (difficulty-4)
+
+The same six scenarios, 40 runs each, 2026-11-05. Before is main at
+051e824 (the Owls, bolts and slicks in the middle, Tight End Run and RB
+Left); after is `difficulty-4` at d5637aa. The bolt adds no bodies, so
+both sides are dealt the same cards: a closer comparison than the Owls'.
+
+| | Before | After |
+| --- | --- | --- |
+| Bolts taken a run, yours (pass · handoffs · runs, normal) | 9.3 · 9.2 · 9.4 | 4.4 · 4.2 · 3.4 |
+| Bolts taken a run, the defense's | 0 | 6.4–6.6 (normal), 6.8–7.8 (hard) |
+| Normal mode beaten (pass · handoffs · runs) | 73 · 83 · 93% | 80 · 88 · 80% |
+| Hard mode's series won a run (pass · handoffs · runs) | 8.6 · 6.9 · 5.9 | 7.7 · 7.9 · 6.2 |
+| Hard mode's series won at p10 (pass · handoffs · runs) | 3 · 3 · 2 | 3 · 2 · 1 |
+| Long plays, % of downs (normal: pass · handoffs · runs) | 4 · 7 · 10% | 4 · 7 · 7% |
+| Long plays that score, pooled by mode (normal · hard) | 59 · 58% | 57 · 62% |
+
+What it says:
+
+- **Defenders take more bolts than you do:** about 6.5 a run against your
+  4. They chase through more of the field, and a Bat or Crow crosses
+  bolts on its beat. Your own bolts halve.
+- **No clear direction overall.** Runs got harder (normal mode beaten
+  93% to 80%, long plays 10% to 7% of downs); passing got a little easier
+  in normal mode and a little harder in hard mode. The swings are within
+  the noise of 40 runs.
+- **Hard mode's worst runs:** with runs only, p10 fell from 2 to 1. That's
+  the line o2 set for the TRICK OR TREAT! overhaul to come before the next
+  difficulty branch. It is the fourth-worst of 40 runs, so one number to
+  watch rather than a verdict.
+- **The baseline moved since the Owls:** main with the midfield pickups
+  and the two new plays has the passing bot beating normal mode 73% of
+  the time, against 95% with the Owls alone. The new plays deal other
+  hands, so this too is partly noise; normal mode is back under 75% with
+  passes.
+- The user plays the bolt before it merges.
+

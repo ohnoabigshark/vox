@@ -85,8 +85,9 @@ Open, for when the first new theme or set is planned:
     play for good. Built on the `sketches-in-game` branch.
 - **Tricks and treats**, the first slice: a lightning bolt and an oil slick
   on every 10-yard stretch, taken by running through them. Round 7, decided
-  2026-10-30 (k1–k9); the design is `docs/PICKUPS.md`. Only your team takes
-  them for now (_user's note on k3 and k4: "Only offense for now"_). Built on
+  2026-10-30 (k1–k9); the design is `docs/PICKUPS.md`. Only your team took
+  them at first (_user's note on k3 and k4: "Only offense for now"_); since
+  the mischief bolt (`difficulty-4`) a defender takes a bolt too. Built on
   the `pickups` branch.
 - **Harder, not busier** (hard mode): one extra defender a zone, at most 12,
   with stats growing faster and Break it! tightening past zone 3. Round 9,
@@ -393,8 +394,36 @@ Open, for when the first new theme or set is planned:
   the lightning bolt becomes mischief, taken by whoever runs through it
   first once the ball is snapped, yours or a defender. _User, 2026-11-04:
   "we turn the lightning bolt power ups to be 'mischief' class where either
-  side can take them, but only once the snap starts."_ Only your side takes
-  pickups today (`docs/PICKUPS.md` k4).
+  side can take them, but only once the snap starts."_ Built on
+  `difficulty-4` (`docs/PICKUPS.md`, "The mischief bolt").
+- **Replay a down, and keep it.** _User, 2026-11-05: "replay of a down.
+  I'd love to be able to see a replay and save it for later."_ What exists:
+  the sim is deterministic from the run's seed (`src/sim/rng.ts`: never
+  `Math.random`), so a down can be played again from its starting state and
+  the inputs of each step (taps, THROW, tap-test taps). That makes a saved
+  replay small. Open for its grilling: replay from inputs (small, but an
+  older replay plays differently once the sim changes, so each keeps the
+  build it came from) or from recorded positions (bigger, always the
+  same); when to offer it (right after the down, from the record's list of
+  plays, after a big play); what you can do while it plays (slow motion,
+  another camera, scrub back); where saved replays live (the phone, like
+  the record, `docs/STATS.md`) and how many; sharing one.
+- **Faster balance runs** (after the release; the plan, with diagrams:
+  https://claude.ai/artifact/ASsZs8QaF34RpLhkscL2hA). A before-and-after
+  comparison takes about 45 minutes. A profile of three runs (2026-11-05):
+  80% of the time is the passing bot's lookahead (`predictsCatch`), and 66%
+  is copying the state, since `step()` copies the whole run every step.
+  _User: "yeah after the release. 2 especially."_
+  1. **Keep main's results** (first): the six-scenario script moves into
+     `tools/`, and each baseline is kept under a key of main's commit, the
+     tool's code and the run count, so only the branch side runs.
+  2. **Step in place in the balance tool:** `step()` becomes a copy plus a
+     new `stepInPlace()`; the tool and its lookahead call `stepInPlace`
+     (the lookahead copies once, not up to 121 times), noting the few
+     "before" facts its counters read. The game keeps `step()`. Tests
+     first: the same seeded run, state and events, either way; `step()`
+     leaves its input alone; the lookahead leaves the real run alone; the
+     same report. About 3× faster, by the profile; measured before and after.
 - **Play-call levers: no flip, a random play, hidden routes.** Three
   ways to make a down harder before the snap, each likely set by a
   stretch or a Boss rather than for the whole run, and each also a toggle
@@ -684,7 +713,8 @@ Open, for when the first new theme or set is planned:
   2026-10-28._
   - **Pickups can move** across the field the way players do, so taking one
     is a matter of timing as well as of route. _User, 2026-10-28._
-  - The first slice is planned (round 7, above). Still open: defenders
-    taking them (the user: "only offense for now"); more kinds; moving
+  - The first slice is planned (round 7, above). Defenders take bolts since
+    the mischief bolt (2026-11-05). Still open: defenders taking other
+    kinds; more kinds; moving
     pickups and whether a path is drawn before the snap; placing them in the
     editor; pickups in practice.

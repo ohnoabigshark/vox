@@ -135,6 +135,17 @@ export class PickWatch {
   }
 }
 
+/** Bolts taken by each side (the mischief bolt, difficulty map b4): feed it every step's events. */
+export class BoltWatch {
+  readonly bySide = { team: 0, defense: 0 };
+
+  step(events: readonly ArcadeEvent[]): void {
+    for (const e of events) {
+      if (e.type === 'pickupTaken' && e.kind === 'bolt') this.bySide[e.side]++;
+    }
+  }
+}
+
 /** How many downs each thing stopped. */
 export function stops(downs: readonly DownSummary[]): Map<Stop, number> {
   return countBy(downs, (d) => d.stoppedBy);

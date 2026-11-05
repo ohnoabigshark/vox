@@ -156,6 +156,7 @@ export function lineUpDefense(
       stats,
       ...defenderPhysics(stats, def.reachBonus),
       down: 0,
+      boltLeft: 0,
       home,
       mark: null,
       latch: null,

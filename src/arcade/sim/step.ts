@@ -41,6 +41,7 @@ import type {
   Body,
   BreakKind,
   Grade,
+  Pickup,
   Player,
   RunState,
   StepInput,
@@ -370,7 +371,9 @@ function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
  * runs through a pickup takes it, and it's gone for good (never Jack, who stands
  * still: a slick under the ball's spot couldn't be dodged). A bolt speeds it up
  * for a while; a slick trips it, and a carrier who slips is tackled there:
- * SLIPPED! Defenders run over them and leave them be (only offense, for now).
+ * SLIPPED! The bolt is mischief: a defender on the move takes one too (not one
+ * planted, hanging on or lying down), after yours in the same step, so a tie
+ * is yours. Defenders run over slicks and leave them be.
  */
 function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
   if (state.field.pickups.length === 0) return false;
@@ -380,9 +383,7 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     if (p.down > 0 || p.role === 'qb') continue;
     const pickup = state.field.pickups.find((q) => dist(p.pos, v(q.x, q.y)) <= p.radius + r);
     if (!pickup) continue;
-    state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
-    state.taken.push(pickup.id);
-    events.push({ type: 'pickupTaken', id: p.id, kind: pickup.kind, pickup: pickup.id });
+    take(state, p, pickup, events);
     switch (pickup.kind) {
       case 'bolt':
         p.boltLeft = arcadeTuning.pickups.bolt.time;
@@ -396,10 +397,32 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
         assertNever(pickup.kind);
     }
   }
+  for (const d of state.field.defenders) {
+    if (d.down > 0 || d.planted || d.latch) continue;
+    const pickup = state.field.pickups.find(
+      (q) => q.kind === 'bolt' && dist(d.pos, v(q.x, q.y)) <= d.radius + r,
+    );
+    if (!pickup) continue;
+    take(state, d, pickup, events);
+    d.boltLeft = arcadeTuning.pickups.bolt.time;
+  }
   if (!slipped) return false;
   events.push({ type: 'slipped', id: slipped.id });
   tackle(state, slipped, -1, events);
   return true;
+}
+
+/** A pickup is taken: gone for good, for everyone (k3), and said so. */
+function take(state: RunState, by: Body, pickup: Pickup, events: ArcadeEvent[]): void {
+  state.field.pickups = state.field.pickups.filter((q) => q.id !== pickup.id);
+  state.taken.push(pickup.id);
+  events.push({
+    type: 'pickupTaken',
+    id: by.id,
+    side: by.side,
+    kind: pickup.kind,
+    pickup: pickup.id,
+  });
 }
 
 /** A carrier dragging tacklers goes down once it reaches the end of the drag. */

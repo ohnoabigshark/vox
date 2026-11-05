@@ -44,6 +44,8 @@ interface BodyBase {
   readonly reach: number;
   /** Seconds left lying on the turf (0 = up). */
   down: number;
+  /** Seconds left at a lightning bolt's speed (0 = none: docs/PICKUPS.md); either side, since the mischief bolt. */
+  boltLeft: number;
 }
 
 /** What one of your players is doing this down. */
@@ -60,8 +62,6 @@ export interface Player extends BodyBase {
   readonly slot: number;
   readonly form: Form;
   job: Job;
-  /** Seconds left at a lightning bolt's speed (0 = none: docs/PICKUPS.md). */
-  boltLeft: number;
 }
 
 export interface Defender extends BodyBase {
@@ -574,10 +574,11 @@ export type ArcadeEvent =
     }
   /** …and the carrier was one: tackled there, with the event's call (FROGGED!), or none. */
   | { readonly type: 'eventTackled'; readonly id: number; readonly call: string | null }
-  /** One of your players ran through a pickup and took it (docs/PICKUPS.md). */
+  /** A body ran through a pickup and took it (docs/PICKUPS.md): one of yours, or a defender a bolt. */
   | {
       readonly type: 'pickupTaken';
       readonly id: number;
+      readonly side: Body['side'];
       readonly kind: PickupKind;
       readonly pickup: number;
     }
