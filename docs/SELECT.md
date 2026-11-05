@@ -44,7 +44,9 @@ about that player that pops up somewhere near the top of the screen"._
 4. The selection survives calling a card and Flip (the same roster player),
    and is gone once the phase isn't setup.
 5. Routes: with a player selected, theirs is bright and the rest dim; with
-   nobody selected, all as today.
+   nobody selected, all as today. Also as drawn (`routesDrawn.test.ts`,
+   review x11): the selected route in the big dots, a Blocker dimming them
+   all, and a handoff's ring dimming with its route.
 6. The card: name, kind, position, stats with the key stat and the gains,
    the same as Your team's for that player.
 7. The setting saves and loads, defaulting to on, and an old saved setting
