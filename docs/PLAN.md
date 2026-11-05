@@ -364,6 +364,15 @@ Open, for when the first new theme or set is planned:
   2026-11-05, notes p2-p6; reviewed on
   https://claude.ai/artifact/6Qk66hbs7FoMpEprdTd3cW).
 
+- **Selecting a player, and a names switch.** Before the snap, tap one of
+  your seven: their route lights up, the rest dim, and their card shows at
+  the top; an **Aa** switch shows or hides the names on the field. _User,
+  2026-11-05: "pressing on a player selects them and highlights just their
+  route and shows a lil card about that player"._ Planned on the map
+  https://claude.ai/artifact/8PEvNHSLuK3X92urZb2usp; the design and tests
+  are in `docs/SELECT.md`; built on `player-select`, after B7's fix
+  (`names-fix`).
+
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
   teach people how to play, esp with the passing mechanic."_ Open for its
