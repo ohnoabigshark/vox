@@ -6,6 +6,7 @@ import {
   PickWatch,
   byStretch,
   isLong,
+  noteBefore,
   seriesSpread,
   stops,
 } from '../../tools/balanceCount';
@@ -30,7 +31,8 @@ function down(
 }
 
 /** Feed one step: the same state before and after, these events. */
-const feed = (w: DownWatch, s: RunState, events: ArcadeEvent[]): void => w.step(s, s, events);
+const feed = (w: DownWatch, s: RunState, events: ArcadeEvent[]): void =>
+  w.step(noteBefore(s), s, events);
 
 describe('balance counts for the long field', () => {
   it('1: a down gaining 20 or more is a long play, with how it ended, run or pass, and its area', () => {
@@ -158,7 +160,7 @@ describe('balance counts for the long field', () => {
 
   it('6: the draft picks a run has taken when it first snaps the ball in each area, among runs that reach it (n1)', () => {
     const w = new PickWatch();
-    const inArea = (area: number): RunState => down({ area });
+    const inArea = (area: number) => noteBefore(down({ area }));
     const perk: Perk = { rarity: 'common', kind: 'extraSweep' };
     // A run that reaches area 3.
     w.step(inArea(0), [{ type: 'snapped' }]);
@@ -198,5 +200,39 @@ describe('balance counts for the long field', () => {
     ]);
     w.step([{ type: 'pickupTaken', id: 101, side: 'defense', kind: 'bolt', pickup: 27 }]);
     expect(w.bySide).toEqual({ team: 1, defense: 2 });
+  });
+
+  it('8: stepping in place, the counts read what was noted before the step, not the run as it is after', () => {
+    // A Safety tackles on the last stretch's line; by the end of the step the
+    // tackler has left the field, the clock has run on and the series has moved.
+    const s = down({ area: 1, stretch: 3, los: 33 }, v(0, 40), [{ kind: 'safety', pos: v(0, 41) }]);
+    s.snappedAt = 2;
+    s.time = 5;
+    const before = noteBefore(s);
+    s.field = { ...s.field, defenders: [] };
+    s.series = { ...s.series, area: 2, stretch: 0, los: 0 };
+    s.time = 6;
+    const carrier = s.field.players.find((p) => p.id === 2);
+    if (carrier) carrier.pos = v(0, 99);
+
+    const w = new DownWatch();
+    w.step(before, s, [
+      { type: 'tackled', id: 2, by: 100 },
+      { type: 'downEnded', result: 'tackled', gained: 7 },
+    ]);
+    expect(w.downs).toEqual([
+      expect.objectContaining({ area: 1, stretch: 3, gained: 7, stoppedBy: 'safety' }),
+    ]);
+    expect(before).toEqual({
+      series: { area: 1, stretch: 3, los: 33 },
+      time: 5,
+      snappedAt: 2,
+      tackleKind: null,
+      defenders: [{ id: 100, kind: 'safety' }],
+      players: [
+        { id: 1, y: -4 },
+        { id: 2, y: 40 },
+      ],
+    });
   });
 });

@@ -216,6 +216,10 @@ mode, each with three bots: the default, which only throws
 (`BOT='{"runOnly": true}'`). Run on 2026-11-04. Before is `difficulty-1`
 (689b4de), after is `difficulty-2` (db6d4ec).
 
+These six scenarios are `SIX` in `tools/balanceCompare.ts` since
+2026-11-05; `npm run balance:compare` runs them on a branch and on main,
+keeping main's reports (`TECHNICAL.md`, the commands).
+
 | | Before | After |
 | --- | --- | --- |
 | Long plays (20+ yards) that score, all six pooled | 71% | 50% |
