@@ -138,8 +138,8 @@ export class Hud {
     root: HTMLElement,
     private readonly handlers: HudHandlers,
   ) {
-    // Added to what the root already holds, never replacing it: the names
-    // layer goes in before the Hud (game.ts), and innerHTML wiped it.
+    // Added after what the root already holds, never replacing it: the names
+    // layer goes in first (game.ts), so the HUD draws over it (B7).
     root.insertAdjacentHTML(
       'beforeend',
       `

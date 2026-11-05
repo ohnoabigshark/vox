@@ -133,5 +133,9 @@ on the tailnet server".
 `insertAdjacentHTML('beforeend', …)`, keeping what the root already holds.
 Checked in a headless browser against the served build: before the fix
 there was no `.arcade-names` element on the page; after it, the seven names
-show at the first down. Tests run without a DOM, so there's no unit test.
-Seen with it: full names at the line overlap (the risk p6 accepted).
+show at the first down. `tests/ui/uiRoot.test.ts` keeps that check: it
+builds the names layer and the Hud in one root, as the game does, and runs
+in happy-dom (a dev dependency, for that file only; the other tests have no
+DOM). It failed with the old `innerHTML` and passes with the fix (review of
+`names-fix`, rules: prove a bug-fix test catches the bug). Seen with it:
+full names at the line overlap (the risk p6 accepted).
