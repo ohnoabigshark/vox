@@ -13,7 +13,7 @@ const route = (...to: [number, number][]): Assignment => ({
   to: to.map(([x, y]) => ({ x, y })),
 });
 
-/** The in-game sketches kept for the first release (release mode's map, s1-s3), 2026-10-31. */
+/** The user's in-game sketches, kept: pasted from Copy code, newest last (release mode's map, s1-s3). */
 export const OUR_PLAYS: readonly Play[] = [
   {
     id: 'crazy',
@@ -137,6 +137,52 @@ export const OUR_PLAYS: readonly Play[] = [
       { x: -8.5, y: -0.5 },
       { x: -4, y: -0.5 },
       { x: -6, y: -1.5 },
+    ],
+  },
+  {
+    id: 'tightEndRun',
+    name: 'Tight End Run',
+    slots: [
+      block,
+      block,
+      route([-2, 2], [-2, 11]),
+      route([-4.5, 6]),
+      route([2.5, 3.5], [2.5, 12.5]),
+      route([0.5, 4], [3.5, 10]),
+      route([0, 3], [3, 9]),
+    ],
+    handoff: 2,
+    lineup: [
+      { x: -0.9, y: -0.7 },
+      { x: 0.9, y: -0.7 },
+      { x: -2, y: -4.5 },
+      { x: -2.5, y: -1 },
+      { x: -7, y: -0.7 },
+      { x: 5, y: -2.5 },
+      { x: 3, y: -1 },
+    ],
+  },
+  {
+    id: 'rbLeft',
+    name: 'RB Left',
+    slots: [
+      block,
+      block,
+      route([-2.5, 0.5], [-2.5, 11.5]),
+      route([-3.5, 3.5], [-3, 8]),
+      route([0, 6.5], [2, 5]),
+      route([0, 22.3]),
+      route([0, 10.5], [-2, 9.5]),
+    ],
+    handoff: 2,
+    lineup: [
+      { x: -0.9, y: -0.7 },
+      { x: 0.9, y: -0.7 },
+      { x: -0.5, y: -6 },
+      { x: 1.1, y: -4.5 },
+      { x: -7, y: -0.7 },
+      { x: 5.5, y: -4 },
+      { x: 4.2, y: -1.2 },
     ],
   },
 ];
