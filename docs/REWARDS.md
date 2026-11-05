@@ -213,6 +213,27 @@ and the team's total.
   drawn small (`playDrawing`, as on the stats screen) and "Pass play" or
   "Run play"; a perk card its icon and what it does.
 
+### Playtest notes, part 2 (map https://claude.ai/artifact/GLb2gi5djSAvcndrBwzfp2)
+
+The user played `rewards-offer` and sent notes, each ruled on the map with
+a mockup:
+
+- **p2, the key stat** (c69295a): the stat a position leans on keeps an
+  orange label, and its bar is drawn like the others. The orange bar had
+  been painting over the green growth stretch.
+- **p4, perks say when they work** (c69295a): a Magnet save sends a
+  `magnet` event and pops MAGNET!; Second Wind pops SECOND WIND!, "back
+  next series". Perks last the run (q1).
+- **p5, the offer's cards** (60aa55d, from p1 and q2): side by side,
+  swiped across, a dot for each; a play card shows the play drawn the
+  card's width; Skip is always at the bottom, and nothing scrolls up and
+  down.
+- **p6, names on the field** (977f812, from p3): your seven's full names
+  under their feet until HIKE!, never Jack or the defense. **Scope the
+  user accepted onto this branch** ("another idea that I will want to
+  explore on this branch"). Long names side by side may touch, a known
+  risk; first names are the likely next step.
+
 ### Balance, part 2
 
 `npm run balance:compare 40` on 2026-11-05: main (ad179d1, part 1)
