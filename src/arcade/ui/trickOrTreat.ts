@@ -1,8 +1,9 @@
 /**
  * What TRICK OR TREAT! shows (GAMEPLAY.md, Building Up): two new players
- * to choose from (each a player card like the roster's), then the roster
- * to rearrange once one joins. The field is on the left
- * by position, the bench on the right; any two swap.
+ * to choose from (each a player card like the roster's), then Your team
+ * (docs/REWARDS.md, v2): the roster, with what each player gained since
+ * the last TRICK OR TREAT! on its bars. The field is on the left by
+ * position, the bench on the right; in hard mode any two swap.
  */
 import { POSITION_STAT, ROSTER_ROLES } from '../content/team';
 import { atSpot, BENCH_START, fieldedStats, playerStats, setsLineup } from '../sim/team';
@@ -29,8 +30,14 @@ const POSITION: Readonly<Record<Position, string>> = {
 
 const STAT_ORDER: readonly (keyof Stats)[] = ['heft', 'hustle', 'hands'];
 
-const bars = (s: Stats, key?: keyof Stats): StatBar[] =>
-  STAT_ORDER.map((k) => ({ label: STAT[k], value: s[k], key: k === key }));
+/** A player's bars, its main stat marked, with what it gained (Your team) drawn on them. */
+const bars = (s: Stats, key?: keyof Stats, gained?: Stats): StatBar[] =>
+  STAT_ORDER.map((k) => ({
+    label: STAT[k],
+    value: s[k],
+    key: k === key,
+    ...(gained?.[k] ? { delta: gained[k] } : {}),
+  }));
 
 /** The position a field slot plays. */
 const slotPosition = (slot: number): Position => {
@@ -55,8 +62,9 @@ function offerCard(state: RunState, perk: Perk): OfferCard | null {
 }
 
 /**
- * The TRICK OR TREAT! screen: two new players to choose from, over your team
- * (field and bench); then, if `trickOrTreat.setLineup` is on, the lineup to set.
+ * The TRICK OR TREAT! screen: the cards to choose from, on their own; then
+ * Your team (field and bench) with its growth, swappable in hard mode, and
+ * PLAY ON.
  */
 export function trickOrTreatView(state: RunState, selected: number | null): DraftView {
   // ★ on the position heading the tapped player prefers.
@@ -74,7 +82,7 @@ export function trickOrTreatView(state: RunState, selected: number | null): Draf
     name: p.name,
     form: KIND[p.kind],
     icon: kindIcon(p.kind),
-    stats: bars(stats, key),
+    stats: bars(stats, key, state.gains[p.id]),
     note:
       position === 'Bench' || p.preferred !== slotPosition(spot)
         ? `prefers ${POSITION[p.preferred]}`
@@ -100,23 +108,24 @@ export function trickOrTreatView(state: RunState, selected: number | null): Draf
       : 'Tap any two players to swap them, field or bench.';
   if (state.offer.length === 0) {
     return {
-      title: 'Set your lineup',
+      title: 'Your team',
       lead: null,
       offer: [],
       roster,
       bench,
       hand,
-      skip: 'Done',
+      skip: 'PLAY ON',
       swappable,
     };
   }
+  // The cards have the screen to themselves (k4): the team comes after.
   return {
     title: 'TRICK OR TREAT!',
     lead: 'Choose a player to join your team',
     offer: state.offer.map((p) => offerCard(state, p)).filter((c): c is OfferCard => c !== null),
-    roster,
-    bench,
-    hand,
-    swappable,
+    roster: [],
+    bench: [],
+    hand: null,
+    swappable: false,
   };
 }

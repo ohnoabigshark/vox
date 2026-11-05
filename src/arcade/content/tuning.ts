@@ -299,9 +299,9 @@ export const tuningDefaults = {
   },
   trickOrTreat: {
     /**
-     * After taking a recruit, set your lineup (tap any two players to swap
-     * them, then Done). Off for now: the recruit goes where it helps most
-     * (bestSpot), and play goes straight on. The code stays, behind this.
+     * Swap players on Your team (tap any two, then PLAY ON) in normal mode
+     * too; hard mode always can. Off for now: a recruit goes where it helps
+     * most (bestSpot). The code stays, behind this.
      */
     setLineup: false,
   },

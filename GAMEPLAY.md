@@ -207,7 +207,9 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 
 ## Building Up: TRICK OR TREAT!
 
-**After every won series: TRICK OR TREAT!** Under the heading it says plainly **"Choose a player to join your team"**, over two **New Player!** cards: take one and play goes straight on. **On the same screen is your roster, to look at: the seven on the field down the left, by position, and the bench down the right.** *(Setting the lineup yourself, tapping any two players to swap them and then Done, is built but turned off for now: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got.
+**After every won series: TRICK OR TREAT!** Under the heading it says plainly **"Choose a player to join your team"**, over two **New Player!** cards, which have the screen to themselves. Take one and **Your team** comes up *(fork, `docs/REWARDS.md`)*: the seven on the field down the left, by position, and the bench down the right, each player's bars showing in green what it has grown since the last TRICK OR TREAT!; then **PLAY ON**. *(In hard mode you set the lineup here, tapping any two players to swap them; in normal mode that's built but turned off: `trickOrTreat.setLineup`.)* Every player has a photo box: a pixel portrait of its kind. **There's no draft before the first series**: you start with what you've got.
+
+**Your players grow by playing** *(fork, `docs/REWARDS.md`)*: Hands from catches (more for a GREAT on SNAG IT! or the tip drill), Hustle from yards after the catch, long rushes and GREATs on Break it!, Heft from pancakes and from blocks held on downs that gain. Only the seven on the field grow, never past 150, and nothing shows on the field: you see it on Your team.
 
 ### The offer
 

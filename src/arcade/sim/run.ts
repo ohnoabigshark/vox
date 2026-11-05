@@ -486,20 +486,21 @@ function hike(state: RunState, events: ArcadeEvent[]): void {
  * Take a new player on offer. It goes straight into the field slot it
  * improves most (bestSpot), and whoever was there sits on the bench; if it
  * beats nobody, it sits on the bench itself. The bench has no limit and the
- * newest sit at the top. With `trickOrTreat.setLineup` on, the roster then
- * stays open to rearrange, then Done; otherwise play goes straight on.
- * (Any other perk, a Boss's, applies and play goes on.)
+ * newest sit at the top. Then Your team (docs/REWARDS.md, v2) stays up,
+ * with each player's growth, until PLAY ON; in hard mode (or with
+ * `trickOrTreat.setLineup` on) its players can be swapped there.
+ * (Any other perk applies, and Your team comes up the same way.)
  */
 function pick(state: RunState, index: number, events: ArcadeEvent[]): void {
   const perk = state.offer[index];
   if (state.phase !== 'draft' || !perk) return;
   events.push({ type: 'perk', perk });
+  state.offer = [];
   if (perk.kind !== 'recruit') {
     applyPerk(state.perks, perk);
-    leaveDraft(state);
+    relineTeam(state);
     return;
   }
-  state.offer = [];
   const recruit = perk.player;
   const slot = bestSpot(state, recruit);
   const replaced = slot === null ? null : (state.roster[slot] ?? null);
@@ -513,7 +514,6 @@ function pick(state: RunState, index: number, events: ArcadeEvent[]): void {
   });
   state.bench.unshift(replaced ?? recruit);
   relineTeam(state);
-  if (!setsLineup(state)) leaveDraft(state);
 }
 
 /** Swap two players' spots, field or bench (any player can play any position). */
@@ -527,9 +527,14 @@ function swap(state: RunState, a: number, b: number): void {
   relineTeam(state);
 }
 
-/** On to the next series (its defense is already lined up): your team, as it now is, lines up too. */
+/**
+ * On to the next series (its defense is already lined up): your team, as it
+ * now is, lines up too, and what it gains is counted afresh for the next
+ * Your team.
+ */
 function leaveDraft(state: RunState): void {
   state.offer = [];
+  state.gains = {};
   state.phase = 'setup';
   relineTeam(state);
 }

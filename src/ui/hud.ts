@@ -316,15 +316,9 @@ export class Hud {
       p.textContent = draft.lead;
       lead.push(p);
     }
-    this.draft.replaceChildren(
-      heading(draft.title),
-      ...lead,
-      ...top,
-      skip,
-      heading('Your team'),
-      hand,
-      roster,
-    );
+    // The offer has the screen to itself; Your team is a screen of its own, titled as such.
+    const team = draft.roster.length > 0 ? [hand, roster] : [];
+    this.draft.replaceChildren(heading(draft.title), ...lead, ...top, ...team, skip);
   }
 
   /** A big word in the middle of the screen, for a moment: how a Break it! went. */
