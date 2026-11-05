@@ -40,7 +40,7 @@ import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
 import { ArcadeNames } from './render/names';
 import { nameTags } from './ui/nameTags';
-import { fieldPoints, keptSelection, selectedCard, slotAt, tapSelect } from './ui/select';
+import { fieldPoints, keptSelection, slotAt, tapSelect } from './ui/select';
 import { loadSettings, saveSettings } from '../settings';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
@@ -88,7 +88,7 @@ import { breakView, shooShowing, snagView, tipView } from './ui/testViews';
 import type { Practice } from './content/playCode';
 import { startingPlaybook } from './content/playPool';
 import type { Play } from './content/plays';
-import { trickOrTreatView } from './ui/trickOrTreat';
+import { fieldCard, trickOrTreatView } from './ui/trickOrTreat';
 
 /** The sound of taking each kind of pickup (docs/PICKUPS.md). */
 const PICKUP_SOUND: Readonly<Record<PickupKind, SfxId>> = { bolt: 'zap', slick: 'slip' };
@@ -888,7 +888,7 @@ export class ArcadeGame {
     );
     // The selected player's card takes "Pick a play"'s place (s3).
     const selected = this.selectionNow();
-    this.hud.setSelected(selectedCard(this.state, selected));
+    this.hud.setSelected(selected === null ? null : fieldCard(this.state, selected));
     this.hud.setNamesSwitch(this.beforeSnap() ? this.namesOn : null);
     const pick = called === null && selected === null ? 'Pick a play' : null;
     if (!this.live) this.hud.setPrompt(null, null);

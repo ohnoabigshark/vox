@@ -60,9 +60,10 @@ over: the check B7 lacked.
 - `ui/select.ts`: the hit test (`fieldPoints`, `slotAt`), over every body
   on the field, so a tap nearest Jack or a defender is on nobody (review
   x1); what a tap does
-  (`tapSelect`), `keptSelection` (only before the snap) and `routeLook`;
-  `selectedCard` is Your team's card through `fieldCard` in
-  `ui/trickOrTreat.ts`, which Your team's rows share.
+  (`tapSelect`), `keptSelection` (only before the snap) and `routeLook`.
+  The card is Your team's, `fieldCard` in `ui/trickOrTreat.ts`, which Your
+  team's rows share; the game calls it itself (review x7), so the routes,
+  which import `routeLook`, don't pull in the TRICK OR TREAT! screen.
 - The game listens for a press on the canvas before the snap (the HUD lets
   taps through, `#ui`); the reach is 40 CSS pixels from a body's middle
   (`TAP_REACH` in `ui/select.ts`, `BODY_MIDDLE` in `game.ts`).

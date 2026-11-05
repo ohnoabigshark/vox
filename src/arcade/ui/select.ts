@@ -1,12 +1,11 @@
 /**
  * Selecting a player before the snap (docs/SELECT.md): a tap on one of your
  * seven selects them, kept as their roster slot, which they keep through
- * calling a card and Flip (`lineUpTeam`). Their route lights up, the rest
- * dim, and their card shows. Drawing only: it never touches the sim.
+ * calling a card and Flip (`lineUpTeam`). Their route lights up and the
+ * rest dim; their card is `fieldCard` (ui/trickOrTreat.ts). Drawing only:
+ * it never touches the sim.
  */
 import type { RunState, Vec } from '../sim/types';
-import type { SelectedCard } from '../../ui/hud';
-import { fieldCard } from './trickOrTreat';
 
 /** How far a tap may land from a body and still be on it: about a thumb's width (CSS pixels; docs/SELECT.md, s1). */
 export const TAP_REACH = 40;
@@ -63,9 +62,4 @@ export function keptSelection(state: RunState, selected: number | null): number 
 export function routeLook(slot: number, selected: number | null): 'plain' | 'bright' | 'dim' {
   if (selected === null) return 'plain';
   return slot === selected ? 'bright' : 'dim';
-}
-
-/** The selected player's card, or null. */
-export function selectedCard(state: RunState, selected: number | null): SelectedCard | null {
-  return selected === null ? null : fieldCard(state, selected);
 }

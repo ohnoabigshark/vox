@@ -9,11 +9,10 @@ import {
   fieldPoints,
   keptSelection,
   routeLook,
-  selectedCard,
   slotAt,
   tapSelect,
 } from '../../src/arcade/ui/select';
-import { trickOrTreatView } from '../../src/arcade/ui/trickOrTreat';
+import { fieldCard, trickOrTreatView } from '../../src/arcade/ui/trickOrTreat';
 
 /**
  * Selecting a player and the names switch (docs/SELECT.md, tests 1-6):
@@ -140,7 +139,7 @@ describe('the card (6)', () => {
     const s = createRun(1);
     const runnerSlot = s.field.players.find((p) => p.role === 'runner')!.slot;
     applyGains(s, [{ slot: runnerSlot, stat: 'hustle', by: 12 }], []);
-    const card = selectedCard(s, runnerSlot)!;
+    const card = fieldCard(s, runnerSlot)!;
     expect(card.name).toBe(s.roster[runnerSlot]!.name);
     expect(card.form).toBe('Human');
     expect(card.position).toBe('Runner');
@@ -155,7 +154,7 @@ describe('the card (6)', () => {
     expect(card.icon).toBe(row.icon);
   });
 
-  it('nobody selected, no card', () => {
-    expect(selectedCard(createRun(1), null)).toBeNull();
+  it('no player in the slot, no card', () => {
+    expect(fieldCard(createRun(1), 99)).toBeNull();
   });
 });
