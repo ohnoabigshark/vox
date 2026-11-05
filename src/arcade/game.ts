@@ -962,15 +962,17 @@ export class ArcadeGame {
     this.focus = v(0, this.state.series.los - 4);
   }
 
-  /** ?win=1: the run as if just won (on the King's series, eleven recruits on the bench), and the win cutscene. */
+  /** ?win=1: the run as if just won (on the King's series, eleven new players on the bench), and the win cutscene. */
   private skipToWin(): void {
     const s = createRun(this.seed, firstRoster(this.monsters), arcadeTuning.run.areas - 1);
     setUpSeries(s, s.series.area, stretchStart(SERIES_KINDS.length - 1), [], true);
-    // One recruit for every TRICK OR TREAT! a full run has.
-    for (let i = 0; i < arcadeTuning.run.areas * SERIES_KINDS.length - 1; i++) {
+    // A new player for every TRICK OR TREAT! a full run has: most cards are
+    // plays, so offers are rolled until that many players have come up.
+    const players = arcadeTuning.run.areas * SERIES_KINDS.length - 1;
+    for (let i = 0; s.bench.length < players && i < 50 * players; i++) {
       s.seriesWon = i;
-      const offer = rollOffer(s)[i % 2];
-      if (offer?.kind === 'player') s.bench.unshift(offer.player);
+      const card = rollOffer(s).find((c) => c.kind === 'player');
+      if (card?.kind === 'player') s.bench.unshift(card.player);
     }
     s.seriesWon = arcadeTuning.run.areas * SERIES_KINDS.length;
     s.phase = 'won';
