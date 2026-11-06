@@ -13,7 +13,9 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   at `/vox/` logs, and so does the hot-reload server at `/vox-dev/`: both
   are on the same origin. The service is `tools/playLog/server.ts`, run by
   Node directly (no build step), and appends to the file named by
-  `PLAY_LOG`.
+  `PLAY_LOG`. It also hands models to and from the phone for Goxel, under
+  `/vox-log/models` (`docs/ART.md`, The round trip), from the folder named
+  by `VOX_MODELS`.
 - **What a line holds (l2):** one line per sim event: every event the sim
   reports is a moment (a snap, a throw, a catch, a tap test's start and
   grade, a tackle, a pickup, a field event, the crows, the down's end, a

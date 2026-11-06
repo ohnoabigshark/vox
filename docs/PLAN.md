@@ -681,7 +681,11 @@ Still open:
     check failed (2026-11-06): the Drive connector takes and gives a file
     only as base64 text that Claude has to copy out in full, and a 3 KB
     `.vox` (the gumdrop) came out invalid. Real models are bigger, so the
-    hand-off moves to the tailnet (a2's fallback; Thanksgiving map j8). The first real
+    models travel over the tailnet (a2's fallback; Thanksgiving map j8,
+    the user: _"I think serving on the tailnet is fine"_): a page on the
+    play log's service, `…:8443/vox-log/models`, rather than j8's own
+    `/vox-models/` path, so `tailscale serve` needs nothing new
+    (`docs/ART.md`; live once deployed). The first real
     trip, one of Claude's models changed in Goxel and brought back,
     replaces p3's gravestone test (the user confirmed on 2026-11-04 that
     Goxel's Android app saves `.vox`).
