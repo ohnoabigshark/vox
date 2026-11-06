@@ -2,7 +2,7 @@
  * Screenshot the game at phone size, headlessly, to check how it looks
  * (the field, scenery and readability) without a phone in hand.
  *
- *   npm run screenshot                 → previews/game.png (the title, over the first down, seed 8)
+ *   npm run screenshot                 → previews/game.png (the start screen, seed 8)
  *   npm run screenshot -- 3 call       → seed 3, the first card called (its routes previewed)
  *   npm run screenshot -- 3 play       → seed 3, a moment after the snap
  *   npm run screenshot -- 8 play pitch=50 low   → with extra URL params, saved as previews/low.png
@@ -35,8 +35,9 @@ try {
   await page.goto(`http://localhost:${port}/?seed=${seed}${extraQuery ? `&${extraQuery}` : ''}`);
   await page.waitForTimeout(1500);
   if (when === 'call' || when === 'play') {
-    await page.click('.hud-action'); // PLAY
-    await page.waitForTimeout(400);
+    await page.click('.start-play'); // PLAY, on the start screen
+    // The hand is dealt once the intro is over: a minute or more, headless.
+    await page.locator('.hud-hand .hud-card').first().waitFor({ timeout: 120_000 });
     await page.click('.hud-hand .hud-card >> nth=0');
     await page.waitForTimeout(400);
   }

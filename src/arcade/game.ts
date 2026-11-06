@@ -145,6 +145,8 @@ export interface ArcadeOptions {
    * event the link can't give opens the ordinary game, saying why.
    */
   eventPractice?: EventPractice;
+  /** A `?set=` with no set behind it: what to tell the Coach (`readSetLink` in src/sets). */
+  setNotice?: string;
   /**
    * The play editor's sketches switched on In the game (map round 6), read
    * when each run starts and dealt alongside the play pool.
@@ -349,12 +351,17 @@ export class ArcadeGame {
     this.playLog = PLAY_LOG_URL ? this.startPlayLog(PLAY_LOG_URL) : null;
     this.statsScreens = options.stats ? new StatsScreens(uiRoot) : null;
     this.stats = options.stats ? this.startStats(options.stats) : null;
-    if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
-    if (tryEvent && !tryEvent.event.ok)
-      this.hud.notice(`${tryEvent.event.reason} Playing without it.`);
+    // What the link or the saved events couldn't give, said once together: the notice has
+    // one slot, so one after another would lose all but the last (never silently).
+    const notices = [
+      link && !link.play.ok ? `${link.play.reason} Playing without it.` : null,
+      tryEvent && !tryEvent.event.ok ? `${tryEvent.event.reason} Playing without it.` : null,
+      options.setNotice ?? null,
+      // Saved events the game couldn't read are left out (docs/FIELD_EVENTS.md).
+      ...savedEventWarnings,
+    ].filter((n) => n !== null);
+    if (notices.length > 0) this.hud.notice(notices.join(' · '));
     if (this.practice?.kind === 'event') this.hud.setBackLabel('‹ Events');
-    // Saved events the game couldn't read are left out: say so, never silently (docs/FIELD_EVENTS.md).
-    if (savedEventWarnings.length > 0) this.hud.notice(savedEventWarnings.join(' · '));
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),

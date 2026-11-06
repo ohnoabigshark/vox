@@ -2,6 +2,7 @@ import { readModes } from './arcade/content/modeFlags';
 import { readPractice } from './arcade/content/playCode';
 import { readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
+import { readSetLink } from './sets';
 import { now } from './clock';
 import { browserStorage, inGamePlays, sketchStore } from './dev/playEditor/sketches';
 import { statsStore } from './arcade/record/store';
@@ -33,6 +34,9 @@ const eventPractice = readEventPractice(location.search);
 // Hard mode (endless zones) and two-tap throwing (aim, then distance) are on unless
 // ?hard=0 or ?aim=1 turns them off (readModes).
 const modes = readModes(params);
+// ?set=1 picks a set by its number (docs/PLAN.md, Sets, c7). Halloween is the only one
+// yet; any other number plays it too, with a notice saying so.
+const setLink = readSetLink(params);
 // ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area.
 // ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first series, not series 5.
 // ?perks=1 starts holding every perk TRICK OR TREAT! offers (Second Wind, Candy Corn Magnet).
@@ -50,6 +54,7 @@ const game = new ArcadeGame(canvas, ui, {
   tipAlways: params.get('tip') === '1',
   startWithPerks: params.get('perks') === '1',
   farmSong: Number(params.get('farmSong')) || 1,
+  ...(setLink.notice ? { setNotice: setLink.notice } : {}),
   ...(practice ? { practice } : {}),
   ...(eventPractice ? { eventPractice } : {}),
   // The play editor's sketches in the game join the plays dealt, read at every PLAY and
