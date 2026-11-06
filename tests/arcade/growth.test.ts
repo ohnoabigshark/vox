@@ -49,9 +49,18 @@ describe('what grows which stat (t1)', () => {
     ]);
   });
 
-  it('2. a GREAT on SNAG IT! or the tip drill adds the bigger bump', () => {
+  it('2. a GREAT on SNAG IT! or the tip drill adds more on top of the catch', () => {
     expect(gainsOf(tally({ catch: { slot: 4, at: 6 }, catchGreats: [4] }), down(6))).toEqual([
       { slot: 4, stat: 'hands', by: g.catch + g.catchGreat },
+    ]);
+  });
+
+  it('2a. Hands grows slowly: +8 a catch, +15 in all for a GREAT one (PLAN.md, fixes map h1)', () => {
+    expect(gainsOf(tally({ catch: { slot: 4, at: 6 } }), down(6))).toEqual([
+      { slot: 4, stat: 'hands', by: 8 },
+    ]);
+    expect(gainsOf(tally({ catch: { slot: 4, at: 6 }, catchGreats: [4] }), down(6))).toEqual([
+      { slot: 4, stat: 'hands', by: 15 },
     ]);
   });
 

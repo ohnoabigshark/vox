@@ -35,13 +35,18 @@ rounds and a confirmation (c1). The item numbers below are the map's.
 
   | What happens                               | Who                        | Gain                          |
   | ------------------------------------------ | -------------------------- | ----------------------------- |
-  | A catch                                    | the catcher                | +15 Hands                     |
-  | GREAT on SNAG IT! or the tip drill         | the catcher                | +15 Hands more                |
+  | A catch                                    | the catcher                | +8 Hands                      |
+  | GREAT on SNAG IT! or the tip drill         | the catcher                | +7 Hands more                 |
   | Yards after a catch                        | the catcher                | +1 Hustle a yard              |
   | A rush of 10 yards or more                 | the carrier                | +10 Hustle, +1 a yard past 10 |
   | GREAT on Break it!                         | the carrier                | +10 Hustle                    |
   | A pancake                                  | the blocker                | +8 Heft                       |
   | A block held on a down that ends in a gain | each Blocker who held one  | +3 Heft                       |
+
+  The catch sizes were +15 and +15 until 2026-11-06, halved because Hands
+  (catch reach) grew too fast: a busy Catcher reached the 150 ceiling,
+  with nearly four times ordinary reach, by area 3 or 4 (the user's note;
+  map https://claude.ai/artifact/HcAVyNiXGEU8NCVJmYGTkJ, h1).
 
   A **block held** means a Blocker was touching a defender at any moment
   of a down that ends with a gain (c1). Pancakes come only
@@ -110,8 +115,9 @@ and never skips. The numbers are a check; how it plays to the user decides.
 **Part 1** (t1):
 
 1. A catch grows the catcher's Hands by the catch size, and nobody else's.
-2. A GREAT on SNAG IT! or the tip drill adds the bigger bump; OK and BAD
-   add only the catch's.
+2. A GREAT on SNAG IT! or the tip drill adds more on top of the catch; OK and BAD
+   add only the catch's. (2a, 2026-11-06: the sizes themselves, +8 and
+   +15 in all, pinned for the halving.)
 3. Yards after a catch grow the catcher's Hustle by the yard.
 4. A rush of 10 yards or more grows the carrier's Hustle; a 9-yard rush
    doesn't.
@@ -167,7 +173,9 @@ and never skips. The numbers are a check; how it plays to the user decides.
   every gain.
 - **The balance report gives the busiest player and the team,** not each
   player's gain per area as b2 said: the busiest is what z1 aims at, and
-  seven numbers a player would be noise (review d2).
+  seven numbers a player would be noise (review d2). Since 2026-11-06 it
+  also gives the most Hands one player grew in each area (`busiestHands`,
+  for the Hands halving, fixes map h1).
 
 ### Balance, part 1
 

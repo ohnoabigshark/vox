@@ -276,10 +276,10 @@ export const tuningDefaults = {
   },
   /** Growth from play (docs/REWARDS.md, z1): what each thing a player does adds to its stats. */
   growth: {
-    /** A catch: the catcher's Hands… */
-    catch: 15,
+    /** A catch: the catcher's Hands (why it's this small: docs/REWARDS.md, the growth table)… */
+    catch: 8,
     /** …and this much more for a GREAT on SNAG IT! or the tip drill. */
-    catchGreat: 15,
+    catchGreat: 7,
     /** The catcher's Hustle, for each whole yard it carried after the catch. */
     yacPerYard: 1,
     /** A rush of this many yards or more grows the carrier's Hustle… */
