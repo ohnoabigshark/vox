@@ -27,6 +27,15 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 ## The run
 
 - **Run:** one game, from PLAY to a loss or the win dance.
+- **Set** _(ours)_: a whole run's skin: its areas, Bosses and gimmicks,
+  team look, defender looks and on-screen names, over the same rules.
+  Holiday sets are the main line (Halloween's is _Get Jack Back_;
+  Thanksgiving's comes next); the rest are **alternative sets**. Each has a
+  fixed number (`?set=2`) and its own folder; in code, `GameSet`
+  (`Set` is JavaScript's). **Theme** is a looser word for a set's subject.
+  The plain rules words here (the draft, pickup, treat, trick, perk) are
+  the code's; a set names them on screen (TRICK OR TREAT! is Halloween's
+  draft). Decided on the art pipeline map, s1–s6 and c1–c8, 2026-11-06.
 - **Area:** a themed place of four stretches, crossed in at most four series
   (Froggy's Forest, the Candy Queendom, Frederick's Farm). Upstream's code and hard mode also say
   **zone** for the same thing. **Level** _(ours)_: an area, as the Coach
