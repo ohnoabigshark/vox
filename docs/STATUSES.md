@@ -49,7 +49,7 @@ top speed after its statuses?".
 
 - **The bolt's speed becomes Fast,** as a pure refactor: the same seed gives
   the same run, event for event, and `balance:compare` gives the same report.
-  Today it's its own field on every body, `boltLeft`.
+  It was its own field on every body, `boltLeft`.
 - **Lying on the turf stays as it is** (`down` on every body). It's how a
   tackle, a pancake, a slick, Frog Rain and Break it!'s drag all leave a
   body, so it's the body's own state, not a condition given to it. A source
@@ -128,8 +128,9 @@ last two played by you before they merge:
 1. **The bolt as Fast:** a seeded run gives the same events, step for step,
    as before; a bolt taken gives Fast for its 3 s, at 1.5 × top speed, on
    either side.
-2. **Stacking:** the same status twice keeps the longer time left; two
-   speed statuses multiply.
+2. **Stacking:** the same status twice keeps the longer time left. (Two
+   speed statuses multiplying is tested with Slowed, on `field-taffy`:
+   until then Fast is the only one.)
 3. **The kind rule:** the table above, for each status and each who.
 4. **Reported:** gaining a status and its running out are each one event,
    naming the body, the status and its source.
@@ -149,3 +150,29 @@ Written down, none built; each comes back as its own map:
 - **Boss powers from the same parts:** Thanksgiving's rat and its chewed
   card (two players slip at the snap), Biscuit's bite.
 - **Statuses on the ball and on pickups** (s6).
+
+## As built (2026-11-06, branch `statuses`)
+
+- **The code:** `sim/status.ts` gives, wears and reads statuses
+  (`giveStatus`, `wearStatuses`, `hasStatus`, `speedShare`); which there
+  are, whether each helps or hurts, and `kindOf` are `content/statuses.ts`.
+  Each body's list is `statuses` (`sim/types.ts`), each with its time left
+  and its source. Field events' `eventKind` goes through `kindOf`, a
+  flatten (a knockdown) hurting.
+- **The numbers:** Fast's speed-up moved from `pickups.bolt.faster` to
+  `statuses.fast.faster` (0.5); the bolt keeps how long, `pickups.bolt.time`
+  (3 s).
+- **Wearing off** happens where the bolt's did, each body's in `moveBodies`,
+  so statuses don't wear down while play stands still for Break it! or a
+  catch test, as the bolt didn't.
+- **At the whistle:** each down lines up new bodies, so a status still on
+  then ends there, unreported: the play log shows its `statusGained` and no
+  `statusEnded`.
+- **Topping up:** giving a status a body already has reports
+  `statusGained` again, so every bolt taken shows in the log.
+- **The same run:** four hard-mode runs, driven by their seeds alone, give
+  the same events and positions, step for step, as on `main`
+  (`tests/arcade/statusesSameRun.test.ts`, digests taken on `main`
+  adb458b; a bolt 5% slower fails it). `balance:compare` (10 runs a
+  scenario, main adb458b against 3ec7de3) gives the same report in all six
+  scenarios, line for line.
