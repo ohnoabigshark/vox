@@ -674,10 +674,14 @@ Still open:
   https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
   - **The Goxel round trip** (round 3, a1 and a2, 2026-11-06; the user's
     goal of 2026-11-05: Claude makes the models, the user tweaks them in
-    Goxel and hands them back). A `.voxt` → `.vox` exporter is built now
-    (p4 unparked), tested by a model going out and coming back unchanged.
-    Models travel through one Google Drive folder; whether this session
-    can upload a `.vox` there is the first thing to check. The first real
+    Goxel and hands them back). The `.voxt` → `.vox` exporter is built
+    (p4 unparked; `npm run export-vox`, `docs/ART.md`, "The round trip"),
+    tested by every model going out and coming back unchanged.
+    Models were to travel through one Google Drive folder, but the first
+    check failed (2026-11-06): the Drive connector takes and gives a file
+    only as base64 text that Claude has to copy out in full, and a 3 KB
+    `.vox` (the gumdrop) came out invalid. Real models are bigger, so the
+    hand-off moves to the tailnet (a2's fallback; Thanksgiving map j8). The first real
     trip, one of Claude's models changed in Goxel and brought back,
     replaces p3's gravestone test (the user confirmed on 2026-11-04 that
     Goxel's Android app saves `.vox`).

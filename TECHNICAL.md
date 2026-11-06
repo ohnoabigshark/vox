@@ -310,7 +310,7 @@ In [`docs/ART.md`](docs/ART.md), under 2D art.
 │  ├─ game/conductor.ts    // music and SFX
 │  ├─ audio/               // mixer, synth, songs, SFX
 │  ├─ beat/                // the beat clock (for the music and the dev beat page)
-│  ├─ voxel/               // .voxt parser, mesher, model cache, .vox import
+│  ├─ voxel/               // .voxt parser, mesher, model cache, .vox import and export
 │  ├─ content/             // palettes, shared tuning
 │  ├─ sim/rng.ts           // the seeded generator under arcade/sim/random.ts
 │  ├─ settings.ts
@@ -359,6 +359,7 @@ Everything a future session (human or Claude) needs to carry on without the orig
 | `npm run screenshot [seed] [setup\|call\|play] [query] [name]` | A headless phone-size (375×812 @2x) capture → `previews/game.png`, `game-call.png` (a card called, routes drawn) or `game-play.png` (just after HIKE!). |
 | `npm run render-audio [song:id \| stem:song/stem \| sfx:id …]` | WAVs and waveform PNGs in `previews/audio/`, with levels and a loop-seam check. |
 | `npm run import-vox -- file.vox folder/name [voxelSize]` | Convert a MagicaVoxel model into `.voxt`. |
+| `npm run export-vox -- folder/name [out.vox]` | A model out as a MagicaVoxel `.vox`, to edit in Goxel; `import-vox` brings it back keeping its voxel size and colours (`docs/ART.md`, "The round trip"). |
 
 `previews/` is gitignored output: look at the PNGs with an image viewer (Claude: the Read tool). **Headless browser checks cost a lot of tokens: only run them when the user asks**; otherwise run `npm run check` and offer a browser check.
 
