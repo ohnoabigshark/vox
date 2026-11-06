@@ -23,20 +23,63 @@ theme is still going to be all holiday themed levels and players (on
 offense and defense), but we will make lots of alternative sets too for non
 main theme play."_
 
-Open, for when the first new theme or set is planned:
+### Sets
 
-- **What a set is:** its areas, its players and its defenders, or any of
-  them alone; whether sets mix (a pop-culture team in a holiday area); how
-  a player picks one (a menu, unlocks); and its word in `CONTEXT.md`.
-- **The holiday line:** which holiday comes next, and whether each is a
-  run of its own or one run passes through several.
-- **Pop culture and the public build:** characters, names and looks owned
-  by others can't go in the public release as they are, so how close a
-  set comes to its source (an homage in the spirit of it, or original
-  characters) is decided per set.
-- **The art pipeline:** many sets make a set's art (colours, models,
-  props, defender looks) a candidate for data rather than code (art
-  pipeline map p7, https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt).
+Decided on the art pipeline map, rounds 2 and 3
+(https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-06, all
+approved but s3):
+
+- **A set is a whole run in a new skin** (s1): its own areas (four
+  stretches each), Bosses and gimmicks, team look, defender looks and
+  names on screen, with the rules unchanged. A kind keeps its rules
+  whatever it looks like. The plain rules words (the draft, pickup, treat,
+  trick, perk) stay in code and docs, and each set names them on screen:
+  TRICK OR TREAT! is Halloween's name for the draft (s4).
+- **Sets don't mix** for now (s2): a team from one set in another's areas,
+  or areas from several sets in one run, is parked.
+- **Thanksgiving is the first new set** (s3, rejected for Christmas: _"Thanksgiving
+  is sooner let's do that plz"_), aiming to be playable on the tailnet
+  build by Thanksgiving, 2026-11-26 (t1). Its design is planned on its own
+  map.
+- **Alternative sets nod to a genre** with original characters, not to one
+  franchise's names or likenesses (s5).
+- **_Get Jack Back_ is the Halloween set's name** (s6); the whole game's
+  name waits until a second set exists.
+- **Every set in its own compartment, so sets can be built in parallel.**
+  _User, 2026-11-06: "I want to design our set and asset pipelines in such
+  a way that we can create new sets in parallel easily. so their data
+  structures, code, assets, etc are ideally compartmentalized."_
+  - One folder per set, `src/sets/<set>/`, with its models in
+    `assets-src/voxels/<set>/`; the engine reads the set being played
+    from one typed `GameSet` value, and one file lists the sets (c1).
+  - A test fails if the engine imports from a set's folder or one set
+    imports from another (c2).
+  - A set is data, except a gimmick that needs new behaviour, written in
+    its own folder behind one gimmick interface; Halloween's three
+    gimmicks move behind it as reusable building blocks (c3).
+  - Halloween moves in first, in pieces each merged quickly, as a pure
+    refactor proven by identical seeded runs and `balance:compare`
+    reports; then Thanksgiving is built in its own folder (c4). This
+    replaces round 1's p7.
+  - A shared base palette (the team's gold and orange, ink, bone, the
+    glow, the defenders' purple) stays with the engine; each set adds its
+    own named colours, and a test keeps a set's models to its own (c5).
+  - Each set keeps its own asset manifest; `check-assets` reads them all
+    (c6).
+  - A set has a fixed number, and a link picks it: `?set=1` Halloween,
+    the default, and `?set=2` Thanksgiving (c7, the user's note: _"Can we
+    just do enums so I can send a number as the value"_). A picker screen
+    comes later, with mockups.
+  - Each set's design is in `docs/sets/<set>.md` (c8).
+
+Still open:
+
+- **The holiday multiverse,** the user's name for a bigger concept, not
+  yet described (2026-11-05). It may reopen s2.
+- **A set picker** on the title screen, and how a run's record and
+  achievements say which set it was in (runs so far count as
+  Halloween's).
+- **The game's name** above its sets (s6).
 
 ## V1: Plays
 
@@ -583,19 +626,17 @@ Open, for when the first new theme or set is planned:
   tune but I want to focus on the defenders first."_
 - **The art pipeline** (`docs/ART.md`; map round 1,
   https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
-  - **Proving the editor path** (p3): the user makes a small gravestone in
-    Goxel's Android app and saves it as `.vox` to Google Drive; Claude
-    imports it (`npm run import-vox`) and reports what broke. Whether the
-    Android app saves `.vox` is unchecked, so the first step is a look at
-    its export menu.
-  - **A `.voxt` → `.vox` exporter** (p4), so a model Claude wrote opens in
-    the editor for touch-ups and comes back through the importer. Parked
-    until p3 shows importing works.
-  - **An area's art as data** (p7): the first step of building the first
-    new area or set is moving what an area looks like (mood colours,
-    defender looks, props, their scatter) and the team's models into one
-    data file per area or set, with the three areas moved over, so the
-    shape comes from a real second example.
+  - **The Goxel round trip** (round 3, a1 and a2, 2026-11-06; the user's
+    goal of 2026-11-05: Claude makes the models, the user tweaks them in
+    Goxel and hands them back). A `.voxt` → `.vox` exporter is built now
+    (p4 unparked), tested by a model going out and coming back unchanged.
+    Models travel through one Google Drive folder; whether this session
+    can upload a `.vox` there is the first thing to check. The first real
+    trip, one of Claude's models changed in Goxel and brought back,
+    replaces p3's gravestone test (the user confirmed on 2026-11-04 that
+    Goxel's Android app saves `.vox`).
+  - **An area's art as data** (p7) became the set compartments (Direction,
+    "Sets", c1–c8).
 - **"Either side" drawn on both sides** of the event editor's field, the
   right solid and the left dashed, so an event that picks a side each down
   doesn't read as flipped in play. Field events map round 4, e5, Not now
