@@ -71,7 +71,7 @@ approved but s3):
     `balance:compare` showing no difference from main, the wall test
     (`tests/sets/wall.test.ts`, c2), the `?set=` link
     (`tests/sets/setLink.test.ts`), and a screenshot of each area's first
-    down before and after (`npm run screenshot -- 8 call area=N`). The
+    down before and after (`npm run screenshot -- 8 call area=N before-areaN`). The
     pieces: areas, defenses and colours; gimmicks and perks behind one
     interface (j3); names, story and songs. Each merges before the next.
   - A shared base palette (the team's gold and orange, ink, bone, the
