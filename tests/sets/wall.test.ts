@@ -48,6 +48,19 @@ describe('the rule', () => {
     expect(wallBreaches([{ path: 'src/arcade/game.ts', source }])).toHaveLength(5);
   });
 
+  it('reads paths from the root, globs and template literals too', () => {
+    const source = [
+      "import { a } from '/src/sets/halloween/a';",
+      "const models = import.meta.glob('/src/sets/halloween/**/*.voxt');",
+      'const c = await import(`../sets/halloween/${name}`);',
+    ].join('\n');
+    expect(wallBreaches([{ path: 'src/arcade/game.ts', source }])).toEqual([
+      'src/arcade/game.ts imports src/sets/halloween/a, inside halloween',
+      'src/arcade/game.ts imports src/sets/halloween/**/*.voxt, inside halloween',
+      'src/arcade/game.ts imports src/sets/halloween/${name}, inside halloween',
+    ]);
+  });
+
   it("doesn't count a path that only begins like a set's folder", () => {
     expect(wallBreaches([file('src/arcade/game.ts', '../sets/halloweenish/a')])).toEqual([
       'src/arcade/game.ts imports src/sets/halloweenish/a, inside halloweenish',
@@ -64,10 +77,13 @@ describe('the game as it is', () => {
     );
 
   it('keeps the wall', () => {
-    const files = walk(join(ROOT, 'src')).map((f) => ({
-      path: relative(ROOT, f),
-      source: readFileSync(f, 'utf8'),
-    }));
+    // The game and the tools (the balance runs, check-assets) reach sets only through the list.
+    const files = ['src', 'tools']
+      .flatMap((dir) => walk(join(ROOT, dir)))
+      .map((f) => ({
+        path: relative(ROOT, f),
+        source: readFileSync(f, 'utf8'),
+      }));
     expect(files.length).toBeGreaterThan(100);
     expect(wallBreaches(files)).toEqual([]);
   });
