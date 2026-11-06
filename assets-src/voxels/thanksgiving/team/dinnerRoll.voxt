@@ -1,0 +1,61 @@
+# The Dinner Roll: Thanksgiving's Human kind, as the Walk-on is
+# Halloween's. A round roll, all golden crust with two score marks on top
+# and a pale rim underneath, eyes and a smile in the crust, stubby arms in white
+# gloves, orange legs and black cleats, and the team's gold striped helmet.
+size 9 14 5
+voxel 0.08
+mirror x
+colors
+  h leafGold
+  n white
+  G gingerbread
+  D gingerbreadDark
+  c burlap
+  k ink
+  b bone
+  j pumpkin
+slice 0
+  ..hhn
+  ..hhn
+  .hhhh
+  .GDGG
+  GGGDG
+  GGkGG
+  bGGGG
+  bGGkk
+  GGGGG
+  .cccc
+  ..ccc
+  ..jj.
+  ..jj.
+  ..kk.
+slice 1-3
+  ..hhn
+  .hhhn
+  .hhhh
+  .GDGG
+  GGGDG
+  GGGGG
+  bGGGG
+  bGGGG
+  GGGGG
+  .cccc
+  ..ccc
+  ..jj.
+  ..jj.
+  ..kk.
+slice 4
+  ..hhn
+  ..hhn
+  .hhhh
+  .GDGG
+  GGGDG
+  GGGGG
+  bGGGG
+  bGGGG
+  GGGGG
+  .cccc
+  ..ccc
+  ..jj.
+  ..jj.
+  ..kk.

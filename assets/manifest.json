@@ -1,5 +1,5 @@
 {
-  "$comment": "Every file under assets/ and assets-src/ needs an entry here. See TECHNICAL.md \u00a714.",
+  "$comment": "Every file under assets/ and assets-src/ needs an entry here. See TECHNICAL.md §14.",
   "assets": [
     {
       "path": "assets-src/voxels/forest/chaser.voxt",
@@ -178,6 +178,36 @@
     {
       "path": "assets-src/voxels/farmProps/hayBale.voxt",
       "source": "Original voxel model (Farm prop: hay bale), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/tom.voxt",
+      "source": "Original voxel model (Tom: Thanksgiving's ball, a roast turkey), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/dinnerRoll.voxt",
+      "source": "Original voxel model (Dinner Roll: the Human kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/castIronPan.voxt",
+      "source": "Original voxel model (Cast-Iron Pan: the Golem kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/gravyBoat.voxt",
+      "source": "Original voxel model (Gravy Boat: the Ghost kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/cornOnTheCob.voxt",
+      "source": "Original voxel model (Corn on the Cob: the Werewolf kind), written by Claude",
       "author": "Claude",
       "license": "original"
     }
