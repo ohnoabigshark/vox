@@ -4,7 +4,7 @@ The second set (`?set=2`), after Halloween's _Get Jack Back_: the same
 football, a new story, cast and three areas, in its own compartment
 (`docs/PLAN.md`, Direction, "Sets", c1–c8). Designed with the user on the
 Thanksgiving decision map, https://claude.ai/artifact/RaN6fDRKSF4JXWhmUwAY1r,
-rounds 1–8, all 2026-11-06; the item ids below are that map's. This is the
+rounds 1–9, all 2026-11-06; the item ids below are that map's. This is the
 spec the set is built from. Nothing here is built yet except the models
 (drafts, `assets-src/voxels/thanksgiving/`); the build waits for Halloween's
 move into `src/sets/halloween/`.
@@ -198,3 +198,6 @@ Parked for a later pass, after the gameplay and the artwork (j5, j6):
   Tablecloth Two-Step and Dinner Is Served; maybe a marching-band feel, for
   the parades and the football on TV.
 - **Biscuit lunging** at Tom as he passes (i5), beyond the bite.
+- **A palette pass** (p1, the user: _"I think we are gonna want to mess
+  with the color palette a bit for this. That change can come later"_):
+  Thanksgiving's own colours, which c5's per-set palette is the place for.
