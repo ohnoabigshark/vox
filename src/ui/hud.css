@@ -494,12 +494,6 @@ button.hud-roster-row:active {
   opacity: 0.7;
 }
 
-/* An offer card's words (a perk's, "Prefers Runner") are bigger (fixes map o1). */
-.hud-offer em {
-  font-size: 0.95rem;
-  line-height: 1.3;
-}
-
 .hud-roster-hand {
   margin: 0;
   max-width: 460px;
@@ -535,6 +529,52 @@ button.hud-offer:active {
   text-shadow: 3px 3px 0 var(--ink);
 }
 
+/* Everything an offer card draws bigger than Your team's rows do (fixes map o1), in one place.
+   These come after the shared roster rules they override. */
+.hud-offer .hud-photo {
+  width: 60px;
+  height: 60px;
+}
+
+/* A perk's icon sits in a bigger photo box. */
+.hud-offer.perk .hud-photo {
+  width: 64px;
+  height: 64px;
+}
+
+.hud-offer .hud-name strong {
+  font-size: 1.35rem;
+}
+
+.hud-offer .hud-name small {
+  font-size: 0.8rem;
+}
+
+.hud-offer .hud-stat {
+  gap: 7px;
+  font-size: 0.95rem;
+}
+
+.hud-offer .hud-stat-bar {
+  height: 13px;
+}
+
+/* Its words (a perk's, "Prefers Runner"). */
+.hud-offer em {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+/* Its heading (photo, name and kind; a play's name) centred under its title (fixes map o2). */
+.hud-offer .hud-player-head {
+  justify-content: center;
+  gap: 10px;
+}
+
+.hud-offer.play .hud-name {
+  align-items: center;
+}
+
 .hud-player-head {
   display: flex;
   align-items: center;
@@ -557,29 +597,6 @@ button.hud-offer:active {
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.hud-offer .hud-photo {
-  width: 60px;
-  height: 60px;
-}
-
-/* An offer card's heading (photo, name and kind; a play's name) centred under its title (fixes map o2). */
-.hud-offer .hud-player-head {
-  justify-content: center;
-  gap: 10px;
-}
-
-.hud-offer.play .hud-name {
-  align-items: center;
-}
-
-.hud-offer .hud-name strong {
-  font-size: 1.35rem;
-}
-
-.hud-offer .hud-name small {
-  font-size: 0.8rem;
 }
 
 .hud-name {
@@ -621,15 +638,6 @@ button.hud-offer:active {
   align-items: center;
   gap: 5px;
   font-size: 0.66rem;
-}
-
-.hud-offer .hud-stat {
-  gap: 7px;
-  font-size: 0.95rem;
-}
-
-.hud-offer .hud-stat-bar {
-  height: 13px;
 }
 
 .hud-stat-label {
@@ -746,12 +754,6 @@ button.hud-offer:active {
 
 .song-link[hidden] {
   display: none;
-}
-
-/* A perk's icon sits in a bigger photo box. */
-.hud-offer.perk .hud-photo {
-  width: 64px;
-  height: 64px;
 }
 
 /* The offer (docs/REWARDS.md, notes p5): nothing scrolls up and down; the
