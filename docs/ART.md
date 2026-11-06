@@ -131,14 +131,24 @@ npm run import-vox -- /root/.local/share/vox-serve/models/inbox/<sent>.vox <fold
 ```
 
 The models travel over the tailnet (Thanksgiving map j8; Drive couldn't
-carry them, `docs/PLAN.md`). The play log's service hands them out at
-`https://…ts.net:8443/vox-log/models`, a page for the phone: each model in
-`out/` is a download link to open in Goxel, and Send puts what Goxel saved
-in `inbox/`, named after the file and the time it came in
-(`tom-2026-11-06T12-30-05Z.vox`), so nothing is overwritten. It takes
-only `.vox` files up to 1 MB. The folder is `VOX_MODELS` in the service's
+carry them, `docs/PLAN.md`), through the play log's service rather than a
+`tailscale serve` path of their own: `https://…ts.net:8443/vox-log/models`
+is a page for the phone. Each model in `out/` is a download link to open in
+Goxel, and Send puts what Goxel saved in `inbox/`, named after the file
+and the time it came in (`tom-2026-11-06T12-30-05Z.vox`; any name the phone
+gives becomes letters, digits, - and _), never over another. It takes only
+`.vox` files (by their `VOX ` header) up to 1.5 MB, only from the page
+itself (its `x-vox-send` header, which another site can't add), and at
+most 200 in the inbox. The folder is `VOX_MODELS` in the service's
 settings; blank, the page answers 503 naming it, and the play log carries
-on (`tools/playLog/server.ts`, `tests/tools/modelHandoff.test.ts`).
+on (`tools/playLog/server.ts`, `tests/tools/modelTrip.test.ts`). Before a
+model goes back in, Claude shows it to you in the game's light
+(`npm run preview-models -- <folder/name>`).
+
+**Not live yet** (2026-11-06): the service runs from the main checkout, so
+the page appears once this is merged there, `VOX_MODELS` is set in
+`vox-log.service` (`/root/projects/.claude/systemd/`, recorded in
+`docs/stacks/vox.md` there) and the service restarts.
 
 Importing over a model that exists keeps its voxel size and the colours it
 had, exactly, and snaps only colours added in the editor. Every model in

@@ -5,6 +5,9 @@
  * the last three. It listens on loopback at PLAY_LOG_PORT; `tailscale serve`
  * puts it at https://…ts.net:8443/vox-log/ on the tailnet.
  *
+ * It also carries models to and from the phone for the Goxel round trip,
+ * under /models (docs/ART.md, The round trip): the second half of this file.
+ *
  * Node runs this file as it is (`node tools/playLog/server.ts`, Node 24
  * strips the types), so it imports nothing but Node's own modules. That is
  * why its request handling repeats the bench log's (tools/benchLog.ts)
@@ -122,7 +125,7 @@ export function configFrom(env: Record<string, string | undefined>): {
 }
 
 /**
- * The Goxel hand-off (Thanksgiving map j8; docs/ART.md, The round trip): the
+ * The Goxel round trip's travel (Thanksgiving map j8; docs/ART.md, The round trip): the
  * models folder (VOX_MODELS) holds `out/`, the models handed out to open in
  * Goxel, and `inbox/`, what comes back from the phone for `import-vox`.
  */
@@ -143,39 +146,58 @@ export type ModelAnswer = {
 };
 
 /** A model's file name: letters, digits, - and _, then .vox. */
-const MODEL_NAME = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}\.vox$/;
+export type ModelRequest = {
+  readonly method: string;
+  /** As the service sees it, `tailscale serve` having taken off /vox-log; not decoded. */
+  readonly path: string;
+  readonly body: Uint8Array;
+  /**
+   * The send carries the page's `x-vox-send` header. Another site can't add one
+   * without asking first (a CORS preflight, which this service never answers),
+   * so a page elsewhere can't post into the inbox.
+   */
+  readonly fromPage: boolean;
+};
+
+/** A model's file name, as `out/` and `inbox/` hold them: what `inboxName` makes. */
+const MODEL_NAME = /^[A-Za-z0-9][A-Za-z0-9_-]{0,62}\.vox$/;
+/** The longest a sent name's own part is kept: with the time it came in, it fits MODEL_NAME. */
+const MAX_STEM = 40;
 /** What a .vox file starts with. */
 const VOX_MAGIC = 'VOX ';
-/** A model the inbox takes: Tom at 64 voxels a side is well under this. */
-const MAX_MODEL = 1024 * 1024;
+/** A model the inbox takes: a solid 64-voxel cube is just over 1 MB. Under MAX_BODY, so the reason is given. */
+const MAX_MODEL = 1536 * 1024;
+/** The inbox's limit, so sends can't fill the disk. */
+const MAX_INBOX = 200;
 
 /** The paths this part answers (as the service sees them, `tailscale serve` having taken off /vox-log). */
 export const isModelsPath = (path: string): boolean =>
   path === '/models' || path.startsWith('/models/');
 
-const plain = (status: number, body: string): ModelAnswer => ({
+const plain = (status: number, body: string, headers?: Record<string, string>): ModelAnswer => ({
   status,
   body,
   type: 'text/plain; charset=utf-8',
+  ...(headers ? { headers } : {}),
 });
 
 /** Answer one request under /models; `store` is null when VOX_MODELS is blank. */
 export async function handleModels(
-  method: string,
-  path: string,
-  body: Uint8Array,
+  { method, path, body, fromPage }: ModelRequest,
   store: ModelStore | null,
   now: () => Date,
 ): Promise<ModelAnswer> {
-  if (!store)
+  if (!store) {
     return plain(503, 'VOX_MODELS is blank: name the folder the models are handed out from');
+  }
   const [, , folder, name, ...rest] = path.split('/');
-  if (method === 'GET' && (folder === undefined || folder === '')) {
-    return {
-      status: 200,
-      body: page(await store.list('out'), await store.list('inbox')),
-      type: 'text/html; charset=utf-8',
-    };
+  if (method === 'GET' && folder === undefined) {
+    const html = page(await store.list('out'), await store.list('inbox'));
+    return { status: 200, body: html, type: 'text/html; charset=utf-8' };
+  }
+  // The page's links are relative to /vox-log/models: with a slash after it they'd miss.
+  if (method === 'GET' && folder === '' && name === undefined) {
+    return plain(301, '', { location: '../models' });
   }
   if (method === 'GET' && folder === 'out' && rest.length === 0) {
     const bytes = name && MODEL_NAME.test(name) ? await store.read(name) : null;
@@ -187,30 +209,71 @@ export async function handleModels(
       headers: { 'content-disposition': `attachment; filename="${name}"` },
     };
   }
-  if (method === 'POST' && folder === 'inbox' && rest.length === 0) {
-    if (!name || !MODEL_NAME.test(name))
-      return plain(400, 'the name must be a .vox, letters, digits, - and _');
-    if (body.length > MAX_MODEL) return plain(413, 'a model is at most 1 MB');
-    if (new TextDecoder().decode(body.subarray(0, 4)) !== VOX_MAGIC)
+  if (method === 'POST' && folder === 'inbox' && name !== undefined && rest.length === 0) {
+    if (!fromPage) return plain(403, 'send models from the models page');
+    if (body.length > MAX_MODEL) return plain(413, 'a model is at most 1.5 MB');
+    if (new TextDecoder().decode(body.subarray(0, 4)) !== VOX_MAGIC) {
       return plain(400, "it isn't a .vox file");
-    const saved = freeName(name, now(), await store.list('inbox'));
-    await store.save(saved, body);
-    return plain(201, saved);
+    }
+    const taken = await store.list('inbox');
+    if (taken.length >= MAX_INBOX) {
+      return plain(507, `the inbox holds ${MAX_INBOX} models: clear it out first`);
+    }
+    return saveNew(store, inboxName(name, now(), taken), body);
   }
   if (method === 'GET' || method === 'POST') return plain(404, 'no such page');
   return plain(405, 'GET or POST');
 }
 
-/** `tom.vox` sent at 12:30:05 becomes `tom-2026-11-06T12-30-05Z.vox`, with -2, -3… if that's taken. */
-function freeName(name: string, at: Date, taken: readonly string[]): string {
-  const stamp = at
+/** Keep a model under the first free name, trying the next if another send took it meanwhile. */
+async function saveNew(
+  store: ModelStore,
+  names: Iterator<string>,
+  body: Uint8Array,
+): Promise<ModelAnswer> {
+  for (let tries = 0; tries < 5; tries++) {
+    const next = names.next();
+    if (next.done) break;
+    try {
+      await store.save(next.value, body);
+      return plain(201, next.value);
+    } catch (e) {
+      if ((e as { code?: string }).code !== 'EEXIST') {
+        return plain(500, e instanceof Error ? e.message : String(e));
+      }
+    }
+  }
+  return plain(500, 'no free name in the inbox: send it again');
+}
+
+/**
+ * The names a sent file may take, best first: `witch (1).vox` sent at 12:30:05
+ * is `witch-1-2026-11-06T12-30-05Z.vox`, then …-2.vox, -3… past any taken.
+ * Whatever the phone called it, the name is letters, digits, - and _ (a name
+ * with none of those is `model`), so it's one MODEL_NAME lists.
+ */
+function* inboxName(sent: string, at: Date, taken: readonly string[]): Generator<string> {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(sent);
+  } catch {
+    decoded = sent;
+  }
+  const stem =
+    decoded
+      .replace(/\.vox$/i, '')
+      .replace(/[^A-Za-z0-9_-]+/g, '-')
+      .replace(/^[^A-Za-z0-9]+/, '')
+      .slice(0, MAX_STEM)
+      .replace(/-+$/, '') || 'model';
+  const base = `${stem}-${at
     .toISOString()
     .replace(/\.\d+Z$/, 'Z')
-    .replace(/:/g, '-');
-  const base = `${name.replace(/\.vox$/, '')}-${stamp}`;
-  let candidate = `${base}.vox`;
-  for (let n = 2; taken.includes(candidate); n++) candidate = `${base}-${n}.vox`;
-  return candidate;
+    .replace(/:/g, '-')}`;
+  for (let n = 1; ; n++) {
+    const name = n === 1 ? `${base}.vox` : `${base}-${n}.vox`;
+    if (!taken.includes(name)) yield name;
+  }
 }
 
 const escape = (t: string): string => t.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -243,7 +306,7 @@ function page(out: readonly string[], inbox: readonly string[]): string {
 <h2>To open in Goxel</h2>
 ${list(out, true)}
 <h2>Send one back</h2>
-<input type="file" accept=".vox"><br><button type="button">Send</button>
+<input type="file"><br><button type="button">Send</button>
 <p id="said" role="status"></p>
 <h2>Sent back</h2>
 ${list(inbox, false)}
@@ -253,11 +316,13 @@ ${list(inbox, false)}
   document.querySelector('button').addEventListener('click', async () => {
     const file = input.files[0];
     if (!file) { said.textContent = 'Pick a .vox first.'; return; }
-    // The service takes letters, digits, - and _: anything else in the name becomes -.
-    const name = file.name.replace(/\\.vox$/i, '').replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') + '.vox';
     said.textContent = 'Sending…';
     try {
-      const r = await fetch('models/inbox/' + encodeURIComponent(name), { method: 'POST', body: file });
+      const r = await fetch('models/inbox/' + encodeURIComponent(file.name), {
+        method: 'POST',
+        body: file,
+        headers: { 'x-vox-send': '1' },
+      });
       const t = await r.text();
       said.textContent = r.ok ? 'Sent, as ' + t + '.' : 'Not sent: ' + t;
       if (r.ok) setTimeout(() => location.reload(), 1500);
@@ -301,15 +366,19 @@ function serve(): void {
   const { file, port, models } = configFrom(process.env);
   const append = rotatingAppend(file, MAX_BYTES, KEEP);
   const store = models ? folderStore(models) : null;
-  const answer = (method: string, path: string, body: Buffer): Promise<ModelAnswer> =>
+  const answer = (
+    method: string,
+    path: string,
+    body: Buffer,
+    fromPage: boolean,
+  ): Promise<ModelAnswer> =>
     isModelsPath(path)
-      ? handleModels(method, path, new Uint8Array(body), store, () => new Date()).catch(
-          (e: unknown) => ({
-            status: 500,
-            body: e instanceof Error ? e.message : String(e),
-            type: 'text/plain; charset=utf-8',
-          }),
-        )
+      ? // The clock is here, not in src/clock: Node runs this file as it is, importing only its own modules.
+        handleModels(
+          { method, path, body: new Uint8Array(body), fromPage },
+          store,
+          () => new Date(),
+        ).catch((e: unknown) => plain(500, e instanceof Error ? e.message : String(e)))
       : handlePlayLog(method, body.toString('utf8'), append).then((a) => ({
           ...a,
           type: 'text/plain',
@@ -329,7 +398,12 @@ function serve(): void {
     req.on('end', () => {
       if (res.writableEnded) return;
       const path = (req.url ?? '/').split('?')[0] ?? '/';
-      void answer(req.method ?? '', path, Buffer.concat(chunks)).then((a) => {
+      void answer(
+        req.method ?? '',
+        path,
+        Buffer.concat(chunks),
+        req.headers['x-vox-send'] === '1',
+      ).then((a) => {
         // journald stamps each line with its time.
         if (a.status >= 400)
           console.error(`${a.status}: ${typeof a.body === 'string' ? a.body : ''}`);
