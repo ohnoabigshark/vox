@@ -126,9 +126,19 @@ size after importing.
 tweaks it in Goxel, and it comes back.
 
 ```
-npm run export-vox -- <folder/name> [out.vox]
-npm run import-vox -- out.vox <folder/name>
+npm run export-vox -- <folder/name> /root/.local/share/vox-serve/models/out/<name>.vox
+npm run import-vox -- /root/.local/share/vox-serve/models/inbox/<sent>.vox <folder/name>
 ```
+
+The models travel over the tailnet (Thanksgiving map j8; Drive couldn't
+carry them, `docs/PLAN.md`). The play log's service hands them out at
+`https://…ts.net:8443/vox-log/models`, a page for the phone: each model in
+`out/` is a download link to open in Goxel, and Send puts what Goxel saved
+in `inbox/`, named after the file and the time it came in
+(`tom-2026-11-06T12-30-05Z.vox`), so nothing is overwritten. It takes
+only `.vox` files up to 1 MB. The folder is `VOX_MODELS` in the service's
+settings; blank, the page answers 503 naming it, and the play log carries
+on (`tools/playLog/server.ts`, `tests/tools/modelHandoff.test.ts`).
 
 Importing over a model that exists keeps its voxel size and the colours it
 had, exactly, and snaps only colours added in the editor. Every model in
