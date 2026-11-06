@@ -11,6 +11,7 @@ import { assertNever } from '../../assertNever';
 import type { BossName } from '../sim/types';
 import saved from './saved-events.json' with { type: 'json' };
 import { checkSavedEvents, layerEvents } from './savedEvents';
+import { kindOf, type Polarity } from './statuses';
 import { arcadeTuning } from './tuning';
 
 /** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
@@ -103,17 +104,22 @@ export const FROG_RAIN: FieldEvent = {
 /** Blessing, hex or mischief: an event that can only help you, only hurt you, or do both. */
 export type EventKind = 'blessing' | 'hex' | 'mischief';
 
-/** An event's kind, from its effect and who it hits: flattening yours hurts you, theirs helps you, everyone both. */
+/**
+ * An event's kind, from its effect and who it hits (docs/STATUSES.md, s4):
+ * a knockdown hurts, so flattening yours is a hex, theirs a blessing,
+ * everyone mischief.
+ */
 export function eventKind(event: FieldEvent): EventKind {
-  switch (event.effect.on) {
-    case 'yours':
-      return 'hex';
-    case 'theirs':
-      return 'blessing';
-    case 'everyone':
-      return 'mischief';
+  return kindOf(effectPolarity(event.effect), event.effect.on);
+}
+
+/** Whether an effect helps the bodies it lands on or hurts them. */
+function effectPolarity(effect: EventEffect): Polarity {
+  switch (effect.kind) {
+    case 'flatten':
+      return 'hurts';
     default:
-      return assertNever(event.effect.on);
+      return assertNever(effect.kind);
   }
 }
 

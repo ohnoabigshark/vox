@@ -36,6 +36,7 @@ import { catchTestFor, type CatchTest } from './catchTests';
 import { caughtBy, countDown } from './fieldEvents';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
+import { giveStatus } from './status';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -45,6 +46,7 @@ import type {
   Pickup,
   Player,
   RunState,
+  StatusSource,
   StepInput,
   Vec,
 } from './types';
@@ -96,7 +98,7 @@ function stepBody(state: RunState, input: StepInput): ArcadeResult {
   state.time = state.step * DT;
 
   if (state.phase === 'downOver') {
-    moveBodies(state);
+    moveBodies(state, events);
     state.pause -= DT;
     if (state.pause <= 0) nextDown(state, events);
     return { state, events };
@@ -114,7 +116,7 @@ function stepBody(state: RunState, input: StepInput): ArcadeResult {
     return { state, events };
   }
   if (state.phase !== 'play') {
-    moveBodies(state);
+    moveBodies(state, events);
     separate(state);
     pushOutOfProps(state);
     return { state, events };
@@ -125,7 +127,7 @@ function stepBody(state: RunState, input: StepInput): ArcadeResult {
   if (carrier && state.step % Math.max(1, Math.round(arcadeTuning.carrier.laneEvery / DT)) === 0) {
     state.field.lane = chooseLane(state, carrier);
   }
-  moveBodies(state);
+  moveBodies(state, events);
   separate(state);
   pushOutOfProps(state);
   if (takePickups(state, events)) return { state, events };
@@ -410,7 +412,7 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     take(state, p, pickup, events);
     switch (pickup.kind) {
       case 'bolt':
-        p.boltLeft = arcadeTuning.pickups.bolt.time;
+        giveStatus(p, 'fast', arcadeTuning.pickups.bolt.time, FROM_BOLT, events);
         break;
       case 'slick':
         p.down = arcadeTuning.pickups.slick.time;
@@ -428,13 +430,16 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     );
     if (!pickup) continue;
     take(state, d, pickup, events);
-    d.boltLeft = arcadeTuning.pickups.bolt.time;
+    giveStatus(d, 'fast', arcadeTuning.pickups.bolt.time, FROM_BOLT, events);
   }
   if (!slipped) return false;
   events.push({ type: 'slipped', id: slipped.id });
   tackle(state, slipped, -1, events);
   return true;
 }
+
+/** What a lightning bolt's Fast says gave it. */
+const FROM_BOLT: StatusSource = { kind: 'pickup', pickup: 'bolt' };
 
 /** A pickup is taken: gone for good, for everyone (k3), and said so. */
 function take(state: RunState, by: Body, pickup: Pickup, events: ArcadeEvent[]): void {

@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { assertNever } from '../../assertNever';
 import { common, hexToNumber, voxel } from '../../content/palettes';
+import { hasStatus } from '../sim/status';
 import type { Pickup, RunState } from '../sim/types';
 import { v } from '../sim/vec';
 import { toWorld } from './world';
@@ -155,7 +156,7 @@ export class ArcadePickups {
     let n = 0;
     const flicker = Math.floor(state.time * 20);
     for (const p of [...state.field.players, ...state.field.defenders]) {
-      if (p.boltLeft <= 0) continue;
+      if (!hasStatus(p, 'fast')) continue;
       const speed = Math.hypot(p.vel.x, p.vel.y) || 1;
       const back = v(-p.vel.x / speed, -p.vel.y / speed);
       for (let i = 0; i < SPARKS && n < this.sparks.length; i++, n++) {

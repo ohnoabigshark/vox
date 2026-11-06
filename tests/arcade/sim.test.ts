@@ -229,7 +229,7 @@ describe('the sideline', () => {
     const d = s.field.defenders[0]!;
     d.down = 0.5;
     d.vel = v(6, 0);
-    moveBodies(s);
+    moveBodies(s, []);
     expect(d.pos.x).toBe(edge);
   });
 
@@ -246,7 +246,7 @@ describe('the sideline', () => {
       2,
     );
     s.play = { index: s.playbook.findIndex((p) => p.handoff !== undefined), flipped: false };
-    moveBodies(s);
+    moveBodies(s, []);
     expect(s.field.defenders[0]!.pos.x).toBe(edge);
   });
 });
