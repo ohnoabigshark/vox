@@ -5,6 +5,7 @@
  * reach every part of a run the same way every time.
  */
 import { createHash } from 'node:crypto';
+import { assertNever } from '../../src/assertNever';
 import { litPlayers } from '../../src/arcade/render/sweep';
 import { breakMarker, jukeShowing } from '../../src/arcade/sim/breakit';
 import { createRun, dispatch } from '../../src/arcade/sim/run';
@@ -29,7 +30,7 @@ export interface BotRun {
 const isHandoff = (s: RunState, card: number) =>
   s.playbook[s.hand[card] ?? -1]?.handoff !== undefined;
 
-/** The card this bot calls: the first it likes, or the first card. */
+/** The card this bot calls first: the first it likes, or the first card; the mixed bot tries a banned one. */
 function cardFor(s: RunState, bot: BotStyle, i: number): number {
   const cards = s.hand.map((_, c) => c);
   switch (bot) {
@@ -38,7 +39,10 @@ function cardFor(s: RunState, bot: BotStyle, i: number): number {
     case 'run':
       return cards.find((c) => isHandoff(s, c)) ?? 0;
     case 'mixed':
-      return i % cards.length;
+      // The Queen's banned card, when there is one, so her BANNED is played too.
+      return s.banned ?? i % cards.length;
+    default:
+      return assertNever(bot);
   }
 }
 
@@ -119,7 +123,7 @@ export function canonical(value: unknown): string {
 }
 
 /** Steps between the states a digest always takes (half a second): a run that goes another way stays changed. */
-const EVERY = 30;
+const SAMPLE_EVERY = 30;
 
 /**
  * A digest of what a run did: every event, the state after each action and
@@ -129,7 +133,7 @@ export function runDigest(run: BotRun, steps: number): string {
   const hash = createHash('sha256');
   let n = 0;
   playRun(run, steps, (s, events) => {
-    if (events.length > 0 || n++ % EVERY === 0) hash.update(canonical(s));
+    if (events.length > 0 || n++ % SAMPLE_EVERY === 0) hash.update(canonical(s));
     hash.update(canonical(events));
   });
   return hash.digest('hex').slice(0, 16);

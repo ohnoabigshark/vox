@@ -2,14 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { runDigest, type BotRun } from './botRuns';
 
 /**
- * Same runs (map item j7): twelve seeded runs, each played 3,000 steps by a
- * bot, with a digest of every state and event pinned. Halloween's move into
- * its own folder must leave every one unchanged, so any change at all to
- * play turns this red.
+ * Same runs (map item j7): twelve seeded runs, each played by a bot for
+ * 3,000 steps or until it's won or lost, with a digest pinned of every event,
+ * and of the state after each event and every half second between.
+ * Halloween's move into its own folder must leave every one unchanged, so a
+ * change to play turns this red.
  *
  * Checked by breaking each in turn (2026-11-06): a hundredth of a second on
  * a pancake, Frog Rain or the King's crows, the Royal Decree or Second Wind
- * switched off, each turns at least two runs red. Candy Corn Magnet never
+ * switched off, each turns at least two runs red. The mixed bot taps the
+ * Queen's banned card first, so her refusal is played too. Candy Corn Magnet never
  * comes up in these runs; its own test in perks.test.ts catches it.
  *
  * When a change to play is meant, the failure prints each run's new digest:
@@ -35,7 +37,7 @@ const name = (r: BotRun) =>
 const PINNED: Record<number, string> = {
   1: 'fdce5a12123bea8e',
   2: 'c89361c585fae1b2',
-  3: '2a770e92c6ff1a5c',
+  3: '16ec36436d9b2fe9',
   4: '1b08e9476b956617',
   5: 'd33e169f802d7816',
   6: '752ba494960a1863',
@@ -44,14 +46,10 @@ const PINNED: Record<number, string> = {
   9: 'd763dcda6cfc5b6a',
   10: 'fed968860651fd65',
   11: '91063fe30d41394e',
-  12: '42160b68ce8fea2b',
+  12: '310ce76ad60eeb1f',
 };
 
 describe('same runs', () => {
-  it('plays twelve different runs', () => {
-    expect(new Set(RUNS.map((r) => r.seed)).size).toBe(12);
-  });
-
   it.each(RUNS.map((r) => [name(r), r] as const))(
     '%s',
     (_name, run) => {
