@@ -35,13 +35,18 @@ rounds and a confirmation (c1). The item numbers below are the map's.
 
   | What happens                               | Who                        | Gain                          |
   | ------------------------------------------ | -------------------------- | ----------------------------- |
-  | A catch                                    | the catcher                | +15 Hands                     |
-  | GREAT on SNAG IT! or the tip drill         | the catcher                | +15 Hands more                |
+  | A catch                                    | the catcher                | +8 Hands                      |
+  | GREAT on SNAG IT! or the tip drill         | the catcher                | +7 Hands more                 |
   | Yards after a catch                        | the catcher                | +1 Hustle a yard              |
   | A rush of 10 yards or more                 | the carrier                | +10 Hustle, +1 a yard past 10 |
   | GREAT on Break it!                         | the carrier                | +10 Hustle                    |
   | A pancake                                  | the blocker                | +8 Heft                       |
   | A block held on a down that ends in a gain | each Blocker who held one  | +3 Heft                       |
+
+  The catch sizes were +15 and +15 until 2026-11-06, halved because Hands
+  (catch reach) grew too fast: a busy Catcher reached the 150 ceiling,
+  with nearly four times ordinary reach, by area 3 or 4 (the user's note;
+  map https://claude.ai/artifact/HcAVyNiXGEU8NCVJmYGTkJ, h1).
 
   A **block held** means a Blocker was touching a defender at any moment
   of a down that ends with a gain (c1). Pancakes come only

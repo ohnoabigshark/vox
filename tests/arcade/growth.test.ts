@@ -55,6 +55,15 @@ describe('what grows which stat (t1)', () => {
     ]);
   });
 
+  it('2a. Hands grows slowly: +8 a catch, +15 in all for a GREAT one (PLAN.md, fixes map h1)', () => {
+    expect(gainsOf(tally({ catch: { slot: 4, at: 6 } }), down(6))).toEqual([
+      { slot: 4, stat: 'hands', by: 8 },
+    ]);
+    expect(gainsOf(tally({ catch: { slot: 4, at: 6 }, catchGreats: [4] }), down(6))).toEqual([
+      { slot: 4, stat: 'hands', by: 15 },
+    ]);
+  });
+
   it('2b. an OK or BAD on a catch test adds only the catch’s (noted from the events)', () => {
     for (const grade of ['ok', 'bad'] as const) {
       const s = playState([{ pos: v(0, 6) }]);

@@ -431,11 +431,12 @@ Open, for when the first new theme or set is planned:
     implementing now)").
   - **Hands grows more slowly for Catchers** (balance). _User, 2026-11-05,
     after playing `player-select`: "I think hands should scale more slowly
-    for catchers"._ Today a catch is +15 Hands and a catch-test GREAT +15
-    more (`tuning.growth`), up to 150, the same for every position; part 1's
-    balance runs had the busiest player at about +45 to +60 an area.
-    Open: smaller catch sizes, a curve that slows nearer the ceiling, or
-    Catchers alone growing slower. Measure with `GrowthWatch` first.
+    for catchers"._ **Done 2026-11-06** (`fixes-offer-hands`, map
+    https://claude.ai/artifact/HcAVyNiXGEU8NCVJmYGTkJ, h1): a catch is now
+    +8 Hands and a catch-test GREAT +7 more, half what they were, for
+    everyone who catches. Before, the busiest player grew a median +30 to
+    +45 Hands an area (the bot) and reached 150 by area 3 or 4 (the
+    user's runs).
   - **Draw up a play and Select any play** are rewards in this system,
     grilled and built after both parts (k5; **Plays as rewards**, below).
 
