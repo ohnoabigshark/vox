@@ -97,7 +97,9 @@ slice 0
 `assets-src/voxels/forest/chaser.voxt`. Folders: `team/` (our players, the
 ball), `forest/` (defenders and the Witch), `candy/` (the Candy Kingdom's
 defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses),
-`forestProps/`, `candyProps/` and `farmProps/` (scenery). A model's front
+`forestProps/`, `candyProps/` and `farmProps/` (scenery), and
+`thanksgiving/` (that set's team and critters, drafts not yet in the game:
+`docs/sets/thanksgiving.md`). A model's front
 (slice 0) faces +z; in play, bodies turn to face where they're going.
 
 ## Two ways in
