@@ -200,12 +200,6 @@
       "license": "original"
     },
     {
-      "path": "assets-src/voxels/thanksgiving/team/gravyBoat.voxt",
-      "source": "Original voxel model (Gravy Boat: the Ghost kind), written by Claude",
-      "author": "Claude",
-      "license": "original"
-    },
-    {
       "path": "assets-src/voxels/thanksgiving/team/cornOnTheCob.voxt",
       "source": "Original voxel model (Corn on the Cob: the Werewolf kind), written by Claude",
       "author": "Claude",
@@ -213,7 +207,7 @@
     },
     {
       "path": "assets-src/voxels/thanksgiving/team/mashedPotatoes.voxt",
-      "source": "Original voxel model (Mashed Potatoes: a candidate for the Ghost kind), written by Claude",
+      "source": "Original voxel model (Mashed Potatoes: the Ghost kind), written by Claude",
       "author": "Claude",
       "license": "original"
     },

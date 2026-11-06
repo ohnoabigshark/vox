@@ -1,0 +1,37 @@
+# The Spider: Thanksgiving's Zone, as the Scarecrow is Halloween's. Planted,
+# with eight legs spread wide: a round striped body, a dark head with two big
+# white eyes. Its web is drawn on the turf where the Scarecrow's reach ring is.
+size 11 5 9
+voxel 0.1
+colors
+  P purple
+  d purpleDark
+  l purpleLight
+  w white
+  k ink
+# Body and its stripe.
+box 3 1 4 7 4 8 P
+box 5 4 5 5 4 7 l
+# Head and eyes.
+box 4 1 1 6 3 3 d
+box 4 3 1 4 3 1 w
+box 6 3 1 6 3 1 w
+box 6 3 1 6 3 1 w
+box 4 3 1 4 3 1 w
+# Legs: out along the turf, then down.
+box 1 2 1 3 2 1 d
+box 7 2 1 9 2 1 d
+box 0 0 1 0 1 1 d
+box 10 0 1 10 1 1 d
+box 1 2 3 3 2 3 d
+box 7 2 3 9 2 3 d
+box 0 0 3 0 1 3 d
+box 10 0 3 10 1 3 d
+box 1 2 5 2 2 5 d
+box 8 2 5 9 2 5 d
+box 0 0 5 0 1 5 d
+box 10 0 5 10 1 5 d
+box 1 2 7 2 2 7 d
+box 8 2 7 9 2 7 d
+box 0 0 7 0 1 7 d
+box 10 0 7 10 1 7 d
