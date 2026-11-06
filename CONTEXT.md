@@ -82,6 +82,13 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Growth** _(ours)_: what a player's stats gain from what it does in play:
   Hands from catches, Hustle from yards and GREATs, Heft from blocks and
   pancakes (`sim/growth.ts`, `docs/REWARDS.md`). _Avoid:_ XP, levelling.
+- **Selected player** _(ours)_: before the snap, the one of your seven you
+  tapped: their route bright, the rest dimmed, their card at the top
+  (`ui/select.ts`, `docs/SELECT.md`). Drawing only, never a sim action.
+  _Avoid:_ "picked" (that's TRICK OR TREAT!'s card) and "selected" for a
+  swap on Your team.
+- **Names switch** _(ours)_: **Aa**, beside ⚑ before the snap: your seven's
+  names on the field on or off, remembered on the phone.
 
 ## Plays
 

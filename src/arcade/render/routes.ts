@@ -3,17 +3,23 @@
  * A Down): a dotted path from each receiver through its
  * waypoints, with an arrowhead where it's going; gold for the Runners. On a
  * handoff, the Runner who'll take the ball has a bigger pumpkin-orange route
- * and a ring at its feet, so you know who's running it.
+ * and a ring at its feet, so you know who's running it. With a player
+ * selected (docs/SELECT.md, s2), its route is drawn bigger and every other
+ * one dimmed.
  */
 import * as THREE from 'three';
 import { common, hexToNumber, team } from '../../content/palettes';
 import { playSlot } from '../content/team';
 import type { Player, RunState, Vec } from '../sim/types';
+import { routeLook } from '../ui/select';
 import { dist, lerp } from '../sim/vec';
 import { toWorld } from './world';
+import { assertNever } from '../../assertNever';
 
 /** Yards between dots. */
 const SPACING = 0.6;
+/** A dimmed route's share of its usual opacity. */
+const DIM = 0.3;
 
 export class ArcadeRoutes {
   private readonly group = new THREE.Group();
@@ -37,19 +43,26 @@ export class ArcadeRoutes {
   private readonly bigDotGeo = new THREE.CircleGeometry(0.16, 12).rotateX(-Math.PI / 2);
   private readonly bigArrowGeo = new THREE.ConeGeometry(0.42, 0.8, 3).rotateX(-Math.PI / 2);
   private readonly ringGeo = new THREE.RingGeometry(0.55, 0.75, 28).rotateX(-Math.PI / 2);
+  /** Each material dimmed, made once. */
+  private readonly dimmed = new Map<THREE.MeshBasicMaterial, THREE.MeshBasicMaterial>();
   private key = '';
 
   constructor(scene: THREE.Scene) {
     scene.add(this.group);
   }
 
-  /** Before the hike, draw `players`' routes (the called play's), or nothing. */
-  update(state: RunState, origin: number, players: readonly Player[] | null): void {
+  /** Before the hike, draw `players`' routes (the called play's), or nothing; `selected` is a roster slot, or null. */
+  update(
+    state: RunState,
+    origin: number,
+    players: readonly Player[] | null,
+    selected: number | null,
+  ): void {
     const show = state.phase === 'setup' && players !== null;
     this.group.visible = show;
     if (!show) return;
     // Every down lines up with new ids, so they (and where the field is) say when to redraw.
-    const key = `${origin}|${state.series.los}|${players.map((p) => `${p.slot}:${p.job.kind === 'route' ? p.job.to.map((w) => `${w.x},${w.y}`).join(';') : ''}`).join('|')}`;
+    const key = `${origin}|${state.series.los}|${selected}|${players.map((p) => `${p.slot}:${p.job.kind === 'route' ? p.job.to.map((w) => `${w.x},${w.y}`).join(';') : ''}`).join('|')}`;
     if (key === this.key) return;
     this.key = key;
     this.group.clear();
@@ -57,10 +70,26 @@ export class ArcadeRoutes {
     for (const p of players) {
       if (p.job.kind !== 'route') continue;
       const carries = handoff !== undefined && p.slot === playSlot(handoff, state.play.flipped);
-      const material = carries ? this.carry : p.role === 'runner' ? this.run : this.pass;
-      const dotGeo = carries ? this.bigDotGeo : this.dotGeo;
+      const usual = carries ? this.carry : p.role === 'runner' ? this.run : this.pass;
+      const look = routeLook(p.slot, selected);
+      let material: THREE.MeshBasicMaterial;
+      let big: boolean;
+      switch (look) {
+        case 'plain':
+          [material, big] = [usual, carries];
+          break;
+        case 'bright':
+          [material, big] = [usual, true];
+          break;
+        case 'dim':
+          [material, big] = [this.dim(usual), carries];
+          break;
+        default:
+          assertNever(look);
+      }
+      const dotGeo = big ? this.bigDotGeo : this.dotGeo;
       if (carries) {
-        const ring = new THREE.Mesh(this.ringGeo, this.carry);
+        const ring = new THREE.Mesh(this.ringGeo, material);
         ring.position.copy(toWorld(p.pos, origin, 0.035));
         this.group.add(ring);
       }
@@ -79,12 +108,22 @@ export class ArcadeRoutes {
       const end = path[path.length - 1];
       const before = path[path.length - 2];
       if (end && before) {
-        const arrow = new THREE.Mesh(carries ? this.bigArrowGeo : this.arrowGeo, material);
+        const arrow = new THREE.Mesh(big ? this.bigArrowGeo : this.arrowGeo, material);
         arrow.position.copy(toWorld(end, origin, 0.04));
         // The cone points along -z in world when unrotated; turn it to the last leg's direction.
         arrow.rotation.y = Math.atan2(-(end.x - before.x), end.y - before.y);
         this.group.add(arrow);
       }
     }
+  }
+
+  private dim(m: THREE.MeshBasicMaterial): THREE.MeshBasicMaterial {
+    let d = this.dimmed.get(m);
+    if (!d) {
+      d = m.clone();
+      d.opacity = m.opacity * DIM;
+      this.dimmed.set(m, d);
+    }
+    return d;
   }
 }

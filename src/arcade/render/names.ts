@@ -6,7 +6,7 @@
  */
 import type * as THREE from 'three';
 import type { NameTag } from '../ui/nameTags';
-import { toWorld } from './world';
+import { toScreen, toWorld } from './world';
 import './names.css';
 
 /** How far under the feet the tag sits, in screen pixels. */
@@ -39,9 +39,11 @@ export class ArcadeNames {
         this.tags.set(tag.id, el);
       }
       if (el.textContent !== tag.name) el.textContent = tag.name;
-      const p = toWorld(tag.at, origin, 0).project(camera);
-      el.style.left = `${((p.x + 1) / 2) * canvas.clientWidth}px`;
-      el.style.top = `${((1 - p.y) / 2) * canvas.clientHeight + BELOW}px`;
+      // The selected player's name: in front of any it overlaps, bigger (docs/SELECT.md, s4).
+      el.classList.toggle('selected', tag.selected);
+      const p = toScreen(toWorld(tag.at, origin, 0), camera, canvas);
+      el.style.left = `${p.x}px`;
+      el.style.top = `${p.y + BELOW}px`;
       el.hidden = false;
       shown.add(tag.id);
     }

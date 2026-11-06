@@ -364,6 +364,34 @@ Open, for when the first new theme or set is planned:
   2026-11-05, notes p2-p6; reviewed on
   https://claude.ai/artifact/6Qk66hbs7FoMpEprdTd3cW).
 
+- **Selecting a player, and a names switch.** Before the snap, tap one of
+  your seven: their route lights up, the rest dim, and their card shows at
+  the top; an **Aa** switch shows or hides the names on the field. _User,
+  2026-11-05: "pressing on a player selects them and highlights just their
+  route and shows a lil card about that player"._ Planned on the map
+  https://claude.ai/artifact/8PEvNHSLuK3X92urZb2usp; the design and tests
+  are in `docs/SELECT.md`; built on `player-select`, after B7's fix
+  (`names-fix`).
+  - **Parked: select only, no Aa switch.** _User, 2026-11-05, after playing
+    it: "I think eventually I want select only but it's hard to know you
+    can tap on players to select them. we can park that."_ Both stay for
+    now. What it needs first: a way to show that your players can be tapped
+    (a hint on the first down, a pulse on them, or the tutorial below).
+
+- **Two new tap tests: a spin-o-rama and a DDR-style one.** _User,
+  2026-11-05: "spinorama quick event. ddr like quick event. both for notes
+  in future planning."_ For a grilling of their own. What's there to build
+  on: the tap tests today are Break it! (a break, a drag or a tackle, with
+  MASH! and JUKE!), SNAG IT! and the tip drill, each with a countdown and
+  GREAT/OK/BAD, and each on the test bench.
+  - **Spin-o-rama:** the carrier spins out of a tackle, a move beside
+    Break it!'s JUKE!. Open: what you tap or swipe, and when it's offered.
+  - **DDR-style:** arrows to hit in time, like Dance Dance Revolution. The
+    game already keeps time to its music (`src/beat`, with tap-latency
+    calibration in the settings), so the arrows could land on the song's
+    beat. Open: what it decides (a catch, a block, a break) and how many
+    arrows.
+
 - **A short tutorial** that teaches a new player how to play, above all the
   passing mechanic. _User, 2026-11-01: "we need a short tutorial to help
   teach people how to play, esp with the passing mechanic."_ Open for its
@@ -401,6 +429,13 @@ Open, for when the first new theme or set is planned:
   - **The offer cards' text a bit bigger, and their headings centred**
     (user, 2026-11-05, after part 2's playtest: "notes for later (not
     implementing now)").
+  - **Hands grows more slowly for Catchers** (balance). _User, 2026-11-05,
+    after playing `player-select`: "I think hands should scale more slowly
+    for catchers"._ Today a catch is +15 Hands and a catch-test GREAT +15
+    more (`tuning.growth`), up to 150, the same for every position; part 1's
+    balance runs had the busiest player at about +45 to +60 an area.
+    Open: smaller catch sizes, a curve that slows nearer the ceiling, or
+    Catchers alone growing slower. Measure with `GrowthWatch` first.
   - **Draw up a play and Select any play** are rewards in this system,
     grilled and built after both parts (k5; **Plays as rewards**, below).
 

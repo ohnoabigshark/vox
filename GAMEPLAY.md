@@ -153,6 +153,8 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 |---|---|---|
 | **Before the snap** | **Tap Flip** (once a play is called) | Mirror the play. |
 | **Before the snap** | **Tap a card** | Call that play: its routes show on the field. Tap another to switch. |
+| **Before the snap** | **Tap one of your players** | Select them: their route lights up, the others dim, and their card shows at the top. Tap them again, the field or ✕ to clear it. |
+| **Before the snap** | **Aa** | Show or hide your players' names. |
 | **Before the snap** | **HIKE!** | Start the called play. |
 | **Pass play** | **THROW** | Fire a bullet along the sweeping line. |
 | **Grabbed** | **Tap** anywhere (a juke: its ◀ or ▶ button) | Break it! |
