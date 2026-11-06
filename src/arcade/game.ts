@@ -145,6 +145,8 @@ export interface ArcadeOptions {
    * event the link can't give opens the ordinary game, saying why.
    */
   eventPractice?: EventPractice;
+  /** A `?set=` with no set behind it: what to tell the Coach (`readSetLink` in src/sets). */
+  setNotice?: string;
   /**
    * The play editor's sketches switched on In the game (map round 6), read
    * when each run starts and dealt alongside the play pool.
@@ -352,6 +354,7 @@ export class ArcadeGame {
     if (link && !link.play.ok) this.hud.notice(`${link.play.reason} Playing without it.`);
     if (tryEvent && !tryEvent.event.ok)
       this.hud.notice(`${tryEvent.event.reason} Playing without it.`);
+    if (options.setNotice) this.hud.notice(options.setNotice);
     if (this.practice?.kind === 'event') this.hud.setBackLabel('‹ Events');
     // Saved events the game couldn't read are left out: say so, never silently (docs/FIELD_EVENTS.md).
     if (savedEventWarnings.length > 0) this.hud.notice(savedEventWarnings.join(' · '));
