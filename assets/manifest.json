@@ -210,6 +210,12 @@
       "source": "Original voxel model (Corn on the Cob: the Werewolf kind), written by Claude",
       "author": "Claude",
       "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/mashedPotatoes.voxt",
+      "source": "Original voxel model (Mashed Potatoes: a candidate for the Ghost kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
     }
   ]
 }
