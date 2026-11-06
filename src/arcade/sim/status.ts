@@ -8,11 +8,13 @@
 import { assertNever } from '../../assertNever';
 import type { StatusName } from '../content/statuses';
 import { arcadeTuning, DT } from '../content/tuning';
-import type { ArcadeEvent, Body, StatusSource } from './types';
+import type { ArcadeEvent, Body, Status, StatusSource } from './types';
 
 /**
  * Give a body a status for `time` seconds. One it already has keeps the
  * longer time left, not the sum (s3), and the source of whichever that is.
+ * Every give is reported, saying whether it changed anything (the review's
+ * r2: the user's "report every give").
  */
 export function giveStatus(
   b: Body,
@@ -21,13 +23,14 @@ export function giveStatus(
   from: StatusSource,
   events: ArcadeEvent[],
 ): void {
-  const had = b.statuses.find((s) => s.name === name);
+  const had = statusOf(b, name);
+  const changed = !had || time >= had.left;
   if (!had) b.statuses.push({ name, left: time, from });
-  else if (time >= had.left) {
+  else if (changed) {
     had.left = time;
     had.from = from;
   }
-  events.push({ type: 'statusGained', id: b.id, status: name, from });
+  events.push({ type: 'statusGained', id: b.id, status: name, from, changed });
 }
 
 /** One step of a body's statuses wearing off; one that runs out is gone, and said so. */
@@ -35,14 +38,19 @@ export function wearStatuses(b: Body, events: ArcadeEvent[]): void {
   if (b.statuses.length === 0) return;
   for (const s of b.statuses) s.left = Math.max(0, s.left - DT);
   for (const s of b.statuses) {
-    if (s.left <= 0) events.push({ type: 'statusEnded', id: b.id, status: s.name });
+    if (s.left <= 0) events.push({ type: 'statusEnded', id: b.id, status: s.name, from: s.from });
   }
   b.statuses = b.statuses.filter((s) => s.left > 0);
 }
 
+/** A body's status of this name, if it has it: the one place two statuses count as the same. */
+export function statusOf(b: Pick<Body, 'statuses'>, name: StatusName): Status | undefined {
+  return b.statuses.find((s) => s.name === name);
+}
+
 /** Whether a body has a status now. */
 export function hasStatus(b: Pick<Body, 'statuses'>, name: StatusName): boolean {
-  return b.statuses.some((s) => s.name === name);
+  return statusOf(b, name) !== undefined;
 }
 
 /** What a body's statuses do to its top speed, as a share of it; they multiply (s3). */

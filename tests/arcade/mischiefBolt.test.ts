@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { createRun, dispatch } from '../../src/arcade/sim/run';
 import { step } from '../../src/arcade/sim/step';
+import { statusOf } from '../../src/arcade/sim/status';
 import type { Defender, Pickup, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, ofType, playState, run, stand, type DefenderSpec } from './helpers';
@@ -40,9 +41,7 @@ describe('the mischief bolt', () => {
     ]);
     expect(state.field.pickups).toEqual([]);
     expect(state.taken).toEqual([7]);
-    expect(defender(state, 100).statuses.find((x) => x.name === 'fast')?.left).toBeGreaterThan(
-      bolt.time - 0.5,
-    );
+    expect(statusOf(defender(state, 100), 'fast')?.left).toBeGreaterThan(bolt.time - 0.5);
     expect(speedOf(defender(state, 100)) / speedOf(defender(plain, 100))).toBeCloseTo(
       1 + fast.faster,
       1,

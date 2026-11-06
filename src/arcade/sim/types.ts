@@ -636,15 +636,24 @@ export type ArcadeEvent =
       readonly kind: PickupKind;
       readonly pickup: number;
     }
-  /** A body was given a status (docs/STATUSES.md, s8), or had one it has topped up. */
+  /**
+   * A body was given a status (docs/STATUSES.md, s8). Every give is reported;
+   * `changed` is false when it already had it for longer, so it kept that.
+   */
   | {
       readonly type: 'statusGained';
       readonly id: number;
       readonly status: StatusName;
       readonly from: StatusSource;
+      readonly changed: boolean;
     }
-  /** A body's status ran out. */
-  | { readonly type: 'statusEnded'; readonly id: number; readonly status: StatusName }
+  /** A body's status ran out: what gave it, too. */
+  | {
+      readonly type: 'statusEnded';
+      readonly id: number;
+      readonly status: StatusName;
+      readonly from: StatusSource;
+    }
   /** A carrier slipped on an oil slick and is down there: SLIPPED! */
   | { readonly type: 'slipped'; readonly id: number }
   | { readonly type: 'seriesStarted'; readonly stretch: number; readonly name: string }

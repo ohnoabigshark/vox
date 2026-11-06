@@ -6,7 +6,6 @@
  * wearing them, is `sim/status.ts`.
  */
 import { assertNever } from '../../assertNever';
-import type { EventKind, Who } from './fieldEvents';
 
 /** The statuses there are. Slowed and Ethereal come with the taffy flood and the wisps. */
 export type StatusName = 'fast';
@@ -14,30 +13,38 @@ export type StatusName = 'fast';
 /** Whether something helps the body it lands on or hurts it. */
 export type Polarity = 'helps' | 'hurts';
 
-/** Whether a status helps the body that has it. */
-export function statusPolarity(name: StatusName): Polarity {
-  switch (name) {
-    case 'fast':
-      return 'helps';
-    default:
-      return assertNever(name);
-  }
-}
+/** Who something lands on: your players, the defenders, or everyone. */
+export type Who = 'yours' | 'theirs' | 'everyone';
+
+/** A source's kind: one that can only help you, only hurt you, or do both. */
+export type SourceKind = 'blessing' | 'hex' | 'mischief';
 
 /**
  * Blessing, hex or mischief (s4), for a field event or a pickup alike: what
  * helps is a blessing on your players and a hex on the defenders, what
  * hurts the other way round, and either on everyone is mischief.
  */
-export function kindOf(polarity: Polarity, who: Who): EventKind {
+export function kindOf(polarity: Polarity, who: Who): SourceKind {
+  const helps = helpsIt(polarity);
   switch (who) {
     case 'yours':
-      return polarity === 'helps' ? 'blessing' : 'hex';
+      return helps ? 'blessing' : 'hex';
     case 'theirs':
-      return polarity === 'helps' ? 'hex' : 'blessing';
+      return helps ? 'hex' : 'blessing';
     case 'everyone':
       return 'mischief';
     default:
       return assertNever(who);
+  }
+}
+
+function helpsIt(polarity: Polarity): boolean {
+  switch (polarity) {
+    case 'helps':
+      return true;
+    case 'hurts':
+      return false;
+    default:
+      return assertNever(polarity);
   }
 }

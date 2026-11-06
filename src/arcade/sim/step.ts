@@ -37,6 +37,7 @@ import { caughtBy, countDown } from './fieldEvents';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
 import { giveStatus } from './status';
+import { FROM_BOLT } from './pickups';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -46,7 +47,6 @@ import type {
   Pickup,
   Player,
   RunState,
-  StatusSource,
   StepInput,
   Vec,
 } from './types';
@@ -437,9 +437,6 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
   tackle(state, slipped, -1, events);
   return true;
 }
-
-/** What a lightning bolt's Fast says gave it. */
-const FROM_BOLT: StatusSource = { kind: 'pickup', pickup: 'bolt' };
 
 /** A pickup is taken: gone for good, for everyone (k3), and said so. */
 function take(state: RunState, by: Body, pickup: Pickup, events: ArcadeEvent[]): void {

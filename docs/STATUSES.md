@@ -168,8 +168,15 @@ Written down, none built; each comes back as its own map:
 - **At the whistle:** each down lines up new bodies, so a status still on
   then ends there, unreported: the play log shows its `statusGained` and no
   `statusEnded`.
-- **Topping up:** giving a status a body already has reports
-  `statusGained` again, so every bolt taken shows in the log.
+- **Every give is reported** (the review's r2, the user's "I think we
+  should report every give"): `statusGained` carries `changed`, false when
+  the body already had the status for longer and kept that time and source.
+  `statusEnded` names the source too (r1).
+- **The kind's type** is `SourceKind`, in `content/statuses.ts` with `Who`
+  and `kindOf` (r3): it names a field event's or a pickup's kind alike.
+- **Review:** https://claude.ai/artifact/6hsrTkzrfbGh7r2nwNo7jS (r1–r4
+  fixed; l1, a status on at the whistle ending unreported, left for
+  `field-taffy`'s tests; l2 left).
 - **The same run:** four hard-mode runs, driven by their seeds alone, give
   the same events and positions, step for step, as on `main`
   (`tests/arcade/statusesSameRun.test.ts`, digests taken on `main`

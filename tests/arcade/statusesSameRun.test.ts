@@ -13,7 +13,7 @@ import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
  */
 
 /** The events the bolt's move must leave alone: all but the new status reports. */
-const STATUS_EVENTS: readonly string[] = ['statusGained', 'statusEnded'];
+const STATUS_EVENTS: readonly ArcadeEvent['type'][] = ['statusGained', 'statusEnded'];
 
 /** A run driven by its seed alone, as the long-runs invariant test drives one; its digest and the bolts taken. */
 function digestOf(

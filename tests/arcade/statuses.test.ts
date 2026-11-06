@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { eventKind, FROG_RAIN } from '../../src/arcade/content/fieldEvents';
-import { kindOf, statusPolarity } from '../../src/arcade/content/statuses';
+import { kindOf } from '../../src/arcade/content/statuses';
 import { arcadeTuning, DT } from '../../src/arcade/content/tuning';
-import { giveStatus, hasStatus, speedShare, wearStatuses } from '../../src/arcade/sim/status';
+import { FROM_BOLT } from '../../src/arcade/sim/pickups';
+import {
+  giveStatus,
+  hasStatus,
+  speedShare,
+  statusOf,
+  wearStatuses,
+} from '../../src/arcade/sim/status';
 import type { ArcadeEvent, Body, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { body, ofType, playState, run, stand, type DefenderSpec } from './helpers';
@@ -17,13 +23,10 @@ import { body, ofType, playState, run, stand, type DefenderSpec } from './helper
 
 const { bolt } = arcadeTuning.pickups;
 const { fast } = arcadeTuning.statuses;
-const FROM_BOLT = { kind: 'pickup', pickup: 'bolt' } as const;
 
 /** One of yours (id 2) standing at (6, 0), in play, with these defenders (ids 100 up). */
 const field = (defenders: DefenderSpec[] = []): RunState =>
   playState([{ pos: v(6, 0), job: stand(v(6, 0)) }], defenders);
-
-const statusOf = (b: Body, name: 'fast') => b.statuses.find((s) => s.name === name);
 
 /** Wear a body's statuses for this long, collecting what it reports. */
 function wear(b: Body, seconds: number, events: ArcadeEvent[]): void {
@@ -87,13 +90,6 @@ describe('blessing, hex or mischief, from the status and who (s4)', () => {
     expect(kindOf('hurts', 'theirs')).toBe('blessing');
     expect(kindOf('hurts', 'everyone')).toBe('mischief');
   });
-
-  it('3b: Fast helps; a field event’s knockdown hurts, so Frog Rain (everyone) is mischief', () => {
-    expect(statusPolarity('fast')).toBe('helps');
-    expect(eventKind(FROG_RAIN)).toBe('mischief');
-    expect(eventKind({ ...FROG_RAIN, effect: { kind: 'flatten', on: 'yours' } })).toBe('hex');
-    expect(eventKind({ ...FROG_RAIN, effect: { kind: 'flatten', on: 'theirs' } })).toBe('blessing');
-  });
 });
 
 describe('the sim says so (s8)', () => {
@@ -101,9 +97,28 @@ describe('the sim says so (s8)', () => {
     const p = body(field(), 2);
     const events: ArcadeEvent[] = [];
     giveStatus(p, 'fast', 0.2, FROM_BOLT, events);
-    expect(events).toEqual([{ type: 'statusGained', id: 2, status: 'fast', from: FROM_BOLT }]);
+    expect(events).toEqual([
+      { type: 'statusGained', id: 2, status: 'fast', from: FROM_BOLT, changed: true },
+    ]);
     wear(p, 1, events);
-    expect(ofType(events, 'statusEnded')).toEqual([{ type: 'statusEnded', id: 2, status: 'fast' }]);
+    expect(ofType(events, 'statusEnded')).toEqual([
+      { type: 'statusEnded', id: 2, status: 'fast', from: FROM_BOLT },
+    ]);
+  });
+
+  it('4c: every give is reported, saying whether it changed anything: a shorter one keeps the time and the source', () => {
+    const p = body(field(), 2);
+    const events: ArcadeEvent[] = [];
+    const other = { kind: 'pickup', pickup: 'slick' } as const;
+    giveStatus(p, 'fast', 3, FROM_BOLT, events);
+    giveStatus(p, 'fast', 1, other, events);
+    giveStatus(p, 'fast', 3, other, events);
+    expect(ofType(events, 'statusGained').map((e) => [e.from.pickup, e.changed])).toEqual([
+      ['bolt', true],
+      ['slick', false],
+      ['slick', true],
+    ]);
+    expect(statusOf(p, 'fast')?.from).toEqual(other);
   });
 
   it('4b: in play, taking a bolt reports the pickup, then the status', () => {
@@ -113,7 +128,7 @@ describe('the sim says so (s8)', () => {
     const types = events.map((e) => e.type);
     expect(types.indexOf('statusGained')).toBeGreaterThan(types.indexOf('pickupTaken'));
     expect(ofType(events, 'statusGained')).toEqual([
-      { type: 'statusGained', id: 2, status: 'fast', from: FROM_BOLT },
+      { type: 'statusGained', id: 2, status: 'fast', from: FROM_BOLT, changed: true },
     ]);
   });
 });

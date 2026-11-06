@@ -347,6 +347,9 @@ last two played before they merge.
    in Try it.
 5. **Saved events:** one with a spell and Slowed reads back; today's saved
    file still reads.
+5b. **A spell's status ends reported:** a body stepping out of the taffy
+    while it's on gets `statusEnded`, naming the taffy (statuses review,
+    l1).
 
 `field-wisps`:
 
