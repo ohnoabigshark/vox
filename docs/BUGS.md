@@ -139,3 +139,26 @@ in happy-dom (a dev dependency, for that file only; the other tests have no
 DOM). It failed with the old `innerHTML` and passes with the fix (review of
 `names-fix`, rules: prove a bug-fix test catches the bug). Seen with it:
 full names at the line overlap (the risk p6 accepted).
+
+## B8. The stat bars stop at 100, but stats grow to 150
+
+Reported by the user, 2026-11-06: "our player stats bars seem to be based
+off a cap of 100 when the stats can go to 150 meaning we don't accurately
+show per play gains on the bar."
+
+The bars fill against `BAR_MAX = 100` (`statBars` in `src/ui/hud.ts`), set
+before growth from play existed. Growth stops at `growth.ceiling`, 150
+(`content/tuning.ts`, `docs/REWARDS.md`). So from 100 up, a bar is full and
+stays full. A gain that ends above 100 is clamped too: its green stretch
+starts at `share(value - delta)` and is cut off at the bar's end
+(`overflow: hidden` in `hud.css`), so it shows shorter than the gain, or not
+at all. The segments are drawn 10 to a bar, one per 10 points of the old
+0–100 scale (`.hud-stat-bar::after`).
+
+- 2026-11-06: logged, not fixed. To fix before the next release. Likely fix:
+  the bar's top comes from `growth.ceiling`, defined in one place, with 15
+  segments so each is still 10 points. An ordinary 50 then fills a third
+  rather than half, which changes how every bar looks (Your team, the offer
+  cards, the selected player's card), so it gets a before-and-after mockup
+  first. A test pins it: a stat of 120 with +15 draws its fill at 80% and
+  its gain from 70% to 80%.
