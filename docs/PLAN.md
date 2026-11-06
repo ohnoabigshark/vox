@@ -663,8 +663,9 @@ Still open:
   https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
   - **The Goxel round trip** (round 3, a1 and a2, 2026-11-06; the user's
     goal of 2026-11-05: Claude makes the models, the user tweaks them in
-    Goxel and hands them back). A `.voxt` → `.vox` exporter is built now
-    (p4 unparked), tested by a model going out and coming back unchanged.
+    Goxel and hands them back). The `.voxt` → `.vox` exporter is built
+    (p4 unparked; `npm run export-vox`, `docs/ART.md`, "The round trip"),
+    tested by every model going out and coming back unchanged.
     Models travel through one Google Drive folder; whether this session
     can upload a `.vox` there is the first thing to check. The first real
     trip, one of Claude's models changed in Goxel and brought back,

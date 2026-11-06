@@ -18,6 +18,7 @@
     "balance:arcade": "tsx tools/arcade-balance.ts",
     "balance:compare": "tsx tools/balance-compare.ts",
     "import-vox": "tsx tools/voxels/import-vox.ts",
+    "export-vox": "tsx tools/voxels/export-vox.ts",
     "preview-models": "tsx tools/voxels/preview.ts",
     "render-audio": "tsx tools/audio/render.ts",
     "screenshot": "tsx tools/screenshot.ts",
