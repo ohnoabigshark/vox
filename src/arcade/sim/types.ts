@@ -11,6 +11,7 @@
  */
 import type { EventLook, FieldEvent } from '../content/fieldEvents';
 import type { Play } from '../content/plays';
+import type { StatusName } from '../content/statuses';
 
 export interface Vec {
   readonly x: number;
@@ -44,8 +45,18 @@ interface BodyBase {
   readonly reach: number;
   /** Seconds left lying on the turf (0 = up). */
   down: number;
-  /** Seconds left at a lightning bolt's speed (0 = none: docs/PICKUPS.md); either side, since the mischief bolt. */
-  boltLeft: number;
+  /** The statuses it has now, each with its time left (docs/STATUSES.md): Fast from a lightning bolt, either side. */
+  statuses: Status[];
+}
+
+/** What gave a body a status (docs/STATUSES.md, s5): so far only a pickup, the lightning bolt. */
+export type StatusSource = { readonly kind: 'pickup'; readonly pickup: PickupKind };
+
+/** A status a body has: which, how long it has left (seconds), and what gave it. */
+export interface Status {
+  readonly name: StatusName;
+  left: number;
+  from: StatusSource;
 }
 
 /** What one of your players is doing this down. */
@@ -624,6 +635,24 @@ export type ArcadeEvent =
       readonly side: Body['side'];
       readonly kind: PickupKind;
       readonly pickup: number;
+    }
+  /**
+   * A body was given a status (docs/STATUSES.md, s8). Every give is reported;
+   * `changed` is false when it already had it for longer, so it kept that.
+   */
+  | {
+      readonly type: 'statusGained';
+      readonly id: number;
+      readonly status: StatusName;
+      readonly from: StatusSource;
+      readonly changed: boolean;
+    }
+  /** A body's status ran out: what gave it, too. */
+  | {
+      readonly type: 'statusEnded';
+      readonly id: number;
+      readonly status: StatusName;
+      readonly from: StatusSource;
     }
   /** A carrier slipped on an oil slick and is down there: SLIPPED! */
   | { readonly type: 'slipped'; readonly id: number }

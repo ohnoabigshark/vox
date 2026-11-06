@@ -142,13 +142,28 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   **area** (a **lane**, **band** or **circle**, in yards from the line), when
   it **goes off** (a **burst**, hitting whoever is in it then, or a
   **spell**, holding whoever is in it while it lasts), a **warning** (shown
-  before the snap, then its **build-up**), and an **effect** (flatten, slow,
-  ethereal) on your players, the defenders or everyone
-  (`docs/FIELD_EVENTS.md`). Frog Rain is the first. _Avoid:_ "event" alone,
-  which is the sim's `ArcadeEvent`.
+  before the snap, then its **build-up**), and an **effect** (a
+  **knockdown**, or a **status** given) on your players, the defenders or
+  everyone (`docs/FIELD_EVENTS.md`). Frog Rain is the first. _Avoid:_ "event"
+  alone, which is the sim's `ArcadeEvent`.
 - **Blessing, hex, mischief:** a field event that can only help you, only
-  hurt you, or do both. A **mischief** pickup is one either side can take
-  (the lightning bolt).
+  hurt you, or do both, worked out from whether its status helps or hurts
+  and who it lands on (`docs/STATUSES.md`). A **mischief** pickup is one
+  either side can take (the lightning bolt). _Avoid:_ "curse", for a hex.
+
+## Statuses _(ours)_
+
+- **Status:** a condition a body carries for a while, which the rules read
+  whatever gave it (`docs/STATUSES.md`): **Ethereal** (can't be grabbed or
+  tackled, defenders run through it, drawn see-through), **Slowed** (top
+  speed times a share), **Fast** (top speed times 1.5, the lightning
+  bolt's). _Avoid:_ "effect" for a status (an effect is a field event's
+  part), "buff" and "debuff".
+- **Source:** what gives a status: a field event or a pickup, later a perk,
+  a tap test or a Boss.
+- **Knockdown:** knocking a body down for a time (a field event's flatten,
+  Frog Rain's); not a status, since lying down is the body's own state
+  (`down`).
 - **Event editor:** the dev page where field events are made, tuned and
   tried (`/dev/events.html`).
 

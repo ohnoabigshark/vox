@@ -11,6 +11,7 @@ import { assertNever } from '../../assertNever';
 import type { BossName } from '../sim/types';
 import saved from './saved-events.json' with { type: 'json' };
 import { checkSavedEvents, layerEvents } from './savedEvents';
+import { kindOf, type Polarity, type SourceKind, type Who } from './statuses';
 import { arcadeTuning } from './tuning';
 
 /** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
@@ -40,8 +41,8 @@ export interface CircleArea {
 
 export type EventArea = RectArea | CircleArea;
 
-/** Who an effect hits: your players, the defenders, or everyone. */
-export type Who = 'yours' | 'theirs' | 'everyone';
+/** Who an effect hits (`content/statuses.ts`). */
+export type { Who } from './statuses';
 
 /** Flatten: knocked down for the event's `lasts`; a carrier is tackled there. */
 export interface FlattenEffect {
@@ -100,20 +101,22 @@ export const FROG_RAIN: FieldEvent = {
   look: 'frogRain',
 };
 
-/** Blessing, hex or mischief: an event that can only help you, only hurt you, or do both. */
-export type EventKind = 'blessing' | 'hex' | 'mischief';
+/**
+ * An event's kind, from its effect and who it hits (docs/STATUSES.md, s4):
+ * a knockdown hurts, so flattening yours is a hex, theirs a blessing,
+ * everyone mischief.
+ */
+export function eventKind(event: FieldEvent): SourceKind {
+  return kindOf(effectPolarity(event.effect), event.effect.on);
+}
 
-/** An event's kind, from its effect and who it hits: flattening yours hurts you, theirs helps you, everyone both. */
-export function eventKind(event: FieldEvent): EventKind {
-  switch (event.effect.on) {
-    case 'yours':
-      return 'hex';
-    case 'theirs':
-      return 'blessing';
-    case 'everyone':
-      return 'mischief';
+/** Whether an effect helps the bodies it lands on or hurts them. */
+function effectPolarity(effect: EventEffect): Polarity {
+  switch (effect.kind) {
+    case 'flatten':
+      return 'hurts';
     default:
-      return assertNever(event.effect.on);
+      return assertNever(effect.kind);
   }
 }
 

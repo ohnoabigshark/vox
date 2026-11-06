@@ -82,6 +82,7 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
 
 describe('tricks and treats: taking them', () => {
   const { bolt, slick } = arcadeTuning.pickups;
+  const { fast } = arcadeTuning.statuses;
   /** A Catcher (id 2) running straight upfield from (5, 0), with these pickups lying ahead. */
   const runner = (pickups: Pickup[], defenders: DefenderSpec[] = []): RunState => {
     const s = playState(
@@ -104,7 +105,7 @@ describe('tricks and treats: taking them', () => {
     ]);
     expect(boosted.field.pickups).toEqual([]);
     expect(boosted.taken).toEqual([7]);
-    expect(speedOf(boosted, 2) / speedOf(plain, 2)).toBeCloseTo(1 + bolt.faster, 1);
+    expect(speedOf(boosted, 2) / speedOf(plain, 2)).toBeCloseTo(1 + fast.faster, 1);
     const later = run(boosted, bolt.time).state;
     expect(speedOf(later, 2) / speedOf(run(plain, bolt.time).state, 2)).toBeCloseTo(1, 1);
   });
@@ -125,7 +126,7 @@ describe('tricks and treats: taking them', () => {
     s.field.pickups = [{ id: 7, kind: 'bolt', x: 5, y: 0.5 }];
     const { state, events } = run(s, 1);
     expect(ofType(events, 'pickupTaken').map((e) => e.id)).toEqual([2]);
-    expect(state.field.players.find((p) => p.id === 3)?.boltLeft).toBe(0);
+    expect(state.field.players.find((p) => p.id === 3)?.statuses).toEqual([]);
   });
 
   it('an oil slick trips whoever runs through it: they lie on the turf for a moment', () => {
@@ -154,7 +155,7 @@ describe('tricks and treats: taking them', () => {
     expect(ofType(events, 'pickupTaken')).toEqual([]);
     expect(state.field.pickups.map((p) => p.id)).toEqual([8, 9]);
     expect(body(state, 1).down).toBe(0);
-    expect(state.field.players.find((p) => p.id === 1)?.boltLeft).toBe(0);
+    expect(state.field.players.find((p) => p.id === 1)?.statuses).toEqual([]);
   });
 
   it('a defender standing on a slick leaves it and stays on its feet (bolts: tests/arcade/mischiefBolt.test.ts)', () => {

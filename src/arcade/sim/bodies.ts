@@ -79,7 +79,7 @@ export function lineUpTeam(
     stats: qbStats,
     ...physicsOf(qbStats),
     down: 0,
-    boltLeft: 0,
+    statuses: [],
     job: { kind: 'qb' },
   };
   const seven = state.roster.map((p, slot): Player => {
@@ -102,7 +102,7 @@ export function lineUpTeam(
       stats,
       ...physicsOf(stats),
       down: 0,
-      boltLeft: 0,
+      statuses: [],
       job:
         a.kind === 'route'
           ? { kind: 'route', to: a.to.map((w) => add(start, v(w.x * mirror, w.y))), index: 0 }
@@ -156,7 +156,7 @@ export function lineUpDefense(
       stats,
       ...defenderPhysics(stats, def.reachBonus),
       down: 0,
-      boltLeft: 0,
+      statuses: [],
       home,
       mark: null,
       latch: null,

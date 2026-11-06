@@ -282,6 +282,10 @@ export class RunRecorder {
       // The perk's pop (docs/REWARDS.md, notes p4); the catch itself is counted by `caught`.
       case 'magnet':
         return;
+      // Statuses (docs/STATUSES.md, s8): the play log has each; the record keeps none yet.
+      case 'statusGained':
+      case 'statusEnded':
+        return;
       default:
         assertNever(e);
     }

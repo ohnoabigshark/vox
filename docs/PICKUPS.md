@@ -44,7 +44,9 @@ pickups, more kinds and placing them in the editor are later rounds
   of that stretch. In 12,000 stretches tried (1,000 seeds) none was, again
   with the middle open (2026-11-05).
 - **The bolt** (k5): whoever takes it runs 50% faster for 3 seconds, trailing
-  sparks, with a zap. Both numbers are in `tuning.ts`.
+  sparks, with a zap. Both numbers are in `tuning.ts`. Since 2026-11-06 the
+  speed is the **Fast** status the bolt gives (`docs/STATUSES.md`):
+  `pickups.bolt.time` is how long, `statuses.fast.faster` how much.
 - **The slick** (k6): whoever runs through it slips and lies on the turf for
   a moment, as Frog Rain flattens. A carrier who slips is tackled there:
   **SLIPPED!** A Catcher lying down can't catch (the existing rule for anyone

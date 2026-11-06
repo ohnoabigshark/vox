@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { createRun, dispatch } from '../../src/arcade/sim/run';
 import { step } from '../../src/arcade/sim/step';
+import { statusOf } from '../../src/arcade/sim/status';
 import type { Defender, Pickup, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { carry, ofType, playState, run, stand, type DefenderSpec } from './helpers';
@@ -13,6 +14,7 @@ import { carry, ofType, playState, run, stand, type DefenderSpec } from './helpe
  */
 
 const { bolt } = arcadeTuning.pickups;
+const { fast } = arcadeTuning.statuses;
 
 /** A down in play: one of yours (id 2) standing at (6, 0), these defenders (ids 100 up), these pickups. */
 function field(defenders: DefenderSpec[], pickups: Pickup[]): RunState {
@@ -39,9 +41,9 @@ describe('the mischief bolt', () => {
     ]);
     expect(state.field.pickups).toEqual([]);
     expect(state.taken).toEqual([7]);
-    expect(defender(state, 100).boltLeft).toBeGreaterThan(bolt.time - 0.5);
+    expect(statusOf(defender(state, 100), 'fast')?.left).toBeGreaterThan(bolt.time - 0.5);
     expect(speedOf(defender(state, 100)) / speedOf(defender(plain, 100))).toBeCloseTo(
-      1 + bolt.faster,
+      1 + fast.faster,
       1,
     );
   });
@@ -49,9 +51,11 @@ describe('the mischief bolt', () => {
   it('1b: a defender’s bolt wears off after its time, back to its own speed', () => {
     const rusher: DefenderSpec = { kind: 'rusher', pos: v(0, 8) };
     const s = field([rusher], []);
-    defender(s, 100).boltLeft = 0.1;
+    defender(s, 100).statuses = [
+      { name: 'fast', left: 0.1, from: { kind: 'pickup', pickup: 'bolt' } },
+    ];
     const after = run(s, 0.3).state;
-    expect(defender(after, 100).boltLeft).toBe(0);
+    expect(defender(after, 100).statuses).toEqual([]);
     expect(
       speedOf(defender(after, 100)) / speedOf(defender(run(field([rusher], []), 0.3).state, 100)),
     ).toBeCloseTo(1, 2);
@@ -66,7 +70,7 @@ describe('the mischief bolt', () => {
     s.field.pickups = [{ id: 7, kind: 'bolt', x: 0, y: 5.6 }];
     const { state, events } = run(s, 1.2);
     expect(ofType(events, 'pickupTaken').map((e) => e.side)).toEqual(['defense']);
-    expect(state.field.players.find((p) => p.id === 2)?.boltLeft).toBe(0);
+    expect(state.field.players.find((p) => p.id === 2)?.statuses).toEqual([]);
   });
 
   it('2: before the snap, a Bat looping over a bolt leaves it', () => {
@@ -84,7 +88,7 @@ describe('the mischief bolt', () => {
     const laid = s.field.pickups;
     for (let i = 0; i < 300; i++) s = step(s).state;
     expect(s.field.pickups).toEqual(laid);
-    expect(s.field.defenders.every((d) => d.boltLeft === 0)).toBe(true);
+    expect(s.field.defenders.every((d) => d.statuses.length === 0)).toBe(true);
   });
 
   it('2b: after the snap, a Bat whose loop crosses a bolt takes it', () => {

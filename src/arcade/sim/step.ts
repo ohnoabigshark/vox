@@ -36,6 +36,8 @@ import { catchTestFor, type CatchTest } from './catchTests';
 import { caughtBy, countDown } from './fieldEvents';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
+import { giveStatus } from './status';
+import { FROM_BOLT } from './pickups';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -96,7 +98,7 @@ function stepBody(state: RunState, input: StepInput): ArcadeResult {
   state.time = state.step * DT;
 
   if (state.phase === 'downOver') {
-    moveBodies(state);
+    moveBodies(state, events);
     state.pause -= DT;
     if (state.pause <= 0) nextDown(state, events);
     return { state, events };
@@ -114,7 +116,7 @@ function stepBody(state: RunState, input: StepInput): ArcadeResult {
     return { state, events };
   }
   if (state.phase !== 'play') {
-    moveBodies(state);
+    moveBodies(state, events);
     separate(state);
     pushOutOfProps(state);
     return { state, events };
@@ -125,7 +127,7 @@ function stepBody(state: RunState, input: StepInput): ArcadeResult {
   if (carrier && state.step % Math.max(1, Math.round(arcadeTuning.carrier.laneEvery / DT)) === 0) {
     state.field.lane = chooseLane(state, carrier);
   }
-  moveBodies(state);
+  moveBodies(state, events);
   separate(state);
   pushOutOfProps(state);
   if (takePickups(state, events)) return { state, events };
@@ -410,7 +412,7 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     take(state, p, pickup, events);
     switch (pickup.kind) {
       case 'bolt':
-        p.boltLeft = arcadeTuning.pickups.bolt.time;
+        giveStatus(p, 'fast', arcadeTuning.pickups.bolt.time, FROM_BOLT, events);
         break;
       case 'slick':
         p.down = arcadeTuning.pickups.slick.time;
@@ -428,7 +430,7 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
     );
     if (!pickup) continue;
     take(state, d, pickup, events);
-    d.boltLeft = arcadeTuning.pickups.bolt.time;
+    giveStatus(d, 'fast', arcadeTuning.pickups.bolt.time, FROM_BOLT, events);
   }
   if (!slipped) return false;
   events.push({ type: 'slipped', id: slipped.id });

@@ -12,10 +12,11 @@ import { arcadeTuning, DT } from '../content/tuning';
 import { defenderTarget, handedOff, playerTarget } from './ai';
 import { steps } from './bodies';
 import { clearOfProps, steerAround } from './props';
-import type { Body, RunState } from './types';
+import { speedShare, wearStatuses } from './status';
+import type { ArcadeEvent, Body, RunState } from './types';
 import { add, clampLen, dist, len, norm, scale, sub, v } from './vec';
 
-const { body: bodyTuning, field, pickups: pickupTuning } = arcadeTuning;
+const { body: bodyTuning, field } = arcadeTuning;
 
 export function allBodies(state: RunState): Body[] {
   return [...state.field.players, ...state.field.defenders];
@@ -31,13 +32,13 @@ function keepInBounds(b: Body, carrierId: number | null): void {
 }
 
 /** Everyone moves one step toward their target. */
-export function moveBodies(state: RunState): void {
+export function moveBodies(state: RunState, events: ArcadeEvent[]): void {
   const carrierId = state.field.ball.at === 'carried' ? state.field.ball.by : null;
   const carrier = state.field.players.find((p) => p.id === carrierId);
   const hanging = state.field.defenders.filter((d) => d.latch !== null);
   for (const b of allBodies(state)) {
-    // A lightning bolt wears off (docs/PICKUPS.md), on either side.
-    if (b.boltLeft > 0) b.boltLeft = Math.max(0, b.boltLeft - DT);
+    // Statuses wear off (docs/STATUSES.md): a lightning bolt's Fast, on either side.
+    wearStatuses(b, events);
     // Tacklers hanging on ride along with the carrier (below).
     if (b.side === 'defense' && b.latch) continue;
     if (b.down > 0) {
@@ -58,7 +59,7 @@ export function moveBodies(state: RunState): void {
     let desired = v(0, 0);
     if (target) {
       const to = sub(target, b.pos);
-      const top = b.boltLeft > 0 ? b.speed * (1 + pickupTuning.bolt.faster) : b.speed;
+      const top = b.speed * speedShare(b);
       const speed =
         b.side === 'defense'
           ? top * blockedShare(state, b, carrierId)

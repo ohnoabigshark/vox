@@ -16,7 +16,7 @@ import {
   stretchProps,
 } from './props';
 import { rngFor } from './random';
-import type { FieldProp, Pickup, PickupKind } from './types';
+import type { FieldProp, Pickup, PickupKind, StatusSource } from './types';
 import { dist, v } from './vec';
 
 const { pickups: tuning, field, series: seriesTuning } = arcadeTuning;
@@ -72,3 +72,6 @@ function stretchPickups(seed: number, k: number): Pickup[] {
   }
   return out;
 }
+
+/** What a lightning bolt's Fast says gave it (docs/STATUSES.md). */
+export const FROM_BOLT: StatusSource = { kind: 'pickup', pickup: 'bolt' };

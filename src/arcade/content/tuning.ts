@@ -373,8 +373,8 @@ export const tuningDefaults = {
     edge: 1,
     /** …and this far from any prop or Boss (edge to edge). */
     gap: 0.6,
-    /** The lightning bolt: this much faster (a share of top speed), for this long (seconds). */
-    bolt: { faster: 0.5, time: 3 },
+    /** The lightning bolt: Fast (`statuses.fast`) for this long (seconds). */
+    bolt: { time: 3 },
     /** The oil slick: whoever slips lies on the turf this long (a carrier is tackled: SLIPPED!). */
     slick: { time: 1.2 },
   },
@@ -389,6 +389,11 @@ export const tuningDefaults = {
     window: 0.6,
     /** He has two pairs: the second takes off this long after the first is shooed (or misses). */
     nextFlock: 0.8,
+  },
+  /** Statuses (docs/STATUSES.md): what each does to a body that has it. */
+  statuses: {
+    /** Fast (the lightning bolt's): this much faster, a share of top speed. */
+    fast: { faster: 0.5 },
   },
 } as const;
 
