@@ -216,6 +216,42 @@
       "source": "Original voxel model (Mashed Potatoes: a candidate for the Ghost kind), written by Claude",
       "author": "Claude",
       "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/raccoon.voxt",
+      "source": "Original voxel model (Raccoon: the Rusher, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/mouse.voxt",
+      "source": "Original voxel model (Mouse: the Cover, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/spider.voxt",
+      "source": "Original voxel model (Spider: the Zone, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/opossum.voxt",
+      "source": "Original voxel model (Opossum: the Safety, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/housefly.voxt",
+      "source": "Original voxel model (Housefly: the Bat, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/ant.voxt",
+      "source": "Original voxel model (Ant: the Crow, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
     }
   ]
 }
