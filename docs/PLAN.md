@@ -428,7 +428,10 @@ Open, for when the first new theme or set is planned:
     smaller").
   - **The offer cards' text a bit bigger, and their headings centred**
     (user, 2026-11-05, after part 2's playtest: "notes for later (not
-    implementing now)").
+    implementing now)"). **Done 2026-11-06** (`fixes-offer-hands`, map
+    https://claude.ai/artifact/HcAVyNiXGEU8NCVJmYGTkJ, o1 and o2): the
+    offer cards' text about a third bigger, and each card's heading row
+    centred under its title; Your team's rows are unchanged.
   - **Hands grows more slowly for Catchers** (balance). _User, 2026-11-05,
     after playing `player-select`: "I think hands should scale more slowly
     for catchers"._ **Done 2026-11-06** (`fixes-offer-hands`, map

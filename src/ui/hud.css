@@ -494,6 +494,12 @@ button.hud-roster-row:active {
   opacity: 0.7;
 }
 
+/* An offer card's words (a perk's, "Prefers Runner") are bigger (fixes map o1). */
+.hud-offer em {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
 .hud-roster-hand {
   margin: 0;
   max-width: 460px;
@@ -503,10 +509,12 @@ button.hud-roster-row:active {
   opacity: 0.85;
 }
 
-/* TRICK OR TREAT!'s cards: a big title over a player card like the roster's, a play drawn the card's width, or a perk. */
+/* TRICK OR TREAT!'s cards: a big title over a player card like the roster's, a play drawn the card's width, or a perk.
+   Their text is about a third bigger than the roster's (fixes map o1). */
 .hud-offer {
+  gap: 10px;
   padding: 8px 10px 9px;
-  font-size: 0.8rem;
+  font-size: 1rem;
   border: var(--edge) solid var(--candy-purple);
   background: rgb(162 89 255 / 0.2);
   box-shadow: 5px 5px 0 var(--ink);
@@ -520,7 +528,7 @@ button.hud-offer:active {
 .hud-offer-title {
   margin-bottom: 2px;
   font-weight: 400;
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   letter-spacing: 0.04em;
   text-align: center;
   color: var(--candy-purple);
@@ -552,8 +560,26 @@ button.hud-offer:active {
 }
 
 .hud-offer .hud-photo {
-  width: 46px;
-  height: 46px;
+  width: 60px;
+  height: 60px;
+}
+
+/* An offer card's heading (photo, name and kind; a play's name) centred under its title (fixes map o2). */
+.hud-offer .hud-player-head {
+  justify-content: center;
+  gap: 10px;
+}
+
+.hud-offer.play .hud-name {
+  align-items: center;
+}
+
+.hud-offer .hud-name strong {
+  font-size: 1.35rem;
+}
+
+.hud-offer .hud-name small {
+  font-size: 0.8rem;
 }
 
 .hud-name {
@@ -598,7 +624,12 @@ button.hud-offer:active {
 }
 
 .hud-offer .hud-stat {
-  font-size: 0.72rem;
+  gap: 7px;
+  font-size: 0.95rem;
+}
+
+.hud-offer .hud-stat-bar {
+  height: 13px;
 }
 
 .hud-stat-label {
@@ -719,8 +750,8 @@ button.hud-offer:active {
 
 /* A perk's icon sits in a bigger photo box. */
 .hud-offer.perk .hud-photo {
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
 }
 
 /* The offer (docs/REWARDS.md, notes p5): nothing scrolls up and down; the
