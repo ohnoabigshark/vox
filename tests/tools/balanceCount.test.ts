@@ -256,10 +256,10 @@ describe('growth from play (docs/REWARDS.md, b2)', () => {
     w.step(inArea(0), [{ type: 'grew', id: 3, stat: 'hands', by: 15 }]);
     w.endRun();
     expect(w.byArea.get(0)).toEqual([
-      { busiest: 21, team: 32, hands: 15 },
-      { busiest: 15, team: 15, hands: 15 },
+      { busiest: 21, team: 32, busiestHands: 15 },
+      { busiest: 15, team: 15, busiestHands: 15 },
     ]);
-    expect(w.byArea.get(1)).toEqual([{ busiest: 10, team: 10, hands: 0 }]);
+    expect(w.byArea.get(1)).toEqual([{ busiest: 10, team: 10, busiestHands: 0 }]);
   });
 });
 

@@ -174,31 +174,43 @@ export class PickWatch {
   }
 }
 
+/** One area's growth in one run (GrowthWatch). */
+export interface AreaGrowth {
+  /** The most one player grew there, all its stats together. */
+  readonly busiest: number;
+  /** The whole team's growth there. */
+  readonly team: number;
+  /** The most Hands one player grew there (perhaps not the busiest player; PLAN.md, Catchers' Hands). */
+  readonly busiestHands: number;
+}
+
+/** Gains by area, then by player id. */
+type GainsByArea = Map<number, Map<number, number>>;
+
+/** Add `by` to a player's gains in an area. */
+function addGain(gains: GainsByArea, area: number, id: number, by: number): void {
+  const players = gains.get(area) ?? new Map<number, number>();
+  players.set(id, (players.get(id) ?? 0) + by);
+  gains.set(area, players);
+}
+
 /**
  * Growth from play (docs/REWARDS.md, b2): feed it every step's events. For
- * each area, one entry a run that grew anyone there: the most one player
- * grew in it (all its stats together), the team's total, and the most
- * Hands one player grew (Catchers' Hands, PLAN.md).
+ * each area, one entry a run that grew anyone there (`AreaGrowth`).
  */
 export class GrowthWatch {
-  readonly byArea = new Map<number, { busiest: number; team: number; hands: number }[]>();
-  /** This run's gains: by area, then by player id. */
-  private run = new Map<number, Map<number, number>>();
-  /** This run's Hands gains: by area, then by player id. */
-  private hands = new Map<number, Map<number, number>>();
+  readonly byArea = new Map<number, AreaGrowth[]>();
+  /** This run's gains, every stat together. */
+  private run: GainsByArea = new Map();
+  /** This run's Hands gains alone. */
+  private hands: GainsByArea = new Map();
 
   step(before: NotedBefore, events: readonly ArcadeEvent[]): void {
     for (const e of events) {
       if (e.type !== 'grew') continue;
       const area = before.series.area;
-      const players = this.run.get(area) ?? new Map<number, number>();
-      players.set(e.id, (players.get(e.id) ?? 0) + e.by);
-      this.run.set(area, players);
-      if (e.stat === 'hands') {
-        const hands = this.hands.get(area) ?? new Map<number, number>();
-        hands.set(e.id, (hands.get(e.id) ?? 0) + e.by);
-        this.hands.set(area, hands);
-      }
+      addGain(this.run, area, e.id, e.by);
+      if (e.stat === 'hands') addGain(this.hands, area, e.id, e.by);
     }
   }
 
@@ -209,7 +221,7 @@ export class GrowthWatch {
       const entry = {
         busiest: Math.max(...gains),
         team: gains.reduce((a, n) => a + n, 0),
-        hands: Math.max(0, ...hands),
+        busiestHands: Math.max(0, ...hands),
       };
       this.byArea.set(area, [...(this.byArea.get(area) ?? []), entry]);
     }

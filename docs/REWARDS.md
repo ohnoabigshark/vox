@@ -172,7 +172,9 @@ and never skips. The numbers are a check; how it plays to the user decides.
   every gain.
 - **The balance report gives the busiest player and the team,** not each
   player's gain per area as b2 said: the busiest is what z1 aims at, and
-  seven numbers a player would be noise (review d2).
+  seven numbers a player would be noise (review d2). Since 2026-11-06 it
+  also gives the most Hands one player grew in each area (`busiestHands`,
+  for the Hands halving, fixes map h1).
 
 ### Balance, part 1
 
