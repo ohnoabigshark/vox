@@ -177,12 +177,15 @@ export class PickWatch {
 /**
  * Growth from play (docs/REWARDS.md, b2): feed it every step's events. For
  * each area, one entry a run that grew anyone there: the most one player
- * grew in it (all its stats together), and the team's total.
+ * grew in it (all its stats together), the team's total, and the most
+ * Hands one player grew (Catchers' Hands, PLAN.md).
  */
 export class GrowthWatch {
-  readonly byArea = new Map<number, { busiest: number; team: number }[]>();
+  readonly byArea = new Map<number, { busiest: number; team: number; hands: number }[]>();
   /** This run's gains: by area, then by player id. */
   private run = new Map<number, Map<number, number>>();
+  /** This run's Hands gains: by area, then by player id. */
+  private hands = new Map<number, Map<number, number>>();
 
   step(before: NotedBefore, events: readonly ArcadeEvent[]): void {
     for (const e of events) {
@@ -191,16 +194,27 @@ export class GrowthWatch {
       const players = this.run.get(area) ?? new Map<number, number>();
       players.set(e.id, (players.get(e.id) ?? 0) + e.by);
       this.run.set(area, players);
+      if (e.stat === 'hands') {
+        const hands = this.hands.get(area) ?? new Map<number, number>();
+        hands.set(e.id, (hands.get(e.id) ?? 0) + e.by);
+        this.hands.set(area, hands);
+      }
     }
   }
 
   endRun(): void {
     for (const [area, players] of this.run) {
       const gains = [...players.values()];
-      const entry = { busiest: Math.max(...gains), team: gains.reduce((a, n) => a + n, 0) };
+      const hands = [...(this.hands.get(area)?.values() ?? [])];
+      const entry = {
+        busiest: Math.max(...gains),
+        team: gains.reduce((a, n) => a + n, 0),
+        hands: Math.max(0, ...hands),
+      };
       this.byArea.set(area, [...(this.byArea.get(area) ?? []), entry]);
     }
     this.run = new Map();
+    this.hands = new Map();
   }
 }
 

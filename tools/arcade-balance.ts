@@ -593,7 +593,7 @@ function report(scenario: Scenario, t: Tally): void {
       .sort((a, b) => a[0] - b[0])
       .map(
         ([area, runs]) =>
-          `area ${area + 1} busiest +${median(runs.map((r) => r.busiest))}, team +${median(runs.map((r) => r.team))} (${runs.length} runs)`,
+          `area ${area + 1} busiest +${median(runs.map((r) => r.busiest))}, team +${median(runs.map((r) => r.team))}, Hands +${median(runs.map((r) => r.hands))} (${runs.length} runs)`,
       );
     console.log(`  growth a run, medians: ${each.length > 0 ? each.join(' · ') : 'none'}`);
   }
