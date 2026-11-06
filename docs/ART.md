@@ -117,8 +117,8 @@ and it comes in through the importer:
 npm run import-vox -- model.vox <folder/name> [voxel size]
 ```
 
-which writes `assets-src/voxels/<folder/name>.voxt`, snapping every colour
-to the nearest named palette colour (`src/voxel/vox.ts`). MagicaVoxel's z
+which writes `assets-src/voxels/<folder/name>.voxt`, snapping a new
+model's every colour to the nearest named palette colour (`src/voxel/vox.ts`). MagicaVoxel's z
 (up) becomes our y, and its y our depth. Check the snapped colours and the
 size after importing.
 
@@ -133,7 +133,10 @@ npm run import-vox -- out.vox <folder/name>
 Importing over a model that exists keeps its voxel size and the colours it
 had, exactly, and snaps only colours added in the editor. Every model in
 `assets-src/voxels/` is tested to come back unchanged
-(`tests/voxel/export.test.ts`). The model comes back the same, but the file
+(`tests/voxel/export.test.ts`). The importer warns when a model comes
+back a different size (an editor that saves only the box its voxels fill
+trims empty edges, which moves the model) and when a file holds more than one
+model (only the first comes in). The model comes back the same, but the file
 is rewritten as one `slice` per depth. `mirror x`, `box` lines and comments
 don't survive, so re-add any that matter. No real editor file has been
 through it yet: the first trip through Goxel on Android replaces p3's

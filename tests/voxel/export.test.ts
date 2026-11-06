@@ -4,13 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { voxel } from '../../src/content/palettes';
 import { modelToVox, parseVox, voxToVoxt } from '../../src/voxel/vox';
 import { parseVoxt, type VoxelModel } from '../../src/voxel/voxt';
+import { importOver } from '../../tools/voxels/importOver';
+import { MODELS_DIR } from '../../tools/voxels/paths';
 
 /**
  * The exporter (art pipeline map, a1): a model goes out to Goxel as a .vox
  * and comes back through the importer unchanged.
  */
-
-const ROOT = join(import.meta.dirname, '..', '..', 'assets-src', 'voxels');
 
 function allModels(): VoxelModel[] {
   const walk = (dir: string): string[] =>
@@ -21,8 +21,8 @@ function allModels(): VoxelModel[] {
           ? [join(dir, e.name)]
           : [],
     );
-  return walk(ROOT).map((file) =>
-    parseVoxt(relative(ROOT, file).replace(/\.voxt$/, ''), readFileSync(file, 'utf8')),
+  return walk(MODELS_DIR).map((file) =>
+    parseVoxt(relative(MODELS_DIR, file).replace(/\.voxt$/, ''), readFileSync(file, 'utf8')),
   );
 }
 
@@ -107,5 +107,58 @@ describe('the exporter', () => {
   it('refuses a model with more colors than a .vox palette holds', () => {
     const many = { ...tiny, colors: Array.from({ length: 256 }, () => '#000000' as const) };
     expect(() => modelToVox(many)).toThrow(/255 colors/);
+  });
+});
+
+describe('bringing a model back (import-vox over a model that exists)', () => {
+  const bytesOf = (text: string) => modelToVox(parseVoxt('m', text));
+  const smaller = `size 3 1 2
+colors
+  r leafRed
+slice 0
+  r.r
+slice 1
+  ...
+`;
+
+  it('keeps the voxel size and colors the model went out with', () => {
+    const { text, warnings } = importOver(modelToVox(tiny), 'tiny.vox', tiny);
+    const back = parseVoxt('tiny', text);
+    expect(back.scale).toBe(0.2);
+    expect(colorsOf(back)).toEqual(colorsOf(tiny));
+    expect(warnings).toEqual([]);
+  });
+
+  it('takes a voxel size given on the command line over the old one', () => {
+    expect(parseVoxt('tiny', importOver(modelToVox(tiny), 'tiny.vox', tiny, 0.5).text).scale).toBe(
+      0.5,
+    );
+  });
+
+  it('imports a new model at 0.1 with every color snapped', () => {
+    const back = parseVoxt('new', importOver(modelToVox(tiny), 'tiny.vox', null).text);
+    expect(back.scale).toBe(0.1);
+    expect(back.colors).not.toContain('#123456');
+  });
+
+  it('warns when the model comes back a different size (an editor trims empty edges)', () => {
+    const { warnings } = importOver(bytesOf(smaller), 'tiny.vox', tiny);
+    expect(warnings).toEqual([
+      'tiny came back 3×1×2 (wide × tall × deep) but went out 3×2×2: an editor may have trimmed empty edges, so check where it sits in the viewer',
+    ]);
+  });
+
+  it('warns when the file holds more than one model, since only the first comes in', () => {
+    const one = bytesOf(smaller);
+    // A second SIZE and XYZI after the first, as a file with two models has.
+    const view = new DataView(one.buffer);
+    const size = one.subarray(20, 20 + 24);
+    const xyzi = one.subarray(44, 44 + 12 + view.getUint32(48, true));
+    const rest = one.subarray(44 + xyzi.length);
+    const two = Uint8Array.from([...one.subarray(0, 44), ...xyzi, ...size, ...xyzi, ...rest]);
+    new DataView(two.buffer).setUint32(16, two.length - 20, true);
+    expect(importOver(two, 'two.vox', null).warnings).toEqual([
+      'two.vox holds 2 models; only the first was imported',
+    ]);
   });
 });

@@ -9,9 +9,10 @@
  * colors and voxel size the model had.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { basename } from 'node:path';
 import { modelToVox } from '../../src/voxel/vox';
 import { parseVoxt } from '../../src/voxel/voxt';
+import { modelFile } from './paths';
 
 const [id, outArg] = process.argv.slice(2);
 if (!id) {
@@ -19,7 +20,7 @@ if (!id) {
   process.exit(1);
 }
 
-const file = join(import.meta.dirname, '..', '..', 'assets-src', 'voxels', `${id}.voxt`);
+const file = modelFile(id);
 const out = outArg ?? `${basename(id)}.vox`;
 writeFileSync(out, modelToVox(parseVoxt(id, readFileSync(file, 'utf8'))));
 console.log(`wrote ${out}`);

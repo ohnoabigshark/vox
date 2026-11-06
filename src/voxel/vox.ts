@@ -9,7 +9,7 @@
  * Axes: MagicaVoxel's x stays x, its z (up) becomes our y, and its y becomes
  * our depth, with y = 0 as the front.
  */
-import { voxel as voxelPalette, type Hex } from '../content/palettes';
+import { hexToNumber, voxel as voxelPalette, type Hex } from '../content/palettes';
 import { voxelIndex, type VoxelModel } from './voxt';
 
 export interface VoxFile {
@@ -18,6 +18,8 @@ export interface VoxFile {
   readonly voxels: readonly (readonly [number, number, number, number])[];
   /** 256 RGBA entries; entry i is color index i + 1. */
   readonly palette: readonly (readonly [number, number, number, number])[];
+  /** How many models the file holds: only the first is read. */
+  readonly models: number;
 }
 
 export function parseVox(bytes: Uint8Array): VoxFile {
@@ -28,6 +30,7 @@ export function parseVox(bytes: Uint8Array): VoxFile {
   let size: [number, number, number] | null = null;
   const voxels: [number, number, number, number][] = [];
   let palette: [number, number, number, number][] | null = null;
+  let models = 0;
 
   // Chunks follow the 8-byte header; MAIN wraps the rest, so we can scan linearly past its header.
   let at = 8;
@@ -42,7 +45,7 @@ export function parseVox(bytes: Uint8Array): VoxFile {
         view.getUint32(body + 4, true),
         view.getUint32(body + 8, true),
       ];
-    } else if (id === 'XYZI' && voxels.length === 0) {
+    } else if (id === 'XYZI' && models++ === 0) {
       const n = view.getUint32(body, true);
       for (let i = 0; i < n; i++) {
         const p = body + 4 + i * 4;
@@ -64,7 +67,7 @@ export function parseVox(bytes: Uint8Array): VoxFile {
   }
   if (!size) throw new Error('.vox file has no SIZE chunk');
   if (!palette) throw new Error('.vox file has no RGBA palette chunk (re-save it in MagicaVoxel)');
-  return { size, voxels, palette };
+  return { size, voxels, palette, models };
 }
 
 /** The named palette color closest to an RGB color. */
@@ -72,7 +75,7 @@ export function nearestPaletteColor(r: number, g: number, b: number): string {
   let best = '';
   let bestDist = Infinity;
   for (const [name, hex] of Object.entries(voxelPalette) as [string, Hex][]) {
-    const n = Number.parseInt(hex.slice(1), 16);
+    const n = hexToNumber(hex);
     const dr = ((n >> 16) & 255) - r;
     const dg = ((n >> 8) & 255) - g;
     const db = (n & 255) - b;
@@ -108,7 +111,7 @@ export function voxToVoxt(
   keep: readonly Hex[] = [],
 ): string {
   const [w, depth, h] = vox.size; // MagicaVoxel z is up
-  const kept = new Set(keep.map((c) => c.toLowerCase()));
+  const kept = new Set<string>(keep);
   const colorOf = new Map<number, string>(); // vox color index → palette name or kept hex
   for (const [, , , ci] of vox.voxels) {
     if (!colorOf.has(ci)) {
@@ -142,7 +145,11 @@ export function voxToVoxt(
   return `${out.join('\n')}\n`;
 }
 
-/** A .vox palette has 256 entries, and index 0 means empty, so a model can use 255 colors. */
+/**
+ * A .vox palette has 256 entries, and index 0 means empty, so a model can use
+ * 255 colors. (Its coordinates are single bytes too, but a .voxt is at most 64
+ * on a side, which parseVoxt enforces.)
+ */
 const VOX_COLORS = 255;
 
 /**
@@ -165,7 +172,7 @@ export function modelToVox(m: VoxelModel): Uint8Array {
       }
   const rgba = new Array<number>(256 * 4).fill(0);
   m.colors.forEach((hex, i) => {
-    const n = Number.parseInt(hex.slice(1), 16);
+    const n = hexToNumber(hex);
     rgba.splice(i * 4, 4, (n >> 16) & 255, (n >> 8) & 255, n & 255, 255);
   });
 
