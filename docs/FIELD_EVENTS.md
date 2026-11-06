@@ -58,12 +58,15 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 
 ## In a run (f4, n1, n2)
 
-- **Frog Rain stays Mister Frog's** (f4), on every down of his series.
-- **Generic events** (n1, n2): from series 2, about one ordinary series in
-  three (never a Boss's) gets one, picked from the run's seed, on every
-  down of that series. Wisps and the taffy flood are generic. _User: "We will
-  have generic ones and boss specific ones eventually."_ This comes with
-  the taffy branch, when the generic pool gets its first event (x1).
+- **Frog Rain stays Mister Frog's** (f4), on every down whose line is in
+  his stretch.
+- **Generic events** (n1, n2, restated per stretch by round 5's a4): from the
+  run's second stretch, about one ordinary stretch in three (never a
+  Boss's) gets one, picked from the run's seed, on every down whose line of
+  scrimmage is in that stretch. Wisps and the taffy flood are generic.
+  _User: "We will have generic ones and boss specific ones eventually."_ This
+  comes with the taffy branch, when the generic pool gets its first event
+  (x1).
 
 ## Keeping them (k1)
 
@@ -108,7 +111,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 ## The new events (f6, f7, w1, t1, o1)
 
 On their own branches, after this one: the taffy flood first, then the
-wisps (o1).
+wisps (o1). Round 5 puts `statuses` before both, and makes slow and
+ethereal statuses (`STATUSES.md`).
 
 - **Taffy flood** (f7, t1): mischief. A band across the whole field, 6 to 9
   yards ahead; it goes off 1 s after the snap and lasts 2 s; everyone in it
@@ -279,3 +283,77 @@ every recommendation) changed:
   starts at 1.125 s.
 - **The name box** follows Undo, Restore defaults and Revert to saved (b3).
 - **Kept:** Restore defaults greys out when there's nothing to restore (d4).
+
+## Round 5: the taffy flood and the wisps, after the long field (2026-11-06)
+
+_User, 2026-11-06: "let's do the additional field events of blessings
+curses and mischief. taffy flood and wisps are already through some
+planning so let's do those."_ The long field and the sets plan came after
+rounds 1–3, so they were brought up to date on a new map
+(https://claude.ai/artifact/1H2idLc7kQhhn3quA7TshS, two rounds, all
+approved; a1 drawn out as a4). Its second round made effects composable, as
+**statuses**: [`STATUSES.md`](STATUSES.md).
+
+- **Per stretch, not per series** (a1, a4): whether a down has a generic
+  event depends on the stretch its line is in, as its defense already
+  does (`lineStretch` in `sim/run.ts`). Since the long field, a series can
+  cross from one stretch into the next, and a per-series event would follow
+  it into a stretch whose defense has changed. The seed picks the stretches
+  when the run starts: from stretch 2, about one ordinary stretch in three,
+  never a Boss's, the same for the same seed; two or three in a run that
+  goes the distance. The event's area is still measured from each down's
+  line, so the taffy can reach past the end of its stretch.
+- **Halloween's generic events** (a2): any of its three areas; another set
+  gets its own.
+- **"Hex" stays the word** (a3) for an event that only hurts you.
+- **The taffy flood** (t1), as planned, with: its slow is the **Slowed**
+  status; a bolt's Fast and the taffy's Slowed multiply (0.75); the carrier
+  doesn't steer round it (a band across the whole field has no way round);
+  the ball isn't slowed.
+- **The wisps** (w1), as planned, their ethereal the **Ethereal** status. An
+  Ethereal Blocker can't block, since defenders pass through him; a defender
+  can still bat a ball meant for an Ethereal receiver.
+- **Engine and data** (b1): statuses, spells and the per-stretch pick are
+  engine parts, which stay put when Halloween moves into `src/sets/`; the
+  two events and the generic pool are Halloween's data, in
+  `content/fieldEvents.ts` until then. The sets session was told which files
+  these branches touch.
+- **Tests** (b2): the taffy's 1–5 and the wisps' 6–8 below, first.
+- **Checks before each merge** (b3): screenshots of the look from the game
+  at phone size; `balance:compare` against `main`, reported, not a gate;
+  your play as the judge.
+- **No hex in this work** (b4): a first hex is parked in `PLAN.md`.
+
+### Order of work (s9)
+
+`statuses` (its tests in `STATUSES.md`), then `field-taffy`, then
+`field-wisps`, each tests first, reviewed and merged before the next; the
+last two played before they merge.
+
+### Tests, written first
+
+`field-taffy`:
+
+1. **A spell** holds whoever is in it while it lasts and lets go as they
+   leave; before it goes off and after it ends, nobody is held.
+2. **Slowed** moves everyone in the taffy at the share set (half), yours and
+   theirs; with a bolt's Fast, the two multiply.
+3. **In a run:** from stretch 2, about one ordinary stretch in three gets a
+   generic event, on every down whose line is in it; the same seed, the same
+   stretches; never a Boss's stretch; Frog Rain still only Mister Frog's.
+   The pick has a random stream of its own, so the cards dealt and the
+   pickups don't change.
+4. **The editor** offers Spell and Slowed, and a slow spell made there plays
+   in Try it.
+5. **Saved events:** one with a spell and Slowed reads back; today's saved
+   file still reads.
+
+`field-wisps`:
+
+6. **Ethereal:** your players in the circle can't be grabbed or tackled (no
+   Break it!); defenders pass through them without a shove; a ball still
+   reaches them; one already grabbed stays grabbed; leaving the circle ends
+   it; defenders are never Ethereal.
+7. **The pool:** with both events in, a stretch that gets one picks either,
+   from the seed.
+8. **The editor** offers Ethereal.

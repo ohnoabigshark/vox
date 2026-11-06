@@ -624,11 +624,25 @@ Still open:
     run, or raised by TRICK OR TREAT!) or perks like the two sweep perks,
     and which are difficulty levers (random sack timers) rather than
     rewards.
-- **Curses and events for the long field** (difficulty map c1, parked
+- **Hexes and events for the long field** (difficulty map c1, parked
   2026-11-04): the generic events from `docs/FIELD_EVENTS.md` (n1, n2), the
   taffy flood first. Each event belongs to a stretch and goes off on every
   down whose line is in it. _User: "Let's park this and save it for later.
-  Let's just try to tune without it for now."_
+  Let's just try to tune without it for now."_ **Under way** (2026-11-06,
+  map https://claude.ai/artifact/1H2idLc7kQhhn3quA7TshS): the taffy flood
+  and the wisps, after `statuses` (`docs/STATUSES.md`, `docs/FIELD_EVENTS.md`
+  round 5). "Hex" stays the word (a3).
+- **A first hex,** a generic field event that only hurts you (flatten or
+  Slowed on your players). Parked from the field events map, b4
+  (2026-11-06): the taffy is mischief and the wisps a blessing.
+- **A perk that turns a grabbed player Ethereal** for a moment, so they slip
+  free. _User, 2026-11-06: "perhaps if we added a perk that triggered it on
+  a single player when they get tackled."_ Needs triggers (below, "Left for
+  a later refactor"). Open: once a down or once a run.
+- **Rare tap tests with stronger effects.** _User's note on s5, 2026-11-06:
+  "It would be cool if we had certain special/rare quick events that could
+  trigger more powerful effects."_ A tap test whose grade gives a status
+  (`docs/STATUSES.md`, s10).
 - **An arrow for a receiver out of sight:** at the top edge of the screen,
   for a receiver who has run off it but can still be thrown to. Parked from
   the long field (d2, 2026-11-04).
@@ -858,3 +872,32 @@ Still open:
     kinds; more kinds; moving
     pickups and whether a path is drawn before the snap; placing them in the
     editor; pickups in practice.
+
+## Left for a later refactor
+
+Places we chose to leave as they are for now, to come back to once more of
+the game is built on them. _User, 2026-11-06 (field events map, s5): "Let's
+start adding notes about all the places we are choosing to leave behind for
+a future refactor."_ Each says what was left, why, and where it's planned.
+
+- **Lying down as a status** (Flattened). It stays each body's own `down`,
+  used by tackles, pancakes, slicks, Frog Rain and Break it!'s drag; a
+  field event's flatten is a knockdown, beside the statuses.
+  `docs/STATUSES.md`, s2. _User: "Leave lying down for now. We will see how
+  everything fits together on a later pass and maybe refactor again."_
+- **Triggers for statuses:** "when this player is grabbed", "on a GREAT",
+  and the like, so perks, tap tests and Boss powers can give statuses.
+  Built when the first of them needs one (`docs/STATUSES.md`, s5): the
+  Ethereal perk and the rare tap tests above.
+- **Statuses on things other than bodies:** the ball, pickups, props
+  (`docs/STATUSES.md`, s6).
+- **Pickups as tiny field events,** a circle taken on touch that gives a
+  status or a knockdown (`docs/STATUSES.md`, s10).
+- **One run-options object:** the link options, hard mode and two-tap, and
+  practice's `practice` flag with `practiceEvent`, gathered into one type
+  with one set of defaults. Planned with **A dev setup mode** (V1, above);
+  field events review r14, release mode review v6.
+- **The saved-events check lists the Bosses again,** since it may import
+  only types (field events review r6, `docs/FIELD_EVENTS.md`).
+- **The render loop reads `performance.now()`** rather than animation time
+  as elsewhere (field events review r19).
