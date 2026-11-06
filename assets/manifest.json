@@ -246,6 +246,24 @@
       "source": "Original voxel model (Ant: the Crow, Thanksgiving), written by Claude",
       "author": "Claude",
       "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/bosses/seagull.voxt",
+      "source": "Original voxel model (The Seagull: the Grocery Dash's Boss, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/bosses/bigCheese.voxt",
+      "source": "Original voxel model (The Big Cheese: the Kitchen's Boss, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/bosses/biscuit.voxt",
+      "source": "Original voxel model (Biscuit: the Dinner Table's Boss, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
     }
   ]
 }
