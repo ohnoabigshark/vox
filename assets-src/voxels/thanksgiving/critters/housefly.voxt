@@ -1,7 +1,7 @@
 # The Housefly: Thanksgiving's Bat. It hovers, buzzing its loop, seen mostly
 # from above: a striped body lying lengthwise, two big pale eyes at the
 # front, pale wings over its back (two voxels thick, so they read from the
-# game's steep camera), and legs dangling.
+# game's camera, which looks down at 32°), and legs dangling.
 size 9 6 9
 voxel 0.09
 colors

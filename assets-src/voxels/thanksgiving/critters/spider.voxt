@@ -16,8 +16,6 @@ box 5 4 5 5 4 7 l
 box 4 1 1 6 3 3 d
 box 4 3 1 4 3 1 w
 box 6 3 1 6 3 1 w
-box 6 3 1 6 3 1 w
-box 4 3 1 4 3 1 w
 # Legs: out along the turf, then down.
 box 1 2 1 3 2 1 d
 box 7 2 1 9 2 1 d

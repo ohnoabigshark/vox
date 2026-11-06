@@ -48,7 +48,8 @@ What keeps the style, and what a new model must keep:
     phone size, in the game's light. One shape, one rule, one telegraph: a
     kind should read from its silhouette alone.
   - Thin parts vanish: wings and the like at least 2 voxels deep.
-  - Our team is gold and orange, in helmets. Every opponent is candy purple
+  - Our team is gold and orange, in helmets (Halloween's; Thanksgiving's
+    team plays bareheaded, `docs/sets/thanksgiving.md`). Every opponent is candy purple
     and never helmeted. Nothing that moves uses the field's greens.
 
 ## Sizes
@@ -107,7 +108,7 @@ defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses),
 Both end as `.voxt` (map p2). The first new set tries each on at least one
 model, to learn which suits what.
 
-**A. Claude writes it** (how all 29 models so far were made). The user
+**A. Claude writes it** (how every model so far was made). The user
 describes the thing, or sends a sketch or a reference; Claude writes the
 `.voxt`, previews it and iterates until it reads, and the user judges it in
 the viewer.

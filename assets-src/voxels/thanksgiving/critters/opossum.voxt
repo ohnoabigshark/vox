@@ -1,6 +1,6 @@
 # The Opossum: Thanksgiving's Safety, as the Owl is Halloween's. Hanging
 # back on its hind legs, ready to play dead: a pale pointed face with dark
-# eyes and a pink nose, small dark ears, and a long bare pink tail.
+# eyes and a pink nose, small dark ears, and a bare pink tail up behind.
 size 7 9 6
 voxel 0.11
 colors
@@ -19,7 +19,6 @@ box 0 4 1 0 4 2 P
 box 6 4 1 6 4 2 P
 # Pale face, snout, nose, eyes, ears.
 box 2 6 1 4 8 3 l
-box 3 6 0 3 6 0 l
 box 3 6 0 3 6 0 n
 box 2 7 1 2 7 1 k
 box 4 7 1 4 7 1 k
