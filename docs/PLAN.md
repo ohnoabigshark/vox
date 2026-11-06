@@ -431,15 +431,22 @@ Open, for when the first new theme or set is planned:
     implementing now)"). **Done 2026-11-06** (`fixes-offer-hands`, map
     https://claude.ai/artifact/HcAVyNiXGEU8NCVJmYGTkJ, o1 and o2): the
     offer cards' text about a third bigger, and each card's heading row
-    centred under its title; Your team's rows are unchanged.
+    centred under its title; Your team's rows are unchanged. As built,
+    beyond the map's list: a perk's icon box 52 → 64 px with the photo,
+    and a little more spacing (between a card's parts, between a stat's
+    columns, and between a perk's lines); the stat bars come out a
+    little shorter, as the map said.
   - **Hands grows more slowly for Catchers** (balance). _User, 2026-11-05,
     after playing `player-select`: "I think hands should scale more slowly
     for catchers"._ **Done 2026-11-06** (`fixes-offer-hands`, map
     https://claude.ai/artifact/HcAVyNiXGEU8NCVJmYGTkJ, h1): a catch is now
     +8 Hands and a catch-test GREAT +7 more, half what they were, for
-    everyone who catches. Before, the busiest player grew a median +30 to
-    +45 Hands an area (the bot) and reached 150 by area 3 or 4 (the
-    user's runs).
+    everyone who catches. Before, the player who grew the most Hands in
+    an area grew a median +30 to +45 there (the bot, nine scenarios of 30
+    runs) and reached 150 by area 3 or 4 (the user's runs); after, +16 to
+    +24. The bot won a little less: on average 8.9 → 8.6 series of 12,
+    and beat the game in 83% → 76% of runs, lower in 8 of 9 scenarios
+    (30 runs each, so noisy). Watch for it in play.
   - **Draw up a play and Select any play** are rewards in this system,
     grilled and built after both parts (k5; **Plays as rewards**, below).
 

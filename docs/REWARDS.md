@@ -116,7 +116,8 @@ and never skips. The numbers are a check; how it plays to the user decides.
 
 1. A catch grows the catcher's Hands by the catch size, and nobody else's.
 2. A GREAT on SNAG IT! or the tip drill adds more on top of the catch; OK and BAD
-   add only the catch's.
+   add only the catch's. (2a, 2026-11-06: the sizes themselves, +8 and
+   +15 in all, pinned for the halving.)
 3. Yards after a catch grow the catcher's Hustle by the yard.
 4. A rush of 10 yards or more grows the carrier's Hustle; a 9-yard rush
    doesn't.
