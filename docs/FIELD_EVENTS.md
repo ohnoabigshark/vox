@@ -114,7 +114,7 @@ wisps (o1). Round 5 puts `statuses` before both, and makes slow and
 ethereal statuses (`STATUSES.md`).
 
 - **Taffy flood** (f7, t1): mischief. A band across the whole field, 6 to 9
-  yards ahead; it goes off 1 s after the snap and lasts 2 s; everyone in it
+  yards ahead (3 to 7 since play, "As built" below); it goes off 1 s after the snap and lasts 2 s; everyone in it
   moves at half speed. Pink candy ground, bubbling in its build-up; whoever
   is in it trails strings of taffy.
 - **Will-o'-wisps** (f6, w1): a blessing. A circle about 4 yards across, 12
@@ -381,10 +381,14 @@ last two played before they merge.
   field event, by id (`{ kind: 'fieldEvent', event }`). A spell or a burst
   of a status tackles nobody, so it has no call.
 - **The taffy flood** is `TAFFY_FLOOD` in `content/fieldEvents.ts`: a band
-  across the whole field, 6 to 9 yards past the line; it goes off 1 s after
+  across the whole field, 3 to 7 yards past the line; it goes off 1 s after
   the snap (0.8 s of sim time) and is a spell for 2.5 s (2) of Slowed on
-  everyone. The user played it and asked for half a second more and a
-  Slowed a quarter stronger (2026-11-07): it was 2 s, and Slowed half. Its build-up is 0.75 s on screen. Its look
+  everyone. Its build-up is 0.75 s on screen. The user played it and
+  changed it (2026-11-07): half a second more and a Slowed a quarter
+  stronger (it was 2 s, and Slowed half); then closer to the line and a
+  yard deeper, to catch receivers while the aim line is still sweeping (it
+  was 6 to 9 yards). It stays mischief: as a hex (slowing only yours) it
+  didn't hurt passing enough. Its look
   (`render/taffyFlood.ts`): the band faint pink from before the snap,
   bubbles swelling and popping through the build-up, candy ground while
   it's on (fading in its last moment), and strings of taffy from the turf

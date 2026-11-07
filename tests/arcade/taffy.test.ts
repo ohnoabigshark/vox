@@ -59,11 +59,12 @@ function stepThrough(
 }
 
 describe('the taffy flood (t1)', () => {
-  it('is mischief: a band across the whole field, 6 to 9 yards past the line, a spell of Slowed on everyone', () => {
+  it('is mischief: a band across the whole field, 3 to 7 yards past the line, a spell of Slowed on everyone', () => {
+    // Closer and a yard deeper after play (2026-11-07): it was 6 to 9.
     const t = TAFFY_FLOOD;
     expect(t.name).toBe('Taffy Flood');
     expect(t.boss).toBeNull();
-    expect(t.area).toEqual({ shape: 'band', across: 'middle', width: 2 * hw, from: 6, to: 9 });
+    expect(t.area).toEqual({ shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 7 });
     expect(t.goesOffAs).toBe('spell');
     // It goes off 1 s after the snap and lasts 2.5 s, on screen (half a second more after play, 2026-11-07).
     expect(t.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
@@ -82,14 +83,22 @@ describe('the taffy flood (t1)', () => {
 });
 
 describe('a spell (test 1, and 5b)', () => {
-  /** A Catcher standing in the band (2) and one running up through it (3); the spell lasts 4 s, time to get through (the down ends at about 5). */
+  /**
+   * A Catcher standing in the band (2) and one running up through it from
+   * short of it (3). The taffy as a spell, in a band 2 yards deep and for 4 s,
+   * so the runner gets through in time, Slowed (the down ends at about 5).
+   */
   const field = (): RunState =>
     setOff(
       playState([
-        { pos: v(0, 7), job: stand(v(0, 7)) },
-        { pos: v(4, 4), job: { kind: 'route', to: [v(4, 16)], index: 0 } },
+        { pos: v(0, 4), job: stand(v(0, 4)) },
+        { pos: v(4, 1), job: { kind: 'route', to: [v(4, 16)], index: 0 } },
       ]),
-      { ...TAFFY_FLOOD, lasts: 4 },
+      {
+        ...TAFFY_FLOOD,
+        area: { shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 5 },
+        lasts: 4,
+      },
     );
 
   it('holds whoever is in it while it lasts and lets go as they leave; nobody before it goes off or after it ends', () => {
@@ -154,7 +163,7 @@ describe('a spell (test 1, and 5b)', () => {
 
   it('a spell tackles nobody: a carrier in it is slowed, not stopped', () => {
     const s = setOff(
-      playState([{ role: 'runner', pos: v(0, 7), job: stand(v(0, 7)) }]),
+      playState([{ role: 'runner', pos: v(0, 5), job: stand(v(0, 5)) }]),
       TAFFY_FLOOD,
     );
     s.field.ball = { at: 'carried', by: 2 };
@@ -185,7 +194,7 @@ describe('the review’s fixes (r1, r2, r4)', () => {
   const field = (): RunState =>
     setOff(
       playState([
-        { pos: v(0, 7), job: stand(v(0, 7)) },
+        { pos: v(0, 5), job: stand(v(0, 5)) },
         { pos: v(0, 20), job: stand(v(0, 20)) },
       ]),
       TAFFY_FLOOD,
@@ -337,7 +346,7 @@ describe('generic events in a run (test 3)', () => {
     s.series = { ...s.series, los: stretchStart(1) + 2 };
     setUpDown(s, []);
     expect(s.field.fieldEvent?.event.id).toBe('taffyFlood');
-    expect(s.field.fieldEvent?.area).toMatchObject({ y0: s.series.los + 6, y1: s.series.los + 9 });
+    expect(s.field.fieldEvent?.area).toMatchObject({ y0: s.series.los + 3, y1: s.series.los + 7 });
     // And a series starting in stretch 2 has it from its first down.
     setUpSeries(s, 0, stretchStart(1), [], true);
     expect(s.field.fieldEvent?.event.id).toBe('taffyFlood');
