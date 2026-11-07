@@ -909,3 +909,12 @@ a future refactor."_ Each says what was left, why, and where it's planned.
   only types (field events review r6, `docs/FIELD_EVENTS.md`).
 - **The render loop reads `performance.now()`** rather than animation time
   as elsewhere (field events review r19).
+- **A status's looks in one place.** Slowed's heavy step is drawn in
+  `render/bodies.ts` but Fast's sparks still with the pickups
+  (`render/pickups.ts`), where the bolt left them; Ethereal will be a third.
+  Gather them when the wisps add it, or after (`docs/STATUSES.md`, s7).
+- **A spell over a timed status of the same name:** stepping out of a spell
+  ends its status, losing the rest of a timed one of the same name that it
+  took the place of. Nothing gives Slowed but the taffy yet; a status list
+  that keeps each source's own time would fix it when one does
+  (`docs/STATUSES.md`, field-taffy as built).

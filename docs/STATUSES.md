@@ -183,3 +183,26 @@ Written down, none built; each comes back as its own map:
   adb458b; a bolt 5% slower fails it). `balance:compare` (10 runs a
   scenario, main adb458b against 3ec7de3) gives the same report in all six
   scenarios, line for line.
+
+## As built: `field-taffy` (2026-11-07)
+
+- **Slowed** is the second status: top speed times `statuses.slowed.share`
+  (0.5). With Fast, the two multiply to 0.75 (`speedShare`).
+- **`statusPolarity`** is back in `content/statuses.ts` (Fast helps, Slowed
+  hurts), now that a field event gives a status; `eventKind` reads it.
+- **A source** is a pickup or a field event, by id; `sameSource` in
+  `sim/status.ts` is the one place two sources count as the same.
+- **`endStatus`** ends a status before its time, reported, but only the one
+  from the source named: if another source's took its place (s3), it stays.
+  A spell uses it as a body steps out or the spell ends.
+- **A spell and a timed status of the same name:** a body that already had
+  Slowed for a while from elsewhere and steps into the taffy takes the
+  spell's (the longer), and stepping out ends it, losing what was left of
+  the other. Nothing gives Slowed but the taffy yet (`PLAN.md`, "Left for a
+  later refactor").
+- **How Slowed shows** (s7): `render/bodies.ts` gives any Slowed body a
+  slow, deep bob, leaning into it. Fast's sparks are still drawn with the
+  pickups (`render/pickups.ts`); see `PLAN.md`.
+- **Test 5b** (statuses review, l1): a body stepping out of the taffy while
+  it's on gets `statusEnded`, naming the taffy.
+

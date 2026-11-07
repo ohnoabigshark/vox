@@ -64,9 +64,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   run's second stretch, about one ordinary stretch in three (never a
   Boss's) gets one, picked from the run's seed, on every down whose line of
   scrimmage is in that stretch. Wisps and the taffy flood are generic.
-  _User: "We will have generic ones and boss specific ones eventually."_ This
-  comes with the taffy branch, when the generic pool gets its first event
-  (x1).
+  _User: "We will have generic ones and boss specific ones eventually."_
+  Built with the taffy flood, the pool's first event (round 5, as built).
 
 ## Keeping them (k1)
 
@@ -360,3 +359,48 @@ last two played before they merge.
 7. **The pool:** with both events in, a stretch that gets one picks either,
    from the seed.
 8. **The editor** offers Ethereal.
+
+### As built: `field-taffy` (2026-11-07)
+
+- **How it goes off** is the event's `goesOffAs`: `burst` or `spell`. A
+  spell holds whoever it catches (on their feet, on the side it hits, as a
+  burst catches them) while they're in its area and it's on, from the step
+  it goes off for its `lasts` (`holdSpell` in `sim/step.ts`). Its status is
+  given for the spell's time left and a step more, so the spell ends it,
+  reported, as the body steps out or the spell ends, not its wearing off.
+  A spell must give a status: a knockdown is a moment's, a burst's.
+- **An effect can give a status** (`StatusEffect`: which status, on whom):
+  a burst gives it for `lasts` to whoever it catches. Its source is the
+  field event, by id (`{ kind: 'fieldEvent', event }`). A spell or a burst
+  of a status tackles nobody, so it has no call.
+- **The taffy flood** is `TAFFY_FLOOD` in `content/fieldEvents.ts`: a band
+  across the whole field, 6 to 9 yards past the line; it goes off 1 s after
+  the snap (0.8 s of sim time) and is a spell for 2 s (1.6) of Slowed on
+  everyone. Its build-up is 0.75 s on screen. Its look
+  (`render/taffyFlood.ts`): the band faint pink from before the snap,
+  bubbles swelling and popping through the build-up, candy ground while
+  it's on (fading in its last moment), and strings of taffy from the turf
+  behind whoever it holds. Its sound is the slick's slip.
+- **The generic pick** is `genericEventFor(seed, stretch)` in `sim/run.ts`,
+  on its own random stream (`stretchEvent`): none before stretch
+  `fieldEvents.genericFrom` (2), none on a Boss's, and a third
+  (`fieldEvents.genericShare`) of the rest. Whether a stretch gets one is
+  drawn before which, so the wisps joining the pool change only which.
+  Halloween's pool is `GENERIC_EVENTS`. Every down whose line is in a
+  picked stretch places it from that down's line. A stretch's own event
+  (Frog Rain) comes first, and the play editor's practice gets none, as it
+  gets no pickups. The cards dealt and the pickups are the same as on
+  `main` (a digest taken there).
+- **The carrier's steering** is as it was: the band counts against every
+  lane alike, so the carrier doesn't steer round it (a regression test).
+- **Saved events and Try it links** from before spells have no
+  `goesOffAs` and read as bursts (`readEvent`); one naming a spell that
+  doesn't give a status is left out with a warning, as is one whose status
+  the game doesn't play.
+- **The editor** offers Burst and Spell, Flatten and Slowed (Ethereal greyed
+  until the wisps). Spell over a flatten makes it Slowed; Flatten makes it
+  a burst; who it lands on is kept.
+- **Play changes where the taffy is:** of the four seeded runs in
+  `statusesSameRun.test.ts`, seed 14's reaches a taffy stretch and was
+  re-pinned; with `genericShare` 0, all four are `main`'s again.
+
