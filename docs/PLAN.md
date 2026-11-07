@@ -696,6 +696,17 @@ Still open:
   play after some amount of limited movement (forward progress rule)."_
   So the rule needs to cover a play with no tackle coming and little
   progress, not only a carrier being shoved back.
+- **Ethereal as a pickup.** The wisps' effect may be good but its
+  application bad: a circle on the field, gone off 1 s after the snap, is
+  passed before it helps. Ethereal could instead be an on-field pickup, a
+  power-up a player takes (as the bolt gives Fast). _User, 2026-11-07:
+  "maybe this is a good effect but bad application. could be better as an
+  on field pickup power up. before we go down that road, can we modify the
+  wisps to be like 3 yards from the line of scrimmage instead. the issue
+  may be the timing of it, it goes off too soon to be super beneficial
+  when it's far from the line of scrimmage."_ Tried first: the wisps at 3
+  to 9 yards (field-wisps). Open: whether the timing (goes off at 1 s,
+  lasts 3 s) is the lever instead.
 - **A native Android build** of the game. _User, 2026-10-30._
 - **Gravestones instead of oil slicks.** The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies

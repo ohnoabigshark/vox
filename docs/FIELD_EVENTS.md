@@ -120,8 +120,9 @@ ethereal statuses (`STATUSES.md`).
   is in it trails strings of taffy.
 - **Will-o'-wisps** (f6, w1): a blessing. A circle about 4 yards across (6 since
   2026-11-07: "wisps can also have a 50% larger area"), 12
-  yards ahead (10 since 2026-11-07: "move the wisps closer to the line of
-  scrimmage by 2 yards") on either side; it goes off 1 s after the snap and lasts 3 s;
+  yards ahead (10, then 6, since 2026-11-07: "move the wisps closer to the
+  line of scrimmage by 2 yards", then "like 3 yards from the line of
+  scrimmage instead", read as its near edge) on either side; it goes off 1 s after the snap and lasts 3 s;
   your players in it are ethereal. _User: "Will o wisps should make an
   offensive player untackleable when in the area. Like a wisp is ethereal
   so it can make the player semi transparent when in it and defenders run
@@ -428,8 +429,9 @@ last two played before they merge.
 
 - **The wisps** are `WILL_O_WISPS` in `content/fieldEvents.ts`: a blessing,
   a circle 6 yards across (radius 3; 4 yards, radius 2, until the user's
-  ask of 2026-11-07), its middle 10 yards past the line (12 until the
-  user's ask of 2026-11-07), so it covers 7 to 13 yards, and
+  ask of 2026-11-07), its middle 6 yards past the line (12, then 10,
+  until the user's asks of 2026-11-07), so it covers 3 to 9 yards, kept
+  clear of the line so your Blockers there stay solid, and
   5 yards out from the field's middle, on either side (picked each down
   from the seed, as Frog Rain's lane is). It goes off 1 s after the snap
   (0.8 s of sim time) and is a spell for 3 s (2.4) of **Ethereal** on your
