@@ -307,7 +307,7 @@ describe('generic events in a run (test 3)', () => {
   const ordinary = (n: number): boolean => n >= 2 && stretchAt(n).stretch !== 3;
   const MAX = arcadeTuning.run.areas * 4;
 
-  it('from stretch 2, about one ordinary stretch in three gets one; never stretch 1, never a Boss’s', () => {
+  it('from stretch 2, about one ordinary stretch in two gets one; never stretch 1, never a Boss’s', () => {
     let picked = 0;
     let ordinaries = 0;
     for (let seed = 1; seed <= 300; seed++) {
@@ -325,8 +325,9 @@ describe('generic events in a run (test 3)', () => {
         }
       }
     }
-    expect(picked / ordinaries).toBeGreaterThan(0.28);
-    expect(picked / ordinaries).toBeLessThan(0.39);
+    // One in two since 2026-11-07 (one in three before): the user, "they don't show often".
+    expect(picked / ordinaries).toBeGreaterThan(0.45);
+    expect(picked / ordinaries).toBeLessThan(0.55);
   });
 
   it('the same seed, the same stretches; another seed, others', () => {

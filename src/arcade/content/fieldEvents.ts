@@ -155,7 +155,7 @@ export const TAFFY_FLOOD: FieldEvent = {
 };
 
 /**
- * The will-o'-wisps (FIELD_EVENTS.md, w1): a blessing. A circle 4 yards
+ * The will-o'-wisps (FIELD_EVENTS.md, w1): a blessing. A circle 6 yards
  * across, 12 yards past the line on either side (picked each down, as Frog
  * Rain's lane is), pale green lights hovering in it from before the snap;
  * 1 s after it, they flare, and for 3 s your players in it are Ethereal:
@@ -165,7 +165,7 @@ export const WILL_O_WISPS: FieldEvent = {
   id: 'willOWisps',
   name: 'Will-o’-Wisps',
   boss: null,
-  area: { shape: 'circle', across: 'either', out: 5, at: 12, radius: 2 },
+  area: { shape: 'circle', across: 'either', out: 5, at: 12, radius: 3 },
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 3 * TIME_SCALE,

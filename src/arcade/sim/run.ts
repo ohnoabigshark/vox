@@ -319,7 +319,7 @@ function placedEvent(state: RunState, spec: DefenseSpec): FieldEventOn | null {
 
 /**
  * A stretch's generic event, or null (docs/FIELD_EVENTS.md round 5, a1,
- * a4): from stretch 2, about one ordinary stretch in three, never a Boss's;
+ * a4): from stretch 2, about one ordinary stretch in two, never a Boss's;
  * the same for the same seed. Every down whose line is in the stretch gets
  * it. Its random stream is its own, so the cards dealt and the pickups are
  * as they were; whether a stretch gets one is drawn before which, so a

@@ -52,11 +52,11 @@ function setOff(s: RunState, event: FieldEvent): RunState {
 }
 
 describe('the wisps (w1)', () => {
-  it('a blessing: a circle 4 yards across, 12 yards ahead on either side, a 3 s spell of Ethereal on yours', () => {
+  it('a blessing: a circle 6 yards across, 12 yards ahead on either side, a 3 s spell of Ethereal on yours', () => {
     const w = WILL_O_WISPS;
     expect(w.name).toBe('Will-o’-Wisps');
     expect(w.boss).toBeNull();
-    expect(w.area).toEqual({ shape: 'circle', across: 'either', out: 5, at: 12, radius: 2 });
+    expect(w.area).toEqual({ shape: 'circle', across: 'either', out: 5, at: 12, radius: 3 });
     expect(w.goesOffAs).toBe('spell');
     // It goes off 1 s after the snap and lasts 3 s, on screen.
     expect(w.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
@@ -264,9 +264,11 @@ describe('the pool (test 7)', () => {
     for (let seed = 1; seed <= 100; seed++) {
       for (let n = 1; n <= 16; n++) marks.push(genericEventFor(seed, n) ? '1' : '0');
     }
-    // Taken with the taffy alone in the pool (field-taffy, cdb9921).
+    // Taken with the taffy alone in the pool (field-taffy, cdb9921, was
+    // 0bdb8979ee44ce29 at one in three), and again at one in two (2026-11-07)
+    // with the pool cut to the taffy alone: both give this.
     expect(createHash('sha256').update(marks.join('')).digest('hex').slice(0, 16)).toBe(
-      '0bdb8979ee44ce29',
+      '036b8e66d11b2941',
     );
   });
 });
