@@ -43,6 +43,35 @@ export function wearStatuses(b: Body, events: ArcadeEvent[]): void {
   b.statuses = b.statuses.filter((s) => s.left > 0);
 }
 
+/**
+ * End a body's status now, before its time is up, and say so: a spell's, as
+ * the body steps out of it or the spell ends. Only the one from `from`: if
+ * another source's took its place (s3), that one stays.
+ */
+export function endStatus(
+  b: Body,
+  name: StatusName,
+  from: StatusSource,
+  events: ArcadeEvent[],
+): void {
+  const s = statusOf(b, name);
+  if (!s || !sameSource(s.from, from)) return;
+  b.statuses = b.statuses.filter((x) => x !== s);
+  events.push({ type: 'statusEnded', id: b.id, status: name, from: s.from });
+}
+
+/** Whether two sources are the same one: the one place that's decided. */
+export function sameSource(a: StatusSource, b: StatusSource): boolean {
+  switch (a.kind) {
+    case 'pickup':
+      return b.kind === 'pickup' && a.pickup === b.pickup;
+    case 'fieldEvent':
+      return b.kind === 'fieldEvent' && a.event === b.event;
+    default:
+      return assertNever(a);
+  }
+}
+
 /** A body's status of this name, if it has it: the one place two statuses count as the same. */
 export function statusOf(b: Pick<Body, 'statuses'>, name: StatusName): Status | undefined {
   return b.statuses.find((s) => s.name === name);
@@ -64,6 +93,8 @@ function speedOf(name: StatusName): number {
   switch (name) {
     case 'fast':
       return 1 + arcadeTuning.statuses.fast.faster;
+    case 'slowed':
+      return arcadeTuning.statuses.slowed.share;
     default:
       return assertNever(name);
   }
