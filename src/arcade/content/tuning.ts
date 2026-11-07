@@ -401,8 +401,8 @@ export const tuningDefaults = {
   statuses: {
     /** Fast (the lightning bolt's): this much faster, a share of top speed. */
     fast: { faster: 0.5 },
-    /** Slowed (the taffy flood's): top speed times this share. */
-    slowed: { share: 0.5 },
+    /** Slowed (the taffy flood's): top speed times this share; half, made a quarter stronger after play (2026-11-07). */
+    slowed: { share: 0.375 },
   },
 } as const;
 

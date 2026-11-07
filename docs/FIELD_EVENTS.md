@@ -306,7 +306,8 @@ approved; a1 drawn out as a4). Its second round made effects composable, as
   gets its own.
 - **"Hex" stays the word** (a3) for an event that only hurts you.
 - **The taffy flood** (t1), as planned, with: its slow is the **Slowed**
-  status; a bolt's Fast and the taffy's Slowed multiply (0.75); the carrier
+  status; a bolt's Fast and the taffy's Slowed multiply (0.75 then; 0.5625 since
+  Slowed was made stronger, 2026-11-07); the carrier
   doesn't steer round it (a band across the whole field has no way round);
   the ball isn't slowed.
 - **The wisps** (w1), as planned, their ethereal the **Ethereal** status. An
@@ -335,7 +336,7 @@ last two played before they merge.
 
 1. **A spell** holds whoever is in it while it lasts and lets go as they
    leave; before it goes off and after it ends, nobody is held.
-2. **Slowed** moves everyone in the taffy at the share set (half), yours and
+2. **Slowed** moves everyone in the taffy at the share set (0.375), yours and
    theirs; with a bolt's Fast, the two multiply.
 3. **In a run:** from stretch 2, about one ordinary stretch in three gets a
    generic event, on every down whose line is in it; the same seed, the same
@@ -381,8 +382,9 @@ last two played before they merge.
   of a status tackles nobody, so it has no call.
 - **The taffy flood** is `TAFFY_FLOOD` in `content/fieldEvents.ts`: a band
   across the whole field, 6 to 9 yards past the line; it goes off 1 s after
-  the snap (0.8 s of sim time) and is a spell for 2 s (1.6) of Slowed on
-  everyone. Its build-up is 0.75 s on screen. Its look
+  the snap (0.8 s of sim time) and is a spell for 2.5 s (2) of Slowed on
+  everyone. The user played it and asked for half a second more and a
+  Slowed a quarter stronger (2026-11-07): it was 2 s, and Slowed half. Its build-up is 0.75 s on screen. Its look
   (`render/taffyFlood.ts`): the band faint pink from before the snap,
   bubbles swelling and popping through the build-up, candy ground while
   it's on (fading in its last moment), and strings of taffy from the turf

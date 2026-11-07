@@ -130,7 +130,7 @@ export const FROG_RAIN: FieldEvent = {
 /**
  * The taffy flood (FIELD_EVENTS.md round 5, t1): mischief. A band of pink
  * candy across the whole field, 6 to 9 yards past the line, bubbling up
- * after the snap; 1 s after it, it floods, and for 2 s everyone in it is
+ * after the snap; 1 s after it, it floods, and for 2.5 s everyone in it is
  * Slowed. A band across the whole field has no way round, so the carrier
  * doesn't steer round it (ai.ts).
  */
@@ -147,7 +147,7 @@ export const TAFFY_FLOOD: FieldEvent = {
   },
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
-  lasts: 2 * TIME_SCALE,
+  lasts: 2.5 * TIME_SCALE,
   warning: { buildUp: 0.6 },
   effect: { kind: 'status', status: 'slowed', on: 'everyone' },
   call: null,

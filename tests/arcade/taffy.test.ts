@@ -65,9 +65,9 @@ describe('the taffy flood (t1)', () => {
     expect(t.boss).toBeNull();
     expect(t.area).toEqual({ shape: 'band', across: 'middle', width: 2 * hw, from: 6, to: 9 });
     expect(t.goesOffAs).toBe('spell');
-    // It goes off 1 s after the snap and lasts 2 s, on screen.
+    // It goes off 1 s after the snap and lasts 2.5 s, on screen (half a second more after play, 2026-11-07).
     expect(t.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
-    expect(t.lasts / TIME_SCALE).toBeCloseTo(2, 9);
+    expect(t.lasts / TIME_SCALE).toBeCloseTo(2.5, 9);
     expect(t.warning.buildUp).toBeGreaterThan(0);
     expect(t.warning.buildUp).toBeLessThanOrEqual(t.goesOff);
     expect(t.effect).toEqual({ kind: 'status', status: 'slowed', on: 'everyone' });
@@ -260,20 +260,20 @@ describe('Slowed in play (test 2)', () => {
     return { yours: speed(body(state, 2)), theirs: speed(body(state, 100)) };
   }
 
-  it('everyone in the taffy moves at the share set, half: yours and theirs', () => {
+  it('everyone in the taffy moves at the share set, 0.375: yours and theirs', () => {
     const plain = speeds(false);
     const slowed = speeds(true);
     const { share } = arcadeTuning.statuses.slowed;
-    expect(share).toBe(0.5);
+    expect(share).toBe(0.375);
     expect(slowed.yours / plain.yours).toBeCloseTo(share, 1);
     expect(slowed.theirs / plain.theirs).toBeCloseTo(share, 1);
   });
 
-  it('with a bolt’s Fast, the two multiply: 1.5 × 0.5', () => {
+  it('with a bolt’s Fast, the two multiply: 1.5 × 0.375', () => {
     const plain = speeds(false);
     const both = speeds(true, true);
-    expect(both.yours / plain.yours).toBeCloseTo(0.75, 1);
-    expect(both.theirs / plain.theirs).toBeCloseTo(0.75, 1);
+    expect(both.yours / plain.yours).toBeCloseTo(0.5625, 1);
+    expect(both.theirs / plain.theirs).toBeCloseTo(0.5625, 1);
   });
 
   it('the carrier doesn’t steer round it: a band across the whole field has no way round', () => {

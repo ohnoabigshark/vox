@@ -84,18 +84,18 @@ describe('stacking (s3)', () => {
 describe('Slowed (field-taffy, test 2)', () => {
   const FROM_TAFFY = { kind: 'fieldEvent', event: 'taffyFlood' } as const;
 
-  it('moves a body at the share set, half by default', () => {
+  it('moves a body at the share set, 0.375 by default (a quarter stronger than half, 2026-11-07)', () => {
     const p = body(field(), 2);
     giveStatus(p, 'slowed', 1, FROM_TAFFY, []);
     expect(speedShare(p)).toBe(arcadeTuning.statuses.slowed.share);
-    expect(arcadeTuning.statuses.slowed.share).toBe(0.5);
+    expect(arcadeTuning.statuses.slowed.share).toBe(0.375);
   });
 
-  it('2b: with Fast, the two speed statuses multiply: 1.5 × 0.5 = 0.75', () => {
+  it('2b: with Fast, the two speed statuses multiply: 1.5 × 0.375 = 0.5625', () => {
     const p = body(field(), 2);
     giveStatus(p, 'slowed', 1, FROM_TAFFY, []);
     giveStatus(p, 'fast', 1, FROM_BOLT, []);
-    expect(speedShare(p)).toBeCloseTo(0.75, 9);
+    expect(speedShare(p)).toBeCloseTo(0.5625, 9);
     expect(p.statuses.map((x) => x.name).sort()).toEqual(['fast', 'slowed']);
   });
 });

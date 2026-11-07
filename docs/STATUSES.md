@@ -37,8 +37,9 @@ left. The first three:
 
 - **Ethereal:** it can't be grabbed or tackled; defenders run through it
   without a shove; drawn see-through. Built with the wisps.
-- **Slowed:** top speed times a share, half by default. Built with the
-  taffy flood.
+- **Slowed:** top speed times a share: 0.375, half made a quarter
+  stronger after the user played it (2026-11-07). Built with the taffy
+  flood.
 - **Fast:** top speed times 1.5. The lightning bolt's, moved onto statuses
   first (s2).
 
@@ -62,8 +63,8 @@ top speed after its statuses?".
 
 - The same status given again keeps the **longer** time left, not the sum:
   two bolts in a row are still 3 s of Fast (the bolt's way today).
-- Speed statuses **multiply:** Fast and Slowed together are 1.5 × 0.5 = 0.75
-  of top speed.
+- Speed statuses **multiply:** Fast and Slowed together are 1.5 × 0.375 =
+  0.5625 of top speed (0.75 when Slowed was half).
 - A spell's status (the taffy, the wisps) lasts while the body is in its
   area and the spell is on, and ends as it steps out.
 - Ethereal stops new grabs and tackles; a defender already hanging on stays
@@ -187,7 +188,8 @@ Written down, none built; each comes back as its own map:
 ## As built: `field-taffy` (2026-11-07)
 
 - **Slowed** is the second status: top speed times `statuses.slowed.share`
-  (0.5). With Fast, the two multiply to 0.75 (`speedShare`).
+  (0.375; half until the user played it, 2026-11-07). With Fast, the two
+  multiply to 0.5625 (`speedShare`).
 - **`statusPolarity`** is back in `content/statuses.ts` (Fast helps, Slowed
   hurts), now that a field event gives a status; `eventKind` reads it.
 - **A source** is a pickup or a field event, by id; `sameSource` in
