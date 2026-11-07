@@ -45,12 +45,14 @@ interface BodyBase {
   readonly reach: number;
   /** Seconds left lying on the turf (0 = up). */
   down: number;
-  /** The statuses it has now, each with its time left (docs/STATUSES.md): Fast from a lightning bolt, either side. */
+  /** The statuses it has now, each with its time left (docs/STATUSES.md): Fast from a lightning bolt, Slowed in the taffy. */
   statuses: Status[];
 }
 
-/** What gave a body a status (docs/STATUSES.md, s5): so far only a pickup, the lightning bolt. */
-export type StatusSource = { readonly kind: 'pickup'; readonly pickup: PickupKind };
+/** What gave a body a status (docs/STATUSES.md, s5): a pickup (the lightning bolt), or a field event by its id (the taffy flood). */
+export type StatusSource =
+  | { readonly kind: 'pickup'; readonly pickup: PickupKind }
+  | { readonly kind: 'fieldEvent'; readonly event: string };
 
 /** A status a body has: which, how long it has left (seconds), and what gave it. */
 export interface Status {

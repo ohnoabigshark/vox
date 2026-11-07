@@ -37,8 +37,9 @@ left. The first three:
 
 - **Ethereal:** it can't be grabbed or tackled; defenders run through it
   without a shove; drawn see-through. Built with the wisps.
-- **Slowed:** top speed times a share, half by default. Built with the
-  taffy flood.
+- **Slowed:** top speed times a share: 0.375, half made a quarter
+  stronger after the user played it (2026-11-07). Built with the taffy
+  flood.
 - **Fast:** top speed times 1.5. The lightning bolt's, moved onto statuses
   first (s2).
 
@@ -62,8 +63,8 @@ top speed after its statuses?".
 
 - The same status given again keeps the **longer** time left, not the sum:
   two bolts in a row are still 3 s of Fast (the bolt's way today).
-- Speed statuses **multiply:** Fast and Slowed together are 1.5 × 0.5 = 0.75
-  of top speed.
+- Speed statuses **multiply:** Fast and Slowed together are 1.5 × 0.375 =
+  0.5625 of top speed (0.75 when Slowed was half).
 - A spell's status (the taffy, the wisps) lasts while the body is in its
   area and the spell is on, and ends as it steps out.
 - Ethereal stops new grabs and tackles; a defender already hanging on stays
@@ -183,3 +184,32 @@ Written down, none built; each comes back as its own map:
   adb458b; a bolt 5% slower fails it). `balance:compare` (10 runs a
   scenario, main adb458b against 3ec7de3) gives the same report in all six
   scenarios, line for line.
+
+## As built: `field-taffy` (2026-11-07)
+
+- **Slowed** is the second status: top speed times `statuses.slowed.share`
+  (0.375; half until the user played it, 2026-11-07). With Fast, the two
+  multiply to 0.5625 (`speedShare`).
+- **`statusPolarity`** is back in `content/statuses.ts` (Fast helps, Slowed
+  hurts), now that a field event gives a status; `eventKind` reads it.
+- **A source** is a pickup or a field event, by id; `sameSource` in
+  `sim/status.ts` is the one place two sources count as the same.
+- **`endStatus`** ends a status before its time, reported, but only the one
+  from the source named: if another source's took its place (s3), it stays.
+  A spell uses it as a body steps out or the spell ends.
+- **A spell and a timed status of the same name:** a body that already had
+  Slowed for a while from elsewhere and steps into the taffy takes the
+  spell's (the longer), and stepping out ends it, losing what was left of
+  the other. Nothing gives Slowed but the taffy yet (`PLAN.md`, "Left for a
+  later refactor"). One whose own is longer keeps it, and the spell doesn't
+  give it again each step: a give that would change nothing isn't made
+  (`givingChanges`, taffy review r2).
+- **Which a field event may give** is `EventStatus` in
+  `content/statuses.ts`: Slowed, for now (taffy review r3). Fast stays the
+  bolt's; the wisps add Ethereal.
+- **How Slowed shows** (s7): `render/bodies.ts` gives any Slowed body a
+  slow, deep bob, leaning into it. Fast's sparks are still drawn with the
+  pickups (`render/pickups.ts`); see `PLAN.md`.
+- **Test 5b** (statuses review, l1): a body stepping out of the taffy while
+  it's on gets `statusEnded`, naming the taffy.
+

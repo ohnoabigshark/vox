@@ -64,9 +64,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   run's second stretch, about one ordinary stretch in three (never a
   Boss's) gets one, picked from the run's seed, on every down whose line of
   scrimmage is in that stretch. Wisps and the taffy flood are generic.
-  _User: "We will have generic ones and boss specific ones eventually."_ This
-  comes with the taffy branch, when the generic pool gets its first event
-  (x1).
+  _User: "We will have generic ones and boss specific ones eventually."_
+  Built with the taffy flood, the pool's first event (round 5, as built).
 
 ## Keeping them (k1)
 
@@ -115,7 +114,7 @@ wisps (o1). Round 5 puts `statuses` before both, and makes slow and
 ethereal statuses (`STATUSES.md`).
 
 - **Taffy flood** (f7, t1): mischief. A band across the whole field, 6 to 9
-  yards ahead; it goes off 1 s after the snap and lasts 2 s; everyone in it
+  yards ahead (3 to 7 since play, "As built" below); it goes off 1 s after the snap and lasts 2 s; everyone in it
   moves at half speed. Pink candy ground, bubbling in its build-up; whoever
   is in it trails strings of taffy.
 - **Will-o'-wisps** (f6, w1): a blessing. A circle about 4 yards across, 12
@@ -307,7 +306,8 @@ approved; a1 drawn out as a4). Its second round made effects composable, as
   gets its own.
 - **"Hex" stays the word** (a3) for an event that only hurts you.
 - **The taffy flood** (t1), as planned, with: its slow is the **Slowed**
-  status; a bolt's Fast and the taffy's Slowed multiply (0.75); the carrier
+  status; a bolt's Fast and the taffy's Slowed multiply (0.75 then; 0.5625 since
+  Slowed was made stronger, 2026-11-07); the carrier
   doesn't steer round it (a band across the whole field has no way round);
   the ball isn't slowed.
 - **The wisps** (w1), as planned, their ethereal the **Ethereal** status. An
@@ -336,7 +336,7 @@ last two played before they merge.
 
 1. **A spell** holds whoever is in it while it lasts and lets go as they
    leave; before it goes off and after it ends, nobody is held.
-2. **Slowed** moves everyone in the taffy at the share set (half), yours and
+2. **Slowed** moves everyone in the taffy at the share set (0.375), yours and
    theirs; with a bolt's Fast, the two multiply.
 3. **In a run:** from stretch 2, about one ordinary stretch in three gets a
    generic event, on every down whose line is in it; the same seed, the same
@@ -360,3 +360,62 @@ last two played before they merge.
 7. **The pool:** with both events in, a stretch that gets one picks either,
    from the seed.
 8. **The editor** offers Ethereal.
+
+### As built: `field-taffy` (2026-11-07)
+
+- **How it goes off** is the event's `goesOffAs`: `burst` or `spell`. A
+  spell holds whoever it catches (on their feet, on the side it hits, as a
+  burst catches them) while they're in its area and it's on, from the step
+  it goes off for its `lasts` (`holdSpell` in `sim/step.ts`). Its status is
+  given for the spell's time left and a step more, so the spell ends it,
+  reported, as the body steps out or the spell ends, not its wearing off.
+  Whether a body is held is `heldBy` (`sim/fieldEvents.ts`), which the sim
+  and the look both ask. A body with a longer one of the same status from
+  elsewhere keeps it, and isn't given the spell's again each step (review
+  r2). A spell must give a status: a knockdown is a moment's, a burst's.
+  That rule is `spellStatus` and `keepsSpellRule` (`content/spells.ts`),
+  which the sim, the saved-events check and the editor all ask, and every
+  event in the code keeps it (a test; review r4).
+- **An effect can give a status** (`StatusEffect`: which status, on whom):
+  a burst gives it for `lasts` to whoever it catches. Its source is the
+  field event, by id (`{ kind: 'fieldEvent', event }`). A spell or a burst
+  of a status tackles nobody, so it has no call.
+- **The taffy flood** is `TAFFY_FLOOD` in `content/fieldEvents.ts`: a band
+  across the whole field, 3 to 7 yards past the line; it goes off 1 s after
+  the snap (0.8 s of sim time) and is a spell for 2.5 s (2) of Slowed on
+  everyone. Its build-up is 0.75 s on screen. The user played it and
+  changed it (2026-11-07): half a second more and a Slowed a quarter
+  stronger (it was 2 s, and Slowed half); then closer to the line and a
+  yard deeper, to catch receivers while the aim line is still sweeping (it
+  was 6 to 9 yards). It stays mischief: as a hex (slowing only yours) it
+  didn't hurt passing enough. Its look
+  (`render/taffyFlood.ts`): the band faint pink from before the snap,
+  bubbles swelling and popping through the build-up, candy ground while
+  it's on (fading in its last moment), and strings of taffy from the turf
+  behind whoever it holds. Its sound is the slick's slip.
+- **The generic pick** is `genericEventFor(seed, stretch)` in `sim/run.ts`,
+  on its own random stream (`stretchEvent`): none before stretch
+  `fieldEvents.genericFrom` (2), none on a Boss's, and a third
+  (`fieldEvents.genericShare`) of the rest. Whether a stretch gets one is
+  drawn before which, so the wisps joining the pool change only which.
+  Halloween's pool is `GENERIC_EVENTS`. Every down whose line is in a
+  picked stretch places it from that down's line. A stretch's own event
+  (Frog Rain) comes first, and the play editor's practice gets none, as it
+  gets no pickups. The cards dealt and the pickups are the same as on
+  `main` (a digest taken there).
+- **The carrier's steering** is as it was: the band counts against every
+  lane alike, so the carrier doesn't steer round it (a regression test).
+- **Saved events and Try it links** from before spells have no
+  `goesOffAs` and read as bursts (`readEvent`); one naming a spell that
+  doesn't give a status is left out with a warning, as is one whose status
+  a field event may not give. A field event gives Slowed only, for now
+  (`EventStatus` in `content/statuses.ts`; review r3): not Fast.
+- **The editor** offers Burst and Spell, Flatten and Slowed (Ethereal greyed
+  until the wisps), a status chip for each `EventStatus`. Spell over a
+  flatten makes it Slowed; Flatten makes it a burst; who it lands on is
+  kept. Test 4's Try it plays a spell made with the editor's own Spell and
+  Slowed (review r5).
+- **Play changes where the taffy is:** of the four seeded runs in
+  `statusesSameRun.test.ts`, seed 14's reaches a taffy stretch and was
+  re-pinned; with `genericShare` 0, all four are `main`'s again.
+

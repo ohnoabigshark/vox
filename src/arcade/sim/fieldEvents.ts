@@ -1,13 +1,17 @@
 /**
  * Field events in the sim (docs/FIELD_EVENTS.md): placed on the field each
  * down from the run's seed, counting down from the snap, and going off as a
- * burst: whoever is in the area then has the effect.
+ * burst (whoever is in the area then has the effect) or a spell (whoever is
+ * in it while it lasts).
  */
 import { arcadeTuning, DT } from '../content/tuning';
 import { assertNever } from '../../assertNever';
 import type { Across, EventArea, FieldEvent, Who } from '../content/fieldEvents';
+import { spellStatus } from '../content/spells';
+import { allBodies } from './physics';
 import { rngFor } from './random';
-import type { Body, FieldEventOn, PlacedArea, RunState } from './types';
+import { sameSource, statusOf } from './status';
+import type { Body, FieldEventOn, PlacedArea, RunState, StatusSource } from './types';
 import { dist, v } from './vec';
 
 /**
@@ -97,7 +101,7 @@ function hits(who: Who, side: Body['side']): boolean {
  * locked up with one of your players (a Rhino Beetle, planted).
  */
 export function caughtBy(state: RunState, on: FieldEventOn): Body[] {
-  return [...state.field.players, ...state.field.defenders].filter(
+  return allBodies(state).filter(
     (b) =>
       b.down <= 0 &&
       hits(on.event.effect.on, b.side) &&
@@ -107,16 +111,51 @@ export function caughtBy(state: RunState, on: FieldEventOn): Body[] {
   );
 }
 
+/** How long after going off an event stays on the field for the show: a second, or a spell's whole time. */
+function showsFor(event: FieldEvent): number {
+  return Math.max(1, spellStatus(event) === null ? 0 : event.lasts);
+}
+
 /**
  * Count the event down one step of live play: true on the step it goes
- * off. Past zero it counts on to −1 for the show, then stops.
+ * off. Past zero it counts on (a second for the show, or a spell's time),
+ * then stops.
  */
 export function countDown(on: FieldEventOn): boolean {
   const left = on.left;
   if (left === null) return false;
   const next = left - DT;
-  on.left = next < -1 ? null : next;
+  on.left = next < -showsFor(on.event) ? null : next;
   return left > 0 && next <= 0;
+}
+
+/** Whether a spell is on: gone off, and its `lasts` not yet over. False for a burst. */
+export function spellOn(on: FieldEventOn): boolean {
+  return (
+    spellStatus(on.event) !== null && on.left !== null && on.left <= 0 && on.left > -on.event.lasts
+  );
+}
+
+/**
+ * Whether the spell holds this body: it has the spell's status, from this
+ * event (the one place it's decided, for the sim and the look alike; the
+ * review's r1). A status of the same name from elsewhere isn't held.
+ */
+export function heldBy(b: Pick<Body, 'statuses'>, on: FieldEventOn): boolean {
+  const status = spellStatus(on.event);
+  if (status === null) return false;
+  const s = statusOf(b, status);
+  return s !== undefined && sameSource(s.from, fromEvent(on.event));
+}
+
+/** The time a spell has left, once it's gone off. */
+export function spellLeft(on: FieldEventOn): number {
+  return on.left === null ? 0 : Math.max(0, on.left + on.event.lasts);
+}
+
+/** A field event as the source of the statuses it gives (docs/STATUSES.md, s5). */
+export function fromEvent(event: FieldEvent): StatusSource {
+  return { kind: 'fieldEvent', event: event.id };
 }
 
 /** Whether the event is still to go off this down and would catch the carrier (one of yours): one to steer clear of. */

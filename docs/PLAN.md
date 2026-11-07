@@ -624,6 +624,21 @@ Still open:
     run, or raised by TRICK OR TREAT!) or perks like the two sweep perks,
     and which are difficulty levers (random sack timers) rather than
     rewards.
+- **A late-game perk for longer throws,** toward a "break the game" feel as
+  your receivers get faster. _User, 2026-11-07, after a run of 20 series
+  with the taffy: "I'm definitely going to want to add a later game perk
+  that lets your distance selector speed on throws increase to allow for
+  throwing further down field. this helps lead to a 'break the game' feel
+  as your receivers get faster. not sure how to get that feel for runs
+  that's interactive yet but we will figure that out."_ In our words: two-
+  tap throwing's **marker** slides out along the aim line, from 3 yards
+  past Jack to the line's end (`throw.maxAhead`, 30 yards), and back, at
+  `twoTap.markerSpeed` (14 yards a second; `aimDistance` in `sim/ball.ts`).
+  The perk would lengthen the line and speed the marker up, so a deep lob
+  takes no longer to set. Open for its grilling: how much further, whether
+  it stacks, when in a run it's offered, and the same feel for runs, which
+  needs an interactive way in. Beside **Stats for Jack** (above: pass speed,
+  reads).
 - **Hexes and events for the long field** (difficulty map c1, parked
   2026-11-04): the generic events from `docs/FIELD_EVENTS.md` (n1, n2), the
   taffy flood first. Each event belongs to a stretch and goes off on every
@@ -909,3 +924,21 @@ a future refactor."_ Each says what was left, why, and where it's planned.
   only types (field events review r6, `docs/FIELD_EVENTS.md`).
 - **The render loop reads `performance.now()`** rather than animation time
   as elsewhere (field events review r19).
+- **A status's looks in one place.** Slowed's heavy step is drawn in
+  `render/bodies.ts` but Fast's sparks still with the pickups
+  (`render/pickups.ts`), where the bolt left them; Ethereal will be a third.
+  Gather them when the wisps add it, or after (`docs/STATUSES.md`, s7).
+- **A spell over a timed status of the same name:** stepping out of a spell
+  ends its status, losing the rest of a timed one of the same name that it
+  took the place of. Nothing gives Slowed but the taffy yet; a status list
+  that keeps each source's own time would fix it when one does
+  (`docs/STATUSES.md`, field-taffy as built).
+- **A field event as a burst or a spell, each with its own effects:** the
+  event's type has how it goes off and its effect as two fields, so it
+  allows a spell that flattens, which `keepsSpellRule` (`content/spells.ts`)
+  refuses everywhere instead. A union would make it unwritable, but reshapes
+  the event, the editor's every change and the saved file (taffy review r4).
+- **One helper for an event's phase** (before the snap, building up, on,
+  after): each look (`render/taffyFlood.ts`, the plain look) reads the
+  countdown itself. Gather it with the statuses' looks, above (taffy review
+  l2).

@@ -28,20 +28,22 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
 import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle } from './ball';
-import { moveBodies, separate, touching } from './physics';
+import { allBodies, moveBodies, separate, touching } from './physics';
 import { AREA_YARDS, pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
 import { catchTestFor, type CatchTest } from './catchTests';
-import { caughtBy, countDown } from './fieldEvents';
+import { caughtBy, countDown, fromEvent, heldBy, inArea, spellLeft, spellOn } from './fieldEvents';
+import { spellStatus } from '../content/spells';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
-import { giveStatus } from './status';
+import { endStatus, giveStatus, givingChanges } from './status';
 import { FROM_BOLT } from './pickups';
 import type {
   ArcadeEvent,
   ArcadeResult,
   Body,
+  FieldEventOn,
   BreakKind,
   Grade,
   Pickup,
@@ -51,6 +53,7 @@ import type {
   Vec,
 } from './types';
 import { add, dist, len, norm, scale, sub, v } from './vec';
+import type { EventStatus } from '../content/statuses';
 
 const { contact, field } = arcadeTuning;
 
@@ -363,33 +366,85 @@ function catchGraded(
 }
 
 /**
- * A field event (docs/FIELD_EVENTS.md, Frog Rain first): its countdown runs
- * only while the play is live, and as it goes off, a burst flattens whoever
- * is in its area for its `lasts`; a carrier caught is tackled there, with the
- * event's call (FROGGED!). Once a down.
+ * A field event (docs/FIELD_EVENTS.md): its countdown runs only while the
+ * play is live, and it goes off once a down, reporting whoever is in its
+ * area then. A flatten knocks them down for its `lasts` (Frog Rain); a
+ * carrier caught is tackled there, with the event's call (FROGGED!). A
+ * status is given: by a burst for its `lasts`, by a spell while they're in
+ * it (the taffy flood, `holdSpell`).
  */
 function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
   const on = state.field.fieldEvent;
-  if (!on || !countDown(on)) return false;
+  if (!on) return false;
+  const wentOff = countDown(on);
+  if (wentOff && goOff(state, on, events)) return true;
+  const status = spellStatus(on.event);
+  if (status !== null) holdSpell(state, on, status, events);
+  return false;
+}
+
+/** The moment it goes off: true if it tackled the carrier. */
+function goOff(state: RunState, on: FieldEventOn, events: ArcadeEvent[]): boolean {
   const caught = caughtBy(state, on);
-  for (const b of caught) {
-    b.down = on.event.lasts;
-    b.vel = v(0, 0);
-    if (b.side === 'defense') b.latch = null;
-  }
   events.push({
     type: 'fieldEventWentOff',
     event: on.event.id,
     look: on.event.look,
     hit: caught.map((b) => b.id),
   });
-  const carrier = carrierOf(state);
-  if (carrier && caught.includes(carrier)) {
-    events.push({ type: 'eventTackled', id: carrier.id, call: on.event.call });
-    tackle(state, carrier, -1, events);
-    return true;
+  const { effect } = on.event;
+  switch (effect.kind) {
+    case 'flatten': {
+      for (const b of caught) {
+        b.down = on.event.lasts;
+        b.vel = v(0, 0);
+        if (b.side === 'defense') b.latch = null;
+      }
+      const carrier = carrierOf(state);
+      if (carrier && caught.includes(carrier)) {
+        events.push({ type: 'eventTackled', id: carrier.id, call: on.event.call });
+        tackle(state, carrier, -1, events);
+        return true;
+      }
+      return false;
+    }
+    case 'status':
+      // A spell's holding is `holdSpell`'s, from this step on.
+      if (spellStatus(on.event) === null) {
+        for (const b of caught) {
+          giveStatus(b, effect.status, on.event.lasts, fromEvent(on.event), events);
+        }
+      }
+      return false;
+    default:
+      return assertNever(effect);
   }
-  return false;
+}
+
+/**
+ * A spell holds whoever is in its area while it's on (s3): the status is
+ * given as a body is caught (on its feet, on the side it hits, as a burst
+ * would catch it), and ended, reported, as it steps out or the spell ends.
+ * It's given for the spell's time left and a step more, so the spell ends
+ * it, not its wearing off. A body with a longer one of the same status from
+ * elsewhere keeps that, and isn't given it again each step (the review's r2).
+ */
+function holdSpell(
+  state: RunState,
+  on: FieldEventOn,
+  status: EventStatus,
+  events: ArcadeEvent[],
+): void {
+  const from = fromEvent(on.event);
+  const live = spellOn(on);
+  for (const b of allBodies(state)) {
+    if (heldBy(b, on) && !(live && inArea(on.area, b))) endStatus(b, status, from, events);
+  }
+  if (!live) return;
+  const time = spellLeft(on) + DT;
+  for (const b of caughtBy(state, on)) {
+    if (!heldBy(b, on) && givingChanges(b, status, time)) giveStatus(b, status, time, from, events);
+  }
 }
 
 /**

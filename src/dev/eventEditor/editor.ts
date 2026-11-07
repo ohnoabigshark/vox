@@ -10,9 +10,13 @@ import { assertNever } from '../../assertNever';
 import {
   fieldEventDefaults,
   type EventArea,
+  type EventEffect,
   type FieldEvent,
+  type GoesOffAs,
   type Who,
 } from '../../arcade/content/fieldEvents';
+import { keepsSpellRule } from '../../arcade/content/spells';
+import type { EventStatus } from '../../arcade/content/statuses';
 import { arcadeTuning, TIME_SCALE } from '../../arcade/content/tuning';
 import { circleX, rectXs, sideOf } from '../../arcade/sim/fieldEvents';
 import { clamp } from '../../arcade/sim/vec';
@@ -215,6 +219,43 @@ export function setOn(s: EditorState, on: Who): EditorState {
   return changed(s, { ...s.event, effect: { ...s.event.effect, on } });
 }
 
+/** An effect as the editor offers it (round 5, test 4): a flatten, or the status it gives (one an event may give, r3). */
+export type EffectChoice = 'flatten' | EventStatus;
+
+/** Which of the editor's effects an event has. */
+export function effectChoice(effect: EventEffect): EffectChoice {
+  switch (effect.kind) {
+    case 'flatten':
+      return 'flatten';
+    case 'status':
+      return effect.status;
+    default:
+      return assertNever(effect);
+  }
+}
+
+/** The effect picked, on whoever it was on; a spell gives a status, so Flatten makes it a burst. */
+export function setEffect(s: EditorState, choice: EffectChoice): EditorState {
+  const { on } = s.event.effect;
+  const effect: EventEffect =
+    choice === 'flatten' ? { kind: 'flatten', on } : { kind: 'status', status: choice, on };
+  const { goesOffAs } = s.event;
+  return changed(s, {
+    ...s.event,
+    effect,
+    goesOffAs: keepsSpellRule({ goesOffAs, effect }) ? goesOffAs : 'burst',
+  });
+}
+
+/** Burst or spell; a spell gives a status, so Spell over a flatten makes it Slowed. */
+export function setGoesOffAs(s: EditorState, goesOffAs: GoesOffAs): EditorState {
+  const { effect } = s.event;
+  const kept: EventEffect = keepsSpellRule({ goesOffAs, effect })
+    ? effect
+    : { kind: 'status', status: 'slowed', on: effect.on };
+  return changed(s, { ...s.event, goesOffAs, effect: kept });
+}
+
 export function setName(s: EditorState, name: string): EditorState {
   return changed(s, { ...s.event, name });
 }
@@ -390,6 +431,7 @@ const STARTING: Omit<FieldEvent, 'id' | 'name'> = {
   boss: null,
   area: { shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 },
   goesOff: 1.6,
+  goesOffAs: 'burst',
   lasts: 1.2,
   warning: { buildUp: 0.7 },
   effect: { kind: 'flatten', on: 'everyone' },

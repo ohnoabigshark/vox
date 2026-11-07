@@ -26,6 +26,7 @@ import { ArcadeLines, createArcadeTurf } from './render/field';
 import { ArcadeFieldProps } from './render/fieldProps';
 import { ArcadeFrogRain } from './render/frogRain';
 import { ArcadePlainEvent } from './render/plainEvent';
+import { ArcadeTaffyFlood } from './render/taffyFlood';
 import { eventEditorLink, type EventPractice } from './content/eventLink';
 import { savedEventWarnings, type EventLook, type FieldEvent } from './content/fieldEvents';
 import { ArcadePickups } from './render/pickups';
@@ -322,6 +323,7 @@ export class ArcadeGame {
     this.names = new ArcadeNames(uiRoot);
     this.eventLooks = {
       frogRain: { draw: new ArcadeFrogRain(scene), sounds: ['burst', 'hop'] },
+      taffyFlood: { draw: new ArcadeTaffyFlood(scene), sounds: ['slip'] },
       plain: { draw: new ArcadePlainEvent(scene), sounds: ['burst'] },
     };
     this.royalCrows = new ArcadeRoyalCrows(scene);

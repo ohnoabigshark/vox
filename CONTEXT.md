@@ -146,6 +146,9 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   **knockdown**, or a **status** given) on your players, the defenders or
   everyone (`docs/FIELD_EVENTS.md`). Frog Rain is the first. _Avoid:_ "event"
   alone, which is the sim's `ArcadeEvent`.
+- **Generic event:** a field event no Boss owns (the taffy flood), which a
+  stretch the seed picks gets on every down whose line is in it; against a
+  stretch's own (Frog Rain, Mister Frog's).
 - **Blessing, hex, mischief:** a field event that can only help you, only
   hurt you, or do both, worked out from whether its status helps or hurts
   and who it lands on (`docs/STATUSES.md`). A **mischief** pickup is one

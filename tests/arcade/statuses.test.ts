@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { kindOf } from '../../src/arcade/content/statuses';
+import { kindOf, statusPolarity } from '../../src/arcade/content/statuses';
 import { arcadeTuning, DT } from '../../src/arcade/content/tuning';
 import { FROM_BOLT } from '../../src/arcade/sim/pickups';
 import {
@@ -81,7 +81,31 @@ describe('stacking (s3)', () => {
   });
 });
 
+describe('Slowed (field-taffy, test 2)', () => {
+  const FROM_TAFFY = { kind: 'fieldEvent', event: 'taffyFlood' } as const;
+
+  it('moves a body at the share set, 0.375 by default (a quarter stronger than half, 2026-11-07)', () => {
+    const p = body(field(), 2);
+    giveStatus(p, 'slowed', 1, FROM_TAFFY, []);
+    expect(speedShare(p)).toBe(arcadeTuning.statuses.slowed.share);
+    expect(arcadeTuning.statuses.slowed.share).toBe(0.375);
+  });
+
+  it('2b: with Fast, the two speed statuses multiply: 1.5 × 0.375 = 0.5625', () => {
+    const p = body(field(), 2);
+    giveStatus(p, 'slowed', 1, FROM_TAFFY, []);
+    giveStatus(p, 'fast', 1, FROM_BOLT, []);
+    expect(speedShare(p)).toBeCloseTo(0.5625, 9);
+    expect(p.statuses.map((x) => x.name).sort()).toEqual(['fast', 'slowed']);
+  });
+});
+
 describe('blessing, hex or mischief, from the status and who (s4)', () => {
+  it('3b: Fast helps the body that has it; Slowed hurts it', () => {
+    expect(statusPolarity('fast')).toBe('helps');
+    expect(statusPolarity('slowed')).toBe('hurts');
+  });
+
   it('3: what helps is a blessing on yours, a hex on theirs; what hurts the other way; on everyone, mischief', () => {
     expect(kindOf('helps', 'yours')).toBe('blessing');
     expect(kindOf('helps', 'theirs')).toBe('hex');
@@ -113,10 +137,10 @@ describe('the sim says so (s8)', () => {
     giveStatus(p, 'fast', 3, FROM_BOLT, events);
     giveStatus(p, 'fast', 1, other, events);
     giveStatus(p, 'fast', 3, other, events);
-    expect(ofType(events, 'statusGained').map((e) => [e.from.pickup, e.changed])).toEqual([
-      ['bolt', true],
-      ['slick', false],
-      ['slick', true],
+    expect(ofType(events, 'statusGained').map((e) => [e.from, e.changed])).toEqual([
+      [FROM_BOLT, true],
+      [other, false],
+      [other, true],
     ]);
     expect(statusOf(p, 'fast')?.from).toEqual(other);
   });

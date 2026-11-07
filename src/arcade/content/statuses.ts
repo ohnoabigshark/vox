@@ -7,8 +7,15 @@
  */
 import { assertNever } from '../../assertNever';
 
-/** The statuses there are. Slowed and Ethereal come with the taffy flood and the wisps. */
-export type StatusName = 'fast';
+/** The statuses there are: Fast (the bolt's), Slowed (the taffy flood's). Ethereal comes with the wisps. */
+export type StatusName = 'fast' | 'slowed';
+
+/**
+ * The statuses a field event may give (the review's r3): Slowed, for now.
+ * The saved-events check and the editor's chips read it; the wisps add
+ * Ethereal.
+ */
+export type EventStatus = Extract<StatusName, 'slowed'>;
 
 /** Whether something helps the body it lands on or hurts it. */
 export type Polarity = 'helps' | 'hurts';
@@ -35,6 +42,18 @@ export function kindOf(polarity: Polarity, who: Who): SourceKind {
       return 'mischief';
     default:
       return assertNever(who);
+  }
+}
+
+/** Whether a status helps the body that has it or hurts it (s4): Fast helps, Slowed hurts. */
+export function statusPolarity(name: StatusName): Polarity {
+  switch (name) {
+    case 'fast':
+      return 'helps';
+    case 'slowed':
+      return 'hurts';
+    default:
+      return assertNever(name);
   }
 }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   FROG_RAIN,
+  TAFFY_FLOOD,
   fieldEventDefaults,
   type FieldEvent,
 } from '../../src/arcade/content/fieldEvents';
@@ -25,9 +26,9 @@ describe('saved events (test 5)', () => {
     const { events, warnings } = checkSavedEvents({ frogRain: tuned, graveyardRain: made });
     expect(warnings).toEqual([]);
     const layered = layerEvents(fieldEventDefaults, events);
-    expect(layered.map((e) => e.id)).toEqual(['frogRain', 'graveyardRain']);
+    expect(layered.map((e) => e.id)).toEqual(['frogRain', 'taffyFlood', 'graveyardRain']);
     expect(layered[0]?.goesOff).toBe(2);
-    expect(layered[1]).toEqual(made);
+    expect(layered[2]).toEqual(made);
   });
 
   it('nothing saved plays the defaults; Restore (dropping it from the file) puts one back', () => {
@@ -75,5 +76,46 @@ describe('saved events (test 5)', () => {
     expect(why({ area: made.area.shape === 'circle' ? { ...made.area, radius: -1 } : {} })).toEqual(
       said("its area's radius must be more than 0"),
     );
+  });
+});
+
+describe('spells and statuses, saved (round 5, test 5)', () => {
+  const taffy: FieldEvent = { ...TAFFY_FLOOD, lasts: 2 };
+
+  it('one with a spell and Slowed reads back as saved', () => {
+    const { events, warnings } = checkSavedEvents({ taffyFlood: taffy });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([taffy]);
+  });
+
+  it('today’s saved file still reads: an event saved before spells is a burst', () => {
+    // As saved before spells: every part but goesOffAs.
+    const before = Object.fromEntries(Object.entries(made).filter(([k]) => k !== 'goesOffAs'));
+    const { events, warnings } = checkSavedEvents({ graveyardRain: before });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([{ ...made, goesOffAs: 'burst' }]);
+  });
+
+  it('a spell must give a status, and a status must be one the game plays', () => {
+    const why = (x: object): readonly string[] =>
+      checkSavedEvents({ taffyFlood: { ...taffy, ...x } }).warnings;
+    const said = (part: string): string[] => [
+      `saved-events.json: taffyFlood can’t be read (${part}), so it was left out`,
+    ];
+    expect(why({ effect: { kind: 'flatten', on: 'everyone' } })).toEqual(
+      said('a spell must give a status'),
+    );
+    expect(why({ goesOffAs: 'sometimes' })).toEqual(
+      said('it goes off as neither a burst nor a spell'),
+    );
+    expect(why({ effect: { kind: 'status', status: 'sleepy', on: 'everyone' } })).toEqual(
+      said('its effect is not one the game plays'),
+    );
+    // A field event gives Slowed only, for now (review r3): not Fast, from a spell or a burst.
+    for (const goesOffAs of ['spell', 'burst']) {
+      expect(
+        why({ goesOffAs, effect: { kind: 'status', status: 'fast', on: 'everyone' } }),
+      ).toEqual(said('its effect is not one the game plays'));
+    }
   });
 });

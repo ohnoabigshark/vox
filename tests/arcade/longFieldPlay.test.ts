@@ -9,6 +9,7 @@ import {
   dispatch,
   downAndDistance,
   endDown,
+  genericEventFor,
   nextDown,
   seriesDefense,
   setUpSeries,
@@ -83,7 +84,9 @@ describe('the long field, part 2', () => {
     expect(t.series).toMatchObject({ stretch: 3, kind: 'boss' });
     expect(t.field.fieldEvent?.event.id).toBe('frogRain');
     setUpSeries(t, 0, 29, [], true);
-    expect(t.field.fieldEvent).toBeNull();
+    // No Frog Rain on the gimmick's line: only the generic event the seed gave stretch 3, if any (round 5).
+    expect(t.field.fieldEvent?.event.id ?? null).toBe(genericEventFor(1, 3)?.id ?? null);
+    expect(t.field.fieldEvent?.event.id).not.toBe('frogRain');
   });
 
   it('3: what grows grows with the stretch number, however many series it took', () => {

@@ -4,10 +4,20 @@ import {
   eventPracticeQuery,
   readEventPractice,
 } from '../../src/arcade/content/eventLink';
-import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents';
+import { FROG_RAIN, TAFFY_FLOOD, type FieldEvent } from '../../src/arcade/content/fieldEvents';
+import { hasStatus } from '../../src/arcade/sim/status';
+import { step } from '../../src/arcade/sim/step';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { bossStretch, createRun, dispatch, stretchAt, nextDown } from '../../src/arcade/sim/run';
 import type { RunState } from '../../src/arcade/sim/types';
+import {
+  setAcross,
+  setEffect,
+  setGoesOffAs,
+  setNumber,
+  setShape,
+  startEditing,
+} from '../../src/dev/eventEditor/editor';
 
 /** docs/FIELD_EVENTS.md, test 8: Try it, event practice (f3, x2). */
 
@@ -117,5 +127,37 @@ describe('a Boss’s series (review r9)', () => {
     expect(bossStretch('misterFrog')).toBe(4);
     expect(bossStretch('queen')).toBe(8);
     expect(bossStretch('king')).toBe(12);
+  });
+});
+
+describe('a slow spell in Try it (round 5, test 4)', () => {
+  it('made on the editor with Spell and Slowed, it reads back from its link and plays: whoever runs into it is Slowed (r5)', () => {
+    // A wide band over the line, going off at once, as the editor makes it.
+    let ed = setShape(startEditing(made), 'band');
+    ed = setAcross(ed, 'middle');
+    for (const [key, value] of [
+      ['width', 30],
+      ['from', -12],
+      ['to', 30],
+      ['goesOff', 0.25],
+      ['lasts', 2.5],
+    ] as const) {
+      ed = setNumber(ed, key, value);
+    }
+    ed = setEffect(setGoesOffAs(ed, 'spell'), 'slowed');
+    const spell = ed.event;
+    expect(spell.goesOffAs).toBe('spell');
+    expect(spell.effect).toEqual({ kind: 'status', status: 'slowed', on: 'everyone' });
+    const link = readEventPractice(`?${eventPracticeQuery(spell, 2, true)}`);
+    expect(link?.event).toEqual({ ok: true, event: spell });
+    let s = createRun(3, undefined, 0, { eventPractice: { event: spell, stretch: 2 } });
+    s = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
+    for (let i = 0; i < 30 && s.phase === 'play'; i++) s = step(s, {}).state;
+    expect(s.field.defenders.some((d) => hasStatus(d, 'slowed'))).toBe(true);
+  });
+
+  it('the taffy flood itself can be tried', () => {
+    const q = eventPracticeQuery(TAFFY_FLOOD, 3, true);
+    expect(readEventPractice(`?${q}`)?.event).toEqual({ ok: true, event: TAFFY_FLOOD });
   });
 });
