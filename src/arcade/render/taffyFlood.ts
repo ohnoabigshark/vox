@@ -63,7 +63,8 @@ export class ArcadeTaffyFlood {
     }
     // A unit string along y, from its foot at 0 to 1, stretched between two points each frame.
     const stringGeo = new THREE.CylinderGeometry(0.07, 0.05, 1, 6).translate(0, 0.5, 0);
-    const stringMat = new THREE.MeshLambertMaterial({ color: hexToNumber(voxel.candyPink) });
+    // Pulled taffy goes pale as it stretches, so the strings show against the pink.
+    const stringMat = new THREE.MeshLambertMaterial({ color: hexToNumber(voxel.icing) });
     for (let i = 0; i < HELD_MOST * STRINGS; i++) {
       const s = new THREE.Mesh(stringGeo, stringMat);
       s.visible = false;
