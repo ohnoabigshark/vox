@@ -419,3 +419,29 @@ last two played before they merge.
   `statusesSameRun.test.ts`, seed 14's reaches a taffy stretch and was
   re-pinned; with `genericShare` 0, all four are `main`'s again.
 
+
+### As built: `field-wisps` (2026-11-07)
+
+- **The wisps** are `WILL_O_WISPS` in `content/fieldEvents.ts`: a blessing,
+  a circle 4 yards across (radius 2), its middle 12 yards past the line and
+  5 yards out from the field's middle, on either side (picked each down
+  from the seed, as Frog Rain's lane is). It goes off 1 s after the snap
+  (0.8 s of sim time) and is a spell for 3 s (2.4) of **Ethereal** on your
+  players. Defenders in it are never Ethereal from it.
+- **Its look** (`render/wisps.ts`): pale green lights hovering over the
+  circle from before the snap, dim and drifting slowly; brighter and
+  circling faster through the build-up; a glow on the turf while it's on,
+  the lights swirling bright, fading as it ends. Its sound is a soft rising
+  shimmer (`wisp` in `src/audio/sfx.ts`).
+- **The pool** is the taffy and the wisps (`GENERIC_EVENTS`). Which
+  stretches get one is unchanged: a test pins the stretches the taffy alone
+  had. Which of the two is drawn from the seed, the same for the same seed.
+- **The carrier doesn't steer away from a blessing:** `comingFor` now asks
+  whether the event's effect hurts the carrier, so the wisps don't push it
+  out of its lane. It doesn't steer toward them either.
+- **The editor** offers Flatten, Slowed and Ethereal (`EFFECT_CHIPS` in
+  `dev/eventEditor/editor.ts`); nothing is greyed any more. Saved events
+  and Try it links accept Ethereal.
+- **Play changes where the wisps are:** seed 14's run draws the wisps on
+  its generic stretch and was re-pinned; with `genericShare` 0, all four
+  seeded runs are `main`'s again.
