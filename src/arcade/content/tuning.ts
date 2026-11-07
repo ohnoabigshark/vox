@@ -395,7 +395,7 @@ export const tuningDefaults = {
     /** None before this stretch of the run (counting from 1)… */
     genericFrom: 2,
     /** …and after it, this share of the ordinary stretches (never a Boss's). */
-    genericShare: 1 / 3,
+    genericShare: 1 / 2,
   },
   /** Statuses (docs/STATUSES.md): what each does to a body that has it. */
   statuses: {

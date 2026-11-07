@@ -24,7 +24,6 @@ import {
 } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
-import type { EventStatus } from '../../arcade/content/statuses';
 import type { BossName } from '../../arcade/sim/types';
 import { now } from '../../clock';
 import { fractionOf } from '../bench/row';
@@ -56,6 +55,7 @@ import {
   setAcross,
   setCall,
   effectChoice,
+  EFFECT_CHIPS,
   setEffect,
   setGoesOffAs,
   type EffectChoice,
@@ -418,7 +418,7 @@ function onUp(): void {
 
 function chips<T extends string>(
   label: string,
-  options: readonly { value: T; text: string; off?: string }[],
+  options: readonly { value: T; text: string }[],
   current: T,
   pick: (value: T) => void,
 ): HTMLElement {
@@ -429,19 +429,13 @@ function chips<T extends string>(
     el(
       'div',
       { className: 'chips' },
-      ...options.map((o) => {
-        const b = el('button', {
+      ...options.map((o) =>
+        el('button', {
           className: `chip${o.value === current ? ' on' : ''}`,
           text: o.text,
           onClick: () => pick(o.value),
-        });
-        // Greyed: the game can't play it yet (x1); it says which branch brings it.
-        if (o.off) {
-          b.disabled = true;
-          b.title = o.off;
-        }
-        return b;
-      }),
+        }),
+      ),
     ),
   );
 }
@@ -575,9 +569,6 @@ function topOf(e: Editing): HTMLElement[] {
   ];
 }
 
-/** A chip for each status an event may give (the review's r3), so a new one can't go without. */
-const STATUS_CHIPS: Readonly<Record<EventStatus, string>> = { slowed: 'Slowed' };
-
 /** How it goes off, its effect, who it hits, and its call. */
 function partsOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
@@ -591,20 +582,8 @@ function partsOf(e: Editing): HTMLElement[] {
       ev.goesOffAs,
       (as) => change(setGoesOffAs(e.ed, as)),
     ),
-    chips<EffectChoice | 'ethereal'>(
-      'Effect',
-      [
-        { value: 'flatten', text: 'Flatten' },
-        ...(Object.keys(STATUS_CHIPS) as EventStatus[]).map((value) => ({
-          value,
-          text: STATUS_CHIPS[value],
-        })),
-        { value: 'ethereal', text: 'Ethereal', off: 'Comes with the wisps' },
-      ],
-      effectChoice(ev.effect),
-      (choice) => {
-        if (choice !== 'ethereal') change(setEffect(e.ed, choice));
-      },
+    chips<EffectChoice>('Effect', EFFECT_CHIPS, effectChoice(ev.effect), (choice) =>
+      change(setEffect(e.ed, choice)),
     ),
     chips<Who>(
       'On',

@@ -61,7 +61,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
 - **Frog Rain stays Mister Frog's** (f4), on every down whose line is in
   his stretch.
 - **Generic events** (n1, n2, restated per stretch by round 5's a4): from the
-  run's second stretch, about one ordinary stretch in three (never a
+  run's second stretch, about one ordinary stretch in two (one in three
+  until the user's play of 2026-11-07: "they don't show often"; never a
   Boss's) gets one, picked from the run's seed, on every down whose line of
   scrimmage is in that stretch. Wisps and the taffy flood are generic.
   _User: "We will have generic ones and boss specific ones eventually."_
@@ -117,8 +118,11 @@ ethereal statuses (`STATUSES.md`).
   yards ahead (3 to 7 since play, "As built" below); it goes off 1 s after the snap and lasts 2 s; everyone in it
   moves at half speed. Pink candy ground, bubbling in its build-up; whoever
   is in it trails strings of taffy.
-- **Will-o'-wisps** (f6, w1): a blessing. A circle about 4 yards across, 12
-  yards ahead on either side; it goes off 1 s after the snap and lasts 3 s;
+- **Will-o'-wisps** (f6, w1): a blessing. A circle about 4 yards across (6 since
+  2026-11-07: "wisps can also have a 50% larger area"), 12
+  yards ahead (10, then 6, since 2026-11-07: "move the wisps closer to the
+  line of scrimmage by 2 yards", then "like 3 yards from the line of
+  scrimmage instead", read as its near edge) on either side; it goes off 1 s after the snap and lasts 3 s;
   your players in it are ethereal. _User: "Will o wisps should make an
   offensive player untackleable when in the area. Like a wisp is ethereal
   so it can make the player semi transparent when in it and defenders run
@@ -298,9 +302,9 @@ approved; a1 drawn out as a4). Its second round made effects composable, as
   does (`lineStretch` in `sim/run.ts`). Since the long field, a series can
   cross from one stretch into the next, and a per-series event would follow
   it into a stretch whose defense has changed. The seed picks the stretches
-  when the run starts: from stretch 2, about one ordinary stretch in three,
-  never a Boss's, the same for the same seed; two or three in a run that
-  goes the distance. The event's area is still measured from each down's
+  when the run starts: from stretch 2, about one ordinary stretch in two
+  (one in three until 2026-11-07), never a Boss's, the same for the same
+  seed. The event's area is still measured from each down's
   line, so the taffy can reach past the end of its stretch.
 - **Halloween's generic events** (a2): any of its three areas; another set
   gets its own.
@@ -338,7 +342,8 @@ last two played before they merge.
    leave; before it goes off and after it ends, nobody is held.
 2. **Slowed** moves everyone in the taffy at the share set (0.375), yours and
    theirs; with a bolt's Fast, the two multiply.
-3. **In a run:** from stretch 2, about one ordinary stretch in three gets a
+3. **In a run:** from stretch 2, about one ordinary stretch in two (three
+   until 2026-11-07) gets a
    generic event, on every down whose line is in it; the same seed, the same
    stretches; never a Boss's stretch; Frog Rain still only Mister Frog's.
    The pick has a random stream of its own, so the cards dealt and the
@@ -419,3 +424,32 @@ last two played before they merge.
   `statusesSameRun.test.ts`, seed 14's reaches a taffy stretch and was
   re-pinned; with `genericShare` 0, all four are `main`'s again.
 
+
+### As built: `field-wisps` (2026-11-07)
+
+- **The wisps** are `WILL_O_WISPS` in `content/fieldEvents.ts`: a blessing,
+  a circle 6 yards across (radius 3; 4 yards, radius 2, until the user's
+  ask of 2026-11-07), its middle 6 yards past the line (12, then 10,
+  until the user's asks of 2026-11-07), so it covers 3 to 9 yards, kept
+  clear of the line so your Blockers there stay solid, and
+  5 yards out from the field's middle, on either side (picked each down
+  from the seed, as Frog Rain's lane is). It goes off 1 s after the snap
+  (0.8 s of sim time) and is a spell for 3 s (2.4) of **Ethereal** on your
+  players. Defenders in it are never Ethereal from it.
+- **Its look** (`render/wisps.ts`): pale green lights hovering over the
+  circle from before the snap, dim and drifting slowly; brighter and
+  circling faster through the build-up; a glow on the turf while it's on,
+  the lights swirling bright, fading as it ends. Its sound is a soft rising
+  shimmer (`wisp` in `src/audio/sfx.ts`).
+- **The pool** is the taffy and the wisps (`GENERIC_EVENTS`). Which
+  stretches get one is unchanged: a test pins the stretches the taffy alone
+  had. Which of the two is drawn from the seed, the same for the same seed.
+- **The carrier doesn't steer away from a blessing:** `comingFor` now asks
+  whether the event's effect hurts the carrier, so the wisps don't push it
+  out of its lane. It doesn't steer toward them either.
+- **The editor** offers Flatten, Slowed and Ethereal (`EFFECT_CHIPS` in
+  `dev/eventEditor/editor.ts`); nothing is greyed any more. Saved events
+  and Try it links accept Ethereal.
+- **Play changes where the wisps are:** seed 14's run draws the wisps on
+  its generic stretch and was re-pinned; with `genericShare` 0, all four
+  seeded runs are `main`'s again.

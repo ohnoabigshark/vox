@@ -6,7 +6,13 @@
  */
 import { arcadeTuning, DT } from '../content/tuning';
 import { assertNever } from '../../assertNever';
-import type { Across, EventArea, FieldEvent, Who } from '../content/fieldEvents';
+import {
+  effectPolarity,
+  type Across,
+  type EventArea,
+  type FieldEvent,
+  type Who,
+} from '../content/fieldEvents';
 import { spellStatus } from '../content/spells';
 import { allBodies } from './physics';
 import { rngFor } from './random';
@@ -158,7 +164,17 @@ export function fromEvent(event: FieldEvent): StatusSource {
   return { kind: 'fieldEvent', event: event.id };
 }
 
-/** Whether the event is still to go off this down and would catch the carrier (one of yours): one to steer clear of. */
+/**
+ * Whether the event is still to go off this down and would catch the
+ * carrier (one of yours) to its harm: one to steer clear of. A blessing
+ * (the wisps) isn't.
+ */
 export function comingFor(on: FieldEventOn | null): on is FieldEventOn {
-  return on !== null && on.left !== null && on.left > 0 && hits(on.event.effect.on, 'team');
+  return (
+    on !== null &&
+    on.left !== null &&
+    on.left > 0 &&
+    hits(on.event.effect.on, 'team') &&
+    effectPolarity(on.event.effect) === 'hurts'
+  );
 }

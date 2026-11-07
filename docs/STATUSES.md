@@ -213,3 +213,27 @@ Written down, none built; each comes back as its own map:
 - **Test 5b** (statuses review, l1): a body stepping out of the taffy while
   it's on gets `statusEnded`, naming the taffy.
 
+
+## As built: `field-wisps` (2026-11-07)
+
+- **Ethereal** is the third status. It helps, and leaves a body's speed as
+  it is.
+- **`canTouch`** (`sim/physics.ts`) is the one rule for it: your players
+  and the defenders can't lay hands on each other when either is Ethereal.
+  So no grab and no Break it!; no tackle, not even a planted Scarecrow's or
+  a Safety's sure one; no block, drive block or pancake from an Ethereal
+  Blocker; no shove either way; and a rusher on an Ethereal Blocker isn't
+  locked up, so it can bat the ball. Your own players still bump each other.
+  `touching` asks it itself (review r2), so every contact check that uses
+  `touching` keeps the rule; `collides` (the shove), the rusher's
+  `engaged` (its own distance) and the OK catch ask it directly.
+- **A ball still reaches an Ethereal receiver,** and a defender can still
+  bat it. A contested catch graded OK (SNAG IT! or the tip drill) is caught
+  and, since nobody can tackle it, the receiver runs on rather than being
+  tackled there.
+- **One already grabbed stays grabbed:** a Break it! under way, or a drag,
+  carries on (the latch came first).
+- **Not Ethereal-proof:** what isn't a defender's hands still gets it: Frog
+  Rain's knockdown, an oil slick, the King's crows.
+- **How it shows** (s7): an Ethereal body is drawn see-through and casts no
+  shadow (`render/bodies.ts`), whatever made it Ethereal.

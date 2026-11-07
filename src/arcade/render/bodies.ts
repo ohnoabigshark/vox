@@ -53,6 +53,19 @@ const KIND_MODEL: Readonly<Record<Form, string>> = {
 /** A Ghost's look: its model's own colours (a white sheet, the team helmet), unlit. */
 const GHOST_MATERIAL = new THREE.MeshBasicMaterial({ vertexColors: true });
 
+/** How much of an Ethereal body shows (docs/STATUSES.md, s7): see-through, whatever made it so. */
+const ETHEREAL_OPACITY = 0.35;
+/** A material drawn see-through: the same colours, faded. */
+function seeThrough(m: THREE.Material): THREE.Material {
+  const c = m.clone();
+  c.transparent = true;
+  c.opacity = ETHEREAL_OPACITY;
+  c.depthWrite = false;
+  return c;
+}
+const ETHEREAL_VOXEL = seeThrough(voxelMaterial);
+const ETHEREAL_GHOST = seeThrough(GHOST_MATERIAL);
+
 /** A player of this kind as it's drawn on the field: its model (a Ghost unlit, a Golem built wide), facing +z. */
 export function playerMesh(kind: Form): THREE.Mesh {
   const mesh = new THREE.Mesh(
@@ -83,6 +96,9 @@ interface View {
   readonly look: string;
   /** How far above the turf it rides (a Witch on her broom). */
   readonly hover: number;
+  /** Its material, and the same drawn see-through for when it's Ethereal. */
+  readonly solid: THREE.Material;
+  readonly ethereal: THREE.Material;
   yaw: number;
 }
 
@@ -142,6 +158,10 @@ export class ArcadeBodies {
       }
       view.root.rotation.y = view.yaw;
       view.body.rotation.z = b.down > 0 ? Math.PI / 2 : 0;
+      // Ethereal's look (s7): see-through, casting no shadow.
+      const ethereal = hasStatus(b, 'ethereal');
+      view.body.material = ethereal ? view.ethereal : view.solid;
+      view.body.castShadow = !ethereal;
       // Slowed's look (docs/STATUSES.md, s7), whatever slowed it: a heavy, dragging step, leaning into it.
       const slowed = b.down <= 0 && hasStatus(b, 'slowed');
       view.body.rotation.x = slowed ? SLOWED_LEAN : 0;
@@ -208,7 +228,8 @@ export class ArcadeBodies {
     const model = modelOf(state, b);
     // A Ghost is unlit: its white sheet (and team helmet) look the same whatever the light, so it reads at a glance.
     const ghost = b.side === 'team' && b.form === 'ghost';
-    const body = new THREE.Mesh(getGeometry(model), ghost ? GHOST_MATERIAL : voxelMaterial);
+    const solid = ghost ? GHOST_MATERIAL : voxelMaterial;
+    const body = new THREE.Mesh(getGeometry(model), solid);
     body.castShadow = true;
     if (b.side === 'team' && b.form === 'golem') {
       body.scale.set(GOLEM_SHAPE.wide, GOLEM_SHAPE.tall, GOLEM_SHAPE.wide);
@@ -229,6 +250,8 @@ export class ArcadeBodies {
       reach,
       look: lookOf(state, b),
       hover: model === 'forest/witch' ? WITCH_HOVER : 0,
+      solid,
+      ethereal: ghost ? ETHEREAL_GHOST : ETHEREAL_VOXEL,
       yaw: b.side === 'team' ? Math.PI : 0,
     };
   }

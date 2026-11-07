@@ -79,13 +79,14 @@ describe('statuses: the bolt as Fast plays exactly as before', () => {
  * Taken on main (adb458b) before statuses. Seed 14 re-pinned on
  * field-taffy (2026-11-07): its run reaches a stretch the seed gives the
  * taffy flood (and again when the taffy grew to 2.5 s and Slowed to 0.375,
- * and when it moved to 3 to 7 yards).
+ * and when it moved to 3 to 7 yards), and on field-wisps, where its generic
+ * stretch draws the wisps (and again when they moved to 10 yards, then 6).
  * With generic events off (`genericShare: 0`), it gives
- * 06fe520adac8ca51 again, as main did: the taffy is the only change.
+ * 06fe520adac8ca51 again, as main did: the generic events are the only change.
  */
 const EXPECTED: readonly string[] = [
   'bee0a1cd9e41aeda',
   'a0ba0b17cb615311',
   'f1489c668244d302',
-  '6b31bfbaada3df7d',
+  '33ce5f7882351f01',
 ];

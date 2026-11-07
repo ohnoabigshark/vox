@@ -13,6 +13,7 @@ import { downOn } from '../sim/run';
 import type { FieldEventOn, RunState } from '../sim/types';
 import { v } from '../sim/vec';
 import { toWorld } from './world';
+import { hash } from './hash';
 
 /** Bubbles in the build-up, and how big one grows (yards) before it pops. */
 const BUBBLES = 28;
@@ -26,12 +27,6 @@ const STRING_SPLAY = 0.8;
 const HELD_MOST = 16;
 /** How long the candy takes to fade as the spell ends (sim seconds). */
 const FADE = 0.3;
-
-/** A cheap repeatable "random" number for bubble i (so the bubbling looks the same every time). */
-const hash = (i: number, k: number): number => {
-  const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-};
 
 const UP = new THREE.Vector3(0, 1, 0);
 

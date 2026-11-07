@@ -682,6 +682,31 @@ Still open:
   ball who keeps getting pushed backward for some time is ruled down there,
   rather than being shoved yards back. How long, and how far back counts, is
   open. _User, 2026-10-30._
+  **Flagged in play, 2026-11-07** (saved as
+  `docs/play-logs/2026-11-07-forward-progress.jsonl`, the session's start
+  line and then the whole down, since the play log rotates). Build
+  2739a65, seed 226869837, area 2 stretch 2 (gimmick), 2nd and 1.5 at the
+  21.3, Deep Shot. The catch was at the 27.8 (12:44:50); the carrier broke
+  one tackle, was dragged 0.5 yards in a second grab, and reached about
+  the 32. A Blocker's pancake at 12:45:00 was the last contact, and the
+  bolt's Fast ended at 12:45:01 with the carrier at the 30.75. **Then
+  30 seconds with no events at all:** at the ⚑ (12:45:31) the down was
+  still live, the carrier at the 27.16, 3.6 yards back and 7 yards
+  across. _User: "a scenario we need to record the logs of for stopping
+  play after some amount of limited movement (forward progress rule)."_
+  So the rule needs to cover a play with no tackle coming and little
+  progress, not only a carrier being shoved back.
+- **Ethereal as a pickup.** The wisps' effect may be good but its
+  application bad: a circle on the field, gone off 1 s after the snap, is
+  passed before it helps. Ethereal could instead be an on-field pickup, a
+  power-up a player takes (as the bolt gives Fast). _User, 2026-11-07:
+  "maybe this is a good effect but bad application. could be better as an
+  on field pickup power up. before we go down that road, can we modify the
+  wisps to be like 3 yards from the line of scrimmage instead. the issue
+  may be the timing of it, it goes off too soon to be super beneficial
+  when it's far from the line of scrimmage."_ Tried first: the wisps at 3
+  to 9 yards (field-wisps). Open: whether the timing (goes off at 1 s,
+  lasts 3 s) is the lever instead.
 - **A native Android build** of the game. _User, 2026-10-30._
 - **Gravestones instead of oil slicks.** The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies
@@ -925,9 +950,9 @@ a future refactor."_ Each says what was left, why, and where it's planned.
 - **The render loop reads `performance.now()`** rather than animation time
   as elsewhere (field events review r19).
 - **A status's looks in one place.** Slowed's heavy step is drawn in
-  `render/bodies.ts` but Fast's sparks still with the pickups
-  (`render/pickups.ts`), where the bolt left them; Ethereal will be a third.
-  Gather them when the wisps add it, or after (`docs/STATUSES.md`, s7).
+  `render/bodies.ts`, and since field-wisps Ethereal's see-through look
+  with it, but Fast's sparks still with the pickups (`render/pickups.ts`),
+  where the bolt left them. Gather them (`docs/STATUSES.md`, s7).
 - **A spell over a timed status of the same name:** stepping out of a spell
   ends its status, losing the rest of a timed one of the same name that it
   took the place of. Nothing gives Slowed but the taffy yet; a status list
@@ -939,6 +964,7 @@ a future refactor."_ Each says what was left, why, and where it's planned.
   refuses everywhere instead. A union would make it unwritable, but reshapes
   the event, the editor's every change and the saved file (taffy review r4).
 - **One helper for an event's phase** (before the snap, building up, on,
-  after): each look (`render/taffyFlood.ts`, the plain look) reads the
-  countdown itself. Gather it with the statuses' looks, above (taffy review
+  after): each look (`render/taffyFlood.ts`, `render/wisps.ts`, the
+  plain look) reads the countdown itself; the wisps' `spent` is one such
+  read (wisps review r4). Gather it with the statuses' looks, above (taffy review
   l2).

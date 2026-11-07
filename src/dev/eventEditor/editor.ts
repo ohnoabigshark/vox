@@ -222,6 +222,21 @@ export function setOn(s: EditorState, on: Who): EditorState {
 /** An effect as the editor offers it (round 5, test 4): a flatten, or the status it gives (one an event may give, r3). */
 export type EffectChoice = 'flatten' | EventStatus;
 
+/** A chip for each status an event may give (the taffy review's r3), so a new one can't go without. */
+const STATUS_CHIPS: Readonly<Record<EventStatus, string>> = {
+  slowed: 'Slowed',
+  ethereal: 'Ethereal',
+};
+
+/** The effects the editor offers, as its chips: Flatten, then each status an event may give. */
+export const EFFECT_CHIPS: readonly { readonly value: EffectChoice; readonly text: string }[] = [
+  { value: 'flatten', text: 'Flatten' },
+  ...(Object.keys(STATUS_CHIPS) as EventStatus[]).map((value) => ({
+    value,
+    text: STATUS_CHIPS[value],
+  })),
+];
+
 /** Which of the editor's effects an event has. */
 export function effectChoice(effect: EventEffect): EffectChoice {
   switch (effect.kind) {

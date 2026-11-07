@@ -14,6 +14,7 @@
 import { arcadeTuning } from '../content/tuning';
 import type { Defender, Player, RunState, Vec } from './types';
 import { handsReach } from './bodies';
+import { canTouch } from './physics';
 import { clamp, dist, lerp, v } from './vec';
 
 const { sweep, throw: t, field } = arcadeTuning;
@@ -278,7 +279,11 @@ export function engaged(state: RunState, d: Defender): boolean {
   return (
     d.kind === 'rusher' &&
     state.field.players.some(
-      (p) => p.role !== 'qb' && p.down <= 0 && dist(p.pos, d.pos) <= p.radius + d.radius + 0.15,
+      (p) =>
+        p.role !== 'qb' &&
+        p.down <= 0 &&
+        canTouch(p, d) &&
+        dist(p.pos, d.pos) <= p.radius + d.radius + 0.15,
     )
   );
 }

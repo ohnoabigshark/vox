@@ -28,7 +28,7 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
 import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle } from './ball';
-import { allBodies, moveBodies, separate, touching } from './physics';
+import { allBodies, canTouch, moveBodies, separate, touching } from './physics';
 import { AREA_YARDS, pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
@@ -356,8 +356,11 @@ function catchGraded(
   giveBall(state, receiver);
   events.push({ type: 'caught', id: receiver.id, contested: true });
   if (grade === 'ok') {
-    // Caught in the end zone is a touchdown before anyone tackles; anywhere else, tackled there.
-    if (!checkCarrier(state, events)) tackle(state, receiver, first?.id ?? -1, events);
+    // Caught in the end zone is a touchdown before anyone tackles; anywhere else, tackled there,
+    // unless the receiver is Ethereal and runs on (nobody can lay a hand on it).
+    const tackleable = !first || canTouch(receiver, first);
+    if (!checkCarrier(state, events) && tackleable)
+      tackle(state, receiver, first?.id ?? -1, events);
     return;
   }
   for (const d of defenders) knockFlying(d, receiver.pos, contact.brokenTime, contact.brokenSpeed);
