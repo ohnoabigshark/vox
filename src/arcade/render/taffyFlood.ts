@@ -20,7 +20,7 @@ const BUBBLES = 28;
 const BUBBLE_SIZE = 0.35;
 /** Strings behind each body held: how many, how far back they reach (yards), and how many bodies at most. */
 const STRINGS = 3;
-const STRING_BACK = 0.9;
+const STRING_BACK = 1.3;
 const HELD_MOST = 16;
 /** How long the candy takes to fade as the spell ends (sim seconds). */
 const FADE = 0.3;
@@ -43,7 +43,7 @@ export class ArcadeTaffyFlood {
     this.bandMat = new THREE.MeshBasicMaterial({
       color: hexToNumber(voxel.candyPink),
       transparent: true,
-      opacity: 0.18,
+      opacity: 0.3,
       depthWrite: false,
     });
     this.band = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), this.bandMat);
@@ -62,7 +62,7 @@ export class ArcadeTaffyFlood {
       this.bubbles.push(b);
     }
     // A unit string along y, from its foot at 0 to 1, stretched between two points each frame.
-    const stringGeo = new THREE.CylinderGeometry(0.035, 0.035, 1, 5).translate(0, 0.5, 0);
+    const stringGeo = new THREE.CylinderGeometry(0.07, 0.05, 1, 6).translate(0, 0.5, 0);
     const stringMat = new THREE.MeshLambertMaterial({ color: hexToNumber(voxel.candyPink) });
     for (let i = 0; i < HELD_MOST * STRINGS; i++) {
       const s = new THREE.Mesh(stringGeo, stringMat);
@@ -91,12 +91,12 @@ export class ArcadeTaffyFlood {
       if (spellOn(on)) {
         // Candy ground, glossy and rippling a little, fading as the spell ends.
         const end = (left ?? 0) + on.event.lasts;
-        this.bandMat.opacity = Math.min(1, end / FADE) * (0.72 + 0.06 * Math.sin(now * 5));
+        this.bandMat.opacity = Math.min(1, end / FADE) * (0.88 + 0.06 * Math.sin(now * 5));
       } else if (left !== null && left <= 0) {
         this.band.visible = false;
       } else {
         // Faint before the snap; thickening as it bubbles up.
-        this.bandMat.opacity = 0.18 + 0.3 * rising;
+        this.bandMat.opacity = 0.3 + 0.35 * rising;
       }
       if (bubbling) this.bubble(area, origin, now, rising);
       if (spellOn(on)) n = this.stretch(state, on.event, origin);
