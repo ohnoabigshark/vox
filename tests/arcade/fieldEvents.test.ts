@@ -20,7 +20,8 @@ const hw = arcadeTuning.field.halfWidth;
 
 describe('Frog Rain is the first field event (test 1)', () => {
   it('its four parts are the numbers Frog Rain has always had, on screen', () => {
-    expect(fieldEventDefaults.map((e) => e.id)).toEqual(['frogRain']);
+    // Frog Rain first; the taffy flood came after it (round 5).
+    expect(fieldEventDefaults.map((e) => e.id)).toEqual(['frogRain', 'taffyFlood']);
     const f = FROG_RAIN;
     expect(f.name).toBe('Frog Rain');
     expect(f.boss).toBe('misterFrog');
@@ -37,6 +38,7 @@ describe('Frog Rain is the first field event (test 1)', () => {
     expect(f.goesOff / TIME_SCALE).toBeCloseTo(2.0, 9);
     expect(f.warning.buildUp / TIME_SCALE).toBeCloseTo(0.875, 9);
     expect(f.lasts / TIME_SCALE).toBeCloseTo(1.5, 9);
+    expect(f.goesOffAs).toBe('burst');
     expect(f.effect).toEqual({ kind: 'flatten', on: 'everyone' });
     expect(f.call).toBe('FROGGED!');
     expect(f.look).toBe('frogRain');

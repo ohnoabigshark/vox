@@ -5,7 +5,7 @@
  * event gets.
  */
 import type { FieldEvent } from './fieldEvents';
-import { eventProblem } from './savedEvents';
+import { eventProblem, readEvent } from './savedEvents';
 import { arcadeTuning } from './tuning';
 
 /** An event read from a link, or why it can't be played. */
@@ -50,7 +50,7 @@ export function readEventPractice(search: string): EventPractice | null {
   return {
     event: why
       ? { ok: false, reason: `This event link can’t be played: ${why}.` }
-      : { ok: true, event: parsed as FieldEvent },
+      : { ok: true, event: readEvent(parsed) },
     stretch,
   };
 }

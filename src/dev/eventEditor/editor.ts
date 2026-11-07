@@ -390,6 +390,7 @@ const STARTING: Omit<FieldEvent, 'id' | 'name'> = {
   boss: null,
   area: { shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 },
   goesOff: 1.6,
+  goesOffAs: 'burst',
   lasts: 1.2,
   warning: { buildUp: 0.7 },
   effect: { kind: 'flatten', on: 'everyone' },

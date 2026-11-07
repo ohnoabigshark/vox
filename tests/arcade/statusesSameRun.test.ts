@@ -9,7 +9,9 @@ import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
  * the Fast status changes nothing in play. Seeded runs, driven the same
  * way every time, give the same events and the same positions, step for
  * step, as `main` did before statuses (the digests below were taken there).
- * The status events themselves are new, so they're left out.
+ * The status events themselves are new, so they're left out. Since
+ * field-taffy, a run that reaches a taffy stretch plays differently, as it
+ * should; see EXPECTED.
  */
 
 /** The events the bolt's move must leave alone: all but the new status reports. */
@@ -73,10 +75,15 @@ describe('statuses: the bolt as Fast plays exactly as before', () => {
   }, 120_000);
 });
 
-/** Taken on main (adb458b) before statuses. */
+/**
+ * Taken on main (adb458b) before statuses. Seed 14 re-pinned on
+ * field-taffy (2026-11-07): its run reaches a stretch the seed gives the
+ * taffy flood. With generic events off (`genericShare: 0`), it gives
+ * 06fe520adac8ca51 again, as main did: the taffy is the only change.
+ */
 const EXPECTED: readonly string[] = [
   'bee0a1cd9e41aeda',
   'a0ba0b17cb615311',
   'f1489c668244d302',
-  '06fe520adac8ca51',
+  'bc5c904f83fffdab',
 ];

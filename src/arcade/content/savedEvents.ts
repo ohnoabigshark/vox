@@ -2,13 +2,15 @@
  * Saved events (docs/FIELD_EVENTS.md, k1): the events the Coach saved on the
  * event editor, laid over the defaults in fieldEvents.ts. A saved file is an
  * object of events by id; one that can't be read is left out with a warning
- * (never silently), and the rest are kept.
+ * (never silently), and the rest are kept. One saved before spells
+ * (2026-11-07) has no `goesOffAs`, and is read as the burst it was.
  *
  * It imports only types, so the hot-reload server's config can check saves
  * with it without reaching the saved file (tools/savedFile.ts).
  */
 import type { BossName } from '../sim/types';
-import type { Across, EventLook, FieldEvent, Who } from './fieldEvents';
+import type { Across, EventLook, FieldEvent, GoesOffAs, Who } from './fieldEvents';
+import type { StatusName } from './statuses';
 
 type Tree = Record<string, unknown>;
 
@@ -20,7 +22,9 @@ const ACROSS: Readonly<Record<Across, true>> = {
   either: true,
 };
 const WHO: Readonly<Record<Who, true>> = { yours: true, theirs: true, everyone: true };
-const LOOKS: Readonly<Record<EventLook, true>> = { frogRain: true, plain: true };
+const LOOKS: Readonly<Record<EventLook, true>> = { frogRain: true, taffyFlood: true, plain: true };
+const GOES_OFF_AS: Readonly<Record<GoesOffAs, true>> = { burst: true, spell: true };
+const STATUSES: Readonly<Record<StatusName, true>> = { fast: true, slowed: true };
 const BOSSES: Readonly<Record<BossName, true>> = { misterFrog: true, queen: true, king: true };
 
 const isTree = (x: unknown): x is Tree => typeof x === 'object' && x !== null && !Array.isArray(x);
@@ -44,9 +48,15 @@ export function eventProblem(id: string, x: unknown): string | null {
   if (typeof buildUp !== 'number' || !(buildUp >= 0 && Number.isFinite(buildUp))) {
     return 'its build-up is not a number';
   }
-  if (!isTree(x.effect) || x.effect.kind !== 'flatten')
-    return 'its effect is not one the game plays';
-  if (!oneOf(WHO, x.effect.on)) return 'its effect is not on yours, theirs or everyone';
+  if (x.goesOffAs !== undefined && !oneOf(GOES_OFF_AS, x.goesOffAs)) {
+    return 'it goes off as neither a burst nor a spell';
+  }
+  const effect = x.effect;
+  const flattens = isTree(effect) && effect.kind === 'flatten';
+  const gives = isTree(effect) && effect.kind === 'status' && oneOf(STATUSES, effect.status);
+  if (!isTree(effect) || !(flattens || gives)) return 'its effect is not one the game plays';
+  if (x.goesOffAs === 'spell' && !gives) return 'a spell must give a status';
+  if (!oneOf(WHO, effect.on)) return 'its effect is not on yours, theirs or everyone';
   if (x.call !== null && typeof x.call !== 'string') return 'its call is not words';
   if (!oneOf(LOOKS, x.look)) return 'its look is not one the game draws';
   return null;
@@ -73,6 +83,13 @@ function areaProblem(a: unknown): string | null {
   return null;
 }
 
+/** An event `eventProblem` passed, as the game plays it: one saved before spells is a burst. */
+export function readEvent(x: unknown): FieldEvent {
+  // Checked field by field by eventProblem.
+  const e = x as Omit<FieldEvent, 'goesOffAs'> & { goesOffAs?: GoesOffAs };
+  return { ...e, goesOffAs: e.goesOffAs ?? 'burst' };
+}
+
 /** The saved file's events that can be read, and a warning for each that can't. */
 export function checkSavedEvents(saved: unknown): {
   events: FieldEvent[];
@@ -89,8 +106,7 @@ export function checkSavedEvents(saved: unknown): {
   for (const [id, x] of Object.entries(saved)) {
     const why = eventProblem(id, x);
     if (why) warnings.push(`saved-events.json: ${id} can’t be read (${why}), so it was left out`);
-    // Checked field by field above.
-    else events.push(x as unknown as FieldEvent);
+    else events.push(readEvent(x));
   }
   return { events, warnings };
 }

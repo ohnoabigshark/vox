@@ -1,7 +1,8 @@
 /**
  * Field events (docs/FIELD_EVENTS.md): things that happen on the field
- * during a down, each four parts: an area, when it goes off, a warning
- * before it does, and an effect on whoever is in it. These are the
+ * during a down, each four parts: an area, when and how it goes off (a
+ * burst or a spell), a warning before it does, and an effect on whoever is
+ * in it. These are the
  * defaults; the event editor's Save lays its own over them.
  *
  * Times are sim seconds (the screen's times 0.8); distances are yards, from
@@ -11,8 +12,15 @@ import { assertNever } from '../../assertNever';
 import type { BossName } from '../sim/types';
 import saved from './saved-events.json' with { type: 'json' };
 import { checkSavedEvents, layerEvents } from './savedEvents';
-import { kindOf, type Polarity, type SourceKind, type Who } from './statuses';
-import { arcadeTuning } from './tuning';
+import {
+  kindOf,
+  statusPolarity,
+  type Polarity,
+  type SourceKind,
+  type StatusName,
+  type Who,
+} from './statuses';
+import { arcadeTuning, TIME_SCALE } from './tuning';
 
 /** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
 export type Across = 'left' | 'middle' | 'right' | 'either';
@@ -50,7 +58,21 @@ export interface FlattenEffect {
   readonly on: Who;
 }
 
-export type EventEffect = FlattenEffect;
+/** A status (docs/STATUSES.md) given to whoever it catches: for the event's `lasts` from a burst, while they're in it from a spell. */
+export interface StatusEffect {
+  readonly kind: 'status';
+  readonly status: StatusName;
+  readonly on: Who;
+}
+
+export type EventEffect = FlattenEffect | StatusEffect;
+
+/**
+ * How it goes off: a burst hits whoever is in the area at that moment; a
+ * spell holds whoever is in it for its `lasts`, letting go as they leave. A
+ * spell gives a status (a knockdown is a moment's, so it's a burst's).
+ */
+export type GoesOffAs = 'burst' | 'spell';
 
 /** The warning: shown faintly before the snap, then the event's own build-up for this long before it goes off. */
 export interface EventWarning {
@@ -58,7 +80,7 @@ export interface EventWarning {
 }
 
 /** Each event's own art (render/), or the plain look an event made on the editor has until it gets some. */
-export type EventLook = 'frogRain' | 'plain';
+export type EventLook = 'frogRain' | 'taffyFlood' | 'plain';
 
 export interface FieldEvent {
   readonly id: string;
@@ -66,9 +88,11 @@ export interface FieldEvent {
   /** The Boss whose gimmick it is, or null for a generic event. */
   readonly boss: BossName | null;
   readonly area: EventArea;
-  /** It goes off this long after the snap, as a burst: whoever is in it then… */
+  /** It goes off this long after the snap… */
   readonly goesOff: number;
-  /** …has its effect for this long. */
+  /** …as a burst (whoever is in it then) or a spell (whoever is in it while it lasts)… */
+  readonly goesOffAs: GoesOffAs;
+  /** …and its effect lasts this long. */
   readonly lasts: number;
   readonly warning: EventWarning;
   readonly effect: EventEffect;
@@ -94,6 +118,7 @@ export const FROG_RAIN: FieldEvent = {
     to: 16,
   },
   goesOff: 1.6,
+  goesOffAs: 'burst',
   lasts: 1.2,
   warning: { buildUp: 0.7 },
   effect: { kind: 'flatten', on: 'everyone' },
@@ -102,9 +127,36 @@ export const FROG_RAIN: FieldEvent = {
 };
 
 /**
+ * The taffy flood (FIELD_EVENTS.md round 5, t1): mischief. A band of pink
+ * candy across the whole field, 6 to 9 yards past the line, bubbling up
+ * after the snap; 1 s after it, it floods, and for 2 s everyone in it is
+ * Slowed. A band across the whole field has no way round, so the carrier
+ * doesn't steer round it (ai.ts).
+ */
+export const TAFFY_FLOOD: FieldEvent = {
+  id: 'taffyFlood',
+  name: 'Taffy Flood',
+  boss: null,
+  area: {
+    shape: 'band',
+    across: 'middle',
+    width: 2 * arcadeTuning.field.halfWidth,
+    from: 6,
+    to: 9,
+  },
+  goesOff: 1 * TIME_SCALE,
+  goesOffAs: 'spell',
+  lasts: 2 * TIME_SCALE,
+  warning: { buildUp: 0.6 },
+  effect: { kind: 'status', status: 'slowed', on: 'everyone' },
+  call: null,
+  look: 'taffyFlood',
+};
+
+/**
  * An event's kind, from its effect and who it hits (docs/STATUSES.md, s4):
  * a knockdown hurts, so flattening yours is a hex, theirs a blessing,
- * everyone mischief.
+ * everyone mischief; a status helps or hurts as that status does.
  */
 export function eventKind(event: FieldEvent): SourceKind {
   return kindOf(effectPolarity(event.effect), event.effect.on);
@@ -115,15 +167,27 @@ function effectPolarity(effect: EventEffect): Polarity {
   switch (effect.kind) {
     case 'flatten':
       return 'hurts';
+    case 'status':
+      return statusPolarity(effect.status);
     default:
-      return assertNever(effect.kind);
+      return assertNever(effect);
   }
 }
 
 /** The ids of the events in the code: what a series may name, so a wrong one won't compile. */
-export type DefaultEventId = 'frogRain';
+export type DefaultEventId = 'frogRain' | 'taffyFlood';
 
-const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = { frogRain: FROG_RAIN };
+const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = {
+  frogRain: FROG_RAIN,
+  taffyFlood: TAFFY_FLOOD,
+};
+
+/**
+ * Halloween's generic events (a2): what a stretch the seed picks may get,
+ * in any of its three areas (sim/run.ts, `genericEventFor`). Another set
+ * gets its own.
+ */
+export const GENERIC_EVENTS: readonly DefaultEventId[] = ['taffyFlood'];
 
 /** Every field event as the code has it. */
 export const fieldEventDefaults: readonly FieldEvent[] = Object.values(DEFAULTS);

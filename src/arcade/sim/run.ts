@@ -15,7 +15,7 @@ import { rngFor } from './random';
 import { assignMarks } from './ai';
 import { pickupsForArea } from './pickups';
 import { placeEvent } from './fieldEvents';
-import { fieldEventById, type DefaultEventId, type FieldEvent } from '../content/fieldEvents';
+import { fieldEventById, GENERIC_EVENTS, type FieldEvent } from '../content/fieldEvents';
 import { AREA_YARDS, BOSS_SPOT, areaPropsWithBoss } from './props';
 import { lineUpDefense, lineUpTeam } from './bodies';
 import {
@@ -303,10 +303,35 @@ export function setUpSeries(
   if (!ready) state.phase = 'draft';
 }
 
-/** This down's field event: the one practice tries, or else the series' own (Frog Rain), placed. */
-function placedEvent(state: RunState, id: DefaultEventId | undefined): FieldEventOn | null {
+/**
+ * This down's field event, placed: the one practice tries; else its
+ * stretch's own (Frog Rain); else its stretch's generic event, if the seed
+ * gave it one. The play editor's practice tests the play alone, as with
+ * pickups.
+ */
+function placedEvent(state: RunState, spec: DefenseSpec): FieldEventOn | null {
   if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
-  return id ? placeEvent(state, fieldEventById(id)) : null;
+  if (spec.fieldEvent) return placeEvent(state, fieldEventById(spec.fieldEvent));
+  if (state.practice) return null;
+  const generic = genericEventFor(state.seed, stretchNumber(state.series));
+  return generic ? placeEvent(state, generic) : null;
+}
+
+/**
+ * A stretch's generic event, or null (docs/FIELD_EVENTS.md round 5, a1,
+ * a4): from stretch 2, about one ordinary stretch in three, never a Boss's;
+ * the same for the same seed. Every down whose line is in the stretch gets
+ * it. Its random stream is its own, so the cards dealt and the pickups are
+ * as they were; whether a stretch gets one is drawn before which, so a
+ * bigger pool changes only which.
+ */
+export function genericEventFor(seed: number, stretch: number): FieldEvent | null {
+  const { genericFrom, genericShare } = arcadeTuning.fieldEvents;
+  if (stretch < genericFrom || stretchKind(stretchAt(stretch).stretch) === 'boss') return null;
+  const rng = rngFor(seed, 'stretchEvent', stretch);
+  if (rng.next() >= genericShare) return null;
+  const id = GENERIC_EVENTS[rng.int(0, GENERIC_EVENTS.length - 1)];
+  return id ? fieldEventById(id) : null;
 }
 
 /** The King's crows, back on his arms for a new down (he stands at BOSS_SPOT). */
@@ -353,7 +378,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
     defenders,
     props: state.field.props,
     pickups: state.field.pickups,
-    fieldEvent: placedEvent(state, spec.fieldEvent),
+    fieldEvent: placedEvent(state, spec),
     crows: spec.boss === 'king' ? perchedCrows() : null,
     ball: { at: 'qb' },
     runPath: null,

@@ -1,13 +1,14 @@
 /**
  * Field events in the sim (docs/FIELD_EVENTS.md): placed on the field each
  * down from the run's seed, counting down from the snap, and going off as a
- * burst: whoever is in the area then has the effect.
+ * burst (whoever is in the area then has the effect) or a spell (whoever is
+ * in it while it lasts).
  */
 import { arcadeTuning, DT } from '../content/tuning';
 import { assertNever } from '../../assertNever';
 import type { Across, EventArea, FieldEvent, Who } from '../content/fieldEvents';
 import { rngFor } from './random';
-import type { Body, FieldEventOn, PlacedArea, RunState } from './types';
+import type { Body, FieldEventOn, PlacedArea, RunState, StatusSource } from './types';
 import { dist, v } from './vec';
 
 /**
@@ -107,16 +108,39 @@ export function caughtBy(state: RunState, on: FieldEventOn): Body[] {
   );
 }
 
+/** How long after going off an event stays on the field for the show: a second, or a spell's whole time. */
+function afterGoingOff(event: FieldEvent): number {
+  return Math.max(1, event.goesOffAs === 'spell' ? event.lasts : 0);
+}
+
 /**
  * Count the event down one step of live play: true on the step it goes
- * off. Past zero it counts on to −1 for the show, then stops.
+ * off. Past zero it counts on (a second for the show, or a spell's time),
+ * then stops.
  */
 export function countDown(on: FieldEventOn): boolean {
   const left = on.left;
   if (left === null) return false;
   const next = left - DT;
-  on.left = next < -1 ? null : next;
+  on.left = next < -afterGoingOff(on.event) ? null : next;
   return left > 0 && next <= 0;
+}
+
+/** Whether a spell is on: gone off, and its `lasts` not yet over. False for a burst. */
+export function spellOn(on: FieldEventOn): boolean {
+  return (
+    on.event.goesOffAs === 'spell' && on.left !== null && on.left <= 0 && on.left > -on.event.lasts
+  );
+}
+
+/** The time a spell has left, once it's gone off. */
+export function spellLeft(on: FieldEventOn): number {
+  return on.left === null ? 0 : Math.max(0, on.left + on.event.lasts);
+}
+
+/** A field event as the source of the statuses it gives (docs/STATUSES.md, s5). */
+export function fromEvent(event: FieldEvent): StatusSource {
+  return { kind: 'fieldEvent', event: event.id };
 }
 
 /** Whether the event is still to go off this down and would catch the carrier (one of yours): one to steer clear of. */
