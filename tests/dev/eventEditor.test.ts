@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { FROG_RAIN, TAFFY_FLOOD, type FieldEvent } from '../../src/arcade/content/fieldEvents';
+import {
+  FROG_RAIN,
+  TAFFY_FLOOD,
+  WILL_O_WISPS,
+  type FieldEvent,
+} from '../../src/arcade/content/fieldEvents';
 import { arcadeTuning, TIME_SCALE } from '../../src/arcade/content/tuning';
 import {
   areaReadout,
@@ -19,6 +24,7 @@ import {
   setEffect,
   setGoesOffAs,
   effectChoice,
+  EFFECT_CHIPS,
   setNumber,
   startingValues,
   setOn,
@@ -300,5 +306,28 @@ describe('spells and Slowed on the editor (round 5, test 4)', () => {
 
   it('a new event starts as a burst', () => {
     expect(newEvent('Graveyard rain', []).goesOffAs).toBe('burst');
+  });
+});
+
+describe('Ethereal on the editor (round 5, test 8)', () => {
+  it('the effects offered are Flatten, Slowed and Ethereal, none greyed', () => {
+    expect(EFFECT_CHIPS).toEqual([
+      { value: 'flatten', text: 'Flatten' },
+      { value: 'slowed', text: 'Slowed' },
+      { value: 'ethereal', text: 'Ethereal' },
+    ]);
+  });
+
+  it('Ethereal can be picked, on whoever it was on, a step for Undo; a spell of it is the wisps’ kind', () => {
+    const s = setEffect(setOn(startEditing(lane), 'yours'), 'ethereal');
+    expect(s.event.effect).toEqual({ kind: 'status', status: 'ethereal', on: 'yours' });
+    expect(effectChoice(s.event.effect)).toBe('ethereal');
+    expect(undo(s).event.effect).toEqual({ kind: 'flatten', on: 'yours' });
+    const spell = setGoesOffAs(s, 'spell');
+    expect(spell.event.effect).toEqual({ kind: 'status', status: 'ethereal', on: 'yours' });
+  });
+
+  it('the wisps open on it as they are', () => {
+    expect(effectChoice(startEditing(WILL_O_WISPS).event.effect)).toBe('ethereal');
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   FROG_RAIN,
   TAFFY_FLOOD,
+  WILL_O_WISPS,
   fieldEventDefaults,
   type FieldEvent,
 } from '../../src/arcade/content/fieldEvents';
@@ -26,9 +27,14 @@ describe('saved events (test 5)', () => {
     const { events, warnings } = checkSavedEvents({ frogRain: tuned, graveyardRain: made });
     expect(warnings).toEqual([]);
     const layered = layerEvents(fieldEventDefaults, events);
-    expect(layered.map((e) => e.id)).toEqual(['frogRain', 'taffyFlood', 'graveyardRain']);
+    expect(layered.map((e) => e.id)).toEqual([
+      'frogRain',
+      'taffyFlood',
+      'willOWisps',
+      'graveyardRain',
+    ]);
     expect(layered[0]?.goesOff).toBe(2);
-    expect(layered[2]).toEqual(made);
+    expect(layered[3]).toEqual(made);
   });
 
   it('nothing saved plays the defaults; Restore (dropping it from the file) puts one back', () => {
@@ -86,6 +92,13 @@ describe('spells and statuses, saved (round 5, test 5)', () => {
     const { events, warnings } = checkSavedEvents({ taffyFlood: taffy });
     expect(warnings).toEqual([]);
     expect(events).toEqual([taffy]);
+  });
+
+  it('one with a spell of Ethereal reads back as saved (the wisps, test 8)', () => {
+    const wisps: FieldEvent = { ...WILL_O_WISPS, lasts: 2 };
+    const { events, warnings } = checkSavedEvents({ willOWisps: wisps });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([wisps]);
   });
 
   it('today’s saved file still reads: an event saved before spells is a burst', () => {

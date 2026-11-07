@@ -130,6 +130,18 @@ export const SFX = {
     notes: [1, 1.5, 2],
     noteStep: 0.04,
   },
+  /** The will-o'-wisps flaring (docs/FIELD_EVENTS.md, w1): a soft, rising shimmer. */
+  wisp: {
+    wave: 'sine',
+    freq: 880,
+    freqEnd: 1320,
+    attack: 0.04,
+    decay: 0.35,
+    volume: 0.25,
+    notes: [1, 1.5, 1.25, 2],
+    noteStep: 0.07,
+    jitter: 15,
+  },
   /** An oil slick: a sliding whoop down. */
   slip: { wave: 'sine', freq: 520, freqEnd: 120, attack: 0.004, decay: 0.35, volume: 0.55 },
   uiClick: { wave: 'triangle', freq: 660, attack: 0.001, decay: 0.05, volume: 0.3, bus: 'ui' },

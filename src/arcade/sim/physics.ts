@@ -12,7 +12,7 @@ import { arcadeTuning, DT } from '../content/tuning';
 import { defenderTarget, handedOff, playerTarget } from './ai';
 import { steps } from './bodies';
 import { clearOfProps, steerAround } from './props';
-import { speedShare, wearStatuses } from './status';
+import { hasStatus, speedShare, wearStatuses } from './status';
 import type { ArcadeEvent, Body, RunState } from './types';
 import { add, clampLen, dist, len, norm, scale, sub, v } from './vec';
 
@@ -91,7 +91,8 @@ export function moveBodies(state: RunState, events: ArcadeEvent[]): void {
 function blockedShare(state: RunState, d: Body, carrierId: number | null): number {
   let share = 1;
   for (const p of state.field.players) {
-    if (p.down > 0 || p.role === 'qb' || p.id === carrierId || !touching(p, d)) continue;
+    if (p.down > 0 || p.role === 'qb' || p.id === carrierId) continue;
+    if (!touching(p, d) || !canTouch(p, d)) continue;
     const s = p.mass >= d.mass ? arcadeTuning.contact.held : arcadeTuning.contact.slowed;
     share = Math.min(share, s);
   }
@@ -112,7 +113,7 @@ function driveBlocks(state: RunState, carrierId: number): void {
     let by: Body | null = null;
     for (const p of state.field.players) {
       if (p.down > 0 || p.role === 'qb' || p.role === 'catcher' || p.id === carrierId) continue;
-      if (!touching(p, d)) continue;
+      if (!touching(p, d) || !canTouch(p, d)) continue;
       const gap = steps(p.stats.heft) - steps(d.stats.heft);
       const rate = Math.max(drive.min, Math.min(drive.max, drive.base + drive.perHeft * gap));
       if (rate > best) {
@@ -133,6 +134,7 @@ function driveBlocks(state: RunState, carrierId: number): void {
 /** Whether two bodies collide with each other at all. */
 function collides(state: RunState, a: Body, b: Body): boolean {
   if ((a.side === 'defense' && a.latch) || (b.side === 'defense' && b.latch)) return false;
+  if (!canTouch(a, b)) return false;
   if (a.side === 'team' && b.side === 'team') {
     return a.role !== 'qb' && b.role !== 'qb';
   }
@@ -177,6 +179,20 @@ export function separate(state: RunState): void {
   // A shove never pushes anyone but the carrier out of bounds.
   const carrier = state.field.ball.at === 'carried' ? state.field.ball.by : null;
   for (const b of bodies) keepInBounds(b, carrier);
+}
+
+/**
+ * Whether two bodies can lay hands on each other (docs/STATUSES.md,
+ * Ethereal): yours and theirs can't when either is Ethereal, so no grab,
+ * tackle, block, pancake or shove between them. Your own players still
+ * bump. The one place it's decided; a defender already hanging on stays on
+ * (its latch), since that grab came first.
+ */
+export function canTouch(
+  a: Pick<Body, 'side' | 'statuses'>,
+  b: Pick<Body, 'side' | 'statuses'>,
+): boolean {
+  return a.side === b.side || !(hasStatus(a, 'ethereal') || hasStatus(b, 'ethereal'));
 }
 
 /** Whether two bodies are touching (for tackles, sacks and pancakes). */

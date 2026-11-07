@@ -21,7 +21,7 @@ const hw = arcadeTuning.field.halfWidth;
 describe('Frog Rain is the first field event (test 1)', () => {
   it('its four parts are the numbers Frog Rain has always had, on screen', () => {
     // Frog Rain first; the taffy flood came after it (round 5).
-    expect(fieldEventDefaults.map((e) => e.id)).toEqual(['frogRain', 'taffyFlood']);
+    expect(fieldEventDefaults.map((e) => e.id)).toEqual(['frogRain', 'taffyFlood', 'willOWisps']);
     const f = FROG_RAIN;
     expect(f.name).toBe('Frog Rain');
     expect(f.boss).toBe('misterFrog');

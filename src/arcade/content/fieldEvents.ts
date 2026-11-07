@@ -81,7 +81,7 @@ export interface EventWarning {
 }
 
 /** Each event's own art (render/), or the plain look an event made on the editor has until it gets some. */
-export type EventLook = 'frogRain' | 'taffyFlood' | 'plain';
+export type EventLook = 'frogRain' | 'taffyFlood' | 'wisps' | 'plain';
 
 export interface FieldEvent {
   readonly id: string;
@@ -155,6 +155,27 @@ export const TAFFY_FLOOD: FieldEvent = {
 };
 
 /**
+ * The will-o'-wisps (FIELD_EVENTS.md, w1): a blessing. A circle 4 yards
+ * across, 12 yards past the line on either side (picked each down, as Frog
+ * Rain's lane is), pale green lights hovering in it from before the snap;
+ * 1 s after it, they flare, and for 3 s your players in it are Ethereal:
+ * no defender can grab or tackle them, and they pass through each other.
+ */
+export const WILL_O_WISPS: FieldEvent = {
+  id: 'willOWisps',
+  name: 'Will-o’-Wisps',
+  boss: null,
+  area: { shape: 'circle', across: 'either', out: 5, at: 12, radius: 2 },
+  goesOff: 1 * TIME_SCALE,
+  goesOffAs: 'spell',
+  lasts: 3 * TIME_SCALE,
+  warning: { buildUp: 0.6 },
+  effect: { kind: 'status', status: 'ethereal', on: 'yours' },
+  call: null,
+  look: 'wisps',
+};
+
+/**
  * An event's kind, from its effect and who it hits (docs/STATUSES.md, s4):
  * a knockdown hurts, so flattening yours is a hex, theirs a blessing,
  * everyone mischief; a status helps or hurts as that status does.
@@ -164,7 +185,7 @@ export function eventKind(event: FieldEvent): SourceKind {
 }
 
 /** Whether an effect helps the bodies it lands on or hurts them. */
-function effectPolarity(effect: EventEffect): Polarity {
+export function effectPolarity(effect: EventEffect): Polarity {
   switch (effect.kind) {
     case 'flatten':
       return 'hurts';
@@ -176,11 +197,12 @@ function effectPolarity(effect: EventEffect): Polarity {
 }
 
 /** The ids of the events in the code: what a series may name, so a wrong one won't compile. */
-export type DefaultEventId = 'frogRain' | 'taffyFlood';
+export type DefaultEventId = 'frogRain' | 'taffyFlood' | 'willOWisps';
 
 const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = {
   frogRain: FROG_RAIN,
   taffyFlood: TAFFY_FLOOD,
+  willOWisps: WILL_O_WISPS,
 };
 
 /**
@@ -188,7 +210,7 @@ const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = {
  * in any of its three areas (sim/run.ts, `genericEventFor`). Another set
  * gets its own.
  */
-export const GENERIC_EVENTS: readonly DefaultEventId[] = ['taffyFlood'];
+export const GENERIC_EVENTS: readonly DefaultEventId[] = ['taffyFlood', 'willOWisps'];
 
 /** Every field event as the code has it. */
 export const fieldEventDefaults: readonly FieldEvent[] = Object.values(DEFAULTS);

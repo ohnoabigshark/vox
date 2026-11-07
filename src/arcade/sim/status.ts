@@ -101,6 +101,8 @@ function speedOf(name: StatusName): number {
       return 1 + arcadeTuning.statuses.fast.faster;
     case 'slowed':
       return arcadeTuning.statuses.slowed.share;
+    case 'ethereal':
+      return 1;
     default:
       return assertNever(name);
   }

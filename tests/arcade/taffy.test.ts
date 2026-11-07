@@ -4,6 +4,7 @@ import {
   eventKind,
   FROG_RAIN,
   fieldEventDefaults,
+  GENERIC_EVENTS,
   fieldEvents,
   TAFFY_FLOOD,
   type FieldEvent,
@@ -319,7 +320,8 @@ describe('generic events in a run (test 3)', () => {
         ordinaries++;
         if (e) {
           picked++;
-          expect(e.id).toBe('taffyFlood');
+          // One of Halloween's generic events (the taffy, and since field-wisps the wisps).
+          expect(GENERIC_EVENTS).toContain(e.id);
         }
       }
     }

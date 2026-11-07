@@ -24,9 +24,14 @@ const ACROSS: Readonly<Record<Across, true>> = {
   either: true,
 };
 const WHO: Readonly<Record<Who, true>> = { yours: true, theirs: true, everyone: true };
-const LOOKS: Readonly<Record<EventLook, true>> = { frogRain: true, taffyFlood: true, plain: true };
+const LOOKS: Readonly<Record<EventLook, true>> = {
+  frogRain: true,
+  taffyFlood: true,
+  wisps: true,
+  plain: true,
+};
 const GOES_OFF_AS: Readonly<Record<GoesOffAs, true>> = { burst: true, spell: true };
-const EVENT_STATUSES: Readonly<Record<EventStatus, true>> = { slowed: true };
+const EVENT_STATUSES: Readonly<Record<EventStatus, true>> = { slowed: true, ethereal: true };
 const BOSSES: Readonly<Record<BossName, true>> = { misterFrog: true, queen: true, king: true };
 
 const isTree = (x: unknown): x is Tree => typeof x === 'object' && x !== null && !Array.isArray(x);

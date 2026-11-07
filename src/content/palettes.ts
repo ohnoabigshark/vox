@@ -78,6 +78,8 @@ export const voxel = {
   candyPink: '#ff8fc7',
   mint: '#7fe3c0',
   chocolate: '#4a2a1a',
+  // The will-o'-wisps' pale lights.
+  wispGreen: '#c4ffd6',
 } as const satisfies Record<string, Hex>;
 
 /**
