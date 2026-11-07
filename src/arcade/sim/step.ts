@@ -214,7 +214,7 @@ function resolveContact(state: RunState, events: ArcadeEvent[]): boolean {
       p.job.kind === 'block' || (carrier !== null && p !== carrier && p.role !== 'qb');
     if (p.down > 0 || !blocking) continue;
     for (const d of upDefenders) {
-      if (d.planted || d.down > 0 || !touching(p, d) || !canTouch(p, d)) continue;
+      if (d.planted || d.down > 0 || !touching(p, d)) continue;
       if (p.role === 'blocker') noteHeld(state.tally, p.slot);
       const ratio = handedOff(state) ? contact.runPancakeRatio : contact.pancakeRatio;
       if (p.mass < ratio * d.mass) continue;
@@ -229,12 +229,7 @@ function resolveContact(state: RunState, events: ArcadeEvent[]): boolean {
   const free = state.field.breakaway > 0;
   if (free) state.field.breakaway = Math.max(0, state.field.breakaway - DT);
   const grabbing = upDefenders.filter(
-    (d) =>
-      d.down <= 0 &&
-      !d.latch &&
-      touching(carrier, d) &&
-      canTouch(carrier, d) &&
-      (!free || d.planted),
+    (d) => d.down <= 0 && !d.latch && touching(carrier, d) && (!free || d.planted),
   );
   if (grabbing.length === 0) return false;
   // Running into a planted Scarecrow stops you dead, and a Safety's tackle is sure.
@@ -363,8 +358,9 @@ function catchGraded(
   if (grade === 'ok') {
     // Caught in the end zone is a touchdown before anyone tackles; anywhere else, tackled there,
     // unless the receiver is Ethereal and runs on (nobody can lay a hand on it).
-    const tackled = !first || canTouch(receiver, first);
-    if (!checkCarrier(state, events) && tackled) tackle(state, receiver, first?.id ?? -1, events);
+    const tackleable = !first || canTouch(receiver, first);
+    if (!checkCarrier(state, events) && tackleable)
+      tackle(state, receiver, first?.id ?? -1, events);
     return;
   }
   for (const d of defenders) knockFlying(d, receiver.pos, contact.brokenTime, contact.brokenSpeed);

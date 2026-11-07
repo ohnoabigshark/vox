@@ -224,6 +224,9 @@ Written down, none built; each comes back as its own map:
   a Safety's sure one; no block, drive block or pancake from an Ethereal
   Blocker; no shove either way; and a rusher on an Ethereal Blocker isn't
   locked up, so it can bat the ball. Your own players still bump each other.
+  `touching` asks it itself (review r2), so every contact check that uses
+  `touching` keeps the rule; `collides` (the shove), the rusher's
+  `engaged` (its own distance) and the OK catch ask it directly.
 - **A ball still reaches an Ethereal receiver,** and a defender can still
   bat it. A contested catch graded OK (SNAG IT! or the tip drill) is caught
   and, since nobody can tackle it, the receiver runs on rather than being

@@ -92,7 +92,7 @@ function blockedShare(state: RunState, d: Body, carrierId: number | null): numbe
   let share = 1;
   for (const p of state.field.players) {
     if (p.down > 0 || p.role === 'qb' || p.id === carrierId) continue;
-    if (!touching(p, d) || !canTouch(p, d)) continue;
+    if (!touching(p, d)) continue;
     const s = p.mass >= d.mass ? arcadeTuning.contact.held : arcadeTuning.contact.slowed;
     share = Math.min(share, s);
   }
@@ -113,7 +113,7 @@ function driveBlocks(state: RunState, carrierId: number): void {
     let by: Body | null = null;
     for (const p of state.field.players) {
       if (p.down > 0 || p.role === 'qb' || p.role === 'catcher' || p.id === carrierId) continue;
-      if (!touching(p, d) || !canTouch(p, d)) continue;
+      if (!touching(p, d)) continue;
       const gap = steps(p.stats.heft) - steps(d.stats.heft);
       const rate = Math.max(drive.min, Math.min(drive.max, drive.base + drive.perHeft * gap));
       if (rate > best) {
@@ -195,7 +195,11 @@ export function canTouch(
   return a.side === b.side || !(hasStatus(a, 'ethereal') || hasStatus(b, 'ethereal'));
 }
 
-/** Whether two bodies are touching (for tackles, sacks and pancakes). */
+/**
+ * Whether two bodies are touching (for tackles, sacks, blocks and
+ * pancakes): close enough, and able to lay hands on each other at all
+ * (`canTouch`), so no contact check can forget Ethereal.
+ */
 export function touching(a: Body, b: Body): boolean {
-  return dist(a.pos, b.pos) <= a.radius + b.radius + arcadeTuning.contact.slop;
+  return dist(a.pos, b.pos) <= a.radius + b.radius + arcadeTuning.contact.slop && canTouch(a, b);
 }

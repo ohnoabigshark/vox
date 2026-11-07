@@ -939,9 +939,9 @@ a future refactor."_ Each says what was left, why, and where it's planned.
 - **The render loop reads `performance.now()`** rather than animation time
   as elsewhere (field events review r19).
 - **A status's looks in one place.** Slowed's heavy step is drawn in
-  `render/bodies.ts` but Fast's sparks still with the pickups
-  (`render/pickups.ts`), where the bolt left them; Ethereal will be a third.
-  Gather them when the wisps add it, or after (`docs/STATUSES.md`, s7).
+  `render/bodies.ts`, and since field-wisps Ethereal's see-through look
+  with it, but Fast's sparks still with the pickups (`render/pickups.ts`),
+  where the bolt left them. Gather them (`docs/STATUSES.md`, s7).
 - **A spell over a timed status of the same name:** stepping out of a spell
   ends its status, losing the rest of a timed one of the same name that it
   took the place of. Nothing gives Slowed but the taffy yet; a status list
@@ -953,6 +953,7 @@ a future refactor."_ Each says what was left, why, and where it's planned.
   refuses everywhere instead. A union would make it unwritable, but reshapes
   the event, the editor's every change and the saved file (taffy review r4).
 - **One helper for an event's phase** (before the snap, building up, on,
-  after): each look (`render/taffyFlood.ts`, the plain look) reads the
-  countdown itself. Gather it with the statuses' looks, above (taffy review
+  after): each look (`render/taffyFlood.ts`, `render/wisps.ts`, the
+  plain look) reads the countdown itself; the wisps' `spent` is one such
+  read (wisps review r4). Gather it with the statuses' looks, above (taffy review
   l2).

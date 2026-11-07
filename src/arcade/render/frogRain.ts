@@ -12,6 +12,7 @@ import type { RunState } from '../sim/types';
 import { v } from '../sim/vec';
 import { getGeometry, voxelMaterial } from '../../voxel/models';
 import { toWorld } from './world';
+import { hash } from './hash';
 
 /** How many frogs make the shower, and how high they fall from (yards) in how long (seconds). */
 const FROGS = 40;
@@ -30,12 +31,6 @@ interface Frog {
   readonly along: number;
   readonly lands: number;
 }
-
-/** A cheap repeatable "random" number for frog i (so the shower looks the same every time). */
-const hash = (i: number, k: number): number => {
-  const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-};
 
 export class ArcadeFrogRain {
   private readonly lane: THREE.Mesh;

@@ -13,6 +13,7 @@ import { downOn } from '../sim/run';
 import type { RunState } from '../sim/types';
 import { v } from '../sim/vec';
 import { toWorld } from './world';
+import { hash } from './hash';
 
 /** How many lights, how big each is (yards), and how high they hover (yards). */
 const LIGHTS = 9;
@@ -20,12 +21,6 @@ const LIGHT_SIZE = 0.16;
 const HOVER = { low: 0.5, high: 1.4 };
 /** How long the glow takes to fade as the spell ends (sim seconds). */
 const FADE = 0.3;
-
-/** A cheap repeatable "random" number for light i, so the lights drift the same way every time. */
-const hash = (i: number, k: number): number => {
-  const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-};
 
 export class ArcadeWisps {
   private readonly glow: THREE.Mesh;
@@ -64,8 +59,9 @@ export class ArcadeWisps {
   update(state: RunState, origin: number, now: number): void {
     const on = state.field.fieldEvent?.event.look === 'wisps' ? state.field.fieldEvent : null;
     const area = on?.area.shape === 'circle' ? on.area : null;
-    const gone = on?.left !== null && on?.left !== undefined && on.left <= 0 && !spellOn(on);
-    const show = on !== null && area !== null && downOn(state.phase) && !gone;
+    // Gone off, and its spell run out: the lights are spent for this down.
+    const spent = on !== null && on.left !== null && on.left <= 0 && !spellOn(on);
+    const show = on !== null && area !== null && downOn(state.phase) && !spent;
     this.glow.visible = show;
     for (const l of this.lights) l.visible = show;
     if (!show) return;

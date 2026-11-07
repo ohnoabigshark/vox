@@ -39,6 +39,9 @@ import { dotOpen } from '../../src/arcade/sim/snag';
 
 const FROM_WISPS = { kind: 'fieldEvent', event: 'willOWisps' } as const;
 
+/** One of your players by id (to set its job). */
+const yours = (s: RunState, id: number) => s.field.players.find((p) => p.id === id)!;
+
 /** Make a body Ethereal for a good while, as the wisps would. */
 const ghost = <B extends Body>(b: B): B => {
   giveStatus(b, 'ethereal', 10, FROM_WISPS, []);
@@ -75,7 +78,7 @@ describe('the wisps (w1)', () => {
     expect(speedShare(ghost(body(s, 2)))).toBe(1);
   });
 
-  it('holds your players in it while it’s on, never a defender; it lets go as it ends', () => {
+  it('holds your players in it while it’s on, never a defender', () => {
     // Yours (2) and a Cover (100) standing in the circle, on the side the seed puts it.
     const s = playState(
       [{ pos: v(0, 12), job: stand(v(0, 12)) }],
@@ -85,11 +88,42 @@ describe('the wisps (w1)', () => {
     const area = s.field.fieldEvent!.area;
     if (area.shape !== 'circle') throw new Error('not a circle');
     for (const b of [body(s, 2), body(s, 100)]) b.pos = v(area.x, area.y);
+    yours(s, 2).job = stand(v(area.x, area.y));
     body(s, 100).vel = v(0, 0);
     const on = run(s, 0.2).state;
     expect(hasStatus(body(on, 2), 'ethereal')).toBe(true);
     expect(heldBy(body(on, 2), on.field.fieldEvent!)).toBe(true);
     expect(hasStatus(body(on, 100), 'ethereal')).toBe(false);
+  });
+
+  it('lets go as one leaves the circle, and of everyone as the spell ends', () => {
+    // Two of yours in the circle: 2 walks out once it's on, 3 stays put.
+    const s = playState([
+      { pos: v(0, 12), job: stand(v(0, 12)) },
+      { pos: v(0, 12), job: stand(v(0, 12)) },
+    ]);
+    setOff(s, WILL_O_WISPS);
+    const area = s.field.fieldEvent!.area;
+    if (area.shape !== 'circle') throw new Error('not a circle');
+    for (const id of [2, 3]) {
+      body(s, id).pos = v(area.x, area.y);
+      yours(s, id).job = stand(v(area.x, area.y));
+    }
+    const on = run(s, 0.2).state;
+    expect(hasStatus(body(on, 2), 'ethereal')).toBe(true);
+    expect(hasStatus(body(on, 3), 'ethereal')).toBe(true);
+
+    // 2 is carried well out of the circle: within a step or two it's solid again; 3 isn't.
+    const outside = v(area.x > 0 ? area.x - area.r - 3 : area.x + area.r + 3, area.y);
+    body(on, 2).pos = outside;
+    yours(on, 2).job = stand(outside);
+    const left = run(on, 0.1).state;
+    expect(hasStatus(body(left, 2), 'ethereal')).toBe(false);
+    expect(hasStatus(body(left, 3), 'ethereal')).toBe(true);
+
+    // The spell ends (3 s on screen): 3, still standing in it, is solid too.
+    const ended = run(left, WILL_O_WISPS.lasts + 0.2).state;
+    expect(hasStatus(body(ended, 3), 'ethereal')).toBe(false);
   });
 
   it('the carrier doesn’t steer away from it: it’s a blessing, not a danger; Frog Rain and the taffy still are', () => {
@@ -169,7 +203,10 @@ describe('Ethereal (test 6)', () => {
     const s = playState([{ pos: v(4, 6), job: stand(v(4, 6)) }], [{ kind: 'cover', pos: v(2, 1) }]);
     ghost(body(s, 2));
     const r = run(s, 2, throwAt(s, v(4, 6)));
-    expect(ofType(r.events, 'batted')[0]).toMatchObject({ by: 100, contested: false });
+    expect(ofType(r.events, 'batted')).toEqual([
+      // No target: the Cover got there before the Catcher could reach it (docs/STATS.md, t1).
+      { type: 'batted', by: 100, at: expect.anything(), contested: false, target: null },
+    ]);
   });
 
   it('a contested catch graded OK isn’t a tackle: an Ethereal receiver keeps the ball and runs on', () => {
