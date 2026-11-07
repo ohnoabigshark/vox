@@ -199,7 +199,12 @@ Written down, none built; each comes back as its own map:
   Slowed for a while from elsewhere and steps into the taffy takes the
   spell's (the longer), and stepping out ends it, losing what was left of
   the other. Nothing gives Slowed but the taffy yet (`PLAN.md`, "Left for a
-  later refactor").
+  later refactor"). One whose own is longer keeps it, and the spell doesn't
+  give it again each step: a give that would change nothing isn't made
+  (`givingChanges`, taffy review r2).
+- **Which a field event may give** is `EventStatus` in
+  `content/statuses.ts`: Slowed, for now (taffy review r3). Fast stays the
+  bolt's; the wisps add Ethereal.
 - **How Slowed shows** (s7): `render/bodies.ts` gives any Slowed body a
   slow, deep bob, leaning into it. Fast's sparks are still drawn with the
   pickups (`render/pickups.ts`); see `PLAN.md`.

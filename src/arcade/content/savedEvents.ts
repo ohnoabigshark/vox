@@ -5,12 +5,14 @@
  * (never silently), and the rest are kept. One saved before spells
  * (2026-11-07) has no `goesOffAs`, and is read as the burst it was.
  *
- * It imports only types, so the hot-reload server's config can check saves
- * with it without reaching the saved file (tools/savedFile.ts).
+ * It imports only types and the spell rule (spells.ts), so the hot-reload
+ * server's config can check saves with it without reaching the saved file
+ * (tools/savedFile.ts).
  */
 import type { BossName } from '../sim/types';
 import type { Across, EventLook, FieldEvent, GoesOffAs, Who } from './fieldEvents';
-import type { StatusName } from './statuses';
+import { keepsSpellRule } from './spells';
+import type { EventStatus } from './statuses';
 
 type Tree = Record<string, unknown>;
 
@@ -24,7 +26,7 @@ const ACROSS: Readonly<Record<Across, true>> = {
 const WHO: Readonly<Record<Who, true>> = { yours: true, theirs: true, everyone: true };
 const LOOKS: Readonly<Record<EventLook, true>> = { frogRain: true, taffyFlood: true, plain: true };
 const GOES_OFF_AS: Readonly<Record<GoesOffAs, true>> = { burst: true, spell: true };
-const STATUSES: Readonly<Record<StatusName, true>> = { fast: true, slowed: true };
+const EVENT_STATUSES: Readonly<Record<EventStatus, true>> = { slowed: true };
 const BOSSES: Readonly<Record<BossName, true>> = { misterFrog: true, queen: true, king: true };
 
 const isTree = (x: unknown): x is Tree => typeof x === 'object' && x !== null && !Array.isArray(x);
@@ -53,9 +55,9 @@ export function eventProblem(id: string, x: unknown): string | null {
   }
   const effect = x.effect;
   const flattens = isTree(effect) && effect.kind === 'flatten';
-  const gives = isTree(effect) && effect.kind === 'status' && oneOf(STATUSES, effect.status);
+  const gives = isTree(effect) && effect.kind === 'status' && oneOf(EVENT_STATUSES, effect.status);
   if (!isTree(effect) || !(flattens || gives)) return 'its effect is not one the game plays';
-  if (x.goesOffAs === 'spell' && !gives) return 'a spell must give a status';
+  if (!keepsSpellRule(readEvent(x))) return 'a spell must give a status';
   if (!oneOf(WHO, effect.on)) return 'its effect is not on yours, theirs or everyone';
   if (x.call !== null && typeof x.call !== 'string') return 'its call is not words';
   if (!oneOf(LOOKS, x.look)) return 'its look is not one the game draws';

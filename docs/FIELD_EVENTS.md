@@ -368,7 +368,13 @@ last two played before they merge.
   it goes off for its `lasts` (`holdSpell` in `sim/step.ts`). Its status is
   given for the spell's time left and a step more, so the spell ends it,
   reported, as the body steps out or the spell ends, not its wearing off.
-  A spell must give a status: a knockdown is a moment's, a burst's.
+  Whether a body is held is `heldBy` (`sim/fieldEvents.ts`), which the sim
+  and the look both ask. A body with a longer one of the same status from
+  elsewhere keeps it, and isn't given the spell's again each step (review
+  r2). A spell must give a status: a knockdown is a moment's, a burst's.
+  That rule is `spellStatus` and `keepsSpellRule` (`content/spells.ts`),
+  which the sim, the saved-events check and the editor all ask, and every
+  event in the code keeps it (a test; review r4).
 - **An effect can give a status** (`StatusEffect`: which status, on whom):
   a burst gives it for `lasts` to whoever it catches. Its source is the
   field event, by id (`{ kind: 'fieldEvent', event }`). A spell or a burst
@@ -396,10 +402,13 @@ last two played before they merge.
 - **Saved events and Try it links** from before spells have no
   `goesOffAs` and read as bursts (`readEvent`); one naming a spell that
   doesn't give a status is left out with a warning, as is one whose status
-  the game doesn't play.
+  a field event may not give. A field event gives Slowed only, for now
+  (`EventStatus` in `content/statuses.ts`; review r3): not Fast.
 - **The editor** offers Burst and Spell, Flatten and Slowed (Ethereal greyed
-  until the wisps). Spell over a flatten makes it Slowed; Flatten makes it
-  a burst; who it lands on is kept.
+  until the wisps), a status chip for each `EventStatus`. Spell over a
+  flatten makes it Slowed; Flatten makes it a burst; who it lands on is
+  kept. Test 4's Try it plays a spell made with the editor's own Spell and
+  Slowed (review r5).
 - **Play changes where the taffy is:** of the four seeded runs in
   `statusesSameRun.test.ts`, seed 14's reaches a taffy stretch and was
   re-pinned; with `genericShare` 0, all four are `main`'s again.

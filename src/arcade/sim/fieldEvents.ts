@@ -7,7 +7,10 @@
 import { arcadeTuning, DT } from '../content/tuning';
 import { assertNever } from '../../assertNever';
 import type { Across, EventArea, FieldEvent, Who } from '../content/fieldEvents';
+import { spellStatus } from '../content/spells';
+import { allBodies } from './physics';
 import { rngFor } from './random';
+import { sameSource, statusOf } from './status';
 import type { Body, FieldEventOn, PlacedArea, RunState, StatusSource } from './types';
 import { dist, v } from './vec';
 
@@ -98,7 +101,7 @@ function hits(who: Who, side: Body['side']): boolean {
  * locked up with one of your players (a Rhino Beetle, planted).
  */
 export function caughtBy(state: RunState, on: FieldEventOn): Body[] {
-  return [...state.field.players, ...state.field.defenders].filter(
+  return allBodies(state).filter(
     (b) =>
       b.down <= 0 &&
       hits(on.event.effect.on, b.side) &&
@@ -109,8 +112,8 @@ export function caughtBy(state: RunState, on: FieldEventOn): Body[] {
 }
 
 /** How long after going off an event stays on the field for the show: a second, or a spell's whole time. */
-function afterGoingOff(event: FieldEvent): number {
-  return Math.max(1, event.goesOffAs === 'spell' ? event.lasts : 0);
+function showsFor(event: FieldEvent): number {
+  return Math.max(1, spellStatus(event) === null ? 0 : event.lasts);
 }
 
 /**
@@ -122,15 +125,27 @@ export function countDown(on: FieldEventOn): boolean {
   const left = on.left;
   if (left === null) return false;
   const next = left - DT;
-  on.left = next < -afterGoingOff(on.event) ? null : next;
+  on.left = next < -showsFor(on.event) ? null : next;
   return left > 0 && next <= 0;
 }
 
 /** Whether a spell is on: gone off, and its `lasts` not yet over. False for a burst. */
 export function spellOn(on: FieldEventOn): boolean {
   return (
-    on.event.goesOffAs === 'spell' && on.left !== null && on.left <= 0 && on.left > -on.event.lasts
+    spellStatus(on.event) !== null && on.left !== null && on.left <= 0 && on.left > -on.event.lasts
   );
+}
+
+/**
+ * Whether the spell holds this body: it has the spell's status, from this
+ * event (the one place it's decided, for the sim and the look alike; the
+ * review's r1). A status of the same name from elsewhere isn't held.
+ */
+export function heldBy(b: Pick<Body, 'statuses'>, on: FieldEventOn): boolean {
+  const status = spellStatus(on.event);
+  if (status === null) return false;
+  const s = statusOf(b, status);
+  return s !== undefined && sameSource(s.from, fromEvent(on.event));
 }
 
 /** The time a spell has left, once it's gone off. */

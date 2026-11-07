@@ -24,13 +24,19 @@ export function giveStatus(
   events: ArcadeEvent[],
 ): void {
   const had = statusOf(b, name);
-  const changed = !had || time >= had.left;
+  const changed = givingChanges(b, name, time);
   if (!had) b.statuses.push({ name, left: time, from });
   else if (changed) {
     had.left = time;
     had.from = from;
   }
   events.push({ type: 'statusGained', id: b.id, status: name, from, changed });
+}
+
+/** Whether giving a body this status for `time` would change anything: it hasn't got it, or has less time left (s3). */
+export function givingChanges(b: Pick<Body, 'statuses'>, name: StatusName, time: number): boolean {
+  const had = statusOf(b, name);
+  return !had || time >= had.left;
 }
 
 /** One step of a body's statuses wearing off; one that runs out is gone, and said so. */

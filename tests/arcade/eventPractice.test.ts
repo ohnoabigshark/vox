@@ -10,6 +10,14 @@ import { step } from '../../src/arcade/sim/step';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { bossStretch, createRun, dispatch, stretchAt, nextDown } from '../../src/arcade/sim/run';
 import type { RunState } from '../../src/arcade/sim/types';
+import {
+  setAcross,
+  setEffect,
+  setGoesOffAs,
+  setNumber,
+  setShape,
+  startEditing,
+} from '../../src/dev/eventEditor/editor';
 
 /** docs/FIELD_EVENTS.md, test 8: Try it, event practice (f3, x2). */
 
@@ -123,15 +131,23 @@ describe('a Boss’s series (review r9)', () => {
 });
 
 describe('a slow spell in Try it (round 5, test 4)', () => {
-  it('reads back from its link and plays: whoever runs into it is Slowed', () => {
-    const spell: FieldEvent = {
-      ...made,
-      goesOffAs: 'spell',
-      effect: { kind: 'status', status: 'slowed', on: 'everyone' },
-      area: { shape: 'band', across: 'middle', width: 30, from: -12, to: 30 },
-      goesOff: 0.2,
-      lasts: 2,
-    };
+  it('made on the editor with Spell and Slowed, it reads back from its link and plays: whoever runs into it is Slowed (r5)', () => {
+    // A wide band over the line, going off at once, as the editor makes it.
+    let ed = setShape(startEditing(made), 'band');
+    ed = setAcross(ed, 'middle');
+    for (const [key, value] of [
+      ['width', 30],
+      ['from', -12],
+      ['to', 30],
+      ['goesOff', 0.25],
+      ['lasts', 2.5],
+    ] as const) {
+      ed = setNumber(ed, key, value);
+    }
+    ed = setEffect(setGoesOffAs(ed, 'spell'), 'slowed');
+    const spell = ed.event;
+    expect(spell.goesOffAs).toBe('spell');
+    expect(spell.effect).toEqual({ kind: 'status', status: 'slowed', on: 'everyone' });
     const link = readEventPractice(`?${eventPracticeQuery(spell, 2, true)}`);
     expect(link?.event).toEqual({ ok: true, event: spell });
     let s = createRun(3, undefined, 0, { eventPractice: { event: spell, stretch: 2 } });

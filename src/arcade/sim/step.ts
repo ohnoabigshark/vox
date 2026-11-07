@@ -28,15 +28,16 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning, DT } from '../content/tuning';
 import { carrierOf, chooseLane, handedOff, qbOf } from './ai';
 import { bulletEnd, flightTime, lobTarget, pocketTime, resolveFlight, sweepAngle } from './ball';
-import { moveBodies, separate, touching } from './physics';
+import { allBodies, moveBodies, separate, touching } from './physics';
 import { AREA_YARDS, pushOutOfProps } from './props';
 import { judgeBreakIt, startBreakIt } from './breakit';
 import { cloneRun, endDown, nextDown } from './run';
 import { catchTestFor, type CatchTest } from './catchTests';
-import { caughtBy, countDown, fromEvent, inArea, spellLeft, spellOn } from './fieldEvents';
+import { caughtBy, countDown, fromEvent, heldBy, inArea, spellLeft, spellOn } from './fieldEvents';
+import { spellStatus } from '../content/spells';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
-import { endStatus, giveStatus, statusOf, sameSource } from './status';
+import { endStatus, giveStatus, givingChanges } from './status';
 import { FROM_BOLT } from './pickups';
 import type {
   ArcadeEvent,
@@ -52,7 +53,7 @@ import type {
   Vec,
 } from './types';
 import { add, dist, len, norm, scale, sub, v } from './vec';
-import type { StatusName } from '../content/statuses';
+import type { EventStatus } from '../content/statuses';
 
 const { contact, field } = arcadeTuning;
 
@@ -377,10 +378,8 @@ function fieldEvent(state: RunState, events: ArcadeEvent[]): boolean {
   if (!on) return false;
   const wentOff = countDown(on);
   if (wentOff && goOff(state, on, events)) return true;
-  const { effect } = on.event;
-  if (on.event.goesOffAs === 'spell' && effect.kind === 'status') {
-    holdSpell(state, on, effect.status, events);
-  }
+  const status = spellStatus(on.event);
+  if (status !== null) holdSpell(state, on, status, events);
   return false;
 }
 
@@ -411,7 +410,7 @@ function goOff(state: RunState, on: FieldEventOn, events: ArcadeEvent[]): boolea
     }
     case 'status':
       // A spell's holding is `holdSpell`'s, from this step on.
-      if (on.event.goesOffAs === 'burst') {
+      if (spellStatus(on.event) === null) {
         for (const b of caught) {
           giveStatus(b, effect.status, on.event.lasts, fromEvent(on.event), events);
         }
@@ -427,26 +426,24 @@ function goOff(state: RunState, on: FieldEventOn, events: ArcadeEvent[]): boolea
  * given as a body is caught (on its feet, on the side it hits, as a burst
  * would catch it), and ended, reported, as it steps out or the spell ends.
  * It's given for the spell's time left and a step more, so the spell ends
- * it, not its wearing off.
+ * it, not its wearing off. A body with a longer one of the same status from
+ * elsewhere keeps that, and isn't given it again each step (the review's r2).
  */
 function holdSpell(
   state: RunState,
   on: FieldEventOn,
-  status: StatusName,
+  status: EventStatus,
   events: ArcadeEvent[],
 ): void {
   const from = fromEvent(on.event);
   const live = spellOn(on);
-  const holds = (b: Body): boolean => {
-    const s = statusOf(b, status);
-    return s !== undefined && sameSource(s.from, from);
-  };
-  for (const b of [...state.field.players, ...state.field.defenders]) {
-    if (holds(b) && !(live && inArea(on.area, b))) endStatus(b, status, from, events);
+  for (const b of allBodies(state)) {
+    if (heldBy(b, on) && !(live && inArea(on.area, b))) endStatus(b, status, from, events);
   }
   if (!live) return;
+  const time = spellLeft(on) + DT;
   for (const b of caughtBy(state, on)) {
-    if (!holds(b)) giveStatus(b, status, spellLeft(on) + DT, from, events);
+    if (!heldBy(b, on) && givingChanges(b, status, time)) giveStatus(b, status, time, from, events);
   }
 }
 

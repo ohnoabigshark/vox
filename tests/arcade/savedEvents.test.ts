@@ -111,5 +111,11 @@ describe('spells and statuses, saved (round 5, test 5)', () => {
     expect(why({ effect: { kind: 'status', status: 'sleepy', on: 'everyone' } })).toEqual(
       said('its effect is not one the game plays'),
     );
+    // A field event gives Slowed only, for now (review r3): not Fast, from a spell or a burst.
+    for (const goesOffAs of ['spell', 'burst']) {
+      expect(
+        why({ goesOffAs, effect: { kind: 'status', status: 'fast', on: 'everyone' } }),
+      ).toEqual(said('its effect is not one the game plays'));
+    }
   });
 });

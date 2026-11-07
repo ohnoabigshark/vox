@@ -3,11 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   eventKind,
   FROG_RAIN,
+  fieldEventDefaults,
+  fieldEvents,
   TAFFY_FLOOD,
   type FieldEvent,
 } from '../../src/arcade/content/fieldEvents';
+import { keepsSpellRule, spellStatus } from '../../src/arcade/content/spells';
 import { arcadeTuning, DT, TIME_SCALE } from '../../src/arcade/content/tuning';
-import { inArea, placeArea } from '../../src/arcade/sim/fieldEvents';
+import { heldBy, inArea, placeArea } from '../../src/arcade/sim/fieldEvents';
 import {
   bossStretch,
   createRun,
@@ -175,6 +178,62 @@ describe('a spell (test 1, and 5b)', () => {
     expect(held?.from).toEqual(FROM_TAFFY);
     expect(held?.left).toBeCloseTo(1 - 0.1 + DT, 6);
     expect(hasStatus(body(r.state, 3), 'slowed')).toBe(false);
+  });
+});
+
+describe('the review’s fixes (r1, r2, r4)', () => {
+  const field = (): RunState =>
+    setOff(
+      playState([
+        { pos: v(0, 7), job: stand(v(0, 7)) },
+        { pos: v(0, 20), job: stand(v(0, 20)) },
+      ]),
+      TAFFY_FLOOD,
+    );
+  const OTHER = { kind: 'fieldEvent', event: 'somethingElse' } as const;
+
+  it('held by the spell: only a body with the spell’s own status, from it (r1)', () => {
+    const r = run(field(), 0.1);
+    const on = r.state.field.fieldEvent!;
+    expect(heldBy(body(r.state, 2), on)).toBe(true);
+    expect(heldBy(body(r.state, 3), on)).toBe(false);
+    // Slowed from somewhere else isn't the spell holding it.
+    const other = body(r.state, 3);
+    giveStatus(other, 'slowed', 5, OTHER, []);
+    expect(heldBy(other, on)).toBe(false);
+  });
+
+  it('a body in it with a longer Slowed from elsewhere gets no report from it, step after step, and keeps its own (r2)', () => {
+    const s = field();
+    giveStatus(body(s, 2), 'slowed', 10, OTHER, []);
+    const events: ArcadeEvent[] = [];
+    const end = stepThrough(s, 1, (_, es) => events.push(...es));
+    expect(ofType(events, 'statusGained')).toEqual([]);
+    expect(statusOf(body(end, 2), 'slowed')?.from).toEqual(OTHER);
+  });
+
+  it('one with a shorter Slowed from elsewhere is taken over once, and reported once (r2)', () => {
+    const s = field();
+    giveStatus(body(s, 2), 'slowed', 0.5, OTHER, []);
+    const events: ArcadeEvent[] = [];
+    const end = stepThrough(s, 1, (_, es) => events.push(...es));
+    expect(ofType(events, 'statusGained')).toEqual([
+      { type: 'statusGained', id: 2, status: 'slowed', from: FROM_TAFFY, changed: true },
+    ]);
+    expect(heldBy(body(end, 2), end.field.fieldEvent!)).toBe(true);
+  });
+
+  it('a spell gives a status: its status, or null for a burst; a spell that flattens breaks the rule (r4)', () => {
+    expect(spellStatus(TAFFY_FLOOD)).toBe('slowed');
+    expect(spellStatus(FROG_RAIN)).toBeNull();
+    expect(spellStatus({ ...TAFFY_FLOOD, goesOffAs: 'burst' })).toBeNull();
+    expect(keepsSpellRule(FROG_RAIN)).toBe(true);
+    expect(keepsSpellRule({ ...FROG_RAIN, goesOffAs: 'spell' })).toBe(false);
+  });
+
+  it('every event in the code, and as the game plays them, keeps the rule (r4)', () => {
+    expect(fieldEventDefaults.filter((e) => !keepsSpellRule(e))).toEqual([]);
+    expect(fieldEvents.filter((e) => !keepsSpellRule(e))).toEqual([]);
   });
 });
 

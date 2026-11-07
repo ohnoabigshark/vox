@@ -390,7 +390,6 @@ export const tuningDefaults = {
     /** He has two pairs: the second takes off this long after the first is shooed (or misses). */
     nextFlock: 0.8,
   },
-  /** Statuses (docs/STATUSES.md): what each does to a body that has it. */
   /** Generic field events (docs/FIELD_EVENTS.md round 5, a1): which stretches of a run get one, from the seed. */
   fieldEvents: {
     /** None before this stretch of the run (counting from 1)… */
@@ -398,6 +397,7 @@ export const tuningDefaults = {
     /** …and after it, this share of the ordinary stretches (never a Boss's). */
     genericShare: 1 / 3,
   },
+  /** Statuses (docs/STATUSES.md): what each does to a body that has it. */
   statuses: {
     /** Fast (the lightning bolt's): this much faster, a share of top speed. */
     fast: { faster: 0.5 },

@@ -918,3 +918,12 @@ a future refactor."_ Each says what was left, why, and where it's planned.
   took the place of. Nothing gives Slowed but the taffy yet; a status list
   that keeps each source's own time would fix it when one does
   (`docs/STATUSES.md`, field-taffy as built).
+- **A field event as a burst or a spell, each with its own effects:** the
+  event's type has how it goes off and its effect as two fields, so it
+  allows a spell that flattens, which `keepsSpellRule` (`content/spells.ts`)
+  refuses everywhere instead. A union would make it unwritable, but reshapes
+  the event, the editor's every change and the saved file (taffy review r4).
+- **One helper for an event's phase** (before the snap, building up, on,
+  after): each look (`render/taffyFlood.ts`, the plain look) reads the
+  countdown itself. Gather it with the statuses' looks, above (taffy review
+  l2).

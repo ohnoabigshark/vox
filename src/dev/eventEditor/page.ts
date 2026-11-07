@@ -24,6 +24,7 @@ import {
 } from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
+import type { EventStatus } from '../../arcade/content/statuses';
 import type { BossName } from '../../arcade/sim/types';
 import { now } from '../../clock';
 import { fractionOf } from '../bench/row';
@@ -574,6 +575,9 @@ function topOf(e: Editing): HTMLElement[] {
   ];
 }
 
+/** A chip for each status an event may give (the review's r3), so a new one can't go without. */
+const STATUS_CHIPS: Readonly<Record<EventStatus, string>> = { slowed: 'Slowed' };
+
 /** How it goes off, its effect, who it hits, and its call. */
 function partsOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
@@ -591,7 +595,10 @@ function partsOf(e: Editing): HTMLElement[] {
       'Effect',
       [
         { value: 'flatten', text: 'Flatten' },
-        { value: 'slowed', text: 'Slowed' },
+        ...(Object.keys(STATUS_CHIPS) as EventStatus[]).map((value) => ({
+          value,
+          text: STATUS_CHIPS[value],
+        })),
         { value: 'ethereal', text: 'Ethereal', off: 'Comes with the wisps' },
       ],
       effectChoice(ev.effect),

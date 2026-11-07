@@ -10,6 +10,13 @@ import { assertNever } from '../../assertNever';
 /** The statuses there are: Fast (the bolt's), Slowed (the taffy flood's). Ethereal comes with the wisps. */
 export type StatusName = 'fast' | 'slowed';
 
+/**
+ * The statuses a field event may give (the review's r3): Slowed, for now.
+ * The saved-events check and the editor's chips read it; the wisps add
+ * Ethereal.
+ */
+export type EventStatus = Extract<StatusName, 'slowed'>;
+
 /** Whether something helps the body it lands on or hurts it. */
 export type Polarity = 'helps' | 'hurts';
 

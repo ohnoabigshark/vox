@@ -7,11 +7,10 @@
  */
 import * as THREE from 'three';
 import { hexToNumber, voxel } from '../../content/palettes';
-import type { FieldEvent } from '../content/fieldEvents';
-import { fromEvent, spellOn } from '../sim/fieldEvents';
+import { heldBy, spellLeft, spellOn } from '../sim/fieldEvents';
+import { allBodies } from '../sim/physics';
 import { downOn } from '../sim/run';
-import { sameSource, statusOf } from '../sim/status';
-import type { Body, RunState } from '../sim/types';
+import type { FieldEventOn, RunState } from '../sim/types';
 import { v } from '../sim/vec';
 import { toWorld } from './world';
 
@@ -94,8 +93,8 @@ export class ArcadeTaffyFlood {
       const rising = bubbling && buildUp > 0 ? 1 - (left ?? 0) / buildUp : 0;
       if (spellOn(on)) {
         // Candy ground, glossy and rippling a little, fading as the spell ends.
-        const end = (left ?? 0) + on.event.lasts;
-        this.bandMat.opacity = Math.min(1, end / FADE) * (0.88 + 0.06 * Math.sin(now * 5));
+        this.bandMat.opacity =
+          Math.min(1, spellLeft(on) / FADE) * (0.88 + 0.06 * Math.sin(now * 5));
       } else if (left !== null && left <= 0) {
         this.band.visible = false;
       } else {
@@ -103,7 +102,7 @@ export class ArcadeTaffyFlood {
         this.bandMat.opacity = 0.3 + 0.35 * rising;
       }
       if (bubbling) this.bubble(area, origin, now, rising);
-      if (spellOn(on)) n = this.stretch(state, on.event, origin);
+      if (spellOn(on)) n = this.stretch(state, on, origin);
     }
     if (!bubbling) for (const b of this.bubbles) b.visible = false;
     for (; n < this.strings.length; n++) {
@@ -133,14 +132,9 @@ export class ArcadeTaffyFlood {
   }
 
   /** Strings of taffy from the ground behind each body the spell holds, up to its legs. Returns how many are used. */
-  private stretch(state: RunState, event: FieldEvent, origin: number): number {
-    const from = fromEvent(event);
-    const held = (b: Body): boolean => {
-      const s = statusOf(b, 'slowed');
-      return s !== undefined && sameSource(s.from, from);
-    };
+  private stretch(state: RunState, on: FieldEventOn, origin: number): number {
     let n = 0;
-    const bodies = [...state.field.players, ...state.field.defenders].filter(held);
+    const bodies = allBodies(state).filter((b) => heldBy(b, on));
     for (const b of bodies.slice(0, HELD_MOST)) {
       const speed = Math.hypot(b.vel.x, b.vel.y);
       const back = speed > 0.1 ? v(-b.vel.x / speed, -b.vel.y / speed) : v(0, -1);

@@ -17,7 +17,7 @@ import {
   statusPolarity,
   type Polarity,
   type SourceKind,
-  type StatusName,
+  type EventStatus,
   type Who,
 } from './statuses';
 import { arcadeTuning, TIME_SCALE } from './tuning';
@@ -61,7 +61,7 @@ export interface FlattenEffect {
 /** A status (docs/STATUSES.md) given to whoever it catches: for the event's `lasts` from a burst, while they're in it from a spell. */
 export interface StatusEffect {
   readonly kind: 'status';
-  readonly status: StatusName;
+  readonly status: EventStatus;
   readonly on: Who;
 }
 
@@ -70,7 +70,8 @@ export type EventEffect = FlattenEffect | StatusEffect;
 /**
  * How it goes off: a burst hits whoever is in the area at that moment; a
  * spell holds whoever is in it for its `lasts`, letting go as they leave. A
- * spell gives a status (a knockdown is a moment's, so it's a burst's).
+ * spell gives a status (a knockdown is a moment's, so it's a burst's:
+ * `content/spells.ts`).
  */
 export type GoesOffAs = 'burst' | 'spell';
 
