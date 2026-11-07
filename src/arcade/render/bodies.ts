@@ -23,6 +23,10 @@ import { engaged } from '../sim/ball';
 import type { Body, DefenderKind, Form, Player, RunState } from '../sim/types';
 import { dist } from '../sim/vec';
 import { toWorld } from './world';
+import { hasStatus } from '../sim/status';
+
+/** How far a Slowed body leans into its heavy step (radians). */
+const SLOWED_LEAN = 0.25;
 
 const DEFENDER_MODEL: Readonly<Record<DefenderKind, string>> = {
   rusher: 'forest/blitzer',
@@ -138,16 +142,19 @@ export class ArcadeBodies {
       }
       view.root.rotation.y = view.yaw;
       view.body.rotation.z = b.down > 0 ? Math.PI / 2 : 0;
-      // A little bob while running.
+      // Slowed's look (docs/STATUSES.md, s7), whatever slowed it: a heavy, dragging step, leaning into it.
+      const slowed = b.down <= 0 && hasStatus(b, 'slowed');
+      view.body.rotation.x = slowed ? SLOWED_LEAN : 0;
+      // A little bob while running; a slow, deep one when Slowed.
       const speed = Math.hypot(b.vel.x, b.vel.y);
+      const bob = slowed
+        ? Math.abs(Math.sin(state.time * 6 + b.id)) * Math.min(0.2, speed * 0.1)
+        : Math.abs(Math.sin(state.time * 14 + b.id)) * Math.min(0.12, speed * 0.03);
       const hover =
         b.side === 'team' && b.form === 'ghost'
           ? GHOST_HOVER + 0.05 * Math.sin(state.time * 4 + b.id)
           : view.hover;
-      view.body.position.y =
-        b.down > 0
-          ? 0.2
-          : hover + Math.abs(Math.sin(state.time * 14 + b.id)) * Math.min(0.12, speed * 0.03);
+      view.body.position.y = b.down > 0 ? 0.2 : hover + bob;
 
       view.ring.position.set(view.root.position.x, 0.02, view.root.position.z);
       view.ring.scale.setScalar(1);
