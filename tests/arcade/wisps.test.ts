@@ -55,11 +55,11 @@ function setOff(s: RunState, event: FieldEvent): RunState {
 }
 
 describe('the wisps (w1)', () => {
-  it('a blessing: a circle 6 yards across, 12 yards ahead on either side, a 3 s spell of Ethereal on yours', () => {
+  it('a blessing: a circle 6 yards across, 10 yards ahead (7 to 13) on either side, a 3 s spell of Ethereal on yours', () => {
     const w = WILL_O_WISPS;
     expect(w.name).toBe('Will-o’-Wisps');
     expect(w.boss).toBeNull();
-    expect(w.area).toEqual({ shape: 'circle', across: 'either', out: 5, at: 12, radius: 3 });
+    expect(w.area).toEqual({ shape: 'circle', across: 'either', out: 5, at: 10, radius: 3 });
     expect(w.goesOffAs).toBe('spell');
     // It goes off 1 s after the snap and lasts 3 s, on screen.
     expect(w.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
