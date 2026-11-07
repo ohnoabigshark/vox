@@ -10,9 +10,12 @@ import { assertNever } from '../../assertNever';
 import {
   fieldEventDefaults,
   type EventArea,
+  type EventEffect,
   type FieldEvent,
+  type GoesOffAs,
   type Who,
 } from '../../arcade/content/fieldEvents';
+import type { StatusName } from '../../arcade/content/statuses';
 import { arcadeTuning, TIME_SCALE } from '../../arcade/content/tuning';
 import { circleX, rectXs, sideOf } from '../../arcade/sim/fieldEvents';
 import { clamp } from '../../arcade/sim/vec';
@@ -213,6 +216,40 @@ const sim = (screen: number): number => screen * TIME_SCALE;
 
 export function setOn(s: EditorState, on: Who): EditorState {
   return changed(s, { ...s.event, effect: { ...s.event.effect, on } });
+}
+
+/** An effect as the editor offers it (round 5, test 4): a flatten, or the status it gives. */
+export type EffectChoice = 'flatten' | StatusName;
+
+/** Which of the editor's effects an event has. */
+export function effectChoice(effect: EventEffect): EffectChoice {
+  switch (effect.kind) {
+    case 'flatten':
+      return 'flatten';
+    case 'status':
+      return effect.status;
+    default:
+      return assertNever(effect);
+  }
+}
+
+/** The effect picked, on whoever it was on; a spell gives a status, so Flatten makes it a burst. */
+export function setEffect(s: EditorState, choice: EffectChoice): EditorState {
+  const { on } = s.event.effect;
+  if (choice === 'flatten') {
+    return changed(s, { ...s.event, goesOffAs: 'burst', effect: { kind: 'flatten', on } });
+  }
+  return changed(s, { ...s.event, effect: { kind: 'status', status: choice, on } });
+}
+
+/** Burst or spell; a spell gives a status, so Spell over a flatten makes it Slowed. */
+export function setGoesOffAs(s: EditorState, goesOffAs: GoesOffAs): EditorState {
+  const { effect } = s.event;
+  const kept: EventEffect =
+    goesOffAs === 'spell' && effect.kind === 'flatten'
+      ? { kind: 'status', status: 'slowed', on: effect.on }
+      : effect;
+  return changed(s, { ...s.event, goesOffAs, effect: kept });
 }
 
 export function setName(s: EditorState, name: string): EditorState {

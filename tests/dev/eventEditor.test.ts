@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FROG_RAIN, type FieldEvent } from '../../src/arcade/content/fieldEvents';
+import { FROG_RAIN, TAFFY_FLOOD, type FieldEvent } from '../../src/arcade/content/fieldEvents';
 import { arcadeTuning, TIME_SCALE } from '../../src/arcade/content/tuning';
 import {
   areaReadout,
@@ -16,6 +16,9 @@ import {
   savedWith,
   savedWithout,
   setCall,
+  setEffect,
+  setGoesOffAs,
+  effectChoice,
   setNumber,
   startingValues,
   setOn,
@@ -265,5 +268,37 @@ describe('review of the bench-style editor', () => {
     const tried = setOn(setNumber(startEditing(made), 'goesOff', 3), 'theirs').event;
     expect(startingValues(tried)).toEqual(made);
     expect(startingValues({ ...tried, name: 'Thick fog' })).toEqual({ ...made, name: 'Thick fog' });
+  });
+});
+
+describe('spells and Slowed on the editor (round 5, test 4)', () => {
+  it('Spell and Slowed can be picked, each a step for Undo', () => {
+    const slowed = setEffect(startEditing(lane), 'slowed');
+    expect(slowed.event.effect).toEqual({ kind: 'status', status: 'slowed', on: 'everyone' });
+    expect(effectChoice(slowed.event.effect)).toBe('slowed');
+    const spell = setGoesOffAs(slowed, 'spell');
+    expect(spell.event.goesOffAs).toBe('spell');
+    expect(undo(spell).event.goesOffAs).toBe('burst');
+    expect(undo(undo(spell)).event).toEqual(lane);
+  });
+
+  it('who it lands on is kept as the effect changes', () => {
+    const s = setEffect(setOn(startEditing(lane), 'theirs'), 'slowed');
+    expect(s.event.effect.on).toBe('theirs');
+    expect(effectChoice(setEffect(s, 'flatten').event.effect)).toBe('flatten');
+    expect(setEffect(s, 'flatten').event.effect.on).toBe('theirs');
+  });
+
+  it('a spell gives a status: picking Spell over Flatten makes it Slowed, and Flatten makes it a burst', () => {
+    const spell = setGoesOffAs(startEditing(lane), 'spell');
+    expect(spell.event.goesOffAs).toBe('spell');
+    expect(spell.event.effect).toEqual({ kind: 'status', status: 'slowed', on: 'everyone' });
+    const flat = setEffect(startEditing(TAFFY_FLOOD), 'flatten');
+    expect(flat.event.goesOffAs).toBe('burst');
+    expect(flat.event.effect).toEqual({ kind: 'flatten', on: 'everyone' });
+  });
+
+  it('a new event starts as a burst', () => {
+    expect(newEvent('Graveyard rain', []).goesOffAs).toBe('burst');
   });
 });

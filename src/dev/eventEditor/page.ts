@@ -11,11 +11,17 @@ import {
   fieldEventDefaults,
   type EventArea,
   type FieldEvent,
+  type GoesOffAs,
   type Who,
 } from '../../arcade/content/fieldEvents';
 import { MAX_STRETCH, eventPracticeQuery } from '../../arcade/content/eventLink';
 import { bossStretch } from '../../arcade/sim/run';
-import { checkSavedEvents, eventProblem, layerEvents } from '../../arcade/content/savedEvents';
+import {
+  checkSavedEvents,
+  eventProblem,
+  layerEvents,
+  readEvent,
+} from '../../arcade/content/savedEvents';
 import savedFile from '../../arcade/content/saved-events.json' with { type: 'json' };
 import { LINEUP } from '../../arcade/content/team';
 import type { BossName } from '../../arcade/sim/types';
@@ -48,6 +54,10 @@ import {
   savedWithout,
   setAcross,
   setCall,
+  effectChoice,
+  setEffect,
+  setGoesOffAs,
+  type EffectChoice,
   setName,
   setOn,
   setShape,
@@ -130,7 +140,7 @@ function tryIt(event: FieldEvent): void {
 function draftOf(id: string): FieldEvent | null {
   try {
     const draft: unknown = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? 'null');
-    return eventProblem(id, draft) === null ? (draft as FieldEvent) : null;
+    return eventProblem(id, draft) === null ? readEvent(draft) : null;
   } catch {
     return null;
   }
@@ -568,24 +578,26 @@ function topOf(e: Editing): HTMLElement[] {
 function partsOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
   return [
-    chips(
+    chips<GoesOffAs>(
       'Goes off as',
       [
         { value: 'burst', text: 'Burst' },
-        { value: 'spell', text: 'Spell', off: 'Comes with the taffy flood' },
+        { value: 'spell', text: 'Spell' },
       ],
-      'burst',
-      () => undefined,
+      ev.goesOffAs,
+      (as) => change(setGoesOffAs(e.ed, as)),
     ),
-    chips(
+    chips<EffectChoice | 'ethereal'>(
       'Effect',
       [
         { value: 'flatten', text: 'Flatten' },
-        { value: 'slow', text: 'Slow', off: 'Comes with the taffy flood' },
+        { value: 'slowed', text: 'Slowed' },
         { value: 'ethereal', text: 'Ethereal', off: 'Comes with the wisps' },
       ],
-      ev.effect.kind,
-      () => undefined,
+      effectChoice(ev.effect),
+      (choice) => {
+        if (choice !== 'ethereal') change(setEffect(e.ed, choice));
+      },
     ),
     chips<Who>(
       'On',
