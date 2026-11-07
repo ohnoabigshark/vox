@@ -624,6 +624,21 @@ Still open:
     run, or raised by TRICK OR TREAT!) or perks like the two sweep perks,
     and which are difficulty levers (random sack timers) rather than
     rewards.
+- **A late-game perk for longer throws,** toward a "break the game" feel as
+  your receivers get faster. _User, 2026-11-07, after a run of 20 series
+  with the taffy: "I'm definitely going to want to add a later game perk
+  that lets your distance selector speed on throws increase to allow for
+  throwing further down field. this helps lead to a 'break the game' feel
+  as your receivers get faster. not sure how to get that feel for runs
+  that's interactive yet but we will figure that out."_ In our words: two-
+  tap throwing's **marker** slides out along the aim line, from 3 yards
+  past Jack to the line's end (`throw.maxAhead`, 30 yards), and back, at
+  `twoTap.markerSpeed` (14 yards a second; `aimDistance` in `sim/ball.ts`).
+  The perk would lengthen the line and speed the marker up, so a deep lob
+  takes no longer to set. Open for its grilling: how much further, whether
+  it stacks, when in a run it's offered, and the same feel for runs, which
+  needs an interactive way in. Beside **Stats for Jack** (above: pass speed,
+  reads).
 - **Hexes and events for the long field** (difficulty map c1, parked
   2026-11-04): the generic events from `docs/FIELD_EVENTS.md` (n1, n2), the
   taffy flood first. Each event belongs to a stretch and goes off on every
