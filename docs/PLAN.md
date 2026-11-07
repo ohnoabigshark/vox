@@ -682,6 +682,20 @@ Still open:
   ball who keeps getting pushed backward for some time is ruled down there,
   rather than being shoved yards back. How long, and how far back counts, is
   open. _User, 2026-10-30._
+  **Flagged in play, 2026-11-07** (saved as
+  `docs/play-logs/2026-11-07-forward-progress.jsonl`, the session's start
+  line and then the whole down, since the play log rotates). Build
+  2739a65, seed 226869837, area 2 stretch 2 (gimmick), 2nd and 1.5 at the
+  21.3, Deep Shot. The catch was at the 27.8 (12:44:50); the carrier broke
+  one tackle, was dragged 0.5 yards in a second grab, and reached about
+  the 32. A Blocker's pancake at 12:45:00 was the last contact, and the
+  bolt's Fast ended at 12:45:01 with the carrier at the 30.75. **Then
+  30 seconds with no events at all:** at the ⚑ (12:45:31) the down was
+  still live, the carrier at the 27.16, 3.6 yards back and 7 yards
+  across. _User: "a scenario we need to record the logs of for stopping
+  play after some amount of limited movement (forward progress rule)."_
+  So the rule needs to cover a play with no tackle coming and little
+  progress, not only a carrier being shoved back.
 - **A native Android build** of the game. _User, 2026-10-30._
 - **Gravestones instead of oil slicks.** The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies
