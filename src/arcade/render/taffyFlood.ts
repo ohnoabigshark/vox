@@ -18,9 +18,12 @@ import { toWorld } from './world';
 /** Bubbles in the build-up, and how big one grows (yards) before it pops. */
 const BUBBLES = 28;
 const BUBBLE_SIZE = 0.35;
-/** Strings behind each body held: how many, how far back they reach (yards), and how many bodies at most. */
+/** Strings behind each body held: how many, how far they reach over the turf (yards), and how many bodies at most. */
 const STRINGS = 3;
-const STRING_BACK = 1.3;
+const STRING_BACK = 0.75;
+/** How high up the legs they're stuck (yards), and how far apart they splay (radians). */
+const STRING_TOP = 0.3;
+const STRING_SPLAY = 0.8;
 const HELD_MOST = 16;
 /** How long the candy takes to fade as the spell ends (sim seconds). */
 const FADE = 0.3;
@@ -144,11 +147,15 @@ export class ArcadeTaffyFlood {
       for (let k = 0; k < STRINGS; k++, n++) {
         const s = this.strings[n];
         if (!s) return n;
-        const side = (k - (STRINGS - 1) / 2) * 0.25;
-        const foot = v(b.pos.x + back.y * side, b.pos.y - back.x * side);
-        const top = toWorld(foot, origin, 0.35 + 0.1 * k);
+        // Splayed from the feet to the turf behind: straight back, and out to either side.
+        const turn = (k - (STRINGS - 1) / 2) * STRING_SPLAY;
+        const dir = v(
+          back.x * Math.cos(turn) - back.y * Math.sin(turn),
+          back.x * Math.sin(turn) + back.y * Math.cos(turn),
+        );
+        const top = toWorld(b.pos, origin, STRING_TOP);
         const ground = toWorld(
-          v(foot.x + back.x * STRING_BACK * (0.7 + 0.3 * k), foot.y + back.y * STRING_BACK),
+          v(b.pos.x + dir.x * STRING_BACK, b.pos.y + dir.y * STRING_BACK),
           origin,
           0.02,
         );
