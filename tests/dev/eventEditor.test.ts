@@ -26,6 +26,9 @@ import {
   effectChoice,
   EFFECT_CHIPS,
   setNumber,
+  pickArea,
+  pickedArea,
+  SIDE_CHIPS,
   startingValues,
   setOn,
   setShape,
@@ -337,5 +340,69 @@ describe('Ethereal on the editor (round 5, test 8)', () => {
 
   it('the wisps open on it as they are', () => {
     expect(effectChoice(startEditing(WILL_O_WISPS).event.effect)).toBe('ethereal');
+  });
+});
+
+describe('places and sizes on the editor (field-places, test 7)', () => {
+  it('a chip per area: picking one makes the handles and the area’s sliders edit it, and only it', () => {
+    const s = pickArea(startEditing(TAFFY_FLOOD), 2);
+    expect(pickedArea(s)).toEqual(TAFFY_FLOOD.areas[2]);
+    // Picking isn't a change: nothing for Undo.
+    expect(s.history).toEqual([]);
+    const sized = setNumber(s, 'radius', 4);
+    expect(sized.event.areas).toEqual([
+      TAFFY_FLOOD.areas[0],
+      TAFFY_FLOOD.areas[1],
+      { ...TAFFY_FLOOD.areas[2], radius: 4 },
+    ]);
+    const moved = moveArea(s, { x: 0, y: 2 });
+    expect(moved.event.areas[0]).toEqual(TAFFY_FLOOD.areas[0]);
+    expect(pickedArea(moved)).toMatchObject({ at: 8 });
+    // The sliders are the picked area's: a circle's.
+    expect(eventNumbers(s.event, s.picked).map((n) => n.key)).toContain('radius');
+    // No such area: the pick stays.
+    expect(pickArea(s, 5)).toBe(s);
+  });
+
+  it('the reach and size sliders, when the event has them; Frog Rain has neither', () => {
+    const keys = (e: FieldEvent) => eventNumbers(e, 0).map((n) => n.key);
+    const of = (e: FieldEvent, key: string) => eventNumbers(e, 0).find((n) => n.key === key);
+    expect(keys(TAFFY_FLOOD)).toEqual(
+      expect.arrayContaining(['nearest', 'farthest', 'smallest', 'largest']),
+    );
+    expect(of(TAFFY_FLOOD, 'nearest')).toMatchObject({ value: 2, unit: 'yd', fromLine: true });
+    expect(of(TAFFY_FLOOD, 'farthest')).toMatchObject({ value: 12, unit: 'yd', fromLine: true });
+    expect(of(TAFFY_FLOOD, 'smallest')).toMatchObject({ value: 0.75, unit: '×' });
+    expect(of(TAFFY_FLOOD, 'largest')).toMatchObject({ value: 1.5, unit: '×' });
+    expect(numberText(of(TAFFY_FLOOD, 'largest')!)).toBe('1.5×');
+    expect(keys(WILL_O_WISPS)).toEqual(expect.arrayContaining(['smallest', 'largest']));
+    expect(keys(WILL_O_WISPS)).not.toContain('nearest');
+    for (const k of ['nearest', 'farthest', 'smallest', 'largest']) {
+      expect(keys(FROG_RAIN)).not.toContain(k);
+    }
+  });
+
+  it('setting them: each a step for Undo, and never backwards or nothing', () => {
+    const s = startEditing(TAFFY_FLOOD);
+    expect(setNumber(s, 'nearest', 4).event.reach).toEqual({ nearest: 4, farthest: 12 });
+    expect(setNumber(s, 'nearest', 20).event.reach).toEqual({ nearest: 12, farthest: 12 });
+    expect(setNumber(s, 'farthest', 1).event.reach).toEqual({ nearest: 2, farthest: 2 });
+    expect(setNumber(s, 'largest', 2).event.size).toEqual({ smallest: 0.75, largest: 2 });
+    expect(setNumber(s, 'largest', 0.5).event.size).toEqual({ smallest: 0.75, largest: 0.75 });
+    expect(setNumber(s, 'smallest', 0).event.size).toEqual({ smallest: 0.25, largest: 1.5 });
+    expect(undo(setNumber(s, 'nearest', 4)).event).toEqual(TAFFY_FLOOD);
+  });
+
+  it('Save keeps every area, its reach and its size', () => {
+    const edited = setNumber(pickArea(startEditing(TAFFY_FLOOD), 1), 'width', 6).event;
+    const saved = savedWith({}, edited);
+    expect(saved.taffyFlood?.areas).toHaveLength(3);
+    expect(saved.taffyFlood?.areas[1]).toMatchObject({ width: 6 });
+    expect(saved.taffyFlood?.reach).toEqual(TAFFY_FLOOD.reach);
+    expect(saved.taffyFlood?.size).toEqual(TAFFY_FLOOD.size);
+  });
+
+  it('the side chips offer Any side, for the puddle', () => {
+    expect(SIDE_CHIPS.map((c) => c.value)).toEqual(['left', 'middle', 'right', 'either', 'any']);
   });
 });

@@ -36,7 +36,9 @@ import {
   circleAcross,
   dragNumber,
   eventNumbers,
+  pickArea,
   pickedArea,
+  SIDE_CHIPS,
   eventTimeline,
   numberText,
   timelineText,
@@ -483,7 +485,7 @@ function syncSliders(e: Editing): void {
       ]),
     );
     const times = numbers.filter((n) => n.unit === 's').map((n) => e.sliders.get(n.key)?.el);
-    const places = numbers.filter((n) => n.unit === 'yd').map((n) => e.sliders.get(n.key)?.el);
+    const places = numbers.filter((n) => n.unit !== 's').map((n) => e.sliders.get(n.key)?.el);
     e.numbers.replaceChildren(
       ...times.filter((x) => x !== undefined),
       e.timeline,
@@ -542,9 +544,37 @@ function drawTimeline(box: HTMLElement, t: EventTimeline): void {
   box.append(el('div', { className: 'tl-words' }, ...words.map((w) => el('span', { text: w }))));
 }
 
-/** The area's shape and side, as chips. */
+/** Each shape's word on its chips. */
+const SHAPE_WORDS: Readonly<Record<EventArea['shape'], string>> = {
+  lane: 'Lane',
+  band: 'Band',
+  circle: 'Circle',
+};
+
+/** The areas (when there are several), then the picked area's shape and side, as chips. */
 function topOf(e: Editing): HTMLElement[] {
+  const ev = e.ed.event;
+  // One chip per area when it has more than one (field-places, p5): the one picked is what's drawn and edited.
+  const areaChips =
+    ev.areas.length > 1
+      ? [
+          chips(
+            'Shapes',
+            ev.areas.map((a, i) => ({
+              value: String(i),
+              text: `${i + 1}: ${SHAPE_WORDS[a.shape]}`,
+            })),
+            String(e.ed.picked),
+            (i) => {
+              if (!editing) return;
+              editing.ed = pickArea(e.ed, Number(i));
+              draw();
+            },
+          ),
+        ]
+      : [];
   return [
+    ...areaChips,
     chips(
       'Area',
       [
@@ -555,17 +585,7 @@ function topOf(e: Editing): HTMLElement[] {
       pickedArea(e.ed).shape,
       (shape) => change(setShape(e.ed, shape)),
     ),
-    chips(
-      'Side',
-      [
-        { value: 'left', text: 'Left' },
-        { value: 'middle', text: 'Middle' },
-        { value: 'right', text: 'Right' },
-        { value: 'either', text: 'Either side' },
-      ],
-      pickedArea(e.ed).across,
-      (across) => change(setAcross(e.ed, across)),
-    ),
+    chips('Side', SIDE_CHIPS, pickedArea(e.ed).across, (across) => change(setAcross(e.ed, across))),
   ];
 }
 

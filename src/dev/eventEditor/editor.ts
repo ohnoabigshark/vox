@@ -9,7 +9,10 @@
 import { assertNever } from '../../assertNever';
 import {
   fieldEventDefaults,
+  type Across,
   type EventArea,
+  type EventReach,
+  type EventSize,
   type EventEffect,
   type FieldEvent,
   type GoesOffAs,
@@ -93,6 +96,33 @@ function holdArea(a: EventArea, key: AreaKey, v: number): EventArea {
       return a;
   }
 }
+
+/** The least and most an event's size may be, times its area's (`field-places`). */
+const LEAST_SIZE = 0.25;
+const MOST_SIZE = 3;
+
+/** A reach's end set, never backwards: the nearest no farther than the farthest, both within the field's reach. */
+function holdReach(r: EventReach, key: 'nearest' | 'farthest', v: number): EventReach {
+  return key === 'nearest'
+    ? { ...r, nearest: clamp(v, BEHIND, r.farthest) }
+    : { ...r, farthest: clamp(v, r.nearest, FARTHEST) };
+}
+
+/** A size's end set, never backwards nor nothing. */
+function holdSize(z: EventSize, key: 'smallest' | 'largest', v: number): EventSize {
+  return key === 'smallest'
+    ? { ...z, smallest: clamp(v, LEAST_SIZE, z.largest) }
+    : { ...z, largest: clamp(v, z.smallest, MOST_SIZE) };
+}
+
+/** The side chips: each place across an area may sit (`any` for the taffy's puddle, `field-places`). */
+export const SIDE_CHIPS: readonly { readonly value: Across; readonly text: string }[] = [
+  { value: 'left', text: 'Left' },
+  { value: 'middle', text: 'Middle' },
+  { value: 'right', text: 'Right' },
+  { value: 'either', text: 'Either side' },
+  { value: 'any', text: 'Any side' },
+];
 
 export function startEditing(event: FieldEvent): EditorState {
   return { event, history: [], picked: 0 };
@@ -302,16 +332,32 @@ export function setName(s: EditorState, name: string): EditorState {
   return changed(s, { ...s.event, name });
 }
 
-/** A number on the editor that has a slider (round 4, e1, e2): a time on screen, or a place in yards. */
+/**
+ * A number on the editor that has a slider (round 4, e1, e2): a time on
+ * screen, a place in yards, or (`field-places`) the event's reach in yards
+ * and its size as a share.
+ */
 export type NumberKey =
-  'goesOff' | 'buildUp' | 'lasts' | 'from' | 'to' | 'width' | 'at' | 'out' | 'radius';
+  | 'goesOff'
+  | 'buildUp'
+  | 'lasts'
+  | 'from'
+  | 'to'
+  | 'width'
+  | 'at'
+  | 'out'
+  | 'radius'
+  | 'nearest'
+  | 'farthest'
+  | 'smallest'
+  | 'largest';
 
 export interface EventNumber {
   readonly key: NumberKey;
   readonly label: string;
-  /** As shown: seconds on screen, or yards. */
+  /** As shown: seconds on screen, yards, or times its size. */
   readonly value: number;
-  readonly unit: 's' | 'yd';
+  readonly unit: 's' | 'yd' | '×';
   /** A place measured from the line of scrimmage, so read with its sign: "+16 yd", "−1 yd". */
   readonly fromLine: boolean;
   readonly range: { readonly min: number; readonly max: number; readonly step: number };
@@ -325,6 +371,7 @@ export function secondsText(s: number): string {
 /** A slider's number as it reads (m1): seconds, or yards to a tenth, signed when from the line. */
 export function numberText(n: EventNumber): string {
   if (n.unit === 's') return secondsText(n.value);
+  if (n.unit === '×') return `${Math.round(n.value * 100) / 100}×`;
   const yd = Math.round(n.value * 10) / 10;
   if (!n.fromLine) return `${yd} yd`;
   return `${yd < 0 ? '−' : '+'}${Math.abs(yd)} yd`;
@@ -365,9 +412,31 @@ export function eventNumbers(e: FieldEvent, picked: number): EventNumber[] {
     label,
     value,
     unit: 'yd',
-    fromLine: key === 'from' || key === 'to' || key === 'at',
+    fromLine:
+      key === 'from' || key === 'to' || key === 'at' || key === 'nearest' || key === 'farthest',
     range: { min, max, step },
   });
+  const share = (key: NumberKey, label: string, value: number): EventNumber => ({
+    key,
+    label,
+    value,
+    unit: '×',
+    fromLine: false,
+    range: { min: LEAST_SIZE, max: MOST_SIZE, step: 0.05 },
+  });
+  // Where its near edge may land, and how its size may vary, each down (`field-places`).
+  const reach = e.reach
+    ? [
+        yards('nearest', 'Nearest it lands, from the line', e.reach.nearest, BEHIND, FARTHEST),
+        yards('farthest', 'Farthest it lands, from the line', e.reach.farthest, BEHIND, FARTHEST),
+      ]
+    : [];
+  const size = e.size
+    ? [
+        share('smallest', 'Smallest, times its size', e.size.smallest),
+        share('largest', 'Largest, times its size', e.size.largest),
+      ]
+    : [];
   const times = [
     time('goesOff', 'Goes off after the snap', e.goesOff, 0.25, 5),
     time('buildUp', 'Warning before it goes off', e.warning.buildUp, 0, 3, 0.025),
@@ -381,6 +450,8 @@ export function eventNumbers(e: FieldEvent, picked: number): EventNumber[] {
       // A circle in the middle has no way out to set (review b4).
       ...(drawnSide(a) === 0 ? [] : [yards('out', 'Out from the middle', a.out, 0, HW, 0.1)]),
       yards('radius', 'Radius', a.radius, LEAST, HW),
+      ...reach,
+      ...size,
     ];
   }
   return [
@@ -388,6 +459,8 @@ export function eventNumbers(e: FieldEvent, picked: number): EventNumber[] {
     yards('from', 'Near edge, from the line', a.from, BEHIND, FARTHEST - LEAST),
     yards('to', 'Far edge, from the line', a.to, BEHIND + LEAST, FARTHEST),
     yards('width', 'Width', a.width, LEAST, 2 * HW, 0.1),
+    ...reach,
+    ...size,
   ];
 }
 
@@ -410,6 +483,12 @@ export function setNumber(s: EditorState, key: NumberKey, value: number): Editor
     case 'out':
     case 'radius':
       return area(holdArea(a, key, value));
+    case 'nearest':
+    case 'farthest':
+      return e.reach ? changed(s, { ...e, reach: holdReach(e.reach, key, value) }) : s;
+    case 'smallest':
+    case 'largest':
+      return e.size ? changed(s, { ...e, size: holdSize(e.size, key, value) }) : s;
     default:
       return assertNever(key);
   }

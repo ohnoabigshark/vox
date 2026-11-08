@@ -134,3 +134,43 @@ describe('spells and statuses, saved (round 5, test 5)', () => {
     }
   });
 });
+
+describe('places and sizes, saved (field-places, test 6)', () => {
+  const said = (id: string, part: string): string[] => [
+    `saved-events.json: ${id} can’t be read (${part}), so it was left out`,
+  ];
+
+  it('one saved before places, with one `area`, reads as one area with no reach or size', () => {
+    const kept = Object.entries(made).filter(([k]) => !['areas', 'reach', 'size'].includes(k));
+    const before = { ...Object.fromEntries(kept), area: made.areas[0] };
+    const { events, warnings } = checkSavedEvents({ graveyardRain: before });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([made]);
+    expect(events[0]).not.toHaveProperty('area');
+  });
+
+  it('the taffy, with its shapes, reach and size, reads back as saved', () => {
+    const taffy: FieldEvent = { ...TAFFY_FLOOD, reach: { nearest: 4, farthest: 8 } };
+    const { events, warnings } = checkSavedEvents({ taffyFlood: taffy });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([taffy]);
+  });
+
+  it('one with no areas, a reach or size backwards, or a size of nothing, is refused with a warning', () => {
+    const why = (x: object): readonly string[] =>
+      checkSavedEvents({ taffyFlood: { ...TAFFY_FLOOD, ...x } }).warnings;
+    expect(why({ areas: [] })).toEqual(said('taffyFlood', 'it has no areas'));
+    expect(why({ reach: { nearest: 9, farthest: 3 } })).toEqual(
+      said('taffyFlood', 'its reach is not a nearest no farther than its farthest'),
+    );
+    expect(why({ reach: { nearest: 'near', farthest: 3 } })).toEqual(
+      said('taffyFlood', 'its reach is not a nearest no farther than its farthest'),
+    );
+    expect(why({ size: { smallest: 1.5, largest: 0.75 } })).toEqual(
+      said('taffyFlood', 'its size is not a smallest above 0 and no bigger than its largest'),
+    );
+    expect(why({ size: { smallest: 0, largest: 1 } })).toEqual(
+      said('taffyFlood', 'its size is not a smallest above 0 and no bigger than its largest'),
+    );
+  });
+});

@@ -37,6 +37,7 @@ const GOES_OFF_AS: Readonly<Record<GoesOffAs, true>> = { burst: true, spell: tru
 const EVENT_STATUSES: Readonly<Record<EventStatus, true>> = { slowed: true, ethereal: true };
 const BOSSES: Readonly<Record<BossName, true>> = { misterFrog: true, queen: true, king: true };
 
+const isNumber = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const isTree = (x: unknown): x is Tree => typeof x === 'object' && x !== null && !Array.isArray(x);
 const oneOf = <K extends string>(set: Readonly<Record<K, true>>, x: unknown): x is K =>
   typeof x === 'string' && Object.hasOwn(set, x);
@@ -52,6 +53,25 @@ export function eventProblem(id: string, x: unknown): string | null {
   for (const a of areas) {
     const area = areaProblem(a);
     if (area) return area;
+  }
+  const reach = x.reach;
+  if (reach !== undefined && reach !== null) {
+    const ok =
+      isTree(reach) &&
+      isNumber(reach.nearest) &&
+      isNumber(reach.farthest) &&
+      reach.nearest <= reach.farthest;
+    if (!ok) return 'its reach is not a nearest no farther than its farthest';
+  }
+  const size = x.size;
+  if (size !== undefined && size !== null) {
+    const ok =
+      isTree(size) &&
+      isNumber(size.smallest) &&
+      isNumber(size.largest) &&
+      size.smallest > 0 &&
+      size.smallest <= size.largest;
+    if (!ok) return 'its size is not a smallest above 0 and no bigger than its largest';
   }
   // An event that never goes off, or has no effect, would fail without a word (review r2).
   for (const key of ['goesOff', 'lasts'] as const) {
