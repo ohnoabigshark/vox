@@ -10,7 +10,7 @@ import {
 } from '../../src/arcade/content/fieldEvents';
 import { statusPolarity } from '../../src/arcade/content/statuses';
 import { arcadeTuning, DT, TIME_SCALE } from '../../src/arcade/content/tuning';
-import { comingFor, heldBy, placeArea } from '../../src/arcade/sim/fieldEvents';
+import { steerClearOf, heldBy, placeArea } from '../../src/arcade/sim/fieldEvents';
 import { separate } from '../../src/arcade/sim/physics';
 import { genericEventFor } from '../../src/arcade/sim/run';
 import { giveStatus, hasStatus, speedShare } from '../../src/arcade/sim/status';
@@ -129,7 +129,7 @@ describe('the wisps (w1)', () => {
   it('the carrier doesn’t steer away from it: it’s a blessing, not a danger; Frog Rain and the taffy still are', () => {
     const s = playState([{ pos: v(0, 0) }]);
     const coming = (event: FieldEvent) =>
-      comingFor({ event, area: placeArea(s, event.areas[0]), left: 1 });
+      steerClearOf({ event, area: placeArea(s, event.areas[0]), left: 1 });
     expect(coming(WILL_O_WISPS)).toBe(false);
     expect(coming(FROG_RAIN)).toBe(true);
     expect(coming(TAFFY_FLOOD)).toBe(true);

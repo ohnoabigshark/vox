@@ -60,12 +60,13 @@ function stepThrough(
 }
 
 describe('the taffy flood (t1)', () => {
-  it('is mischief: a band across the whole field, 3 to 7 yards past the line, a spell of Slowed on everyone', () => {
-    // Closer and a yard deeper after play (2026-11-07): it was 6 to 9.
+  it('is mischief: a band across the whole field first among its shapes, a spell of Slowed on everyone', () => {
+    // Closer and a yard deeper after play (2026-11-07): it was 6 to 9. Its other shapes, its reach
+    // and its size since field-places are places.test.ts's.
     const t = TAFFY_FLOOD;
     expect(t.name).toBe('Taffy Flood');
     expect(t.boss).toBeNull();
-    expect(t.areas).toEqual([{ shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 7 }]);
+    expect(t.areas[0]).toEqual({ shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 7 });
     expect(t.goesOffAs).toBe('spell');
     // It goes off 1 s after the snap and lasts 2.5 s, on screen (half a second more after play, 2026-11-07).
     expect(t.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
@@ -349,7 +350,11 @@ describe('generic events in a run (test 3)', () => {
     s.series = { ...s.series, los: stretchStart(1) + 2 };
     setUpDown(s, []);
     expect(s.field.fieldEvent?.event.id).toBe('taffyFlood');
-    expect(s.field.fieldEvent?.area).toMatchObject({ y0: s.series.los + 3, y1: s.series.los + 7 });
+    // Its near edge 2 to 12 yards past that down's line (field-places, p1).
+    const placed = s.field.fieldEvent!.area;
+    const near = placed.shape === 'rect' ? placed.y0 : placed.y - placed.r;
+    expect(near - s.series.los).toBeGreaterThanOrEqual(2 - 1e-9);
+    expect(near - s.series.los).toBeLessThanOrEqual(12 + 1e-9);
     // And a series starting in stretch 2 has it from its first down.
     setUpSeries(s, 0, stretchStart(1), [], true);
     expect(s.field.fieldEvent?.event.id).toBe('taffyFlood');

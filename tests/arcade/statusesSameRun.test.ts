@@ -80,7 +80,8 @@ describe('statuses: the bolt as Fast plays exactly as before', () => {
  * field-taffy (2026-11-07): its run reaches a stretch the seed gives the
  * taffy flood (and again when the taffy grew to 2.5 s and Slowed to 0.375,
  * and when it moved to 3 to 7 yards), and on field-wisps, where its generic
- * stretch draws the wisps (and again when they moved to 10 yards, then 6).
+ * stretch draws the wisps (and again when they moved to 10 yards, then 6),
+ * and on field-places, where the taffy and the wisps vary in place and size.
  * With generic events off (`genericShare: 0`), it gives
  * 06fe520adac8ca51 again, as main did: the generic events are the only change.
  */
@@ -88,5 +89,5 @@ const EXPECTED: readonly string[] = [
   'bee0a1cd9e41aeda',
   'a0ba0b17cb615311',
   'f1489c668244d302',
-  '33ce5f7882351f01',
+  '58771ae6cd4a6038',
 ];

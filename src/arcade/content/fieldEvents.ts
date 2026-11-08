@@ -157,27 +157,26 @@ export const FROG_RAIN: FieldEvent = {
 };
 
 /**
- * The taffy flood (FIELD_EVENTS.md round 5, t1): mischief. A band of pink
- * candy across the whole field, 3 to 7 yards past the line, bubbling up
- * after the snap; 1 s after it, it floods, and for 2.5 s everyone in it is
- * Slowed. A band across the whole field has no way round, so the carrier
- * doesn't steer round it (ai.ts).
+ * The taffy flood (FIELD_EVENTS.md round 5, t1, and `field-places`):
+ * mischief. Pink candy, bubbling up after the snap; 1 s after it, it floods,
+ * and for 2.5 s everyone in it is Slowed. Each down the seed picks its shape
+ * (a band across the whole field, a half band against either sideline, or a
+ * puddle in the middle or toward either side), its near edge 2 to 12 yards
+ * past the line, and its size, 0.75x to 1.5x (bands 3 to 6 yards deep,
+ * puddles 4.5 to 9 across). A full band has no way round, so the carrier
+ * runs straight at it; he steers round the others (ai.ts).
  */
 export const TAFFY_FLOOD: FieldEvent = {
   id: 'taffyFlood',
   name: 'Taffy Flood',
   boss: null,
   areas: [
-    {
-      shape: 'band',
-      across: 'middle',
-      width: 2 * arcadeTuning.field.halfWidth,
-      from: 3,
-      to: 7,
-    },
+    { shape: 'band', across: 'middle', width: 2 * arcadeTuning.field.halfWidth, from: 3, to: 7 },
+    { shape: 'band', across: 'either', width: arcadeTuning.field.halfWidth, from: 3, to: 7 },
+    { shape: 'circle', across: 'any', out: 4, at: 6, radius: 3 },
   ],
-  reach: null,
-  size: null,
+  reach: { nearest: 2, farthest: 12 },
+  size: { smallest: 0.75, largest: 1.5 },
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 2.5 * TIME_SCALE,
@@ -188,9 +187,11 @@ export const TAFFY_FLOOD: FieldEvent = {
 };
 
 /**
- * The will-o'-wisps (FIELD_EVENTS.md, w1): a blessing. A circle 6 yards
- * across, 6 yards past the line (3 to 9) on either side (picked each down, as Frog
- * Rain's lane is), pale green lights hovering in it from before the snap;
+ * The will-o'-wisps (FIELD_EVENTS.md, w1, and `field-places` z2): a
+ * blessing. A circle 6 yards across, 6 yards past the line (3 to 9) on
+ * either side (picked each down, as Frog Rain's lane is); each down its size
+ * too, 0.75x to 1.25x (4.5 to 7.5 across), its near edge staying at 3
+ * yards. Pale green lights hover in it from before the snap;
  * 1 s after it, they flare, and for 3 s your players in it are Ethereal:
  * no defender can grab or tackle them, and they pass through each other.
  */
@@ -200,7 +201,7 @@ export const WILL_O_WISPS: FieldEvent = {
   boss: null,
   areas: [{ shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 }],
   reach: null,
-  size: null,
+  size: { smallest: 0.75, largest: 1.25 },
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 3 * TIME_SCALE,
