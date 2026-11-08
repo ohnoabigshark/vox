@@ -696,6 +696,12 @@ Still open:
   play after some amount of limited movement (forward progress rule)."_
   So the rule needs to cover a play with no tackle coming and little
   progress, not only a carrier being shoved back.
+  **Built, 2026-11-08** (B9, branch `forward-progress`): the flagged downs
+  were all a drag that never ended. A drag now also ends once the carrier
+  has gone 1.5 s on screen without gaining ground, down where he stands.
+  No wider rule (forward progress map f2,
+  https://claude.ai/artifact/BHZ9WcjSz3THckuhjGpWMd): outside a drag any
+  defender who touches the carrier grabs him at once.
 - **Ethereal as a pickup.** The wisps' effect may be good but its
   application bad: a circle on the field, gone off 1 s after the snap, is
   passed before it helps. Ethereal could instead be an on-field pickup, a

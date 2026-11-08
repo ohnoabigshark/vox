@@ -140,7 +140,7 @@ DOM). It failed with the old `innerHTML` and passes with the fix (review of
 `names-fix`, rules: prove a bug-fix test catches the bug). Seen with it:
 full names at the line overlap (the risk p6 accepted).
 
-## B9. A drag pushed backward never ends: the down runs on with nobody able to tackle
+## B9. A drag pushed backward never ends: the down runs on with nobody able to tackle (fixed)
 
 After a Break it! comes out **drag**, the carrier hauls its tacklers
 `dragYards` further and goes down there (`dragDone`, `sim/step.ts`). It goes
@@ -174,3 +174,15 @@ back a little but it should be some sort of timer (not a set amount of
 yards)."
 
 Ties in with PLAN.md's "Forward progress: called down when driven back".
+
+**2026-11-08: fixed** on `forward-progress`, from the forward progress map
+(https://claude.ai/artifact/BHZ9WcjSz3THckuhjGpWMd, f1-f3 approved). A drag
+also ends once the carrier has gone `breakit.dragStall` (1.2 s of sim time,
+1.5 s on screen) without gaining ground, and he's down where he stands, so
+a little push-back counts (the user: "a timer, not a set amount of yards").
+f1 said 1.5 s from the drag's start, but an ordinary drag takes about 2 s on
+screen to make its yards, so a flat limit would have cut every drag short;
+the clock runs only while he's stuck (`drag.best`, `drag.stalled`). Tests in
+`tests/arcade/forwardProgress.test.ts`: a carrier held still, and one shoved
+back by a pile, each failed on the old code (no tackle in 10 s) and pass
+now; an ordinary drag still goes down at its yard, however long it takes.

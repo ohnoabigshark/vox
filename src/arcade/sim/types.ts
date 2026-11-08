@@ -239,8 +239,13 @@ export interface Field {
   lastBreak: number | null;
   /** How many Break it!s this down has had: past `breakit.perDown`, a grab is just a tackle. */
   breaks: number;
-  /** A carrier dragging tacklers after a close Break it!: it goes down when it reaches this row. */
-  drag: { readonly to: number } | null;
+  /**
+   * A carrier dragging tacklers after a close Break it!: it goes down when it
+   * reaches row `to`, or once it has gone `breakit.dragStall` without gaining
+   * ground (B9): `best` is the furthest row it has reached, `stalled` how long
+   * since it last got further.
+   */
+  drag: { readonly to: number; best: number; stalled: number } | null;
 }
 
 /**
