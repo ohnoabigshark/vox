@@ -160,4 +160,17 @@ Flagged twice by the user, as "where we need the forward progress work":
   20.4 on 1st and 10 from the 20.5, dragged 0.5 yards, then 44 s with no
   events; at the ⚑ the carrier was at the −3, 23.5 yards behind the line.
 
+- **2026-11-08 03:38** (same run; lines in
+  `docs/play-logs/2026-11-08-drag-backward-king.jsonl`): a Dive on the
+  King's stretch, grabbed at the 37.3, dragged, then 14 s with no events;
+  at the ⚑ the carrier was at the 23.7, shoved back 13.6 yards.
+
+**Why so far back** (from the code, not yet run): the tacklers on him ride
+along and slow him by their weight (`moveBodies`, `sim/physics.ts`); every
+other defender still runs at him but may not grab during a drag, so they
+pile in and shove him by weight instead. Nothing ends it. The user: "it's
+kinda fun but we need the forward progress check. it's ok to get pushed
+back a little but it should be some sort of timer (not a set amount of
+yards)."
+
 Ties in with PLAN.md's "Forward progress: called down when driven back".
