@@ -453,3 +453,68 @@ last two played before they merge.
 - **Play changes where the wisps are:** seed 14's run draws the wisps on
   its generic stretch and was re-pinned; with `genericShare` 0, all four
   seeded runs are `main`'s again.
+
+## Places and sizes: `field-places` (2026-11-08)
+
+From the taffy places map (https://claude.ai/artifact/E4FPPufgdSdFYdZTyWpczw),
+rounds 1 and 2, all approved (p1–p7, z1–z3; p8 decided as mischief). The user
+asked for "different shapes and placement … expand the range of possible
+yards out", then "the size of the shape/band/whatever should also be
+influenced by the seed".
+
+### The plan
+
+- **An event has areas, a reach and a size** (p5, z1). `areas` lists one or
+  more shapes, non-empty; one is picked each down, each as likely. `reach`,
+  `{ nearest, farthest }` or null, is how near and far its near edge may land,
+  in yards past the line. `size`, `{ smallest, largest }` or null, scales its
+  depth (a lane's or band's `to − from`) or a circle's radius. The width
+  across never scales: a band still spans the field.
+- **One place picks them** (sim/fieldEvents.ts, `shapeFor`): from the seed,
+  every down, on a stream of its own (`'eventPlace'`, p3), so the cards dealt,
+  the pickups and Frog Rain's side stay as they are. With one area, no reach
+  and no size it draws nothing and returns the area as it is, so Frog Rain
+  places exactly as before. With no reach, the near edge is the area's own (a
+  rect's `from`, a circle's `at − radius`), so a bigger one grows away from
+  the line. The result is an ordinary area, which `placeArea` places as now.
+- **Across: `any`** (p2's puddle "in the middle or toward either side"):
+  left, middle or right, picked like `either`.
+- **The taffy** (p1, p2, z1): a band (the whole field, 4 yards deep), a half
+  band (half the field, against either sideline, 4 deep), or a puddle (a
+  circle 6 across, `any` side, 4 out); its near edge 2 to 12 yards out; size
+  0.75x to 1.5x (bands 3 to 6 deep, puddles 4.5 to 9 across). Still mischief.
+- **The wisps** (z2): one circle, no reach, so their near edge stays at 3
+  yards; size 0.75x to 1.25x (4.5 to 7.5 across, reaching up to 10.5).
+- **Frog Rain** keeps one lane, no reach, no size (z2).
+- **The carrier** (p4) steers clear of an event that would hurt him while
+  it's coming and, now, while a spell is on; a full band counts against every
+  lane alike, so against it he runs straight. `comingFor` becomes
+  `steerClearOf`, since it's no longer only what's coming.
+- **Saved events** (p5): one saved before reads `area` as `areas: [area]`,
+  with no reach and no size. One with no areas, a backwards reach or size, or
+  a size of 0 or less, is left out with a warning.
+- **The editor** (p5, z3): a row of chips, one per area, picks which the
+  handles and the area's sliders edit; Nearest and Farthest sliders when the
+  event has a reach, Smallest and Largest when it has a size. Save keeps
+  every area. Try it plays a fresh pick each down.
+- **The looks**: the taffy draws whichever shape it has (a puddle as a
+  disc); the wisps already read their circle's radius.
+- **Order** (z3): the sets session's PR #45 may merge first; whichever of
+  the two merges second re-pins the seeded-run fingerprints.
+
+### Tests, written first (p6, z3)
+
+1. Each down in a taffy stretch gets one of the taffy's shapes, its near edge
+   2 to 12 yards past that down's line and its size 0.75x to 1.5x. Over many
+   seeds every shape comes up, and both ends of the reach and the size.
+2. The same seed gives the same shapes, places and sizes, down by down.
+3. Frog Rain places exactly as before; the seeded-run fingerprints are
+   unchanged with generic events off.
+4. The wisps' near edge stays at 3 yards; they're 4.5 to 7.5 yards across.
+5. A carrier steers round a half band and a puddle while the taffy is coming
+   and while it's on, but runs straight at a full band.
+6. A saved event or Try it link from before reads as one area with no reach
+   or size; one with no areas, or a backwards reach or size, is refused with
+   a warning.
+7. The editor: an area chip edits that area; the reach and size sliders set
+   their numbers; Save keeps every area.
