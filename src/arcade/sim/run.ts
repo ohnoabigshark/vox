@@ -684,10 +684,19 @@ export function frozenForTest(phase: Phase): boolean {
   return phase === 'breakit' || phase === 'snag' || phase === 'tip';
 }
 
-/** Down and distance, e.g. "3rd & 4", or "3rd & Goal" when the line to gain is the goal line (r3). Yards round up. */
+/** Less than any distance the game measures; what a float's rounding leaves over. */
+const FLOAT_SLACK = 1e-9;
+
+/**
+ * Down and distance, e.g. "3rd & 4", or "3rd & Goal" when the line to gain is
+ * the goal line (r3). Yards round up, but a float's leftover past a whole
+ * yard doesn't count: `los + 10 - los` can come out 10.000000000000004,
+ * which read "1st & 11" (B10).
+ */
 export function downAndDistance(state: RunState): string {
   const { down, firstDown, los } = state.series;
   const ordinal = ['1st', '2nd', '3rd', '4th'][down - 1] ?? `${down}th`;
-  const toGo = firstDown >= AREA_YARDS ? 'Goal' : Math.max(1, Math.ceil(firstDown - los));
+  const toGo =
+    firstDown >= AREA_YARDS ? 'Goal' : Math.max(1, Math.ceil(firstDown - los - FLOAT_SLACK));
   return `${ordinal} & ${toGo}`;
 }

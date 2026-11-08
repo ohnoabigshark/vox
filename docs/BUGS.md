@@ -192,3 +192,26 @@ now, and the creep test failed before the quarter-yard rule; an ordinary
 drag still goes down at its yard, however long it takes. The seeded-run
 fingerprints (`statusesSameRun.test.ts`) are unchanged: no seeded run
 reaches a stalled drag.
+
+## B10. A fresh series sometimes read "1st & 11" (fixed)
+
+Flagged by the user **2026-11-08 06:33 New York** (11:33 UTC; build
+b0e1c44, seed 613156248): a 2nd-down catch for 10.79 yards won the intro
+stretch, and Gingerbread Row's first down, 1st & 10 from the 10.79, read
+"1st & 11" on the HUD. The play log has it as `los` 10.79, `firstDown`
+20.79, `toGo` 10.
+
+**Why:** `downAndDistance` (`sim/run.ts`) rounds the yards to go up, and
+`firstDown - los` is a float sum taken apart again. For a series started
+from a fractional line, `start + 10 - start` can come out
+10.000000000000004, which rounds up to 11. About 1 series start in 13
+(7,651 of 100,000 random lines); it has been there since the HUD's down and
+distance went in (cb22a92, 2026-10-19), not from field events.
+
+**Fixed 2026-11-08:** the yards to go drop a billionth of a yard
+(`FLOAT_SLACK`) before rounding up, far less than anything the game
+measures, so 10.000000000000004 reads 10 and 1.53 still reads 2. Tests in
+`tests/arcade/longField.test.ts` ("down and distance (B10)"): the flagged
+case and a sweep of 2,000 starting lines failed on the old code ("1st & 11")
+and pass now; a part yard still rounding up passed on its first run, a
+regression guard.

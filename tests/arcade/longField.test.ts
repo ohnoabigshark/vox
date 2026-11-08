@@ -155,3 +155,32 @@ describe('the long field, part 1', () => {
     expect(state.field.pickups).toEqual([]);
   });
 });
+
+describe('down and distance (B10)', () => {
+  it('a series started past a fractional line reads 1st & 10, not 1st & 11', () => {
+    // Flagged 2026-11-08 11:33: 1st & 10 from the 10.79 read "1st & 11".
+    // From here, start + 10 - start comes out 10.000000000000004.
+    const start = 29.319792556868673;
+    expect(start + distance - start).toBeGreaterThan(distance);
+    const s = createRun(1);
+    setUpSeries(s, 0, start, [], true);
+    expect(downAndDistance(s)).toBe('1st & 10');
+  });
+
+  it('a series from any line of the area short of the goal reads 1st & 10', () => {
+    const s = createRun(1);
+    for (let i = 0; i < 2000; i++) {
+      const start = (i / 2000) * (AREA_YARDS - distance);
+      setUpSeries(s, 0, start, [], true);
+      expect(downAndDistance(s), `from the ${start}`).toBe('1st & 10');
+    }
+  });
+
+  it('a part yard to go still rounds up', () => {
+    const s = createRun(1);
+    s.series = { ...s.series, down: 3, los: 30.43, firstDown: 31.96 };
+    expect(downAndDistance(s)).toBe('3rd & 2');
+    s.series = { ...s.series, down: 2, los: 20, firstDown: 24.05 };
+    expect(downAndDistance(s)).toBe('2nd & 5');
+  });
+});
