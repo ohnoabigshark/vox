@@ -27,6 +27,24 @@ export interface EditorState {
   readonly event: FieldEvent;
   /** The event before each change, latest last: Undo steps back through them. */
   readonly history: readonly FieldEvent[];
+  /** Which of the event's areas the handles and the area's sliders edit (its chip is picked). */
+  readonly picked: number;
+}
+
+/** The area being edited: the picked one. */
+export function pickedArea(s: EditorState): EventArea {
+  return s.event.areas[s.picked] ?? s.event.areas[0];
+}
+
+/** The event with the picked area replaced. */
+function withArea(s: EditorState, area: EventArea): FieldEvent {
+  const areas = s.event.areas.map((a, i) => (i === s.picked ? area : a));
+  return { ...s.event, areas: areas as unknown as FieldEvent['areas'] };
+}
+
+/** Another area picked to edit (its chip tapped): not a change, so not a step for Undo. */
+export function pickArea(s: EditorState, picked: number): EditorState {
+  return picked >= 0 && picked < s.event.areas.length ? { ...s, picked } : s;
 }
 
 /** What a handle on the area sizes: a lane's or band's near edge, far edge or width; a circle's edge. */
@@ -77,22 +95,31 @@ function holdArea(a: EventArea, key: AreaKey, v: number): EventArea {
 }
 
 export function startEditing(event: FieldEvent): EditorState {
-  return { event, history: [] };
+  return { event, history: [], picked: 0 };
 }
 
-/** A change: the event as it now is, the one before kept for Undo. */
+/** A change: the event as it now is, the one before kept for Undo; the picked area kept if it's still there. */
 function changed(s: EditorState, event: FieldEvent): EditorState {
-  return { event, history: [...s.history, s.event] };
+  return { event, history: [...s.history, s.event], picked: keptPick(s.picked, event) };
 }
+
+const keptPick = (picked: number, event: FieldEvent): number =>
+  picked < event.areas.length ? picked : 0;
 
 export function undo(s: EditorState): EditorState {
   const before = s.history.at(-1);
-  return before ? { event: before, history: s.history.slice(0, -1) } : s;
+  return before
+    ? { event: before, history: s.history.slice(0, -1), picked: keptPick(s.picked, before) }
+    : s;
 }
 
-/** Which side an area is drawn on: where the sim places it, "either" on the right. */
+/** Which side an area is drawn on: where the sim places it, "either" or "any" on the right. */
 export function drawnSide(area: EventArea): -1 | 0 | 1 {
-  return sideOf(area.across, () => 1);
+  return sideOf(
+    area.across,
+    () => 1,
+    () => 1,
+  );
 }
 
 /**
@@ -101,8 +128,8 @@ export function drawnSide(area: EventArea): -1 | 0 | 1 {
  * side (a lane's or band's side is a chip). One step for Undo.
  */
 export function moveArea(start: EditorState, by: Yards): EditorState {
-  const a = start.event.area;
-  const moved = (area: EventArea): EditorState => changed(start, { ...start.event, area });
+  const a = pickedArea(start);
+  const moved = (area: EventArea): EditorState => changed(start, withArea(start, area));
   if (a.shape === 'circle') {
     const out = holdArea(a, 'out', snap(a.out + drawnSide(a) * by.x));
     return moved(holdArea(out, 'at', snap(a.at + by.y)));
@@ -145,9 +172,9 @@ export function circleAcross(area: Extract<EventArea, { out: number }>): number 
 
 /** The area with `handle` dragged to `to` (field yards), snapped and never inside out. One step for Undo. */
 export function sizeArea(start: EditorState, handle: Handle, to: Yards): EditorState {
-  const a = start.event.area;
+  const a = pickedArea(start);
   const set = (key: AreaKey, v: number): EditorState =>
-    changed(start, { ...start.event, area: holdArea(a, key, snap(v)) });
+    changed(start, withArea(start, holdArea(a, key, snap(v))));
   if (a.shape === 'circle') return set('radius', Math.hypot(to.x - circleAcross(a), to.y - a.at));
   switch (handle) {
     case 'near':
@@ -180,7 +207,7 @@ export function areaReadout(area: EventArea): string {
 
 /** The area as another shape, where it was: a circle in the middle of the old box, as wide as its narrower side, or a box around the old circle. */
 export function setShape(s: EditorState, shape: EventArea['shape']): EditorState {
-  const a = s.event.area;
+  const a = pickedArea(s);
   if (a.shape === shape) return s;
   let area: EventArea;
   if (shape === 'circle') {
@@ -205,11 +232,11 @@ export function setShape(s: EditorState, shape: EventArea['shape']): EditorState
   } else {
     area = { ...a, shape };
   }
-  return changed(s, { ...s.event, area });
+  return changed(s, withArea(s, area));
 }
 
 export function setAcross(s: EditorState, across: EventArea['across']): EditorState {
-  return changed(s, { ...s.event, area: { ...s.event.area, across } });
+  return changed(s, withArea(s, { ...pickedArea(s), across }));
 }
 
 /** Times are set as the screen shows them and kept as the sim counts them. */
@@ -306,8 +333,11 @@ export function numberText(n: EventNumber): string {
 /** A sim time as the screen shows it, free of float dust. */
 const onScreen = (sim: number): number => Math.round((sim / TIME_SCALE) * 1e6) / 1e6;
 
-/** The sliders an event has: its three times, then its area's numbers (a lane's or band's edges and width, or a circle's place and size). */
-export function eventNumbers(e: FieldEvent): EventNumber[] {
+/**
+ * The sliders an event has: its three times, then the numbers of its area
+ * `picked` (a lane's or band's edges and width, or a circle's place and size).
+ */
+export function eventNumbers(e: FieldEvent, picked: number): EventNumber[] {
   const time = (
     key: NumberKey,
     label: string,
@@ -343,7 +373,7 @@ export function eventNumbers(e: FieldEvent): EventNumber[] {
     time('buildUp', 'Warning before it goes off', e.warning.buildUp, 0, 3, 0.025),
     time('lasts', 'Its effect lasts', e.lasts, 0.2, 4),
   ];
-  const a = e.area;
+  const a = e.areas[picked] ?? e.areas[0];
   if (a.shape === 'circle') {
     return [
       ...times,
@@ -364,8 +394,8 @@ export function eventNumbers(e: FieldEvent): EventNumber[] {
 /** One number set exactly (a slider moved, or ↺), held to what the game can play. One step for Undo. */
 export function setNumber(s: EditorState, key: NumberKey, value: number): EditorState {
   const e = s.event;
-  const a = e.area;
-  const area = (next: EventArea): EditorState => changed(s, { ...e, area: next });
+  const a = pickedArea(s);
+  const area = (next: EventArea): EditorState => changed(s, withArea(s, next));
   switch (key) {
     case 'goesOff':
       return changed(s, { ...e, goesOff: sim(value) });
@@ -444,7 +474,9 @@ export function timelineText(t: EventTimeline): string[] {
 /** What a new event starts with, beside its id and name: generic, plain, a circle ahead on the right, flattening everyone. */
 const STARTING: Omit<FieldEvent, 'id' | 'name'> = {
   boss: null,
-  area: { shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 },
+  areas: [{ shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 }],
+  reach: null,
+  size: null,
   goesOff: 1.6,
   goesOffAs: 'burst',
   lasts: 1.2,

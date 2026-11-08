@@ -50,7 +50,7 @@ const ghost = <B extends Body>(b: B): B => {
 
 /** Put this event on the field, placed from the line and already counting: it goes off on the next step. */
 function setOff(s: RunState, event: FieldEvent): RunState {
-  s.field.fieldEvent = { event, area: placeArea(s, event.area), left: DT };
+  s.field.fieldEvent = { event, area: placeArea(s, event.areas[0]), left: DT };
   return s;
 }
 
@@ -59,7 +59,7 @@ describe('the wisps (w1)', () => {
     const w = WILL_O_WISPS;
     expect(w.name).toBe('Will-o’-Wisps');
     expect(w.boss).toBeNull();
-    expect(w.area).toEqual({ shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 });
+    expect(w.areas).toEqual([{ shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 }]);
     expect(w.goesOffAs).toBe('spell');
     // It goes off 1 s after the snap and lasts 3 s, on screen.
     expect(w.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
@@ -129,7 +129,7 @@ describe('the wisps (w1)', () => {
   it('the carrier doesn’t steer away from it: it’s a blessing, not a danger; Frog Rain and the taffy still are', () => {
     const s = playState([{ pos: v(0, 0) }]);
     const coming = (event: FieldEvent) =>
-      comingFor({ event, area: placeArea(s, event.area), left: 1 });
+      comingFor({ event, area: placeArea(s, event.areas[0]), left: 1 });
     expect(coming(WILL_O_WISPS)).toBe(false);
     expect(coming(FROG_RAIN)).toBe(true);
     expect(coming(TAFFY_FLOOD)).toBe(true);
@@ -312,6 +312,6 @@ describe('the pool (test 7)', () => {
 
 // Keep the halfWidth import honest: the wisps sit inside the field.
 it('the wisps’ circle is inside the field on either side', () => {
-  const { out, radius } = WILL_O_WISPS.area as { out: number; radius: number };
+  const { out, radius } = WILL_O_WISPS.areas[0] as { out: number; radius: number };
   expect(out + radius).toBeLessThan(arcadeTuning.field.halfWidth);
 });

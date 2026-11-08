@@ -22,8 +22,12 @@ import {
 } from './statuses';
 import { arcadeTuning, TIME_SCALE } from './tuning';
 
-/** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
-export type Across = 'left' | 'middle' | 'right' | 'either';
+/**
+ * Where across the field an area sits: against a sideline, in the middle,
+ * either side picked each down, or any of the three picked each down
+ * (`field-places`, p2's puddle).
+ */
+export type Across = 'left' | 'middle' | 'right' | 'either' | 'any';
 
 /**
  * A lane (down the field) or a band (across it): `width` yards across, from
@@ -48,6 +52,22 @@ export interface CircleArea {
 }
 
 export type EventArea = RectArea | CircleArea;
+
+/** How near and far an event's near edge may land each down, in yards past the line (`field-places`, p1). */
+export interface EventReach {
+  readonly nearest: number;
+  readonly farthest: number;
+}
+
+/**
+ * How much smaller or bigger an event may be each down (`field-places`, z1):
+ * times its area's depth (a lane's or band's `to − from`) or a circle's
+ * radius. The width across never scales.
+ */
+export interface EventSize {
+  readonly smallest: number;
+  readonly largest: number;
+}
 
 /** Who an effect hits (`content/statuses.ts`). */
 export type { Who } from './statuses';
@@ -88,7 +108,12 @@ export interface FieldEvent {
   readonly name: string;
   /** The Boss whose gimmick it is, or null for a generic event. */
   readonly boss: BossName | null;
-  readonly area: EventArea;
+  /** The shapes it may take, one picked each down, each as likely (most events have one). */
+  readonly areas: readonly [EventArea, ...EventArea[]];
+  /** Where its near edge may land each down, or null: where its area says. */
+  readonly reach: EventReach | null;
+  /** How its size may vary each down, or null: as its area is. */
+  readonly size: EventSize | null;
   /** It goes off this long after the snap… */
   readonly goesOff: number;
   /** …as a burst (whoever is in it then) or a spell (whoever is in it while it lasts)… */
@@ -111,13 +136,17 @@ export const FROG_RAIN: FieldEvent = {
   id: 'frogRain',
   name: 'Frog Rain',
   boss: 'misterFrog',
-  area: {
-    shape: 'lane',
-    across: 'either',
-    width: 0.4 * 2 * arcadeTuning.field.halfWidth,
-    from: -1,
-    to: 16,
-  },
+  areas: [
+    {
+      shape: 'lane',
+      across: 'either',
+      width: 0.4 * 2 * arcadeTuning.field.halfWidth,
+      from: -1,
+      to: 16,
+    },
+  ],
+  reach: null,
+  size: null,
   goesOff: 1.6,
   goesOffAs: 'burst',
   lasts: 1.2,
@@ -138,13 +167,17 @@ export const TAFFY_FLOOD: FieldEvent = {
   id: 'taffyFlood',
   name: 'Taffy Flood',
   boss: null,
-  area: {
-    shape: 'band',
-    across: 'middle',
-    width: 2 * arcadeTuning.field.halfWidth,
-    from: 3,
-    to: 7,
-  },
+  areas: [
+    {
+      shape: 'band',
+      across: 'middle',
+      width: 2 * arcadeTuning.field.halfWidth,
+      from: 3,
+      to: 7,
+    },
+  ],
+  reach: null,
+  size: null,
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 2.5 * TIME_SCALE,
@@ -165,7 +198,9 @@ export const WILL_O_WISPS: FieldEvent = {
   id: 'willOWisps',
   name: 'Will-o’-Wisps',
   boss: null,
-  area: { shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 },
+  areas: [{ shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 }],
+  reach: null,
+  size: null,
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 3 * TIME_SCALE,

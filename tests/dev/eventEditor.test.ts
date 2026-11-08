@@ -40,14 +40,14 @@ import {
 const hw = arcadeTuning.field.halfWidth;
 const lane: FieldEvent = {
   ...FROG_RAIN,
-  area: { shape: 'lane', across: 'right', width: 6, from: -1, to: 16 },
+  areas: [{ shape: 'lane', across: 'right', width: 6, from: -1, to: 16 }],
 };
 
 describe('the editor (test 7)', () => {
   it('dragging the area moves it upfield by the drag, snapped to the half yard; a lane keeps its side', () => {
     const s = startEditing(lane);
     const moved = moveArea(s, { x: 3, y: 2.3 });
-    expect(moved.event.area).toEqual({
+    expect(moved.event.areas[0]).toEqual({
       shape: 'lane',
       across: 'right',
       width: 6,
@@ -61,9 +61,9 @@ describe('the editor (test 7)', () => {
   it('a circle moves across as well, its way out from the middle', () => {
     const s = startEditing({
       ...lane,
-      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+      areas: [{ shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 }],
     });
-    expect(moveArea(s, { x: 1.2, y: -2.2 }).event.area).toEqual({
+    expect(moveArea(s, { x: 1.2, y: -2.2 }).event.areas[0]).toEqual({
       shape: 'circle',
       across: 'right',
       out: 5,
@@ -71,7 +71,7 @@ describe('the editor (test 7)', () => {
       radius: 2,
     });
     // Never past the sideline.
-    expect(moveArea(s, { x: 20, y: 0 }).event.area).toEqual({
+    expect(moveArea(s, { x: 20, y: 0 }).event.areas[0]).toEqual({
       shape: 'circle',
       across: 'right',
       out: hw,
@@ -82,29 +82,29 @@ describe('the editor (test 7)', () => {
 
   it('handles size it: a lane’s near and far edges and its width; a circle’s edge', () => {
     const s = startEditing(lane);
-    const handles = handlesOf(lane.area);
+    const handles = handlesOf(lane.areas[0]);
     expect(handles.map((h) => h.handle)).toEqual(['near', 'far', 'width']);
-    const sized = (area: object): object => ({ ...lane.area, ...area });
-    expect(sizeArea(s, 'far', { x: 0, y: 10.2 }).event.area).toEqual(sized({ to: 10 }));
-    expect(sizeArea(s, 'near', { x: 0, y: 2.6 }).event.area).toEqual(sized({ from: 2.5 }));
+    const sized = (area: object): object => ({ ...lane.areas[0], ...area });
+    expect(sizeArea(s, 'far', { x: 0, y: 10.2 }).event.areas[0]).toEqual(sized({ to: 10 }));
+    expect(sizeArea(s, 'near', { x: 0, y: 2.6 }).event.areas[0]).toEqual(sized({ from: 2.5 }));
     // The width handle is the lane's inner edge: dragged toward the middle, it widens.
-    expect(sizeArea(s, 'width', { x: hw - 8.2, y: 5 }).event.area).toEqual(sized({ width: 8 }));
+    expect(sizeArea(s, 'width', { x: hw - 8.2, y: 5 }).event.areas[0]).toEqual(sized({ width: 8 }));
     // Never inside out: the near edge stops half a yard short of the far one.
-    expect(sizeArea(s, 'near', { x: 0, y: 30 }).event.area).toEqual(sized({ from: 15.5 }));
+    expect(sizeArea(s, 'near', { x: 0, y: 30 }).event.areas[0]).toEqual(sized({ from: 15.5 }));
     const c = startEditing({
       ...lane,
-      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+      areas: [{ shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 }],
     });
-    expect(handlesOf(c.event.area).map((h) => h.handle)).toEqual(['edge']);
-    expect(sizeArea(c, 'edge', { x: 7.1, y: 12 }).event.area).toEqual({
-      ...c.event.area,
+    expect(handlesOf(c.event.areas[0]).map((h) => h.handle)).toEqual(['edge']);
+    expect(sizeArea(c, 'edge', { x: 7.1, y: 12 }).event.areas[0]).toEqual({
+      ...c.event.areas[0],
       radius: 3,
     });
   });
 
   it('the bar under the field says where it is, in yards', () => {
-    expect(areaReadout(lane.area)).toBe('−1 to +16 yd from the line · 6 yd wide');
-    expect(areaReadout(FROG_RAIN.area)).toBe('−1 to +16 yd from the line · 7.3 yd wide');
+    expect(areaReadout(lane.areas[0])).toBe('−1 to +16 yd from the line · 6 yd wide');
+    expect(areaReadout(FROG_RAIN.areas[0])).toBe('−1 to +16 yd from the line · 7.3 yd wide');
     expect(areaReadout({ shape: 'circle', across: 'either', out: 4, at: 12, radius: 2 })).toBe(
       '+12 yd ahead · 4 yd out · 4 yd across',
     );
@@ -112,10 +112,10 @@ describe('the editor (test 7)', () => {
 
   it('changing the shape keeps the area where it was', () => {
     const s = startEditing(lane);
-    const circle = setShape(s, 'circle').event.area;
+    const circle = setShape(s, 'circle').event.areas[0];
     // Centred where the lane was: 7.5 yd ahead, 6.1 out (the lane's middle), as wide as the lane.
     expect(circle).toEqual({ shape: 'circle', across: 'right', out: hw - 3, at: 7.5, radius: 3 });
-    const back = setShape(startEditing({ ...lane, area: circle }), 'band').event.area;
+    const back = setShape(startEditing({ ...lane, areas: [circle] }), 'band').event.areas[0];
     expect(back).toEqual({ shape: 'band', across: 'right', width: 6, from: 4.5, to: 10.5 });
   });
 
@@ -152,7 +152,7 @@ describe('the editor (test 7)', () => {
 
 describe('the editor, bench style (round 4: e1–e4)', () => {
   it('e1, e2: each event shows its times and its area’s numbers as sliders, on screen and in yards', () => {
-    expect(eventNumbers(FROG_RAIN).map((n) => [n.key, n.value])).toEqual(
+    expect(eventNumbers(FROG_RAIN, 0).map((n) => [n.key, n.value])).toEqual(
       [
         ['goesOff', 2],
         ['buildUp', 0.875],
@@ -164,9 +164,9 @@ describe('the editor, bench style (round 4: e1–e4)', () => {
     );
     const circle = {
       ...lane,
-      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+      areas: [{ shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 }],
     } as const;
-    expect(eventNumbers(circle).map((n) => n.key)).toEqual([
+    expect(eventNumbers(circle, 0).map((n) => n.key)).toEqual([
       'goesOff',
       'buildUp',
       'lasts',
@@ -180,11 +180,17 @@ describe('the editor, bench style (round 4: e1–e4)', () => {
     const s = setNumber(startEditing(lane), 'goesOff', 1);
     expect(s.event.goesOff).toBeCloseTo(0.8, 9);
     expect(undo(s).event).toEqual(lane);
-    expect(setNumber(startEditing(lane), 'to', 10).event.area).toEqual({ ...lane.area, to: 10 });
+    expect(setNumber(startEditing(lane), 'to', 10).event.areas[0]).toEqual({
+      ...lane.areas[0],
+      to: 10,
+    });
     // Never inside out: the far edge stops half a yard past the near one.
-    expect(setNumber(startEditing(lane), 'to', -5).event.area).toEqual({ ...lane.area, to: -0.5 });
-    expect(setNumber(startEditing(lane), 'width', 40).event.area).toEqual({
-      ...lane.area,
+    expect(setNumber(startEditing(lane), 'to', -5).event.areas[0]).toEqual({
+      ...lane.areas[0],
+      to: -0.5,
+    });
+    expect(setNumber(startEditing(lane), 'width', 40).event.areas[0]).toEqual({
+      ...lane.areas[0],
       width: 2 * hw,
     });
   });
@@ -222,42 +228,44 @@ describe('review of the bench-style editor', () => {
   it('b4: dragging and the sliders hold a number alike: never past 30 yards upfield', () => {
     expect(FARTHEST).toBe(30);
     // A lane dragged far upfield stops with its far edge at 30, keeping its length.
-    expect(moveArea(startEditing(lane), { x: 0, y: 20 }).event.area).toEqual({
-      ...lane.area,
+    expect(moveArea(startEditing(lane), { x: 0, y: 20 }).event.areas[0]).toEqual({
+      ...lane.areas[0],
       from: 13,
       to: 30,
     });
-    expect(sizeArea(startEditing(lane), 'far', { x: 0, y: 34 }).event.area).toEqual({
-      ...lane.area,
+    expect(sizeArea(startEditing(lane), 'far', { x: 0, y: 34 }).event.areas[0]).toEqual({
+      ...lane.areas[0],
       to: 30,
     });
     const c = startEditing({
       ...lane,
-      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+      areas: [{ shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 }],
     });
-    expect(moveArea(c, { x: 0, y: 30 }).event.area).toMatchObject({ at: 30 });
-    expect(setNumber(c, 'at', 40).event.area).toEqual({ ...c.event.area, at: 30 });
+    expect(moveArea(c, { x: 0, y: 30 }).event.areas[0]).toMatchObject({ at: 30 });
+    expect(setNumber(c, 'at', 40).event.areas[0]).toEqual({ ...c.event.areas[0], at: 30 });
   });
 
   it('b4: a circle in the middle has no way out to set: not offered, and held at 0', () => {
     const middle = {
       ...lane,
-      area: { shape: 'circle', across: 'middle', out: 0, at: 12, radius: 2 },
+      areas: [{ shape: 'circle', across: 'middle', out: 0, at: 12, radius: 2 }],
     } as const;
-    expect(eventNumbers(middle).map((n) => n.key)).not.toContain('out');
-    expect(setNumber(startEditing(middle), 'out', 3).event.area).toEqual(middle.area);
+    expect(eventNumbers(middle, 0).map((n) => n.key)).not.toContain('out');
+    expect(setNumber(startEditing(middle), 'out', 3).event.areas[0]).toEqual(middle.areas[0]);
     // Set on a side, it moves out again.
     expect(
-      eventNumbers({ ...middle, area: { ...middle.area, across: 'left' } }).map((n) => n.key),
+      eventNumbers({ ...middle, areas: [{ ...middle.areas[0], across: 'left' }] }, 0).map(
+        (n) => n.key,
+      ),
     ).toContain('out');
   });
 
   it('m1, d2: how a number reads, from the rules: signed from the line, times to the thousandth only when needed', () => {
-    const text = (e: FieldEvent): string[] => eventNumbers(e).map(numberText);
+    const text = (e: FieldEvent): string[] => eventNumbers(e, 0).map(numberText);
     expect(text(FROG_RAIN)).toEqual(['2.00 s', '0.875 s', '1.50 s', '−1 yd', '+16 yd', '7.3 yd']);
     const c = {
       ...lane,
-      area: { shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 },
+      areas: [{ shape: 'circle', across: 'right', out: 4, at: 12, radius: 2 }],
     } as const;
     expect(text(c).slice(3)).toEqual(['+12 yd', '4 yd', '2 yd']);
     // The timeline reads as the sliders do: Frog Rain's warning starts at 1.125 s, not "1.13".

@@ -27,18 +27,23 @@ import { dist, v } from './vec';
  */
 export function placeArea(state: RunState, area: EventArea): PlacedArea {
   const { los } = state.series;
-  const side = sideOf(area.across, () => {
-    const rng = rngFor(state.seed, 'frogLane', state.seriesWon, state.series.down, state.nextId);
-    return rng.next() < 0.5 ? -1 : 1;
-  });
+  const rng = () =>
+    rngFor(state.seed, 'frogLane', state.seriesWon, state.series.down, state.nextId);
+  const side = sideOf(
+    area.across,
+    () => (rng().next() < 0.5 ? -1 : 1),
+    () => SIDES[rng().int(0, SIDES.length - 1)] ?? 0,
+  );
   if (area.shape === 'circle') {
     return { shape: 'circle', x: circleX(area.out, side), y: los + area.at, r: area.radius };
   }
   return { shape: 'rect', ...rectXs(area.width, side), y0: los + area.from, y1: los + area.to };
 }
 
-/** Which side an area sits on: −1 left, 0 the middle, 1 right; "either" as `either` picks it. */
-export function sideOf(across: Across, either: () => -1 | 1): -1 | 0 | 1 {
+const SIDES = [-1, 0, 1] as const;
+
+/** Which side an area sits on: −1 left, 0 the middle, 1 right; "either" as `either` picks it, "any" as `any` does. */
+export function sideOf(across: Across, either: () => -1 | 1, any: () => -1 | 0 | 1): -1 | 0 | 1 {
   switch (across) {
     case 'left':
       return -1;
@@ -48,6 +53,8 @@ export function sideOf(across: Across, either: () => -1 | 1): -1 | 0 | 1 {
       return 1;
     case 'either':
       return either();
+    case 'any':
+      return any();
     default:
       return assertNever(across);
   }
@@ -65,9 +72,17 @@ export function circleX(out: number, side: -1 | 0 | 1): number {
   return side * out;
 }
 
+/**
+ * The event's area for this down (docs/FIELD_EVENTS.md, `field-places`):
+ * one of its areas, at its reach and size, from the seed.
+ */
+export function shapeFor(_state: RunState, event: FieldEvent): EventArea {
+  return event.areas[0];
+}
+
 /** The event placed for this down, not yet counting (it starts at the hike). */
 export function placeEvent(state: RunState, event: FieldEvent): FieldEventOn {
-  return { event, area: placeArea(state, event.area), left: null };
+  return { event, area: placeArea(state, shapeFor(state, event)), left: null };
 }
 
 /** Whether a body is in the area (any part of it). */

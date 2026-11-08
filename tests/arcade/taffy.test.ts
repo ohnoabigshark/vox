@@ -40,7 +40,7 @@ const FROM_TAFFY = { kind: 'fieldEvent', event: 'taffyFlood' } as const;
 
 /** Put this event on the field, placed from the line and already counting: it goes off on the next step. */
 function setOff(s: RunState, event: FieldEvent): RunState {
-  s.field.fieldEvent = { event, area: placeArea(s, event.area), left: DT };
+  s.field.fieldEvent = { event, area: placeArea(s, event.areas[0]), left: DT };
   return s;
 }
 
@@ -65,7 +65,7 @@ describe('the taffy flood (t1)', () => {
     const t = TAFFY_FLOOD;
     expect(t.name).toBe('Taffy Flood');
     expect(t.boss).toBeNull();
-    expect(t.area).toEqual({ shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 7 });
+    expect(t.areas).toEqual([{ shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 7 }]);
     expect(t.goesOffAs).toBe('spell');
     // It goes off 1 s after the snap and lasts 2.5 s, on screen (half a second more after play, 2026-11-07).
     expect(t.goesOff / TIME_SCALE).toBeCloseTo(1, 9);
@@ -97,7 +97,7 @@ describe('a spell (test 1, and 5b)', () => {
       ]),
       {
         ...TAFFY_FLOOD,
-        area: { shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 5 },
+        areas: [{ shape: 'band', across: 'middle', width: 2 * hw, from: 3, to: 5 }],
         lasts: 4,
       },
     );
@@ -257,7 +257,7 @@ describe('Slowed in play (test 2)', () => {
     if (taffy) {
       setOff(s, {
         ...TAFFY_FLOOD,
-        area: { shape: 'band', across: 'middle', width: 2 * hw, from: -10, to: 40 },
+        areas: [{ shape: 'band', across: 'middle', width: 2 * hw, from: -10, to: 40 }],
         lasts: 5,
       });
     }
@@ -297,7 +297,7 @@ describe('Slowed in play (test 2)', () => {
     };
     const away: FieldEvent = {
       ...TAFFY_FLOOD,
-      area: { shape: 'band', across: 'middle', width: 2 * hw, from: 60, to: 61 },
+      areas: [{ shape: 'band', across: 'middle', width: 2 * hw, from: 60, to: 61 }],
     };
     expect(lane(TAFFY_FLOOD)).toBe(lane(away));
   });

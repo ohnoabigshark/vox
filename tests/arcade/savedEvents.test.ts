@@ -16,7 +16,9 @@ const made: FieldEvent = {
   id: 'graveyardRain',
   name: 'Graveyard rain',
   boss: null,
-  area: { shape: 'circle', across: 'either', out: 4, at: 10, radius: 2 },
+  areas: [{ shape: 'circle', across: 'either', out: 4, at: 10, radius: 2 }],
+  reach: null,
+  size: null,
   effect: { kind: 'flatten', on: 'theirs' },
   call: null,
   look: 'plain',
@@ -46,7 +48,7 @@ describe('saved events (test 5)', () => {
   });
 
   it('one that can’t be read is left out with a warning saying which and why; the rest stay', () => {
-    const bad = { ...made, id: 'broken', area: { shape: 'triangle' } };
+    const bad = { ...made, id: 'broken', areas: [{ shape: 'triangle' }] };
     const { events, warnings } = checkSavedEvents({ frogRain: tuned, broken: bad });
     expect(events.map((e) => e.id)).toEqual(['frogRain']);
     expect(warnings).toEqual([
@@ -73,15 +75,15 @@ describe('saved events (test 5)', () => {
     // JSON reads 1e999 as Infinity.
     expect(why(JSON.parse('{"goesOff": 1e999}'))).toEqual(said('goesOff must be more than 0'));
     expect(why({ lasts: 0 })).toEqual(said('lasts must be more than 0'));
-    expect(why({ area: { ...FROG_RAIN.area, width: 0 } })).toEqual(
+    expect(why({ areas: [{ ...FROG_RAIN.areas[0], width: 0 }] })).toEqual(
       said("its area's width must be more than 0"),
     );
-    expect(why({ area: { ...FROG_RAIN.area, from: 5, to: 3 } })).toEqual(
+    expect(why({ areas: [{ ...FROG_RAIN.areas[0], from: 5, to: 3 }] })).toEqual(
       said("its area's far edge must be past its near edge"),
     );
-    expect(why({ area: made.area.shape === 'circle' ? { ...made.area, radius: -1 } : {} })).toEqual(
-      said("its area's radius must be more than 0"),
-    );
+    expect(
+      why({ areas: [made.areas[0].shape === 'circle' ? { ...made.areas[0], radius: -1 } : {}] }),
+    ).toEqual(said("its area's radius must be more than 0"));
   });
 });
 
