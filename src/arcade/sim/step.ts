@@ -298,7 +298,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
     for (const d of tacklers) {
       d.latch = scale(norm(sub(d.pos, carrier.pos)), carrier.radius + d.radius);
     }
-    state.field.drag = { to: carrier.pos.y + t.dragYards, best: carrier.pos.y, stalled: 0 };
+    state.field.drag = { to: carrier.pos.y + t.dragYards, gainedTo: carrier.pos.y, stalledFor: 0 };
     events.push({ type: 'dragged', id: carrier.id, yards: t.dragYards });
     return;
   }
@@ -519,13 +519,13 @@ function dragDone(state: RunState, events: ArcadeEvent[]): boolean {
   const drag = state.field.drag;
   if (!carrier || !drag) return false;
   if (carrier.pos.y < drag.to) {
-    if (carrier.pos.y > drag.best) {
-      drag.best = carrier.pos.y;
-      drag.stalled = 0;
+    if (carrier.pos.y >= drag.gainedTo + arcadeTuning.breakit.dragGain) {
+      drag.gainedTo = carrier.pos.y;
+      drag.stalledFor = 0;
     } else {
-      drag.stalled += DT;
+      drag.stalledFor += DT;
     }
-    if (drag.stalled < arcadeTuning.breakit.dragStall) return false;
+    if (drag.stalledFor < arcadeTuning.breakit.dragStall) return false;
   }
   const by = state.field.defenders.find((d) => d.latch)?.id ?? -1;
   tackle(state, carrier, by, events);

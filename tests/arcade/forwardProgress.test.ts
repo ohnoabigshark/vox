@@ -15,8 +15,8 @@ import { body, carry, ofType, playState, run, tapAt, untilGrabbed } from './help
  * down never ended (three flagged downs, docs/play-logs/).
  */
 
-/** How long a drag may go without gaining ground, in sim seconds (1.5 s on screen). */
-const LIMIT = 1.5 * TIME_SCALE;
+/** How long a drag may go without gaining ground, in sim seconds (the tuning's). */
+const LIMIT = arcadeTuning.breakit.dragStall;
 
 /** A Runner carrying on (0, 2), grabbed by a Cover from (0, 4), and a close tap: a drag. */
 function dragging(): RunState {
@@ -53,6 +53,10 @@ function untilDown(s: RunState, seconds: number) {
 }
 
 describe('forward progress: a drag ends on a timer (B9)', () => {
+  it('the limit is the 1.5 s on screen the map approved', () => {
+    expect(LIMIT / TIME_SCALE).toBeCloseTo(1.5, 9);
+  });
+
   beforeEach(() => forceBreakKind('bar'));
   afterEach(() => forceBreakKind(undefined));
 
@@ -89,8 +93,21 @@ describe('forward progress: a drag ends on a timer (B9)', () => {
     // The limit, plus the moment he still gains before the pile turns him back.
     expect(end.seconds).toBeLessThan(LIMIT + 0.3);
     const spot = end.state.series.los;
-    expect(spot).toBeLessThan(grabbedAt + 0.5);
+    // Pushed back (the push-back counts), but only a little.
+    expect(spot).toBeLessThan(grabbedAt - 0.5);
     expect(spot).toBeGreaterThan(grabbedAt - 3);
+  });
+
+  it('a carrier inching forward against the pile still goes down: only a real gain (a quarter yard) restarts the clock', () => {
+    const s = dragging();
+    // A creep: about a twentieth of a yard a second, so his drag's yard is half a minute away.
+    Object.assign(body(s, 2), { speed: 0.05, vel: v(0, 0) });
+    const at = body(s, 2).pos.y;
+    const end = untilDown(s, 10);
+    expect(end.tackled).toHaveLength(1);
+    expect(end.seconds).toBeLessThan(LIMIT + 0.3);
+    expect(end.state.series.los).toBeGreaterThan(at);
+    expect(end.state.series.los).toBeLessThan(at + 0.25);
   });
 
   it('a drag that keeps gaining ground goes down at its yard, as before, however long it takes', () => {

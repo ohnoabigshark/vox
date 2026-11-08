@@ -191,6 +191,8 @@ export const tuningDefaults = {
      * back can't keep the down going.
      */
     dragStall: 1.2,
+    /** …and only a gain of this much (yards) past its furthest point restarts that clock, so a creep can't. */
+    dragGain: 0.25,
   },
   /**
    * What SNAG IT! and the tip drill share (docs/TIP.md, g3): when they start,

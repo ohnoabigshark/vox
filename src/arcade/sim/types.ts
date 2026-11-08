@@ -242,10 +242,10 @@ export interface Field {
   /**
    * A carrier dragging tacklers after a close Break it!: it goes down when it
    * reaches row `to`, or once it has gone `breakit.dragStall` without gaining
-   * ground (B9): `best` is the furthest row it has reached, `stalled` how long
-   * since it last got further.
+   * ground (B9): `gainedTo` is the row where the clock last restarted (a gain
+   * of `breakit.dragGain` past the one before), `stalledFor` how long since.
    */
-  drag: { readonly to: number; best: number; stalled: number } | null;
+  drag: { readonly to: number; gainedTo: number; stalledFor: number } | null;
 }
 
 /**

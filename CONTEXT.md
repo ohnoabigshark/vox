@@ -211,7 +211,7 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Break it!:** the tap test when a defender grabs the carrier: a break, a
   drag or a tackle.
 - **Forward progress:** the rule that ends a drag once the carrier has gone
-  1.5 s without gaining ground; he's down where he stands (B9).
+  1.5 s without gaining a quarter yard; he's down where he stands (B9).
 - **SNAG IT!** _(ours)_: the tap test on a **contested** ball, one a
   receiver and a defender could both get to: dots pop up one after
   another, each tapped as its ring closes. GREAT, OK or BAD: caught and
