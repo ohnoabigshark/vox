@@ -139,3 +139,56 @@ in happy-dom (a dev dependency, for that file only; the other tests have no
 DOM). It failed with the old `innerHTML` and passes with the fix (review of
 `names-fix`, rules: prove a bug-fix test catches the bug). Seen with it:
 full names at the line overlap (the risk p6 accepted).
+
+## B9. A drag pushed backward never ends: the down runs on with nobody able to tackle (fixed)
+
+After a Break it! comes out **drag**, the carrier hauls its tacklers
+`dragYards` further and goes down there (`dragDone`, `sim/step.ts`). It goes
+down only on reaching that yard (`carrier.pos.y < drag.to` keeps it going),
+and while a drag is on no other defender may grab (`if (!carrier ||
+state.field.drag) return false`). A carrier pushed backward instead never
+reaches it, so nothing ends the down.
+
+Flagged three times by the user, as "where we need the forward progress work":
+
+- **2026-11-07 12:45** (build 2739a65, seed 226869837; lines in
+  `docs/play-logs/2026-11-07-forward-progress.jsonl`): a Deep Shot caught,
+  dragged 0.5 yards at about the 32, then 30 s with no events; at the ⚑ the
+  carrier was at the 27.
+- **2026-11-08 03:34** (build 6c3d9dd, seed 963858817; lines in
+  `docs/play-logs/2026-11-08-drag-backward.jsonl`): RB Left, grabbed at the
+  20.4 on 1st and 10 from the 20.5, dragged 0.5 yards, then 44 s with no
+  events; at the ⚑ the carrier was at the −3, 23.5 yards behind the line.
+- **2026-11-08 03:38** (same run; lines in
+  `docs/play-logs/2026-11-08-drag-backward-king.jsonl`): a Dive on the
+  King's stretch, grabbed at the 37.3, dragged, then 14 s with no events;
+  at the ⚑ the carrier was at the 23.7, shoved back 13.6 yards.
+
+**Why so far back** (from the code; `forwardProgress.test.ts`'s pile test
+now runs the case): the tacklers on him ride along and slow him by their weight (`moveBodies`, `sim/physics.ts`); every
+other defender still runs at him but may not grab during a drag, so they
+pile in and shove him by weight instead. Nothing ends it. The user: "it's
+kinda fun but we need the forward progress check. it's ok to get pushed
+back a little but it should be some sort of timer (not a set amount of
+yards)."
+
+Ties in with PLAN.md's "Forward progress: called down when driven back".
+
+**2026-11-08: fixed** on `forward-progress`, from the forward progress map
+(https://claude.ai/artifact/BHZ9WcjSz3THckuhjGpWMd, f1-f3 approved). A drag
+also ends once the carrier has gone `breakit.dragStall` (1.2 s of sim time,
+1.5 s on screen) without gaining ground, and he's down where he stands, so
+a little push-back counts (the user: "a timer, not a set amount of yards").
+f1 said 1.5 s from the drag's start, but an ordinary drag takes about 2 s on
+screen to make its yards, so a flat limit would have cut every drag short;
+the clock runs only while he's stuck (`drag.gainedTo`, `drag.stalledFor`),
+and only a gain of `breakit.dragGain` (a quarter yard) restarts it, so a
+carrier inching forward against the pile can't keep it going (spec review
+of `forward-progress`). That change from f1 as approved is put back to the
+user on the map (f4). Tests in
+`tests/arcade/forwardProgress.test.ts`: a carrier held still, and one shoved
+back by a pile, each failed on the old code (no tackle in 10 s) and pass
+now, and the creep test failed before the quarter-yard rule; an ordinary
+drag still goes down at its yard, however long it takes. The seeded-run
+fingerprints (`statusesSameRun.test.ts`) are unchanged: no seeded run
+reaches a stalled drag.

@@ -185,6 +185,14 @@ export const tuningDefaults = {
     dragPerHeft: 0.5,
     minDrag: 0.5,
     maxDrag: 4,
+    /**
+     * Forward progress (B9): a drag that goes this long without gaining ground
+     * (1.5 s on screen) is down where it stands, so a pile shoving the carrier
+     * back can't keep the down going.
+     */
+    dragStall: 1.2,
+    /** …and only a gain of this much (yards) past its furthest point restarts that clock, so a creep can't. */
+    dragGain: 0.25,
   },
   /**
    * What SNAG IT! and the tip drill share (docs/TIP.md, g3): when they start,

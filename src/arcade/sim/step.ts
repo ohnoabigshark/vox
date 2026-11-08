@@ -298,7 +298,7 @@ function breakIt(state: RunState, input: StepInput, events: ArcadeEvent[]): void
     for (const d of tacklers) {
       d.latch = scale(norm(sub(d.pos, carrier.pos)), carrier.radius + d.radius);
     }
-    state.field.drag = { to: carrier.pos.y + t.dragYards };
+    state.field.drag = { to: carrier.pos.y + t.dragYards, gainedTo: carrier.pos.y, stalledFor: 0 };
     events.push({ type: 'dragged', id: carrier.id, yards: t.dragYards });
     return;
   }
@@ -509,11 +509,24 @@ function take(state: RunState, by: Body, pickup: Pickup, events: ArcadeEvent[]):
   });
 }
 
-/** A carrier dragging tacklers goes down once it reaches the end of the drag. */
+/**
+ * A carrier dragging tacklers goes down once it reaches the end of the drag,
+ * or where it stands once it has gone `dragStall` without gaining ground
+ * (forward progress, B9).
+ */
 function dragDone(state: RunState, events: ArcadeEvent[]): boolean {
   const carrier = carrierOf(state);
   const drag = state.field.drag;
-  if (!carrier || !drag || carrier.pos.y < drag.to) return false;
+  if (!carrier || !drag) return false;
+  if (carrier.pos.y < drag.to) {
+    if (carrier.pos.y >= drag.gainedTo + arcadeTuning.breakit.dragGain) {
+      drag.gainedTo = carrier.pos.y;
+      drag.stalledFor = 0;
+    } else {
+      drag.stalledFor += DT;
+    }
+    if (drag.stalledFor < arcadeTuning.breakit.dragStall) return false;
+  }
   const by = state.field.defenders.find((d) => d.latch)?.id ?? -1;
   tackle(state, carrier, by, events);
   return true;
