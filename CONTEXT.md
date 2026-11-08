@@ -150,6 +150,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   will-o'-wisps), which a
   stretch the seed picks gets on every down whose line is in it; against a
   stretch's own (Frog Rain, Mister Frog's).
+- **Areas, reach, size** _(of a field event)_: the shapes it may take (one
+  picked each down), how near and far its near edge may land, and how much
+  smaller or bigger it may be, all from the seed (`field-places`). The taffy
+  comes as a **band**, a **half band** or a **puddle**; **Any side** is
+  left, middle or right.
 - **Blessing, hex, mischief:** a field event that can only help you, only
   hurt you, or do both, worked out from whether its status helps or hurts
   and who it lands on (`docs/STATUSES.md`). A **mischief** pickup is one

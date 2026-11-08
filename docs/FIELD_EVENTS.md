@@ -518,3 +518,30 @@ influenced by the seed".
    a warning.
 7. The editor: an area chip edits that area; the reach and size sliders set
    their numbers; Save keeps every area.
+
+### As built: `field-places` (2026-11-08)
+
+- **The refactor** (c4bf4ed): `area` became `areas`, with `reach` and
+  `size` null on every event; placing went through `shapeFor`; saved events
+  and Try it links from before read their one `area`. Nothing played
+  differently: the 880 tests passed with only `areas` renamed in them.
+- **The places** (4485189), tests 1 to 5 in `places.test.ts`, written first
+  and watched red: `shapeFor` as planned; the taffy's three shapes, reach
+  and size; the wisps' size; `comingFor` became `steerClearOf`. Seed 14's
+  fingerprint was re-pinned; with generic events off it is main's
+  06fe520adac8ca51 again, and the other three seeds are unchanged, so Frog
+  Rain and everything else play as before.
+- **The look** (136d439): the taffy draws a puddle as a disc, its bubbles
+  spread over it. Seen in the built game at phone size, a puddle on the
+  left and a half band on the right.
+- **The editor and saved events** (40852bb), tests 6 and 7: a Shapes chip
+  per area when there are several; Nearest and Farthest, Smallest and
+  Largest (as ×) sliders when the event has them, held so neither runs
+  backwards; Any side. A saved reach or size that runs backwards, or a size
+  of 0, is left out with a warning. Four of the new tests passed on their
+  first run, since the refactor had already given them their behaviour:
+  picking a chip, reading an old save, reading the taffy back, and Save
+  keeping every area. They stay as regression tests.
+- **Not built:** adding or removing an area on the editor, and giving
+  Frog Rain a reach or size there. Neither was asked; an event's areas,
+  reach and size are its data.
