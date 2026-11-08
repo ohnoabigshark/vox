@@ -198,15 +198,17 @@ reaches a stalled drag.
 Flagged by the user **2026-11-08 06:33 New York** (11:33 UTC; build
 b0e1c44, seed 613156248): a 2nd-down catch for 10.79 yards won the intro
 stretch, and Gingerbread Row's first down, 1st & 10 from the 10.79, read
-"1st & 11" on the HUD. The play log has it as `los` 10.79, `firstDown`
-20.79, `toGo` 10.
+"1st & 11" on the HUD. In the play log, the ⚑ line has `los` 10.79 and
+`firstDown` 20.79, and the series' `downStarted` line has `toGo` 10 (the log
+rounds to hundredths, so the float's leftover never shows there).
 
 **Why:** `downAndDistance` (`sim/run.ts`) rounds the yards to go up, and
 `firstDown - los` is a float sum taken apart again. For a series started
 from a fractional line, `start + 10 - start` can come out
 10.000000000000004, which rounds up to 11. About 1 series start in 13
-(7,651 of 100,000 random lines); it has been there since the HUD's down and
-distance went in (cb22a92, 2026-10-19), not from field events.
+(7,651 of 100,000 random lines); it has been there since esrauch's first
+arcade build gave the HUD its down and distance (cb22a92, 2026-10-19), not
+from field events.
 
 **Fixed 2026-11-08:** the yards to go drop a billionth of a yard
 (`FLOAT_SLACK`) before rounding up, far less than anything the game
