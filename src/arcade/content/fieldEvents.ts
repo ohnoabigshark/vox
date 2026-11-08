@@ -211,6 +211,22 @@ export const WILL_O_WISPS: FieldEvent = {
   look: 'wisps',
 };
 
+/** An event's area `i`, or its first if it has none such: the one place that fallback is decided. */
+export function areaAt(event: FieldEvent, i: number): EventArea {
+  return event.areas[i] ?? event.areas[0];
+}
+
+/** Whether the event has an area `i`. */
+export function hasArea(event: FieldEvent, i: number): boolean {
+  return Number.isInteger(i) && i >= 0 && i < event.areas.length;
+}
+
+/** The event with its area `i` replaced (still at least one area). */
+export function withAreaAt(event: FieldEvent, i: number, area: EventArea): FieldEvent {
+  const [first, ...rest] = event.areas.map((a, j) => (j === i ? area : a));
+  return { ...event, areas: [first ?? area, ...rest] };
+}
+
 /**
  * An event's kind, from its effect and who it hits (docs/STATUSES.md, s4):
  * a knockdown hurts, so flattening yours is a hex, theirs a blessing,

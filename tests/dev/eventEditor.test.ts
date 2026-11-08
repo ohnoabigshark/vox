@@ -402,6 +402,28 @@ describe('places and sizes on the editor (field-places, test 7)', () => {
     expect(saved.taffyFlood?.size).toEqual(TAFFY_FLOOD.size);
   });
 
+  it('with a reach, the area’s own place gives way to it: a band has a depth, a circle no place ahead (spec review)', () => {
+    const keys = (e: FieldEvent, i: number) => eventNumbers(e, i).map((n) => n.key);
+    // The band: its depth, not its near and far edges, which the reach decides in play.
+    expect(keys(TAFFY_FLOOD, 0)).toContain('depth');
+    expect(keys(TAFFY_FLOOD, 0)).not.toContain('from');
+    expect(keys(TAFFY_FLOOD, 0)).not.toContain('to');
+    expect(eventNumbers(TAFFY_FLOOD, 0).find((n) => n.key === 'depth')).toMatchObject({
+      value: 4,
+      unit: 'yd',
+      fromLine: false,
+    });
+    // The puddle: its radius and its way out, but no place ahead.
+    expect(keys(TAFFY_FLOOD, 2)).not.toContain('at');
+    expect(keys(TAFFY_FLOOD, 2)).toContain('radius');
+    // Setting the depth keeps the near edge where it is.
+    const deeper = setNumber(startEditing(TAFFY_FLOOD), 'depth', 5).event.areas[0];
+    expect(deeper).toMatchObject({ from: 3, to: 8 });
+    // With no reach (Frog Rain), the edges as before.
+    expect(keys(FROG_RAIN, 0)).toEqual(expect.arrayContaining(['from', 'to']));
+    expect(keys(FROG_RAIN, 0)).not.toContain('depth');
+  });
+
   it('the side chips offer Any side, for the puddle', () => {
     expect(SIDE_CHIPS.map((c) => c.value)).toEqual(['left', 'middle', 'right', 'either', 'any']);
   });

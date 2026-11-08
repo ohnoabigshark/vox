@@ -8,7 +8,10 @@
  */
 import { assertNever } from '../../assertNever';
 import {
+  areaAt,
   fieldEventDefaults,
+  hasArea,
+  withAreaAt,
   type Across,
   type EventArea,
   type EventReach,
@@ -36,18 +39,17 @@ export interface EditorState {
 
 /** The area being edited: the picked one. */
 export function pickedArea(s: EditorState): EventArea {
-  return s.event.areas[s.picked] ?? s.event.areas[0];
+  return areaAt(s.event, s.picked);
 }
 
 /** The event with the picked area replaced. */
 function withArea(s: EditorState, area: EventArea): FieldEvent {
-  const areas = s.event.areas.map((a, i) => (i === s.picked ? area : a));
-  return { ...s.event, areas: areas as unknown as FieldEvent['areas'] };
+  return withAreaAt(s.event, s.picked, area);
 }
 
 /** Another area picked to edit (its chip tapped): not a change, so not a step for Undo. */
 export function pickArea(s: EditorState, picked: number): EditorState {
-  return picked >= 0 && picked < s.event.areas.length ? { ...s, picked } : s;
+  return hasArea(s.event, picked) ? { ...s, picked } : s;
 }
 
 /** What a handle on the area sizes: a lane's or band's near edge, far edge or width; a circle's edge. */
@@ -134,7 +136,7 @@ function changed(s: EditorState, event: FieldEvent): EditorState {
 }
 
 const keptPick = (picked: number, event: FieldEvent): number =>
-  picked < event.areas.length ? picked : 0;
+  hasArea(event, picked) ? picked : 0;
 
 export function undo(s: EditorState): EditorState {
   const before = s.history.at(-1);
@@ -347,6 +349,7 @@ export type NumberKey =
   | 'at'
   | 'out'
   | 'radius'
+  | 'depth'
   | 'nearest'
   | 'farthest'
   | 'smallest'
@@ -442,11 +445,12 @@ export function eventNumbers(e: FieldEvent, picked: number): EventNumber[] {
     time('buildUp', 'Warning before it goes off', e.warning.buildUp, 0, 3, 0.025),
     time('lasts', 'Its effect lasts', e.lasts, 0.2, 4),
   ];
-  const a = e.areas[picked] ?? e.areas[0];
+  const a = areaAt(e, picked);
+  // With a reach, where it lands is the reach's; the area keeps only its depth or size (spec review).
   if (a.shape === 'circle') {
     return [
       ...times,
-      yards('at', 'Ahead of the line', a.at, BEHIND, FARTHEST),
+      ...(e.reach ? [] : [yards('at', 'Ahead of the line', a.at, BEHIND, FARTHEST)]),
       // A circle in the middle has no way out to set (review b4).
       ...(drawnSide(a) === 0 ? [] : [yards('out', 'Out from the middle', a.out, 0, HW, 0.1)]),
       yards('radius', 'Radius', a.radius, LEAST, HW),
@@ -454,10 +458,15 @@ export function eventNumbers(e: FieldEvent, picked: number): EventNumber[] {
       ...size,
     ];
   }
+  const edges = e.reach
+    ? [yards('depth', 'Depth', a.to - a.from, LEAST, FARTHEST - BEHIND)]
+    : [
+        yards('from', 'Near edge, from the line', a.from, BEHIND, FARTHEST - LEAST),
+        yards('to', 'Far edge, from the line', a.to, BEHIND + LEAST, FARTHEST),
+      ];
   return [
     ...times,
-    yards('from', 'Near edge, from the line', a.from, BEHIND, FARTHEST - LEAST),
-    yards('to', 'Far edge, from the line', a.to, BEHIND + LEAST, FARTHEST),
+    ...edges,
     yards('width', 'Width', a.width, LEAST, 2 * HW, 0.1),
     ...reach,
     ...size,
@@ -483,6 +492,9 @@ export function setNumber(s: EditorState, key: NumberKey, value: number): Editor
     case 'out':
     case 'radius':
       return area(holdArea(a, key, value));
+    case 'depth':
+      // How deep a lane or band runs, its near edge kept: its far edge set.
+      return a.shape === 'circle' ? s : area(holdArea(a, 'to', a.from + value));
     case 'nearest':
     case 'farthest':
       return e.reach ? changed(s, { ...e, reach: holdReach(e.reach, key, value) }) : s;

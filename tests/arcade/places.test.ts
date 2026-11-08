@@ -8,8 +8,14 @@ import {
 } from '../../src/arcade/content/fieldEvents';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { chooseLane } from '../../src/arcade/sim/ai';
-import { shapeFor } from '../../src/arcade/sim/fieldEvents';
-import { createRun } from '../../src/arcade/sim/run';
+import { areaFor, nearEdge } from '../../src/arcade/sim/fieldEvents';
+import {
+  createRun,
+  genericEventFor,
+  setUpSeries,
+  stretchAt,
+  stretchStart,
+} from '../../src/arcade/sim/run';
 import type { Player, PlacedArea, RunState } from '../../src/arcade/sim/types';
 import { v } from '../../src/arcade/sim/vec';
 import { body, carry, playState } from './helpers';
@@ -30,9 +36,6 @@ function downOf(seed: number, i: number): RunState {
   s.nextId += i;
   return s;
 }
-
-/** The area's near edge, yards past the line. */
-const nearEdge = (a: EventArea): number => (a.shape === 'circle' ? a.at - a.radius : a.from);
 
 /** Its size against the event's own: depth for a lane or band, radius for a circle. */
 function scaleOf(a: EventArea, base: EventArea): number {
@@ -62,7 +65,7 @@ const DOWNS = 12;
 function picks(event: FieldEvent): EventArea[] {
   const out: EventArea[] = [];
   for (let seed = 1; seed <= SEEDS; seed++) {
-    for (let i = 0; i < DOWNS; i++) out.push(shapeFor(downOf(seed, i), event));
+    for (let i = 0; i < DOWNS; i++) out.push(areaFor(downOf(seed, i), event));
   }
   return out;
 }
@@ -111,9 +114,9 @@ describe('the taffy: three shapes, 2 to 12 yards out, three quarters to one and 
   });
 
   it('2: the same seed and down give the same shape, place and size; other downs, others', () => {
-    expect(shapeFor(downOf(7, 3), TAFFY_FLOOD)).toEqual(shapeFor(downOf(7, 3), TAFFY_FLOOD));
+    expect(areaFor(downOf(7, 3), TAFFY_FLOOD)).toEqual(areaFor(downOf(7, 3), TAFFY_FLOOD));
     const many = new Set(
-      Array.from({ length: 20 }, (_, i) => JSON.stringify(shapeFor(downOf(7, i), TAFFY_FLOOD))),
+      Array.from({ length: 20 }, (_, i) => JSON.stringify(areaFor(downOf(7, i), TAFFY_FLOOD))),
     );
     expect(many.size).toBeGreaterThan(15);
   });
@@ -181,5 +184,39 @@ describe('5: the carrier steers round the taffy while it’s coming and while it
     const plain = laneWith(null, 0);
     expect(laneWith(full, COMING)).toBe(plain);
     expect(laneWith(full, ON)).toBe(plain);
+  });
+});
+
+describe('the pick keeps to its own stream (p3, p6)', () => {
+  it('a taffy down deals the same cards and pickups as the same down with no generic events', () => {
+    const tuning = arcadeTuning.fieldEvents as { genericShare: number };
+    const share = tuning.genericShare;
+    /** A down at the start of stretch n of this seed: its hand, its pickups and its event. */
+    const downAt = (seed: number, n: number) => {
+      const s = createRun(seed);
+      const at = stretchAt(n);
+      setUpSeries(s, at.area, stretchStart(at.stretch), [], true);
+      return { hand: s.hand, pickups: s.field.pickups, event: s.field.fieldEvent?.event.id };
+    };
+    let compared = 0;
+    try {
+      for (let seed = 1; seed <= 40 && compared < 6; seed++) {
+        for (let n = 2; n <= 8; n++) {
+          tuning.genericShare = share;
+          if (genericEventFor(seed, n)?.id !== 'taffyFlood') continue;
+          const withTaffy = downAt(seed, n);
+          tuning.genericShare = 0;
+          const without = downAt(seed, n);
+          expect(withTaffy.event).toBe('taffyFlood');
+          expect(without.event).toBeUndefined();
+          expect(withTaffy.hand).toEqual(without.hand);
+          expect(withTaffy.pickups).toEqual(without.pickups);
+          compared++;
+        }
+      }
+    } finally {
+      tuning.genericShare = share;
+    }
+    expect(compared).toBeGreaterThanOrEqual(6);
   });
 });

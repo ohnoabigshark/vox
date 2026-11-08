@@ -80,7 +80,7 @@ export function circleX(out: number, side: -1 | 0 | 1): number {
  * area is on stay as they were. An event with one area, no reach and no
  * size draws nothing: its area as it is (Frog Rain).
  */
-export function shapeFor(state: RunState, event: FieldEvent): EventArea {
+export function areaFor(state: RunState, event: FieldEvent): EventArea {
   const { areas, reach, size } = event;
   if (areas.length === 1 && reach === null && size === null) return areas[0];
   const rng = rngFor(state.seed, 'eventPlace', state.seriesWon, state.series.down, state.nextId);
@@ -104,7 +104,7 @@ const between = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 /** The event placed for this down, not yet counting (it starts at the hike). */
 export function placeEvent(state: RunState, event: FieldEvent): FieldEventOn {
-  return { event, area: placeArea(state, shapeFor(state, event)), left: null };
+  return { event, area: placeArea(state, areaFor(state, event)), left: null };
 }
 
 /** Whether a body is in the area (any part of it). */

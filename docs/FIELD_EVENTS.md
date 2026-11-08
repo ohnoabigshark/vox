@@ -470,7 +470,7 @@ influenced by the seed".
   in yards past the line. `size`, `{ smallest, largest }` or null, scales its
   depth (a lane's or band's `to − from`) or a circle's radius. The width
   across never scales: a band still spans the field.
-- **One place picks them** (sim/fieldEvents.ts, `shapeFor`): from the seed,
+- **One place picks them** (sim/fieldEvents.ts, `areaFor`): from the seed,
   every down, on a stream of its own (`'eventPlace'`, p3), so the cards dealt,
   the pickups and Frog Rain's side stay as they are. With one area, no reach
   and no size it draws nothing and returns the area as it is, so Frog Rain
@@ -522,11 +522,11 @@ influenced by the seed".
 ### As built: `field-places` (2026-11-08)
 
 - **The refactor** (c4bf4ed): `area` became `areas`, with `reach` and
-  `size` null on every event; placing went through `shapeFor`; saved events
+  `size` null on every event; placing went through `areaFor`; saved events
   and Try it links from before read their one `area`. Nothing played
   differently: the 880 tests passed with only `areas` renamed in them.
 - **The places** (4485189), tests 1 to 5 in `places.test.ts`, written first
-  and watched red: `shapeFor` as planned; the taffy's three shapes, reach
+  and watched red: `areaFor` as planned; the taffy's three shapes, reach
   and size; the wisps' size; `comingFor` became `steerClearOf`. Seed 14's
   fingerprint was re-pinned; with generic events off it is main's
   06fe520adac8ca51 again, and the other three seeds are unchanged, so Frog
@@ -545,3 +545,24 @@ influenced by the seed".
 - **Not built:** adding or removing an area on the editor, and giving
   Frog Rain a reach or size there. Neither was asked; an event's areas,
   reach and size are its data.
+- **After review** (two axes):
+  - Standards: the "picked area, else the first" fallback lived in three
+    places; it is `areaAt` now, with `hasArea` and `withAreaAt` beside it in
+    `content/fieldEvents.ts`, which also drops a cast. The test uses the
+    sim's own `nearEdge` rather than a copy. `shapeFor` became `areaFor`,
+    since it returns an area. The editor's rows now say **Areas** (pick
+    one) and **Shape** (its shape), as the glossary has it, and the Shape
+    chips come from one list of words.
+  - Spec: with a reach, the area's own place sliders did nothing in play
+    (the reach decides where it lands), so the editor showed a place the
+    taffy never plays. A band now shows **Depth** in place of its near and
+    far edges, and a circle no "Ahead of the line"; test first. A test now
+    checks a taffy down deals the same cards and pickups as that down with
+    generic events off (it passed on its first run: the streams were
+    already apart).
+  - Left as it is: the side across (a half band's or a puddle's) is still
+    drawn from `'frogLane'`, as `either` always was, so "picked like
+    `either`" holds; it never shares a down with Frog Rain. The Areas chips
+    show only when an event has more than one area. The commits c4bf4ed
+    (which added `any` before anything used it) and 4485189 (shapes and
+    steering together) stay as they are rather than rewriting history.

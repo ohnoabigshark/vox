@@ -7,6 +7,7 @@
  * is the page's hash, so Back from Try it returns to it.
  */
 import {
+  areaAt,
   eventKind,
   fieldEventDefaults,
   type EventArea,
@@ -508,7 +509,7 @@ function syncSliders(e: Editing): void {
     // The default may be another shape, with no such number: then ↺ has nothing to go back to (review b2).
     const note = b
       ? `${word} ${numberText(b)}${s && !sameNumber(s.value, b.value) ? ` · saved ${numberText(s)}` : ''}`
-      : `${word}: a ${(baseline.areas[e.ed.picked] ?? baseline.areas[0]).shape}`;
+      : `${word}: a ${areaAt(baseline, e.ed.picked).shape}`;
     e.sliders.get(n.key)?.show({
       value: n.value,
       shown: numberText(n),
@@ -559,7 +560,7 @@ function topOf(e: Editing): HTMLElement[] {
     ev.areas.length > 1
       ? [
           chips(
-            'Shapes',
+            'Areas',
             ev.areas.map((a, i) => ({
               value: String(i),
               text: `${i + 1}: ${SHAPE_WORDS[a.shape]}`,
@@ -576,12 +577,11 @@ function topOf(e: Editing): HTMLElement[] {
   return [
     ...areaChips,
     chips(
-      'Area',
-      [
-        { value: 'lane', text: 'Lane' },
-        { value: 'band', text: 'Band' },
-        { value: 'circle', text: 'Circle' },
-      ],
+      'Shape',
+      (Object.keys(SHAPE_WORDS) as EventArea['shape'][]).map((value) => ({
+        value,
+        text: SHAPE_WORDS[value],
+      })),
       pickedArea(e.ed).shape,
       (shape) => change(setShape(e.ed, shape)),
     ),
