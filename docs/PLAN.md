@@ -212,7 +212,8 @@ Still open:
   - **The switches** (d4): throw type, hard mode, starting area, seed,
     SNAG IT! and the tip drill (Off / Normal / Always), every perk, a
     monster team; new: each Break it! kind on or off, pickups on or off,
-    field events Off / Normal / one chosen event. `win`, `video` and
+    field events Off / Normal / one chosen event (on or off only since map
+    round 5, p2). `win`, `video` and
     `farmSong` stay link-only.
   - **Practice ignores the setup** (d5). _User's note: "make sure to make
     it clear that the toggles only effect actual gameplay and not the
@@ -228,7 +229,13 @@ Still open:
     setup saved per site, the start screen's DEV SETUP tag with Reset, and
     the three new switches (Break it! kinds, pickups, field events) with
     SNAG IT! and the tip drill Off / Normal / Always
-    (`docs/DEV_SETUP.md`, "As built", with its open questions).
+    (`docs/DEV_SETUP.md`, "As built").
+  - Map round 5 (2026-11-10): Copy link names every switch (q1); field
+    events are only on or off, the chosen event dropped (q2, p2); a run
+    made with a setup says so in the play log and its record (q3); the
+    page's on/off switches are the editors' toggles, the dropdowns kept
+    (p2: _"Please use consistent UI components like we have from our other
+    editors. Toggles where the checkboxes are."_).
 
   A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other

@@ -26,9 +26,10 @@ esrauch's roadmap is `MILESTONES.md`.
 - **The dev setup** (`dev/setup.html`, `docs/DEV_SETUP.md`) saves run
   options on the phone for every new run, under whatever the link names;
   the start screen shows **DEV SETUP · N changed** while one is saved.
-  When the user reports something odd in play, ask whether a setup is
-  saved before guessing (its Copy link gives the exact switches). Practice
-  ignores it.
+  The play log's lines say which setup a run was made with (`setup`,
+  beside `link`), so read them before guessing at a cause. Copy link names
+  every switch, so a copied link plays the same on any phone. Practice
+  ignores the setup.
 - **Releases go to `https://ohnoabigshark.github.io/vox/`** only when the user
   asks: the `Deploy` workflow runs by hand on `main` and nothing else
   (`docs/PLAN.md`, release mode). Merging to `main` publishes nothing.
