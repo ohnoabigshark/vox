@@ -278,10 +278,19 @@ export function changesOnly(named: Partial<RunOptions>): Partial<RunOptions> {
   return out;
 }
 
-/** A link's query (`?…`, or '' for none) naming every switch these options change from the defaults (Copy link, d8 test 9). */
-export function linkFor(named: Partial<RunOptions>): string {
+/**
+ * A link's query naming every switch, random and off included, so it plays
+ * these options on any phone, whatever setup is saved there (Copy link,
+ * d8 test 9; map round 5, q1).
+ */
+export function linkFor(options: RunOptions): string {
+  return queryOf(SWITCH_NAMES, options);
+}
+
+/** The query (`?…`, or '' for none) naming these switches of `named`, as a link writes them. */
+function queryOf(keys: readonly (keyof RunOptions)[], named: Partial<RunOptions>): string {
   const params = new URLSearchParams();
-  for (const key of changedSwitches(named)) writeSwitch(params, key, named[key]);
+  for (const key of keys) writeSwitch(params, key, named[key]);
   const query = params.toString().replace(/%2C/g, ',');
   return query ? `?${query}` : '';
 }

@@ -143,7 +143,7 @@ describe('Break it! kinds on the page (test 4)', () => {
 });
 
 describe('Copy link on the page (test 9)', () => {
-  it('copies the game with every changed switch', async () => {
+  it('copies the game with every switch', async () => {
     const { root, copied } = await mount();
     change(box(root, 'hard'));
     change(box(root, 'pickupsOn'));
@@ -152,7 +152,11 @@ describe('Copy link on the page (test 9)', () => {
     expect(copied).toHaveLength(1);
     const url = new URL(copied[0]!);
     expect(url.origin + url.pathname).toBe('https://example.ts.net/vox/');
-    expect(readLink(url.searchParams).run).toEqual({ hard: false, pickupsOn: false });
+    expect(readLink(url.searchParams).run).toEqual({
+      ...RUN_DEFAULTS,
+      hard: false,
+      pickupsOn: false,
+    });
   });
 
   it('a copy that fails shows the link to copy by hand', async () => {
@@ -171,6 +175,7 @@ describe('Copy link on the page (test 9)', () => {
     await settle();
     const status = root.querySelector('.status.bad');
     expect(status?.textContent).toContain('not allowed');
-    expect(status?.textContent).toContain('https://example.ts.net/vox/?hard=0');
+    expect(status?.textContent).toContain('https://example.ts.net/vox/?seed=random');
+    expect(status?.textContent).toContain('&hard=0&');
   });
 });

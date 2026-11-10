@@ -9,7 +9,12 @@ import {
   runOptionsFor,
   runSwitches,
 } from '../../src/arcade/content/runOptions';
-import { SETUP_KEY, setupNotices, setupStore } from '../../src/arcade/content/savedSetup';
+import {
+  SETUP_KEY,
+  setupNotices,
+  setupStore,
+  type SetupRead,
+} from '../../src/arcade/content/savedSetup';
 import { isPracticeLink } from '../../src/arcade/content/eventLink';
 import {
   createRun,
@@ -464,31 +469,45 @@ describe('practice is untouched (test 8)', () => {
 });
 
 describe('Copy link (test 9)', () => {
-  it('writes every changed switch, and reading it back gives the same setup', () => {
-    const setups: Partial<RunOptions>[] = [
-      {},
-      { hard: false },
-      { snagIt: 'off', tipDrill: 'always', breakItKinds: ['juke', 'bar'] },
-      { fieldEventsOn: false, pickupsOn: false, monsters: true, startWithPerks: true },
+  it('writes every switch, and reads back the same setup on a phone with a different setup saved (map round 5, q1)', () => {
+    const setups: RunOptions[] = [
+      RUN_DEFAULTS,
+      { ...RUN_DEFAULTS, hard: false },
+      { ...RUN_DEFAULTS, snagIt: 'off', tipDrill: 'always', breakItKinds: ['bar', 'juke'] },
+      { ...RUN_DEFAULTS, fieldEventsOn: false, pickupsOn: false, monsters: true },
       EVERY_CHANGED,
     ];
-    for (const named of setups) {
-      const query = linkFor(named);
+    // Another phone, with a setup that changes every switch from these.
+    const elsewhere = (o: RunOptions): SetupRead => ({
+      kind: 'saved',
+      setup: {
+        seed: o.seed === null ? 5 : null,
+        area: o.area === 1 ? 2 : 1,
+        hard: !o.hard,
+        twoTapAim: !o.twoTapAim,
+        snagIt: o.snagIt === 'off' ? 'always' : 'off',
+        tipDrill: o.tipDrill === 'off' ? 'always' : 'off',
+        breakItKinds: o.breakItKinds.includes('bar') ? ['mash'] : ['bar'],
+        pickupsOn: !o.pickupsOn,
+        fieldEventsOn: !o.fieldEventsOn,
+        startWithPerks: !o.startWithPerks,
+        monsters: !o.monsters,
+      },
+      warnings: [],
+    });
+    for (const o of setups) {
+      const query = linkFor(o);
       const back = readLink(new URLSearchParams(query)).run;
-      expect(runOptionsFor(back, { kind: 'nothing' }, false), query).toEqual({
-        ...RUN_DEFAULTS,
-        ...named,
-        ...(named.breakItKinds
-          ? { breakItKinds: BREAK_KINDS.filter((k) => named.breakItKinds?.includes(k)) }
-          : {}),
-      });
-      // Every changed switch is in the link, and nothing else.
-      expect(Object.keys(back).sort(), query).toEqual(changedSwitches(named).sort());
+      expect(Object.keys(back).sort(), query).toEqual(Object.keys(RUN_DEFAULTS).sort());
+      expect(runOptionsFor(back, elsewhere(o), false), query).toEqual(o);
+      expect(runOptionsFor(back, { kind: 'nothing' }, false), query).toEqual(o);
     }
   });
 
-  it('a setup the same as the defaults is the plain game’s link', () => {
-    expect(linkFor(RUN_DEFAULTS)).toBe('');
-    expect(linkFor({ hard: false, area: 2 })).toBe('?area=2&hard=0');
+  it('says random and off out loud', () => {
+    const query = linkFor(RUN_DEFAULTS);
+    expect(query).toBe(
+      '?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0',
+    );
   });
 });
