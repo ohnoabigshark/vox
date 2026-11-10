@@ -1,0 +1,65 @@
+# The Corn on the Cob: Thanksgiving's Werewolf kind. A tall, wild cob of
+# golden kernels, narrowing to a tip, bursting out of its husk, the dry
+# husk leaves flaring at its sides like fur, a toothy kernel grin, and
+# orange legs. No helmet, and taller for it (map m5).
+size 9 16 5
+voxel 0.08
+mirror x
+colors
+  y glow
+  Y leafGoldDark
+  u burlap
+  U straw
+  k ink
+  j pumpkin
+slice 0
+  ...Yy
+  ..yYy
+  ..YyY
+  ..yYy
+  ..YkY
+  ..yYy
+  ..Ykk
+  ..yYy
+  uuYyY
+  .uyYy
+  .UYyY
+  ..uYy
+  ..uuu
+  ..jj.
+  ..jj.
+  ..kk.
+slice 1-3
+  ...Yy
+  ..yYy
+  ..YyY
+  ..yYy
+  ..YyY
+  ..yYy
+  ..YyY
+  ..yYy
+  uuYyY
+  .uyYy
+  .UYyY
+  ..uYy
+  ..uuu
+  ..jj.
+  ..jj.
+  ..kk.
+slice 4
+  ...uu
+  ..uuu
+  ..uuu
+  ..uuu
+  ..uuu
+  ..uuu
+  ..uuu
+  ..uuu
+  uuuuu
+  .uuuu
+  .UuUu
+  ..uuu
+  ..uuu
+  ..jj.
+  ..jj.
+  ..kk.

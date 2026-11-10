@@ -1,0 +1,32 @@
+# The Raccoon: Thanksgiving's Rusher, as the beetle is Halloween's. Low and
+# four-legged, charging straight for Tom: a bandit mask with white eyes,
+# a pale muzzle, round ears, and a ringed tail held up behind.
+size 7 7 9
+voxel 0.1
+colors
+  P purple
+  d purpleDark
+  l purpleLight
+  w white
+  k ink
+# Legs.
+box 1 0 2 1 1 2 d
+box 5 0 2 5 1 2 d
+box 1 0 6 1 1 6 d
+box 5 0 6 5 1 6 d
+# Body.
+box 1 2 2 5 4 7 P
+# Head: muzzle, nose, the mask and its eyes, ears.
+box 1 2 0 5 5 2 P
+box 2 2 0 4 3 0 l
+box 3 3 0 3 3 0 k
+box 1 4 0 5 4 0 k
+box 2 4 0 2 4 0 w
+box 4 4 0 4 4 0 w
+box 1 6 1 1 6 2 d
+box 5 6 1 5 6 2 d
+# The ringed tail, up behind.
+box 3 3 8 3 3 8 d
+box 3 4 8 3 4 8 P
+box 3 5 8 3 5 8 d
+box 3 6 8 3 6 8 P

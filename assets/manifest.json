@@ -180,6 +180,90 @@
       "source": "Original voxel model (Farm prop: hay bale), written by Claude",
       "author": "Claude",
       "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/tom.voxt",
+      "source": "Original voxel model (Tom: Thanksgiving's ball, a roast turkey), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/dinnerRoll.voxt",
+      "source": "Original voxel model (Dinner Roll: the Human kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/castIronPan.voxt",
+      "source": "Original voxel model (Cast-Iron Pan: the Golem kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/cornOnTheCob.voxt",
+      "source": "Original voxel model (Corn on the Cob: the Werewolf kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/team/mashedPotatoes.voxt",
+      "source": "Original voxel model (Mashed Potatoes: the Ghost kind), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/raccoon.voxt",
+      "source": "Original voxel model (Raccoon: the Rusher, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/mouse.voxt",
+      "source": "Original voxel model (Mouse: the Cover, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/spider.voxt",
+      "source": "Original voxel model (Spider: the Zone, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/opossum.voxt",
+      "source": "Original voxel model (Opossum: the Safety, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/housefly.voxt",
+      "source": "Original voxel model (Housefly: the Bat, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/critters/ant.voxt",
+      "source": "Original voxel model (Ant: the Crow, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/bosses/seagull.voxt",
+      "source": "Original voxel model (The Seagull: the Grocery Dash's Boss, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/bosses/bigCheese.voxt",
+      "source": "Original voxel model (The Big Cheese: the Kitchen's Boss, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/thanksgiving/bosses/biscuit.voxt",
+      "source": "Original voxel model (Biscuit: the Dinner Table's Boss, Thanksgiving), written by Claude",
+      "author": "Claude",
+      "license": "original"
     }
   ]
 }

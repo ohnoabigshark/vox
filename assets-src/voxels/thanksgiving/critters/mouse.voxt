@@ -1,0 +1,33 @@
+# The Mouse: Thanksgiving's Cover, as the gnome is Halloween's. Up on its
+# hind legs, sticking to its receiver: big round ears, a pointed snout with
+# a pink nose, little arms out, and a tail up behind.
+size 7 9 5
+voxel 0.1
+colors
+  P purple
+  d purpleDark
+  l purpleLight
+  w white
+  k ink
+  n candyPink
+# Feet and body, a pale belly.
+box 2 0 1 2 0 2 d
+box 4 0 1 4 0 2 d
+box 2 1 1 4 4 3 P
+box 3 1 1 3 3 1 l
+# Arms.
+box 1 3 1 1 3 2 P
+box 5 3 1 5 3 2 P
+# Head, snout and nose, eyes.
+box 2 5 1 4 7 3 P
+box 3 5 0 3 6 0 l
+box 3 6 0 3 6 0 n
+box 2 7 1 2 7 1 w
+box 4 7 1 4 7 1 w
+# Big round ears, pink inside.
+box 0 7 2 1 8 3 P
+box 5 7 2 6 8 3 P
+box 1 7 2 1 8 2 n
+box 5 7 2 5 8 2 n
+# Tail.
+box 3 1 4 3 3 4 d

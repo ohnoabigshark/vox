@@ -1,0 +1,65 @@
+# Mashed Potatoes: Thanksgiving's Ghost kind, in place of
+# the Gravy Boat (map m4 and n2: "Yessss mashed potatoes looks great"). A white,
+# fluffy heap of mash with a pool of gravy in a well on top, floating with
+# no legs: gravy drips where the Ghost's hem would be, and stubby mash arms.
+# White like the Ghost, so it reads as one at a glance.
+size 9 12 5
+voxel 0.08
+mirror x
+colors
+  n white
+  w bone
+  r acornStem
+  k ink
+slice 0
+  ...nn
+  ..nnn
+  ..nwn
+  .nwnn
+  .nknw
+  nnwnn
+  wnnkk
+  .nwnn
+  ..nnw
+  ..r..
+  ...r.
+  .....
+slice 1
+  ..nrr
+  .nrrr
+  .nnnn
+  nwnnn
+  nnnnw
+  nnwnn
+  wnnnn
+  .nwnn
+  ..nnw
+  ..r..
+  ...r.
+  .....
+slice 2-3
+  ..nrr
+  .nrrr
+  .nnnn
+  nwnnn
+  nnnnw
+  nnwnn
+  wnnnn
+  .nwnn
+  ..nnw
+  ...r.
+  ..r..
+  .....
+slice 4
+  ...nn
+  ..nnn
+  ..nwn
+  .nwnn
+  .nnnw
+  nnwnn
+  wnnnn
+  .nwnn
+  ..nnw
+  .....
+  .....
+  .....

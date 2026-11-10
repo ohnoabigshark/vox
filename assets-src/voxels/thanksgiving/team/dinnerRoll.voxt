@@ -1,0 +1,63 @@
+# The Dinner Roll: Thanksgiving's Human kind, as the Walk-on is
+# Halloween's. A plump, domed roll: glossy golden crust on top with two
+# score marks, a pale soft base, eyes and a smile in the crust, stubby arms
+# in white gloves, orange legs, and a pat of butter melting on top. No
+# helmet: the team plays bareheaded (map m2, n1).
+size 9 13 5
+voxel 0.08
+mirror x
+colors
+  G gingerbread
+  H leafGoldDark
+  D gingerbreadDark
+  c burlap
+  k ink
+  b bone
+  j pumpkin
+  u straw
+  y glowHot
+slice 0
+  .....
+  .....
+  ..GGG
+  .GGDG
+  .GDGG
+  .GkGG
+  bGGGG
+  bGGkk
+  .cccc
+  ..ccc
+  ..jj.
+  ..jj.
+  ..kk.
+slice 1-3
+  .....
+  ..GGG
+  .GHGG
+  GHGDG
+  GGDGG
+  GGGGG
+  bGGGG
+  bGGGG
+  ccccc
+  .cccc
+  ..jj.
+  ..jj.
+  ..kk.
+slice 4
+  .....
+  .....
+  ..GGG
+  .GGDG
+  .GDGG
+  .GGGG
+  bGGGG
+  bGGGG
+  .cccc
+  ..ccc
+  ..jj.
+  ..jj.
+  ..kk.
+# The pat of butter, melting a little.
+box 3 12 1 5 12 2 u
+box 4 12 1 4 12 1 y
