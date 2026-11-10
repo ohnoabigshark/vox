@@ -40,7 +40,9 @@ approved but s3):
 - **Thanksgiving is the first new set** (s3, rejected for Christmas: _"Thanksgiving
   is sooner let's do that plz"_), aiming to be playable on the tailnet
   build by Thanksgiving, 2026-11-26 (t1). Its design is planned on its own
-  map.
+  map. **Not now** (2026-11-10, the next-job map ("Pick the Next Job",
+  https://claude.ai/artifact/MP8EsnMZnfgnyX9DaE7cA8), t1–t4): merging #48, the move (#45) and the
+  set's build all wait, behind gravestones and the dev setup mode.
 - **Alternative sets nod to a genre** with original characters, not to one
   franchise's names or likenesses (s5).
 - **_Get Jack Back_ is the Halloween set's name** (s6); the whole game's
@@ -181,7 +183,8 @@ Still open:
   p1–p4, n1–n2, w1–w2): a Save per tab into a saved-settings file over the
   `tuning.ts` defaults, sliders that move only by their knob, a log of reps
   and saves, and seven SNAG IT! sliders with the rest behind More.
-- **Teach SNAG IT!'s closing ring.** On the bench the Coach read the ring
+- **Teach SNAG IT!'s closing ring.** **Dropped** (2026-11-10, next-job map
+  v2). On the bench the Coach read the ring
   as a countdown of the time left to tap, not as when to tap, and pressed
   too soon until working it out: every early miss came in the first few
   reps. Nothing in the game says what the ring is for. _User, 2026-10-31:
@@ -191,7 +194,11 @@ Still open:
   decided: a line under the first "SNAG IT!" of a run ("Tap as the ring
   hits the dot"); an outline on the dot that the ring closes onto; a flash
   on the dot at the moment to tap.
-- **A dev setup mode** (dev): a screen before a run starts where the Coach
+- **A dev setup mode** (dev): **picked next** (2026-11-10, next-job map v3),
+  the user's note: _"Let's do this so that it is under the /Dev route and
+  saves the config to local storage. We should also have there be a default
+  config file for all of the same toggles/values."_ Grilled on the same map
+  from round 2. A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other
   run options, rather than typing them into the URL. _User, 2026-10-31: "a
   dev setup mode where we can enable/disable different tap events, toggle
@@ -587,7 +594,27 @@ Still open:
     and where the toggles live (the title screen beside hard mode and
     two-tap, or a settings page), and whether a toggle run still counts
     toward the same records.
-- **More passes blocked or dropped.** _User, 2026-11-04, while playing
+- **A player's menu.** Selecting a player (V1, above) opens a menu of
+  things to do with them on this play. _User, 2026-11-10: "now that we can
+  select players, we could add some functionality where there can be per
+  play perks that could be activated on some menu that displays when they
+  are selected. the start of this idea can just be the shell of the menu
+  itself and what it would look like and we could eventually add actions of
+  some sort to it. one play activated perks are one idea, route changes are
+  another, audibles are another (maybe these even are specific to the
+  selected play or player combination like a flea flicker)."_
+  - **First slice:** the menu's shell only, how it looks and opens from a
+    selected player's card, with no actions yet. Mockups first.
+  - **Actions for later:** perks used for one play; route changes (beside
+    the play editor's "route timing and speeds" and "moving the Blockers",
+    below); audibles, maybe tied to the play and the player together, such
+    as a flea flicker.
+  - Open for its grilling: where it sits against the card at the top of
+    the screen; whether it shows when it has nothing in it; how an action
+    is used up (once a play, once a series, once a run); how it meets
+    "select only" (parked, V1) and the tutorial.
+- **More passes blocked or dropped.** **Dropped** (2026-11-10, next-job map
+  l3). _User, 2026-11-04, while playing
   difficulty-3: "we will need to consider more outright blocks/drops on
   passes."_ What exists: a ball that only a defender reaches is batted;
   one both reach is caught or batted by Hands (`sim/ball.ts`), or, from
@@ -715,7 +742,8 @@ Still open:
   to 9 yards (field-wisps). Open: whether the timing (goes off at 1 s,
   lasts 3 s) is the lever instead.
 - **A native Android build** of the game. _User, 2026-10-30._
-- **Gravestones instead of oil slicks.** The trick on the field becomes a
+- **Gravestones instead of oil slicks.** **Picked next** (2026-11-10,
+  next-job map v1); its last open choices on the same map, round 2. The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies
   down a moment, and a carrier is tackled there (today **SLIPPED!**,
   `docs/PICKUPS.md` k6). _User, 2026-10-31: "change oil slicks to
