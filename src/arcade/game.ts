@@ -12,7 +12,6 @@
  * Keys for a desktop: 1–3 call a card, F flips, Space hikes (then throws,
  * and taps the bar and the mash), ← and → juke, S shoos the King's crows. The music is the soundtrack only: nothing waits for the beat.
  */
-import type { RunOptions } from './content/runOptions';
 import * as THREE from 'three';
 import type { SfxId } from '../audio/sfx';
 import { Conductor } from '../game/conductor';
@@ -20,6 +19,7 @@ import { GAME_LIGHT, setLights } from '../render/gameLight';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
+import type { RunOptions } from './content/runOptions';
 import { arcadeTuning, DT, TIME_SCALE } from './content/tuning';
 import { ArcadeBall } from './render/ball';
 import { ArcadeBodies } from './render/bodies';
@@ -1001,7 +1001,8 @@ export class ArcadeGame {
 
   /** ?win=1: the run as if just won (on the King's series, eleven new players on the bench), and the win cutscene. */
   private skipToWin(): void {
-    // Not hard: a hard run goes round again rather than winning.
+    // Not hard, since a hard run goes round again rather than winning; one-tap, as this
+    // look at the cutscene always was (nothing here throws).
     const s = createRun(
       this.seed,
       firstRoster(this.runOptions.monsters),
