@@ -30,9 +30,9 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - `build`: the commit the game was built from;
   - `link`: the link's query string (`aim=2&hard=1&snag=1&tip=1`); lines
     from before 2026-11-01's review call it `flags` (r6);
-  - `setup`: the dev setup the page's runs are made with, its changed
-    switches as a link writes them (`hard=0&breakit=juke`), '' for none
-    and in practice; the link's switches win over it (`docs/DEV_SETUP.md`,
+  - `setup`: the dev setup the page's runs are made with, the switches it
+    supplied (changed, and not named by the link) as a link writes them
+    (`hard=0&breakit=juke`), '' for none and in practice (`docs/DEV_SETUP.md`,
     map round 5, q3);
   - `practice`: true for Try it's practice;
   - the down as it was played: `series` (area, stretch, kind; `index`

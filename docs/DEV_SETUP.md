@@ -178,9 +178,12 @@ it's handed over.
 - **Links** read as they did, and say more: `?snag=` and `?tip=` take
   `off`, `normal` or `always` (`1` still means always); `?breakit=bar,juke`;
   `?pickups=0`; `?events=0` (or `off`); every on/off flag also reads `on`
-  and `off`; and `?hard=1`,
-  `?aim=2` and `?perks=0` now name the default, so a link can override a
-  saved setup. "Off is said" for the rest too (the two-axis review):
+  and `off`; and `?hard=1`, `?aim=2` and `?perks=0` now name the default,
+  so a link can override a saved setup. Since field events became on or
+  off (map round 5), `?events=normal` names nothing (so events stay on),
+  and a setup saved in the old shape (`fieldEvents: 'off'`) is left out
+  with its warning, so events come back on: said, never silent, so it has
+  no migration. "Off is said" for the rest too (the two-axis review):
   `?seed=random` sets the seed back to random over a saved one, and
   `?monsters=0` (or `off`) turns the monster team off; bare `?monsters` and
   any other value still turn it on, as before. `?seed=` and `?area=` go
@@ -192,7 +195,9 @@ it's handed over.
   and `monsters=0` included, so the link plays the same setup on any phone
   whatever is saved there (map round 5, q1), e.g. `?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0`.
 - **A run says what setup it was made with** (map round 5, q3): the
-  setup's changed switches, as a link writes them (`setupQuery`; '' for
+  switches the setup actually supplied (`suppliedBySetup`: changed from the
+  defaults and not named by the link, so a full Copy link over a saved
+  setup is a plain run), as a link writes them (`setupQuery`; '' for
   none, and in practice), are on every play log line as `setup`, beside
   `link`, and in the run's record as `setup`. The record format is 4; the
   stats store's upgrade step 3 → 4 gives older runs a blank setup. Setup
@@ -203,11 +208,14 @@ it's handed over.
   that isn't a switch, is left out with a warning naming it, shown on the
   page and as a notice in the game. Storage that can't be read, or isn't
   JSON, is `unreadable`: the page says why, and the game plays the defaults
-  and says so in the same notice (`setupNotices`; nothing in practice).
-- **Layers:** `runOptionsFor(link, setup, practice)` in `runOptions.ts`, the
-  one place: the link's, else the setup's, else the defaults, switch by
-  switch. `src/main.ts` calls it with `isPracticeLink` (`content/eventLink.ts`,
-  tested): a `?try=` or `?event=` link, so the setup never reaches practice.
+  and says so in the same notice (`setupNotices`).
+- **Layers:** `runOptionsFor(link, setup, practice)` in `runOptions.ts`: the
+  link's, else the setup's, else the defaults, switch by switch.
+  **Practice ignores the setup** in one place, `setupInUse` (nothing in
+  practice, even a setup that couldn't be read), which the run options,
+  the tag's count, the notices and the run's record all go through.
+  `src/main.ts` passes `isPracticeLink` (`content/eventLink.ts`, tested): a
+  `?try=` or `?event=` link.
 - **The tag** (`src/ui/setupTag.ts`): DEV SETUP · N changed, top centre on
   the start screen, linking to `dev/setup.html`; Reset clears the setup and
   reloads the game, so the next run plays the defaults. A Reset that fails

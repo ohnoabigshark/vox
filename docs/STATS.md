@@ -168,7 +168,8 @@ or unreadable shows a notice; the game still plays.
 **What counts** (c1). Every real run is recorded, with the modes it was
 played in (hard or not, two-tap or one, which tap tests are on), link
 options included. A run made with a dev setup counts too, and its record
-says so: `setup` holds the setup's changed switches as a link writes them,
+says so: `setup` holds the switches the setup supplied (not the ones the
+link named) as a link writes them,
 '' for none (format 4, `docs/DEV_SETUP.md`, map round 5, q3). Practice (Try
 it), the test bench and an event's practice link are drills and are never
 recorded.
