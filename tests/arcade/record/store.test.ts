@@ -8,7 +8,12 @@ import {
   type Saved,
   type StatsStore,
 } from '../../../src/arcade/record/store';
-import { JACK, type PlayResult, type RunRecord } from '../../../src/arcade/record/types';
+import {
+  JACK,
+  RECORD_FORMAT,
+  type PlayResult,
+  type RunRecord,
+} from '../../../src/arcade/record/types';
 
 /**
  * docs/STATS.md, keeping it (k1–k4) and the store's scenarios (f2): a fake
@@ -202,7 +207,7 @@ describe('the stats store', () => {
     });
   });
 
-  it('a format-1 save is brought up to format 2, its runs checked for achievements (h3)', async () => {
+  it("a format-1 save is brought up to today's format, its runs checked for achievements (h3)", async () => {
     const storage = fakeStorage();
     const ended = {
       ...run('a', { downs: [catchBy(1, 25, 22)] }),
@@ -224,8 +229,41 @@ describe('the stats store', () => {
     expect(saved.checked).toEqual(ACHIEVEMENTS.map((a) => a.id));
     // What it found is written, so it isn't looked for again.
     const written = JSON.parse(storage.data.get('getJackBack.stats')!);
-    expect(written.format).toBe(2);
+    expect(written.format).toBe(RECORD_FORMAT);
     expect(written.achievements.airMail.run).toBe('a');
+  });
+
+  it('a format-2 save is brought up to format 3: the oil slicks it kept are gravestones (next-job map g3)', async () => {
+    const storage = fakeStorage();
+    // Saved before the rename: 'slick' was a pickup kind then.
+    const old = { ...down, pickups: ['slick', 'bolt'] } as unknown as PlayResult;
+    const ended = { ...run('a', { downs: [old] }), endedAt: '2026-11-03T12:00:00.000Z' };
+    const allTime = { hard: addRun(emptyAllTime(), ended), normal: emptyAllTime() };
+    storage.data.set(
+      'getJackBack.stats',
+      JSON.stringify({
+        format: 2,
+        runs: [
+          { summary: summaryOf(ended), record: ended },
+          { summary: summaryOf(ended), record: null },
+        ],
+        allTime,
+        achievements: {},
+        checked: ACHIEVEMENTS.map((a) => a.id),
+      }),
+    );
+    storage.data.set(
+      'getJackBack.stats.open',
+      JSON.stringify({ format: 2, record: run('b', { downs: [old] }), savedAt: NOW }),
+    );
+    const { saved, problem } = await loaded(statsStore(storage, clock));
+    expect(problem).toBeNull();
+    expect(saved.runs.map((r) => r.record?.downs[0]?.pickups ?? null)).toEqual([
+      // The open run, closed as unfinished on this start, comes first.
+      ['gravestone', 'bolt'],
+      ['gravestone', 'bolt'],
+      null,
+    ]);
   });
 });
 

@@ -48,7 +48,7 @@ export function noteBefore(state: RunState): NotedBefore {
 export const LONG_PLAY = 20;
 
 /** What stopped a down's ball: a defender's tackle (by kind), or something else. */
-export type Stop = DefenderKind | 'sack' | 'outOfBounds' | 'event' | 'slipped' | 'crows';
+export type Stop = DefenderKind | 'sack' | 'outOfBounds' | 'event' | 'tripped' | 'crows';
 
 export interface DownSummary {
   /** A handoff that was never thrown is a rush (CONTEXT.md); everything else a pass. */
@@ -102,8 +102,8 @@ export class DownWatch {
       case 'eventTackled':
         this.stoppedBy = 'event';
         return;
-      case 'slipped':
-        this.stoppedBy = 'slipped';
+      case 'tripped':
+        this.stoppedBy = 'tripped';
         return;
       case 'crowsStruck':
         this.stoppedBy = 'crows';

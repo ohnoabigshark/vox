@@ -155,8 +155,8 @@ export interface FieldProp extends PropKind {
   readonly y: number;
 }
 
-/** A trick or a treat (docs/PICKUPS.md): the lightning bolt speeds up whoever takes it, the oil slick trips them. */
-export type PickupKind = 'bolt' | 'slick';
+/** A trick or a treat (docs/PICKUPS.md): the lightning bolt speeds up whoever takes it, the gravestone trips them. */
+export type PickupKind = 'bolt' | 'gravestone';
 
 /** A pickup on the field (sim/pickups.ts), in the area's own yards; the first of your players to run through it takes it. */
 export interface Pickup {
@@ -661,8 +661,8 @@ export type ArcadeEvent =
       readonly status: StatusName;
       readonly from: StatusSource;
     }
-  /** A carrier slipped on an oil slick and is down there: SLIPPED! */
-  | { readonly type: 'slipped'; readonly id: number }
+  /** A carrier tripped on a gravestone and is down there: TRIPPED! */
+  | { readonly type: 'tripped'; readonly id: number }
   | { readonly type: 'seriesStarted'; readonly stretch: number; readonly name: string }
   | { readonly type: 'areaCleared'; readonly area: number }
   | { readonly type: 'gameOver'; readonly seriesWon: number; readonly yards: number };

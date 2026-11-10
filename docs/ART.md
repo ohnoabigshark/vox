@@ -62,6 +62,7 @@ One unit is a yard; a body's collision radius is about 0.4–0.6.
 | Bosses | twice a player: 17×27×9 at 0.085 (Mister Frog 17×27×17, a square footprint) → ~1.45 wide, 2.3 tall, **drawn at 2×** in play (~2.9 wide, 4.6 tall; their bodies' radius 1.45 to match) | `bosses/misterFrog`, `bosses/queen`, `bosses/king` |
 | Ball | the round jack-o'-lantern at 0.15 | `team/ball` |
 | Scenery props | up to 2–3 units tall | `forestProps/pine` |
+| Pickups | 15×11×5 at 0.07 (~1.05 wide, 0.77 tall), **drawn** as wide as its reach (2 yards) and 0.9 tall (`gravestoneShape`) | `pickups/gravestone` |
 
 ## The `.voxt` format
 
@@ -97,7 +98,8 @@ slice 0
 `assets-src/voxels/forest/chaser.voxt`. Folders: `team/` (our players, the
 ball), `forest/` (defenders and the Witch), `candy/` (the Candy Kingdom's
 defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses),
-`forestProps/`, `candyProps/` and `farmProps/` (scenery). A model's front
+`forestProps/`, `candyProps/` and `farmProps/` (scenery), `pickups/` (the
+gravestone). A model's front
 (slice 0) faces +z; in play, bodies turn to face where they're going.
 
 ## Two ways in
@@ -105,7 +107,7 @@ defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses),
 Both end as `.voxt` (map p2). The first new set tries each on at least one
 model, to learn which suits what.
 
-**A. Claude writes it** (how all 29 models so far were made). The user
+**A. Claude writes it** (how all 30 models so far were made). The user
 describes the thing, or sends a sketch or a reference; Claude writes the
 `.voxt`, previews it and iterates until it reads, and the user judges it in
 the viewer.

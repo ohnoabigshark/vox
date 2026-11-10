@@ -295,11 +295,11 @@ All approved, 2026-11-04.
   yours or a defender: the same 50% faster for 3 seconds for both sides
   (b1, the user: "Same for both."). Any defender moving on the field takes
   one, Bats and Crows included; not a planted Scarecrow, one hanging onto
-  the carrier, or one lying down (b2). Slicks stay your side's trick (b3).
+  the carrier, or one lying down (b2). Gravestones (slicks then) stay your side's trick (b3).
   Nobody steers for a bolt, and the balance counts the bolts each side
   takes (b4). Its tests (b6): a defender takes one after the snap and not
   before; a planted, hanging or downed defender doesn't; defenders still
-  leave slicks; your side's pickup tests pass unchanged; the balance counts
+  leave gravestones (slicks then); your side's pickup tests pass unchanged; the balance counts
   bolts by side.
 - **Then the public release** (v1): the difficulty changes are finished
   when `difficulty-3` and `difficulty-4` have merged and the user has

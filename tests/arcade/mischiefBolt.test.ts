@@ -10,7 +10,7 @@ import { carry, ofType, playState, run, stand, type DefenderSpec } from './helpe
 /**
  * The mischief bolt (docs/PICKUPS.md; difficulty map b1–b6, b6's tests): once
  * the ball is snapped, whoever runs through a bolt first takes it, yours or a
- * defender. Slicks stay your side's trick.
+ * defender. Gravestones stay your side's trick.
  */
 
 const { bolt } = arcadeTuning.pickups;
@@ -133,9 +133,9 @@ describe('the mischief bolt', () => {
     expect(state.field.pickups.map((p) => p.id)).toEqual([7, 8, 9]);
   });
 
-  it('4: a defender still runs over a slick and leaves it', () => {
+  it('4: a defender still runs over a gravestone and leaves it', () => {
     const { state, events } = run(
-      field([{ kind: 'rusher', pos: v(0, 6) }], [{ id: 8, kind: 'slick', x: 0, y: 5.6 }]),
+      field([{ kind: 'rusher', pos: v(0, 6) }], [{ id: 8, kind: 'gravestone', x: 0, y: 5.6 }]),
       0.4,
     );
     expect(ofType(events, 'pickupTaken')).toEqual([]);

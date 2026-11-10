@@ -93,7 +93,7 @@ import type { Play } from './content/plays';
 import { fieldCard, trickOrTreatView } from './ui/trickOrTreat';
 
 /** The sound of taking each kind of pickup (docs/PICKUPS.md). */
-const PICKUP_SOUND: Readonly<Record<PickupKind, SfxId>> = { bolt: 'zap', slick: 'slip' };
+const PICKUP_SOUND: Readonly<Record<PickupKind, SfxId>> = { bolt: 'zap', gravestone: 'trip' };
 
 /**
  * The sketches in the game couldn't be read: the run goes on with the play
@@ -818,8 +818,8 @@ export class ArcadeGame {
         case 'pickupTaken':
           play(PICKUP_SOUND[e.kind]);
           break;
-        case 'slipped':
-          this.hud.big('SLIPPED!', 'bad');
+        case 'tripped':
+          this.hud.big('TRIPPED!', 'bad');
           break;
         case 'outOfBounds':
           this.hud.pop('OUT OF BOUNDS', 'bad');

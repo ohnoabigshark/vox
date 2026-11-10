@@ -768,29 +768,32 @@ Still open:
   to 9 yards (field-wisps). Open: whether the timing (goes off at 1 s,
   lasts 3 s) is the lever instead.
 - **A native Android build** of the game. _User, 2026-10-30._
-- **Gravestones instead of oil slicks.** **Picked next** (2026-11-10,
-  next-job map v1). Round 2, all approved 2026-11-10: the gravestone trips
-  from 1 yard, its own `pickups.gravestone.radius`, the bolt staying at
-  0.75 (g1); Claude drafts a short upright headstone for the Goxel round
-  trip (g2; the first draft, `pickups/gravestone`, approved as is in round 3, g4, to be replaced by the user's Goxel pass if one comes back); `slick` becomes
-  `gravestone` and `slipped` becomes `tripped`, and a saved
-  `pickups.slick.time` carries over (g3). Built first (o1); its tests
-  (round 3, g5) are in `docs/PICKUPS.md`. The trick on the field becomes a
-  gravestone, with the same effect: whoever runs through it trips and lies
-  down a moment, and a carrier is tackled there (today **SLIPPED!**,
-  `docs/PICKUPS.md` k6). _User, 2026-10-31: "change oil slicks to
-  gravestones. same effect as it currently has."_ Open: its call on screen
-  and its name in `CONTEXT.md`; its model and sound. **Decided** on the
-  field events map (v1, 2026-10-31), for when it's built, on its own:
-  the same effect and numbers; the call **TRIPPED!**; a stumble and a thud
-  for the sound; "gravestone" everywhere (`CONTEXT.md`, the docs,
-  `PickupKind` `'gravestone'`), nothing left saying slick; and _"Can we
-  make the trigger area a little larger as part of this work."_ (how much
-  larger, its radius against the slick's today, decided then).
+- **Gravestones instead of oil slicks.** **Built** 2026-11-10 on
+  `gravestones`; the design, decisions and tests are in `docs/PICKUPS.md`,
+  "Gravestones". _User, 2026-10-31: "change oil slicks to gravestones. same
+  effect as it currently has."_ Decided on the field events map (v1,
+  2026-10-31) and the next-job map (v1, rounds 2 and 3, g1–g5): the same
+  effect and numbers, the call **TRIPPED!**, a stumble and a thud, the word
+  "gravestone" everywhere, a yard's reach (up from the slick's 0.75, the
+  bolt keeping 0.75), and Claude's model, approved as is, to be replaced by
+  the user's Goxel pass if one comes back. After playing it (2026-11-10):
+  drawn true to size, as wide as its reach, and in a lighter stone
+  (next-job map round 4; g6's ring rejected).
   For the long field (difficulty map c2, parked 2026-11-04): more of them
   further up the field (one in the Intro, two in the Challenge, and so
   on), so a long run is likelier to meet one. _User: "It's a good thing to
   tune but I want to focus on the defenders first."_
+- **A pickup's moment of being taken.** Each pickup gets an animation as
+  it's taken, a "taken" model left on the field afterwards, or both: a
+  gravestone crumbles into a pile of rubble, say. Today a taken pickup
+  just disappears (`render/pickups.ts`). _User, 2026-11-10, after playing
+  the true-to-size gravestones: "add a future note for power ups to have
+  a pickup animation and /or a "picked up" model for after they have been
+  interacted with. eg. gravestones would crumble into a pile."_ Open for
+  its grilling: which pickups get which (the bolt's spark, the
+  gravestone's rubble); whether a pile stays for the rest of the series
+  or the stretch; whether it can trip anyone again (today one gravestone
+  trips once); and the models, drafted for the Goxel round trip.
 - **The art pipeline** (`docs/ART.md`; map round 1,
   https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
   - **The Goxel round trip** (round 3, a1 and a2, 2026-11-06; the user's

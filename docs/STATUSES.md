@@ -52,7 +52,7 @@ top speed after its statuses?".
   the same run, event for event, and `balance:compare` gives the same report.
   It was its own field on every body, `boltLeft`.
 - **Lying on the turf stays as it is** (`down` on every body). It's how a
-  tackle, a pancake, a slick, Frog Rain and Break it!'s drag all leave a
+  tackle, a pancake, a gravestone, Frog Rain and Break it!'s drag all leave a
   body, so it's the body's own state, not a condition given to it. A source
   can still knock a body down: that's a **knockdown**, a field event's
   flatten, beside giving a status. _User: "Leave lying down for now. We will
@@ -141,7 +141,7 @@ last two played by you before they merge:
 Written down, none built; each comes back as its own map:
 
 - **A pickup as a tiny field event:** a circle, taken on touch, giving a
-  status: the slick a knockdown, the bolt Fast.
+  status: the gravestone a knockdown, the bolt Fast.
 - **Tap-test grades as sources:** a GREAT gives Fast for a moment.
 - **Rare tap tests with stronger effects:** _user's note on s5: "It would be
   cool if we had certain special/rare quick events that could trigger more
@@ -234,6 +234,6 @@ Written down, none built; each comes back as its own map:
 - **One already grabbed stays grabbed:** a Break it! under way, or a drag,
   carries on (the latch came first).
 - **Not Ethereal-proof:** what isn't a defender's hands still gets it: Frog
-  Rain's knockdown, an oil slick, the King's crows.
+  Rain's knockdown, a gravestone, the King's crows.
 - **How it shows** (s7): an Ethereal body is drawn see-through and casts no
   shadow (`render/bodies.ts`), whatever made it Ethereal.

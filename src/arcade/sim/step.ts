@@ -38,7 +38,7 @@ import { spellStatus } from '../content/spells';
 import { judgeSnag, startSnag } from './snag';
 import { judgeTip, startTip } from './tip';
 import { endStatus, giveStatus, givingChanges } from './status';
-import { FROM_BOLT } from './pickups';
+import { FROM_BOLT, pickupRadius } from './pickups';
 import type {
   ArcadeEvent,
   ArcadeResult,
@@ -453,29 +453,30 @@ function holdSpell(
 /**
  * Tricks and treats (docs/PICKUPS.md): one of your players on its feet who
  * runs through a pickup takes it, and it's gone for good (never Jack, who stands
- * still: a slick under the ball's spot couldn't be dodged). A bolt speeds it up
- * for a while; a slick trips it, and a carrier who slips is tackled there:
- * SLIPPED! The bolt is mischief: a defender on the move takes one too (not one
+ * still: a gravestone under the ball's spot couldn't be dodged). A bolt speeds it up
+ * for a while; a gravestone trips it, and a carrier who trips is tackled there:
+ * TRIPPED! The bolt is mischief: a defender on the move takes one too (not one
  * planted, hanging on or lying down), after yours in the same step, so a tie
- * is yours. Defenders run over slicks and leave them be.
+ * is yours. Defenders run over gravestones and leave them be.
  */
 function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
   if (state.field.pickups.length === 0) return false;
-  const r = arcadeTuning.pickups.radius;
-  let slipped: Player | null = null;
+  let tripped: Player | null = null;
   for (const p of state.field.players) {
     if (p.down > 0 || p.role === 'qb') continue;
-    const pickup = state.field.pickups.find((q) => dist(p.pos, v(q.x, q.y)) <= p.radius + r);
+    const pickup = state.field.pickups.find(
+      (q) => dist(p.pos, v(q.x, q.y)) <= p.radius + pickupRadius(q.kind),
+    );
     if (!pickup) continue;
     take(state, p, pickup, events);
     switch (pickup.kind) {
       case 'bolt':
         giveStatus(p, 'fast', arcadeTuning.pickups.bolt.time, FROM_BOLT, events);
         break;
-      case 'slick':
-        p.down = arcadeTuning.pickups.slick.time;
+      case 'gravestone':
+        p.down = arcadeTuning.pickups.gravestone.time;
         p.vel = v(0, 0);
-        if (p === carrierOf(state)) slipped = p;
+        if (p === carrierOf(state)) tripped = p;
         break;
       default:
         assertNever(pickup.kind);
@@ -484,15 +485,15 @@ function takePickups(state: RunState, events: ArcadeEvent[]): boolean {
   for (const d of state.field.defenders) {
     if (d.down > 0 || d.planted || d.latch) continue;
     const pickup = state.field.pickups.find(
-      (q) => q.kind === 'bolt' && dist(d.pos, v(q.x, q.y)) <= d.radius + r,
+      (q) => q.kind === 'bolt' && dist(d.pos, v(q.x, q.y)) <= d.radius + pickupRadius(q.kind),
     );
     if (!pickup) continue;
     take(state, d, pickup, events);
     giveStatus(d, 'fast', arcadeTuning.pickups.bolt.time, FROM_BOLT, events);
   }
-  if (!slipped) return false;
-  events.push({ type: 'slipped', id: slipped.id });
-  tackle(state, slipped, -1, events);
+  if (!tripped) return false;
+  events.push({ type: 'tripped', id: tripped.id });
+  tackle(state, tripped, -1, events);
   return true;
 }
 

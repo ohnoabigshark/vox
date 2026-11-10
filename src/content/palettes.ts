@@ -69,6 +69,9 @@ export const voxel = {
   // Hazards.
   stone: '#8d93a3',
   stoneDark: '#646a79',
+  /** The gravestone's stone: lighter than `stone`, so it reads on the dark turf (2026-11-10). */
+  graveStone: '#b9bfcc',
+  graveStoneDark: '#8f96a7',
   witchSkin: '#7fd15a',
   // The Candy Kingdom.
   gingerbread: '#c27a3e',

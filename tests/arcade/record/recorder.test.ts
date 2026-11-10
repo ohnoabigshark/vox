@@ -3,7 +3,7 @@ import { createRun } from '../../../src/arcade/sim/run';
 import type { ArcadeEvent, RunState, Tackle } from '../../../src/arcade/sim/types';
 import { v } from '../../../src/arcade/sim/vec';
 import { RunRecorder, recordable } from '../../../src/arcade/record/recorder';
-import { JACK, type PlayResult } from '../../../src/arcade/record/types';
+import { JACK, RECORD_FORMAT, type PlayResult } from '../../../src/arcade/record/types';
 import { playState } from '../helpers';
 
 /**
@@ -356,7 +356,7 @@ describe('along the way', () => {
       snapped,
       { events: [{ type: 'pickupTaken', id: 100, side: 'defense', kind: 'bolt', pickup: 7 }] },
       {
-        events: [{ type: 'pickupTaken', id: 2, side: 'team', kind: 'slick', pickup: 8 }],
+        events: [{ type: 'pickupTaken', id: 2, side: 'team', kind: 'gravestone', pickup: 8 }],
       },
       thrown,
       {
@@ -367,7 +367,7 @@ describe('along the way', () => {
         set: deadAt(9, 'incomplete'),
       },
     ]);
-    expect(r.pickups).toEqual(['slick']);
+    expect(r.pickups).toEqual(['gravestone']);
   });
 
   it('a down over the goal line is a touchdown, from any stretch (long field test 7)', () => {
@@ -515,7 +515,7 @@ describe('the run', () => {
     });
     const { rec } = feed(s, []);
     expect(rec.record).toMatchObject({
-      format: 2,
+      format: RECORD_FORMAT,
       id: 'run-1',
       build: 'abc123',
       link: 'snag=1',

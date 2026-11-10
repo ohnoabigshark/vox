@@ -384,7 +384,10 @@ describe('generic events in a run (test 3)', () => {
   });
 
   it('the pick has a stream of its own: the cards dealt and the pickups are as on main', () => {
-    // Taken on main (7da62b4), before generic events: a regression test.
+    // Taken on main (7da62b4), before generic events: a regression test. Re-pinned on
+    // gravestones (2026-11-10): the gravestone is bigger than the slick (next-job map g1),
+    // which moves where some lie; at the slick's size, with its old name, it gives main's
+    // digest (6d6cc1764b66780e) again.
     const hash = createHash('sha256');
     for (let seed = 1; seed <= 20; seed++) {
       for (let n = 1; n <= MAX; n++) {
@@ -395,6 +398,6 @@ describe('generic events in a run (test 3)', () => {
         hash.update(JSON.stringify({ hand: s.hand, banned: s.banned, pickups: s.field.pickups }));
       }
     }
-    expect(hash.digest('hex').slice(0, 16)).toBe('6d6cc1764b66780e');
+    expect(hash.digest('hex').slice(0, 16)).toBe('ebc1eb86031a9c4e');
   });
 });

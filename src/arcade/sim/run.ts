@@ -595,7 +595,7 @@ function relineTeam(state: RunState): void {
 /**
  * End the down: move the line of scrimmage, and show what happened for a moment.
  * A carrier down at or past the line has made it, however the down ended: a
- * tackle, a drag, the slick, an event (B6, review b1). The one place that says so.
+ * tackle, a drag, a gravestone, an event (B6, review b1). The one place that says so.
  */
 export function endDown(
   state: RunState,
