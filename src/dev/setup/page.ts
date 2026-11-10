@@ -55,11 +55,40 @@ const row = (label: string, control: HTMLElement, hint = ''): HTMLElement => {
   return l;
 };
 
-const checkbox = (name: string): HTMLInputElement => {
-  const box = el('input');
-  box.type = 'checkbox';
-  box.name = name;
-  return box;
+/** An on/off switch as the editors draw one: the `.tog` button, pumpkin when on (src/dev/controls.css). */
+interface Toggle {
+  readonly el: HTMLButtonElement;
+  readonly on: boolean;
+  set(on: boolean): void;
+}
+
+/** A toggle named `name` (its `data-name`), reading `text`; a tap flips it and calls `flipped`. */
+function toggle(name: string, text: string, flipped: () => void): Toggle {
+  const button = el('button', { className: 'tog', text });
+  button.type = 'button';
+  button.dataset.name = name;
+  const t: Toggle = {
+    el: button,
+    get on() {
+      return button.classList.contains('on');
+    },
+    set(on) {
+      button.classList.toggle('on', on);
+      button.setAttribute('aria-pressed', String(on));
+    },
+  };
+  button.addEventListener('click', () => {
+    t.set(!t.on);
+    flipped();
+  });
+  return t;
+}
+
+/** A row of toggles, with a line under them. */
+const toggles = (items: readonly Toggle[], hint = ''): HTMLElement => {
+  const r = el('div', { className: 'togs' }, ...items.map((t) => t.el));
+  if (hint) r.append(el('small', { text: hint }));
+  return r;
 };
 
 const select = (
@@ -82,7 +111,11 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
     ['two', 'Two-tap'],
     ['one', 'One-tap (esrauch’s)'],
   ]);
-  const hard = checkbox('hard');
+  const refresh = (): void => {
+    holdLastKind();
+    countChanged();
+  };
+  const hard = toggle('hard', 'Hard mode', refresh);
   const area = select(
     'area',
     AREAS.map((a, i) => [String(i + 1), `${i + 1}. ${a.name}`] as const),
@@ -91,40 +124,39 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
   seed.name = 'seed';
   seed.inputMode = 'numeric';
   seed.placeholder = 'random';
-  const kinds = new Map(BREAK_KINDS.map((k) => [k, checkbox(k)] as const));
+  const kinds = new Map(BREAK_KINDS.map((k) => [k, toggle(k, BREAK_NAMES[k], refresh)] as const));
   const catchChoices = CATCH_SETTINGS.map((c) => [c, CATCH_NAMES[c]] as const);
   const snagIt = select('snagIt', catchChoices);
   const tipDrill = select('tipDrill', catchChoices);
-  const pickupsOn = checkbox('pickupsOn');
-  const fieldEventsOn = checkbox('fieldEventsOn');
-  const startWithPerks = checkbox('startWithPerks');
-  const monsters = checkbox('monsters');
+  const pickupsOn = toggle('pickupsOn', 'Pickups', refresh);
+  const fieldEventsOn = toggle('fieldEventsOn', 'Field events', refresh);
+  const startWithPerks = toggle('startWithPerks', 'Every perk', refresh);
+  const monsters = toggle('monsters', 'Monster team', refresh);
   const changed = el('p', { className: 'changed' });
   const status = el('div', { className: 'status' });
   status.hidden = true;
   const say = statusLine(status).say;
 
-  /** The last Break it! kind on can't go off: its box is held. */
-  const holdLastKind = (): void => {
-    const on = [...kinds.values()].filter((b) => b.checked);
-    for (const box of kinds.values()) box.disabled = on.length === 1 && box.checked;
-  };
+  /** The last Break it! kind on can't go off: its toggle is held (dimmed, as a disabled chip is). */
+  function holdLastKind(): void {
+    const on = [...kinds.values()].filter((t) => t.on);
+    for (const t of kinds.values()) t.el.disabled = on.length === 1 && t.on;
+  }
 
   /** Show these options on the page. */
   const show = (o: RunOptions): void => {
     twoTapAim.value = o.twoTapAim ? 'two' : 'one';
-    hard.checked = o.hard;
+    hard.set(o.hard);
     area.value = String(o.area);
     seed.value = o.seed === null ? '' : String(o.seed);
-    for (const [k, box] of kinds) box.checked = o.breakItKinds.includes(k);
+    for (const [k, t] of kinds) t.set(o.breakItKinds.includes(k));
     snagIt.value = o.snagIt;
     tipDrill.value = o.tipDrill;
-    pickupsOn.checked = o.pickupsOn;
-    fieldEventsOn.checked = o.fieldEventsOn;
-    startWithPerks.checked = o.startWithPerks;
-    monsters.checked = o.monsters;
-    holdLastKind();
-    countChanged();
+    pickupsOn.set(o.pickupsOn);
+    fieldEventsOn.set(o.fieldEventsOn);
+    startWithPerks.set(o.startWithPerks);
+    monsters.set(o.monsters);
+    refresh();
   };
 
   /** The options the page shows, or what's wrong with them. */
@@ -142,15 +174,15 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       options: {
         seed: seedValue,
         area: Number(area.value),
-        hard: hard.checked,
+        hard: hard.on,
         twoTapAim: twoTapAim.value === 'two',
         snagIt: snagIt.value as CatchSetting,
         tipDrill: tipDrill.value as CatchSetting,
-        breakItKinds: BREAK_KINDS.filter((k) => kinds.get(k)?.checked),
-        pickupsOn: pickupsOn.checked,
-        fieldEventsOn: fieldEventsOn.checked,
-        startWithPerks: startWithPerks.checked,
-        monsters: monsters.checked,
+        breakItKinds: BREAK_KINDS.filter((k) => kinds.get(k)?.on),
+        pickupsOn: pickupsOn.on,
+        fieldEventsOn: fieldEventsOn.on,
+        startWithPerks: startWithPerks.on,
+        monsters: monsters.on,
       },
     };
   };
@@ -208,7 +240,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       {},
       el('h2', { text: 'Throwing & modes' }),
       row('Throw', twoTapAim),
-      row('Hard mode', hard),
+      toggles([hard]),
       row('Start in', area),
       row('Seed', seed, 'Blank for a random one; AGAIN plays the next.'),
     ),
@@ -216,8 +248,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       'section',
       {},
       el('h2', { text: 'Tap tests' }),
-      ...[...kinds].map(([k, box]) => row(`Break it!: ${BREAK_NAMES[k]}`, box)),
-      el('small', { text: 'At least one Break it! stays on.' }),
+      toggles([...kinds.values()], 'Break it!: the kinds a tackle can deal. One stays on.'),
       row('SNAG IT!', snagIt),
       row('Tip drill', tipDrill),
     ),
@@ -225,10 +256,10 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       'section',
       {},
       el('h2', { text: 'On the field' }),
-      row('Pickups (bolts, gravestones)', pickupsOn),
-      row('Field events', fieldEventsOn, 'Off: none from the seed. Frog Rain stays Mister Frog’s.'),
-      row('Start with every perk', startWithPerks),
-      row('Monster team', monsters),
+      toggles(
+        [pickupsOn, fieldEventsOn, startWithPerks, monsters],
+        'Pickups: bolts and gravestones. Field events off: none from the seed; Frog Rain stays Mister Frog’s. Every perk: start holding them all.',
+      ),
     ),
     el(
       'div',
@@ -240,10 +271,8 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
     status,
   );
   root.querySelector('header a')?.setAttribute('href', './');
-  root.addEventListener('change', () => {
-    holdLastKind();
-    countChanged();
-  });
+  // The dropdowns and the seed box; the toggles refresh as they're tapped.
+  root.addEventListener('change', refresh);
 
   const saved = await deps.store.read();
   switch (saved.kind) {

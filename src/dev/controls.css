@@ -1,0 +1,44 @@
+/*
+ * What the dev pages share (the play editor, the event editor, the setup
+ * page): the palette and the on/off toggle. One place, so a toggle looks
+ * the same on every page (map round 5, p2).
+ */
+:root {
+  --night: #10170f;
+  --panel: #1b2419;
+  --edge: #3a4a36;
+  --text: #eef2e8;
+  --dim: #9fb09a;
+  --turf: #24482a;
+  --turf-out: #1d3a1f;
+  --pumpkin: #f0a14a;
+  --gold: #e7c14a;
+  --line: #9cc7ff;
+  --bad: #e5534b;
+  --bad-bg: #3b1614;
+  color-scheme: dark;
+}
+
+/* An on/off switch: a button, pumpkin when on ("Two-tap", "Flip", the setup's switches). */
+.tog {
+  border: 1px solid var(--edge);
+  background: none;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-size: 0.85rem;
+  color: var(--dim);
+  white-space: nowrap;
+}
+
+.tog.on {
+  background: var(--pumpkin);
+  border-color: var(--pumpkin);
+  color: #1a1206;
+  font-weight: 700;
+}
+
+/* One that can't be flipped now (the setup's last Break it! kind on), dimmed as a disabled chip is. */
+.tog:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

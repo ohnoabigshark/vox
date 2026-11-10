@@ -45,6 +45,10 @@ async function mount(read: SetupRead = { kind: 'nothing' }) {
 
 const box = (root: HTMLElement, name: string) =>
   root.querySelector<HTMLInputElement>(`input[name="${name}"]`)!;
+/** A switch's toggle: the editors' `.tog` button (map round 5, p2). */
+const tog = (root: HTMLElement, name: string) =>
+  root.querySelector<HTMLButtonElement>(`button.tog[data-name="${name}"]`)!;
+const isOn = (t: HTMLButtonElement) => t.classList.contains('on');
 const choice = (root: HTMLElement, name: string) =>
   root.querySelector<HTMLSelectElement>(`select[name="${name}"]`)!;
 const button = (root: HTMLElement, text: string) =>
@@ -71,10 +75,10 @@ describe('the page says practice ignores it (test 8)', () => {
 describe('the page and the saved setup (test 1)', () => {
   it('shows the defaults when nothing is saved, and Save & play saves it and opens the game', async () => {
     const { root, store, went } = await mount();
-    expect(box(root, 'hard').checked).toBe(true);
+    expect(isOn(tog(root, 'hard'))).toBe(true);
     expect(choice(root, 'snagIt').value).toBe('normal');
-    change(box(root, 'hard'));
-    change(box(root, 'fieldEventsOn'));
+    tog(root, 'hard').click();
+    tog(root, 'fieldEventsOn').click();
     button(root, 'Save & play').click();
     await settle();
     expect(store.saved).toEqual([{ ...RUN_DEFAULTS, hard: false, fieldEventsOn: false }]);
@@ -89,8 +93,8 @@ describe('the page and the saved setup (test 1)', () => {
     });
     expect(choice(root, 'twoTapAim').value).toBe('one');
     expect(box(root, 'seed').value).toBe('77');
-    expect(box(root, 'bar').checked).toBe(false);
-    expect(box(root, 'juke').checked).toBe(true);
+    expect(isOn(tog(root, 'bar'))).toBe(false);
+    expect(isOn(tog(root, 'juke'))).toBe(true);
   });
 
   it("storage that can't be read shows an error on the page", async () => {
@@ -111,10 +115,10 @@ describe('the page and the saved setup (test 1)', () => {
 
   it('Restore defaults puts every switch back and clears the saved setup', async () => {
     const { root, store } = await mount({ kind: 'saved', setup: { hard: false }, warnings: [] });
-    expect(box(root, 'hard').checked).toBe(false);
+    expect(isOn(tog(root, 'hard'))).toBe(false);
     button(root, 'Restore defaults').click();
     await settle();
-    expect(box(root, 'hard').checked).toBe(true);
+    expect(isOn(tog(root, 'hard'))).toBe(true);
     expect(store.cleared).toBe(1);
   });
 
@@ -128,25 +132,51 @@ describe('the page and the saved setup (test 1)', () => {
   });
 });
 
+describe('the editors’ toggles (map round 5, p2)', () => {
+  it('every on/off switch is a toggle, and the page has no checkboxes', async () => {
+    const { root } = await mount();
+    for (const name of [
+      'hard',
+      'bar',
+      'mash',
+      'juke',
+      'pickupsOn',
+      'fieldEventsOn',
+      'startWithPerks',
+      'monsters',
+    ])
+      expect(tog(root, name), name).not.toBeNull();
+    expect(root.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
+  });
+
+  it('a toggle shows the switch and flips it', async () => {
+    const { root } = await mount();
+    expect(isOn(tog(root, 'monsters'))).toBe(false);
+    tog(root, 'monsters').click();
+    expect(isOn(tog(root, 'monsters'))).toBe(true);
+    expect(root.querySelector('.changed')?.textContent).toBe('1 changed from the defaults.');
+  });
+});
+
 describe('Break it! kinds on the page (test 4)', () => {
   it('won’t let the last one go off', async () => {
     const { root } = await mount();
-    change(box(root, 'bar'));
-    expect(box(root, 'mash').disabled).toBe(false);
-    change(box(root, 'mash'));
-    expect(box(root, 'juke').checked).toBe(true);
-    expect(box(root, 'juke').disabled).toBe(true);
+    tog(root, 'bar').click();
+    expect(tog(root, 'mash').disabled).toBe(false);
+    tog(root, 'mash').click();
+    expect(isOn(tog(root, 'juke'))).toBe(true);
+    expect(tog(root, 'juke').disabled).toBe(true);
     // Back on, and the others can go off again.
-    change(box(root, 'bar'));
-    expect(box(root, 'juke').disabled).toBe(false);
+    tog(root, 'bar').click();
+    expect(tog(root, 'juke').disabled).toBe(false);
   });
 });
 
 describe('Copy link on the page (test 9)', () => {
   it('copies the game with every switch', async () => {
     const { root, copied } = await mount();
-    change(box(root, 'hard'));
-    change(box(root, 'pickupsOn'));
+    tog(root, 'hard').click();
+    tog(root, 'pickupsOn').click();
     button(root, 'Copy link').click();
     await settle();
     expect(copied).toHaveLength(1);
@@ -170,7 +200,7 @@ describe('Copy link on the page (test 9)', () => {
       },
       go: () => {},
     });
-    change(box(root, 'hard'));
+    tog(root, 'hard').click();
     button(root, 'Copy link').click();
     await settle();
     const status = root.querySelector('.status.bad');

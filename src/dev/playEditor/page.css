@@ -1,19 +1,5 @@
 /* The play editor (dev/plays.html): phone first, the field filling the width. */
-:root {
-  --night: #10170f;
-  --panel: #1b2419;
-  --edge: #3a4a36;
-  --text: #eef2e8;
-  --dim: #9fb09a;
-  --turf: #24482a;
-  --turf-out: #1d3a1f;
-  --pumpkin: #f0a14a;
-  --gold: #e7c14a;
-  --line: #9cc7ff;
-  --bad: #e5534b;
-  --bad-bg: #3b1614;
-  color-scheme: dark;
-}
+@import '../controls.css';
 
 * {
   box-sizing: border-box;
@@ -97,23 +83,6 @@ input:focus-visible {
   border-radius: 6px;
   padding: 6px 8px;
   font-weight: 600;
-}
-
-.tog {
-  border: 1px solid var(--edge);
-  background: none;
-  border-radius: 6px;
-  padding: 5px 9px;
-  font-size: 0.85rem;
-  color: var(--dim);
-  white-space: nowrap;
-}
-
-.tog.on {
-  background: var(--pumpkin);
-  border-color: var(--pumpkin);
-  color: #1a1206;
-  font-weight: 700;
 }
 
 .try-with {

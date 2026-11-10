@@ -4,13 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dev Setup · Dev</title>
+    <link rel="stylesheet" href="/src/ui/fonts.css" />
+    <!-- The editors' palette and toggle (map round 5, p2). -->
+    <link rel="stylesheet" href="/src/dev/controls.css" />
     <style>
+      * {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
         padding: 0.5rem 0.75rem 2rem;
-        font-family: 'Creepster', system-ui, sans-serif;
-        background: #2b2140;
-        color: #f7f1e3;
+        background: var(--night);
+        color: var(--text);
+        font:
+          15px/1.4 system-ui,
+          -apple-system,
+          sans-serif;
+        -webkit-tap-highlight-color: transparent;
       }
       main {
         max-width: 34rem;
@@ -20,59 +30,68 @@
         display: flex;
         gap: 1rem;
         align-items: baseline;
+        font-family: 'Creepster', system-ui, sans-serif;
+        font-size: 1.2rem;
       }
       a {
-        color: #8fd3ff;
+        color: var(--line);
       }
       h2 {
-        font-size: 1.05rem;
+        font-family: 'Creepster', system-ui, sans-serif;
+        font-weight: normal;
+        font-size: 1.15rem;
         margin: 1.1rem 0 0.4rem;
+        color: var(--pumpkin);
       }
       .note {
-        font-family: system-ui, sans-serif;
         font-size: 0.9rem;
-        background: #4a3d66;
-        border-left: 4px solid #ffb347;
+        background: var(--panel);
+        border-left: 4px solid var(--pumpkin);
         padding: 0.5rem 0.7rem;
         border-radius: 6px;
       }
       .changed {
-        font-family: system-ui, sans-serif;
         font-size: 0.85rem;
-        opacity: 0.85;
+        color: var(--dim);
       }
-      .row {
+      .row,
+      .togs {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        justify-content: space-between;
-        gap: 0.3rem 0.8rem;
+        gap: 0.4rem 0.8rem;
         min-height: 2.6rem;
-        padding: 0.2rem 0.6rem;
-        margin: 0.25rem 0;
-        background: #3a2f55;
+        padding: 0.4rem 0.6rem;
+        margin: 0.3rem 0;
+        background: var(--panel);
+        border: 1px solid var(--edge);
         border-radius: 8px;
-        font-family: system-ui, sans-serif;
-        font-size: 0.95rem;
+      }
+      .row {
+        justify-content: space-between;
+      }
+      .togs {
+        gap: 0.4rem;
+      }
+      .togs .tog {
+        padding: 7px 11px;
+        font-size: 0.9rem;
       }
       .row small,
-      section > small {
+      .togs small {
         flex-basis: 100%;
         font-size: 0.75rem;
-        opacity: 0.75;
-        font-family: system-ui, sans-serif;
-      }
-      input[type='checkbox'] {
-        width: 1.4rem;
-        height: 1.4rem;
+        color: var(--dim);
       }
       select,
-      input:not([type]) {
+      input {
         font: inherit;
         font-size: 0.9rem;
         padding: 0.3rem 0.4rem;
         border-radius: 6px;
-        border: 0;
+        border: 1px solid var(--edge);
+        background: var(--night);
+        color: var(--text);
         max-width: 60%;
       }
       .buttons {
@@ -81,33 +100,36 @@
         gap: 0.5rem;
         margin-top: 1.2rem;
       }
-      button {
+      .buttons button {
         font: inherit;
-        font-size: 1rem;
+        font-weight: 700;
         padding: 0.6rem 1rem;
-        border: 0;
+        border: 1px solid var(--pumpkin);
         border-radius: 8px;
-        background: #a259ff;
-        color: white;
+        background: var(--pumpkin);
+        color: #1a1206;
       }
-      button.quiet {
-        background: #4a3d66;
+      .buttons button.quiet {
+        background: none;
+        border-color: var(--edge);
+        color: var(--dim);
+        font-weight: 600;
       }
       .status {
         margin-top: 0.8rem;
         padding: 0.5rem 0.7rem;
         border-radius: 6px;
-        background: #1d1630;
-        font-family: system-ui, sans-serif;
+        background: var(--panel);
         font-size: 0.85rem;
         white-space: pre-wrap;
         word-break: break-word;
       }
       .status.bad {
-        background: #6b1f2a;
+        background: var(--bad-bg);
+        border: 1px solid var(--bad);
+        color: #ffb4ab;
       }
     </style>
-    <link rel="stylesheet" href="/src/ui/fonts.css" />
   </head>
   <body>
     <!-- Dev tool (docs/DEV_SETUP.md): the run options saved on this phone for every new run. -->
