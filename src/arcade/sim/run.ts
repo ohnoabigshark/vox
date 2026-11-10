@@ -13,12 +13,7 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
-import {
-  RUN_DEFAULTS,
-  runOptionsFrom,
-  type FieldEventsSetting,
-  type RunSwitches,
-} from '../content/runOptions';
+import { RUN_DEFAULTS, runOptionsFrom, type RunSwitches } from '../content/runOptions';
 import { pickupsForArea } from './pickups';
 import { placeEvent } from './fieldEvents';
 import { fieldEventById, GENERIC_EVENTS, type FieldEvent } from '../content/fieldEvents';
@@ -202,7 +197,7 @@ export function createRun(
     tipDrill: run.tipDrill,
     breakItKinds: run.breakItKinds,
     pickupsOn: run.pickupsOn,
-    fieldEvents: run.fieldEvents,
+    fieldEventsOn: run.fieldEventsOn,
     step: 0,
     time: 0,
     phase: 'setup',
@@ -313,33 +308,16 @@ export function setUpSeries(
 
 /**
  * This down's field event, placed: the one practice tries; else its
- * stretch's own (Frog Rain); else, on an ordinary stretch, what the run
- * options' `fieldEvents` say: none (`off`), the generic event the seed gave
- * it, if any (`normal`), or the one chosen. The play editor's practice tests
- * the play alone, as with pickups.
+ * stretch's own (Frog Rain); else its stretch's generic event, if the seed
+ * gave it one and the run options have field events on. The play editor's
+ * practice tests the play alone, as with pickups.
  */
 function placedEvent(state: RunState, spec: DefenseSpec): FieldEventOn | null {
   if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
   if (spec.fieldEvent) return placeEvent(state, fieldEventById(spec.fieldEvent));
-  if (state.practice) return null;
-  const generic = ordinaryEventFor(state.seed, stretchNumber(state.series), state.fieldEvents);
+  if (state.practice || !state.fieldEventsOn) return null;
+  const generic = genericEventFor(state.seed, stretchNumber(state.series));
   return generic ? placeEvent(state, generic) : null;
-}
-
-/** Whether this stretch of the run (1-based) is a Boss's: no generic or chosen event comes there. */
-function isBossStretch(stretch: number): boolean {
-  return stretchKind(stretchAt(stretch).stretch) === 'boss';
-}
-
-/** An ordinary stretch's event under the run options' `fieldEvents`: none on a Boss's stretch. */
-function ordinaryEventFor(
-  seed: number,
-  stretch: number,
-  setting: FieldEventsSetting,
-): FieldEvent | null {
-  if (setting === 'off') return null;
-  if (setting === 'normal') return genericEventFor(seed, stretch);
-  return isBossStretch(stretch) ? null : fieldEventById(setting);
 }
 
 /**
@@ -352,7 +330,7 @@ function ordinaryEventFor(
  */
 export function genericEventFor(seed: number, stretch: number): FieldEvent | null {
   const { genericFrom, genericShare } = arcadeTuning.fieldEvents;
-  if (stretch < genericFrom || isBossStretch(stretch)) return null;
+  if (stretch < genericFrom || stretchKind(stretchAt(stretch).stretch) === 'boss') return null;
   const rng = rngFor(seed, 'stretchEvent', stretch);
   if (rng.next() >= genericShare) return null;
   const id = GENERIC_EVENTS[rng.int(0, GENERIC_EVENTS.length - 1)];

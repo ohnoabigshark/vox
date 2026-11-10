@@ -7,7 +7,6 @@
  * (`runOptionsFor`).
  */
 import type { BreakKind } from '../sim/types';
-import { GENERIC_EVENTS, type GenericEventId } from './fieldEvents';
 import type { SetupRead } from './savedSetup';
 import { arcadeTuning } from './tuning';
 
@@ -18,9 +17,6 @@ import { arcadeTuning } from './tuning';
  */
 export type CatchSetting = 'off' | 'normal' | 'always';
 export const CATCH_SETTINGS: readonly CatchSetting[] = ['off', 'normal', 'always'];
-
-/** Field events (docs/FIELD_EVENTS.md): `off`, none on ordinary stretches; `normal`, the seed's; or one generic event on every ordinary stretch. */
-export type FieldEventsSetting = 'off' | 'normal' | GenericEventId;
 
 /** Every Break it! kind, in the order the deal picks from. */
 export const BREAK_KINDS: readonly BreakKind[] = ['bar', 'mash', 'juke'];
@@ -47,8 +43,8 @@ export interface RunOptions {
   readonly breakItKinds: readonly BreakKind[];
   /** Bolts and gravestones on the field (docs/PICKUPS.md). */
   readonly pickupsOn: boolean;
-  /** Field events on ordinary stretches; a Boss's own (Frog Rain) comes either way. */
-  readonly fieldEvents: FieldEventsSetting;
+  /** Field events on ordinary stretches, as the seed gives them (docs/FIELD_EVENTS.md); a Boss's own (Frog Rain) comes either way. */
+  readonly fieldEventsOn: boolean;
   /** Start holding every perk TRICK OR TREAT! offers (docs/REWARDS.md, o4). */
   readonly startWithPerks: boolean;
   /** A monster team (Golem Blockers, Werewolf Runners, Ghost Catchers), for a look at them. */
@@ -69,7 +65,7 @@ export const RUN_DEFAULTS: RunOptions = {
   tipDrill: 'normal',
   breakItKinds: BREAK_KINDS,
   pickupsOn: true,
-  fieldEvents: 'normal',
+  fieldEventsOn: true,
   startWithPerks: false,
   monsters: false,
 };
@@ -112,12 +108,13 @@ function oneOf<T extends string>(
   };
 }
 
-/** A switch on or off: `1` or `0` in a link (or the words given), true or false saved. */
+/** A switch on or off: `1` or `0` in a link (or the words given), and `on` or `off` too; true or false saved. */
 function onOff(on = '1', off = '0'): Omit<Switch<boolean>, 'flag'> {
   return {
     read: (params, flag) => {
       const text = params.get(flag);
-      return text === on ? true : text === off ? false : undefined;
+      if (text === on || text === 'on') return true;
+      return text === off || text === 'off' ? false : undefined;
     },
     check: (value) => (typeof value === 'boolean' ? value : undefined),
     write: (value) => (value ? on : off),
@@ -189,10 +186,7 @@ const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
     write: (value) => value.join(','),
   },
   pickupsOn: { flag: 'pickups', ...onOff() },
-  fieldEvents: {
-    flag: 'events',
-    ...oneOf<FieldEventsSetting>(['off', 'normal', ...GENERIC_EVENTS]),
-  },
+  fieldEventsOn: { flag: 'events', ...onOff() },
   startWithPerks: { flag: 'perks', ...onOff() },
   monsters: {
     flag: 'monsters',
@@ -341,7 +335,7 @@ export function runSwitches(o: RunOptions): RunSwitches {
     tipDrill: o.tipDrill,
     breakItKinds: o.breakItKinds,
     pickupsOn: o.pickupsOn,
-    fieldEvents: o.fieldEvents,
+    fieldEventsOn: o.fieldEventsOn,
     startWithPerks: o.startWithPerks,
   };
 }

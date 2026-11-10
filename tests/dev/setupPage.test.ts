@@ -74,10 +74,10 @@ describe('the page and the saved setup (test 1)', () => {
     expect(box(root, 'hard').checked).toBe(true);
     expect(choice(root, 'snagIt').value).toBe('normal');
     change(box(root, 'hard'));
-    change(choice(root, 'fieldEvents'), 'willOWisps');
+    change(box(root, 'fieldEventsOn'));
     button(root, 'Save & play').click();
     await settle();
-    expect(store.saved).toEqual([{ ...RUN_DEFAULTS, hard: false, fieldEvents: 'willOWisps' }]);
+    expect(store.saved).toEqual([{ ...RUN_DEFAULTS, hard: false, fieldEventsOn: false }]);
     expect(went).toEqual(['https://example.ts.net/vox/']);
   });
 

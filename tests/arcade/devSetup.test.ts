@@ -63,7 +63,7 @@ const EVERY_CHANGED: RunOptions = {
   tipDrill: 'always',
   breakItKinds: ['mash'],
   pickupsOn: false,
-  fieldEvents: 'willOWisps',
+  fieldEventsOn: false,
   startWithPerks: true,
   monsters: true,
 };
@@ -124,7 +124,7 @@ describe('saving (test 1)', () => {
         area: 9,
         snagIt: 'sometimes',
         breakItKinds: [],
-        fieldEvents: 'frogRain',
+        fieldEventsOn: 'taffyFlood',
         pickupsOn: 'yes',
         jackSpeed: 3,
       }),
@@ -137,7 +137,7 @@ describe('saving (test 1)', () => {
         'The dev setup’s area (9) isn’t one it knows, so it was left out.',
         'The dev setup’s snagIt ("sometimes") isn’t one it knows, so it was left out.',
         'The dev setup’s breakItKinds ([]) isn’t one it knows, so it was left out.',
-        'The dev setup’s fieldEvents ("frogRain") isn’t one it knows, so it was left out.',
+        'The dev setup’s fieldEventsOn ("taffyFlood") isn’t one it knows, so it was left out.',
         'The dev setup’s pickupsOn ("yes") isn’t one it knows, so it was left out.',
         'The dev setup has a switch called jackSpeed, which isn’t one, so it was left out.',
       ],
@@ -165,7 +165,7 @@ describe('layers: the link over the saved setup over the defaults (test 2)', () 
     tipDrill: ['always', 'tip=off', 'off'],
     breakItKinds: [['bar'], 'breakit=mash,juke', ['mash', 'juke']],
     pickupsOn: [false, 'pickups=1', true],
-    fieldEvents: ['off', 'events=taffyFlood', 'taffyFlood'],
+    fieldEventsOn: [false, 'events=on', true],
     startWithPerks: [true, 'perks=0', false],
     monsters: [true, 'monsters=0', false],
   };
@@ -222,6 +222,8 @@ describe('layers: the link over the saved setup over the defaults (test 2)', () 
       'breakit=',
       'breakit=bar,kick',
       'events=frogRain',
+      'events=taffyFlood',
+      'events=normal',
       'pickups=yes',
     ]) {
       expect(readLink(new URLSearchParams(query)).run, query).toEqual({});
@@ -349,9 +351,9 @@ describe('pickups off (test 6)', () => {
 });
 
 describe('field events (test 7)', () => {
-  /** The field event on each of the first 12 stretches of a run with this seed and setting. */
-  const events = (seed: number, fieldEvents: RunOptions['fieldEvents']) => {
-    const s = createRun(seed, undefined, 0, { fieldEvents });
+  /** The field event on each of the first 12 stretches of a run with this seed and switch. */
+  const events = (seed: number, fieldEventsOn: boolean) => {
+    const s = createRun(seed, undefined, 0, { fieldEventsOn });
     return Array.from({ length: 12 }, (_, i) => {
       const at = stretchAt(i + 1);
       setUpSeries(s, at.area, stretchStart(at.stretch), [], true);
@@ -365,28 +367,27 @@ describe('field events (test 7)', () => {
 
   it('Off: none on ordinary stretches; Frog Rain stays Mister Frog’s', () => {
     for (let seed = 1; seed <= 6; seed++) {
-      for (const e of events(seed, 'off')) {
+      for (const e of events(seed, false)) {
         if (e.n === 4) expect(e.event).toBe('frogRain');
         else if (!e.boss) expect(e.event, `seed ${seed} stretch ${e.n}`).toBeUndefined();
       }
     }
   });
 
-  it('one chosen: that event on every ordinary stretch; Frog Rain stays Mister Frog’s', () => {
-    for (const chosen of ['taffyFlood', 'willOWisps'] as const) {
-      for (const e of events(2, chosen)) {
-        if (e.n === 4) expect(e.event).toBe('frogRain');
-        else if (!e.boss) expect(e.event, `${chosen} stretch ${e.n}`).toBe(chosen);
-      }
-    }
-  });
-
-  it('Normal: the run is the one it was (some ordinary stretches have one, some don’t)', () => {
-    const all = Array.from({ length: 6 }, (_, i) => events(i + 1, 'normal')).flat();
+  it('On: the same run as today (some ordinary stretches have one, some don’t)', () => {
+    const all = Array.from({ length: 6 }, (_, i) => events(i + 1, true)).flat();
     const ordinary = all.filter((e) => !e.boss && e.n > 1);
     expect(ordinary.some((e) => e.event === undefined)).toBe(true);
     expect(ordinary.some((e) => e.event !== undefined)).toBe(true);
-    expect(createRun(3)).toEqual(createRun(3, undefined, 0, { fieldEvents: 'normal' }));
+    expect(createRun(3)).toEqual(createRun(3, undefined, 0, { fieldEventsOn: true }));
+  });
+
+  it('links: ?events=off and ?events=0 turn them off, ?events=on and 1 on (map round 5, p2)', () => {
+    const on = (query: string) => readLink(new URLSearchParams(query)).run.fieldEventsOn;
+    expect(on('events=off')).toBe(false);
+    expect(on('events=0')).toBe(false);
+    expect(on('events=on')).toBe(true);
+    expect(on('events=1')).toBe(true);
   });
 });
 
@@ -468,7 +469,7 @@ describe('Copy link (test 9)', () => {
       {},
       { hard: false },
       { snagIt: 'off', tipDrill: 'always', breakItKinds: ['juke', 'bar'] },
-      { fieldEvents: 'off', pickupsOn: false, monsters: true, startWithPerks: true },
+      { fieldEventsOn: false, pickupsOn: false, monsters: true, startWithPerks: true },
       EVERY_CHANGED,
     ];
     for (const named of setups) {

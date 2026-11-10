@@ -9,7 +9,7 @@
  * series n (from 0) starts its line of scrimmage at y = 10n, its first-down
  * line at 10n + 10, and the goal line is at 40. Times are seconds.
  */
-import type { CatchSetting, FieldEventsSetting } from '../content/runOptions';
+import type { CatchSetting } from '../content/runOptions';
 import type { EventLook, FieldEvent } from '../content/fieldEvents';
 import type { Play } from '../content/plays';
 import type { StatusName } from '../content/statuses';
@@ -462,8 +462,8 @@ export interface RunState {
   readonly breakItKinds: readonly BreakKind[];
   /** Whether pickups are laid on the field (the run options' `pickupsOn`). */
   readonly pickupsOn: boolean;
-  /** Field events on ordinary stretches: off, the seed's, or one chosen (the run options'). */
-  readonly fieldEvents: FieldEventsSetting;
+  /** Field events on ordinary stretches, as the seed gives them (the run options' `fieldEventsOn`). */
+  readonly fieldEventsOn: boolean;
   /** Fixed steps since the run began, and the time they add up to. */
   step: number;
   time: number;

@@ -27,7 +27,7 @@ describe('the defaults file (test 1)', () => {
       tipDrill: 'normal',
       breakItKinds: ['bar', 'mash', 'juke'],
       pickupsOn: true,
-      fieldEvents: 'normal',
+      fieldEventsOn: true,
       startWithPerks: false,
       monsters: false,
     });
@@ -105,7 +105,7 @@ describe('one set of defaults (test 3)', () => {
       tipDrill: s.tipDrill,
       breakItKinds: s.breakItKinds,
       pickupsOn: s.pickupsOn,
-      fieldEvents: s.fieldEvents,
+      fieldEventsOn: s.fieldEventsOn,
     }).toEqual({
       hard: RUN_DEFAULTS.hard,
       twoTapAim: RUN_DEFAULTS.twoTapAim,
@@ -113,7 +113,7 @@ describe('one set of defaults (test 3)', () => {
       tipDrill: RUN_DEFAULTS.tipDrill,
       breakItKinds: RUN_DEFAULTS.breakItKinds,
       pickupsOn: RUN_DEFAULTS.pickupsOn,
-      fieldEvents: RUN_DEFAULTS.fieldEvents,
+      fieldEventsOn: RUN_DEFAULTS.fieldEventsOn,
     });
     expect(s.hard).toBe(true);
     expect(s.twoTapAim).toBe(true);

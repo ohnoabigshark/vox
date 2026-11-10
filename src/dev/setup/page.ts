@@ -6,7 +6,6 @@
  * status line and stays until tapped.
  */
 import { AREAS } from '../../arcade/content/defense';
-import { fieldEventById, GENERIC_EVENTS } from '../../arcade/content/fieldEvents';
 import {
   BREAK_KINDS,
   CATCH_SETTINGS,
@@ -16,7 +15,6 @@ import {
   runOptionsFrom,
   switchFromText,
   type CatchSetting,
-  type FieldEventsSetting,
   type RunOptions,
 } from '../../arcade/content/runOptions';
 import { reasonOf, type SetupStore } from '../../arcade/content/savedSetup';
@@ -98,11 +96,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
   const snagIt = select('snagIt', catchChoices);
   const tipDrill = select('tipDrill', catchChoices);
   const pickupsOn = checkbox('pickupsOn');
-  const fieldEvents = select('fieldEvents', [
-    ['off', 'Off'],
-    ['normal', 'Normal (the seed’s)'],
-    ...GENERIC_EVENTS.map((id) => [id, `Always ${fieldEventById(id).name}`] as const),
-  ]);
+  const fieldEventsOn = checkbox('fieldEventsOn');
   const startWithPerks = checkbox('startWithPerks');
   const monsters = checkbox('monsters');
   const changed = el('p', { className: 'changed' });
@@ -126,7 +120,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
     snagIt.value = o.snagIt;
     tipDrill.value = o.tipDrill;
     pickupsOn.checked = o.pickupsOn;
-    fieldEvents.value = o.fieldEvents;
+    fieldEventsOn.checked = o.fieldEventsOn;
     startWithPerks.checked = o.startWithPerks;
     monsters.checked = o.monsters;
     holdLastKind();
@@ -154,7 +148,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
         tipDrill: tipDrill.value as CatchSetting,
         breakItKinds: BREAK_KINDS.filter((k) => kinds.get(k)?.checked),
         pickupsOn: pickupsOn.checked,
-        fieldEvents: fieldEvents.value as FieldEventsSetting,
+        fieldEventsOn: fieldEventsOn.checked,
         startWithPerks: startWithPerks.checked,
         monsters: monsters.checked,
       },
@@ -232,11 +226,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       {},
       el('h2', { text: 'On the field' }),
       row('Pickups (bolts, gravestones)', pickupsOn),
-      row(
-        'Field events',
-        fieldEvents,
-        'Always: that event on every stretch but a Boss’s. Frog Rain stays Mister Frog’s either way.',
-      ),
+      row('Field events', fieldEventsOn, 'Off: none from the seed. Frog Rain stays Mister Frog’s.'),
       row('Start with every perk', startWithPerks),
       row('Monster team', monsters),
     ),
