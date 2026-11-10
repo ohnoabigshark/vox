@@ -453,3 +453,116 @@ last two played before they merge.
 - **Play changes where the wisps are:** seed 14's run draws the wisps on
   its generic stretch and was re-pinned; with `genericShare` 0, all four
   seeded runs are `main`'s again.
+
+## Places and sizes: `field-places` (2026-11-08)
+
+From the taffy places map (https://claude.ai/artifact/E4FPPufgdSdFYdZTyWpczw),
+rounds 1 and 2, all approved (p1–p7, z1–z3; p8 decided as mischief). The user
+asked for "different shapes and placement … expand the range of possible
+yards out", then "the size of the shape/band/whatever should also be
+influenced by the seed".
+
+### The plan
+
+- **An event has areas, a reach and a size** (p5, z1). `areas` lists one or
+  more shapes, non-empty; one is picked each down, each as likely. `reach`,
+  `{ nearest, farthest }` or null, is how near and far its near edge may land,
+  in yards past the line. `size`, `{ smallest, largest }` or null, scales its
+  depth (a lane's or band's `to − from`) or a circle's radius. The width
+  across never scales: a band still spans the field.
+- **One place picks them** (sim/fieldEvents.ts, `areaFor`): from the seed,
+  every down, on a stream of its own (`'eventPlace'`, p3), so the cards dealt,
+  the pickups and Frog Rain's side stay as they are. With one area, no reach
+  and no size it draws nothing and returns the area as it is, so Frog Rain
+  places exactly as before. With no reach, the near edge is the area's own (a
+  rect's `from`, a circle's `at − radius`), so a bigger one grows away from
+  the line. The result is an ordinary area, which `placeArea` places as now.
+- **Across: `any`** (p2's puddle "in the middle or toward either side"):
+  left, middle or right, picked like `either`.
+- **The taffy** (p1, p2, z1): a band (the whole field, 4 yards deep), a half
+  band (half the field, against either sideline, 4 deep), or a puddle (a
+  circle 6 across, `any` side, 4 out); its near edge 2 to 12 yards out; size
+  0.75x to 1.5x (bands 3 to 6 deep, puddles 4.5 to 9 across). Still mischief.
+- **The wisps** (z2): one circle, no reach, so their near edge stays at 3
+  yards; size 0.75x to 1.25x (4.5 to 7.5 across, reaching up to 10.5).
+- **Frog Rain** keeps one lane, no reach, no size (z2).
+- **The carrier** (p4) steers clear of an event that would hurt him while
+  it's coming and, now, while a spell is on; a full band counts against every
+  lane alike, so against it he runs straight. `comingFor` becomes
+  `steerClearOf`, since it's no longer only what's coming.
+- **Saved events** (p5): one saved before reads `area` as `areas: [area]`,
+  with no reach and no size. One with no areas, a backwards reach or size, or
+  a size of 0 or less, is left out with a warning.
+- **The editor** (p5, z3): a row of chips, one per area, picks which the
+  handles and the area's sliders edit; Nearest and Farthest sliders when the
+  event has a reach, Smallest and Largest when it has a size. Save keeps
+  every area. Try it plays a fresh pick each down.
+- **The looks**: the taffy draws whichever shape it has (a puddle as a
+  disc); the wisps already read their circle's radius.
+- **Order** (z3): the sets session's PR #45 may merge first; whichever of
+  the two merges second re-pins the seeded-run fingerprints.
+
+### Tests, written first (p6, z3)
+
+1. Each down in a taffy stretch gets one of the taffy's shapes, its near edge
+   2 to 12 yards past that down's line and its size 0.75x to 1.5x. Over many
+   seeds every shape comes up, and both ends of the reach and the size.
+2. The same seed gives the same shapes, places and sizes, down by down.
+3. Frog Rain places exactly as before; the seeded-run fingerprints are
+   unchanged with generic events off.
+4. The wisps' near edge stays at 3 yards; they're 4.5 to 7.5 yards across.
+5. A carrier steers round a half band and a puddle while the taffy is coming
+   and while it's on, but runs straight at a full band.
+6. A saved event or Try it link from before reads as one area with no reach
+   or size; one with no areas, or a backwards reach or size, is refused with
+   a warning.
+7. The editor: an area chip edits that area; the reach and size sliders set
+   their numbers; Save keeps every area.
+
+### As built: `field-places` (2026-11-08)
+
+- **The refactor** (c4bf4ed): `area` became `areas`, with `reach` and
+  `size` null on every event; placing went through `areaFor`; saved events
+  and Try it links from before read their one `area`. Nothing played
+  differently: the 880 tests passed with only `areas` renamed in them.
+- **The places** (4485189), tests 1 to 5 in `places.test.ts`, written first
+  and watched red: `areaFor` as planned; the taffy's three shapes, reach
+  and size; the wisps' size; `comingFor` became `steerClearOf`. Seed 14's
+  fingerprint was re-pinned; with generic events off it is main's
+  06fe520adac8ca51 again, and the other three seeds are unchanged, so Frog
+  Rain and everything else play as before.
+- **The look** (136d439): the taffy draws a puddle as a disc, its bubbles
+  spread over it. Seen in the built game at phone size, a puddle on the
+  left and a half band on the right.
+- **The editor and saved events** (40852bb), tests 6 and 7: a Shapes chip
+  per area when there are several; Nearest and Farthest, Smallest and
+  Largest (as ×) sliders when the event has them, held so neither runs
+  backwards; Any side. A saved reach or size that runs backwards, or a size
+  of 0, is left out with a warning. Four of the new tests passed on their
+  first run, since the refactor had already given them their behaviour:
+  picking a chip, reading an old save, reading the taffy back, and Save
+  keeping every area. They stay as regression tests.
+- **Not built:** adding or removing an area on the editor, and giving
+  Frog Rain a reach or size there. Neither was asked; an event's areas,
+  reach and size are its data.
+- **After review** (two axes):
+  - Standards: the "picked area, else the first" fallback lived in three
+    places; it is `areaAt` now, with `hasArea` and `withAreaAt` beside it in
+    `content/fieldEvents.ts`, which also drops a cast. The test uses the
+    sim's own `nearEdge` rather than a copy. `shapeFor` became `areaFor`,
+    since it returns an area. The editor's rows now say **Areas** (pick
+    one) and **Shape** (its shape), as the glossary has it, and the Shape
+    chips come from one list of words.
+  - Spec: with a reach, the area's own place sliders did nothing in play
+    (the reach decides where it lands), so the editor showed a place the
+    taffy never plays. A band now shows **Depth** in place of its near and
+    far edges, and a circle no "Ahead of the line"; test first. A test now
+    checks a taffy down deals the same cards and pickups as that down with
+    generic events off (it passed on its first run: the streams were
+    already apart).
+  - Left as it is: the side across (a half band's or a puddle's) is still
+    drawn from `'frogLane'`, as `either` always was, so "picked like
+    `either`" holds; it never shares a down with Frog Rain. The Areas chips
+    show only when an event has more than one area. The commits c4bf4ed
+    (which added `any` before anything used it) and 4485189 (shapes and
+    steering together) stay as they are rather than rewriting history.

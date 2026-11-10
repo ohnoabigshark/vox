@@ -22,8 +22,12 @@ import {
 } from './statuses';
 import { arcadeTuning, TIME_SCALE } from './tuning';
 
-/** Where across the field an area sits: against a sideline, in the middle, or either side picked each down. */
-export type Across = 'left' | 'middle' | 'right' | 'either';
+/**
+ * Where across the field an area sits: against a sideline, in the middle,
+ * either side picked each down, or any of the three picked each down
+ * (`field-places`, p2's puddle).
+ */
+export type Across = 'left' | 'middle' | 'right' | 'either' | 'any';
 
 /**
  * A lane (down the field) or a band (across it): `width` yards across, from
@@ -48,6 +52,22 @@ export interface CircleArea {
 }
 
 export type EventArea = RectArea | CircleArea;
+
+/** How near and far an event's near edge may land each down, in yards past the line (`field-places`, p1). */
+export interface EventReach {
+  readonly nearest: number;
+  readonly farthest: number;
+}
+
+/**
+ * How much smaller or bigger an event may be each down (`field-places`, z1):
+ * times its area's depth (a lane's or band's `to − from`) or a circle's
+ * radius. The width across never scales.
+ */
+export interface EventSize {
+  readonly smallest: number;
+  readonly largest: number;
+}
 
 /** Who an effect hits (`content/statuses.ts`). */
 export type { Who } from './statuses';
@@ -88,7 +108,12 @@ export interface FieldEvent {
   readonly name: string;
   /** The Boss whose gimmick it is, or null for a generic event. */
   readonly boss: BossName | null;
-  readonly area: EventArea;
+  /** The shapes it may take, one picked each down, each as likely (most events have one). */
+  readonly areas: readonly [EventArea, ...EventArea[]];
+  /** Where its near edge may land each down, or null: where its area says. */
+  readonly reach: EventReach | null;
+  /** How its size may vary each down, or null: as its area is. */
+  readonly size: EventSize | null;
   /** It goes off this long after the snap… */
   readonly goesOff: number;
   /** …as a burst (whoever is in it then) or a spell (whoever is in it while it lasts)… */
@@ -111,13 +136,17 @@ export const FROG_RAIN: FieldEvent = {
   id: 'frogRain',
   name: 'Frog Rain',
   boss: 'misterFrog',
-  area: {
-    shape: 'lane',
-    across: 'either',
-    width: 0.4 * 2 * arcadeTuning.field.halfWidth,
-    from: -1,
-    to: 16,
-  },
+  areas: [
+    {
+      shape: 'lane',
+      across: 'either',
+      width: 0.4 * 2 * arcadeTuning.field.halfWidth,
+      from: -1,
+      to: 16,
+    },
+  ],
+  reach: null,
+  size: null,
   goesOff: 1.6,
   goesOffAs: 'burst',
   lasts: 1.2,
@@ -128,23 +157,26 @@ export const FROG_RAIN: FieldEvent = {
 };
 
 /**
- * The taffy flood (FIELD_EVENTS.md round 5, t1): mischief. A band of pink
- * candy across the whole field, 3 to 7 yards past the line, bubbling up
- * after the snap; 1 s after it, it floods, and for 2.5 s everyone in it is
- * Slowed. A band across the whole field has no way round, so the carrier
- * doesn't steer round it (ai.ts).
+ * The taffy flood (FIELD_EVENTS.md round 5, t1, and `field-places`):
+ * mischief. Pink candy, bubbling up after the snap; 1 s after it, it floods,
+ * and for 2.5 s everyone in it is Slowed. Each down the seed picks its shape
+ * (a band across the whole field, a half band against either sideline, or a
+ * puddle in the middle or toward either side), its near edge 2 to 12 yards
+ * past the line, and its size, 0.75x to 1.5x (bands 3 to 6 yards deep,
+ * puddles 4.5 to 9 across). A full band has no way round, so the carrier
+ * runs straight at it; he steers round the others (ai.ts).
  */
 export const TAFFY_FLOOD: FieldEvent = {
   id: 'taffyFlood',
   name: 'Taffy Flood',
   boss: null,
-  area: {
-    shape: 'band',
-    across: 'middle',
-    width: 2 * arcadeTuning.field.halfWidth,
-    from: 3,
-    to: 7,
-  },
+  areas: [
+    { shape: 'band', across: 'middle', width: 2 * arcadeTuning.field.halfWidth, from: 3, to: 7 },
+    { shape: 'band', across: 'either', width: arcadeTuning.field.halfWidth, from: 3, to: 7 },
+    { shape: 'circle', across: 'any', out: 4, at: 6, radius: 3 },
+  ],
+  reach: { nearest: 2, farthest: 12 },
+  size: { smallest: 0.75, largest: 1.5 },
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 2.5 * TIME_SCALE,
@@ -155,9 +187,11 @@ export const TAFFY_FLOOD: FieldEvent = {
 };
 
 /**
- * The will-o'-wisps (FIELD_EVENTS.md, w1): a blessing. A circle 6 yards
- * across, 6 yards past the line (3 to 9) on either side (picked each down, as Frog
- * Rain's lane is), pale green lights hovering in it from before the snap;
+ * The will-o'-wisps (FIELD_EVENTS.md, w1, and `field-places` z2): a
+ * blessing. A circle 6 yards across, 6 yards past the line (3 to 9) on
+ * either side (picked each down, as Frog Rain's lane is); each down its size
+ * too, 0.75x to 1.25x (4.5 to 7.5 across), its near edge staying at 3
+ * yards. Pale green lights hover in it from before the snap;
  * 1 s after it, they flare, and for 3 s your players in it are Ethereal:
  * no defender can grab or tackle them, and they pass through each other.
  */
@@ -165,7 +199,9 @@ export const WILL_O_WISPS: FieldEvent = {
   id: 'willOWisps',
   name: 'Will-o’-Wisps',
   boss: null,
-  area: { shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 },
+  areas: [{ shape: 'circle', across: 'either', out: 5, at: 6, radius: 3 }],
+  reach: null,
+  size: { smallest: 0.75, largest: 1.25 },
   goesOff: 1 * TIME_SCALE,
   goesOffAs: 'spell',
   lasts: 3 * TIME_SCALE,
@@ -174,6 +210,22 @@ export const WILL_O_WISPS: FieldEvent = {
   call: null,
   look: 'wisps',
 };
+
+/** An event's area `i`, or its first if it has none such: the one place that fallback is decided. */
+export function areaAt(event: FieldEvent, i: number): EventArea {
+  return event.areas[i] ?? event.areas[0];
+}
+
+/** Whether the event has an area `i`. */
+export function hasArea(event: FieldEvent, i: number): boolean {
+  return Number.isInteger(i) && i >= 0 && i < event.areas.length;
+}
+
+/** The event with its area `i` replaced (still at least one area). */
+export function withAreaAt(event: FieldEvent, i: number, area: EventArea): FieldEvent {
+  const [first, ...rest] = event.areas.map((a, j) => (j === i ? area : a));
+  return { ...event, areas: [first ?? area, ...rest] };
+}
 
 /**
  * An event's kind, from its effect and who it hits (docs/STATUSES.md, s4):

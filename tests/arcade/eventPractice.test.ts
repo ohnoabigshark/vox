@@ -26,7 +26,9 @@ const made: FieldEvent = {
   id: 'graveyardRain',
   name: 'Graveyard rain',
   boss: null,
-  area: { shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 },
+  areas: [{ shape: 'circle', across: 'right', out: 4, at: 10, radius: 2 }],
+  reach: null,
+  size: null,
   look: 'plain',
   call: null,
 };

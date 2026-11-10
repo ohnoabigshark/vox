@@ -16,7 +16,9 @@ const made: FieldEvent = {
   id: 'graveyardRain',
   name: 'Graveyard rain',
   boss: null,
-  area: { shape: 'circle', across: 'either', out: 4, at: 10, radius: 2 },
+  areas: [{ shape: 'circle', across: 'either', out: 4, at: 10, radius: 2 }],
+  reach: null,
+  size: null,
   effect: { kind: 'flatten', on: 'theirs' },
   call: null,
   look: 'plain',
@@ -46,7 +48,7 @@ describe('saved events (test 5)', () => {
   });
 
   it('one that can’t be read is left out with a warning saying which and why; the rest stay', () => {
-    const bad = { ...made, id: 'broken', area: { shape: 'triangle' } };
+    const bad = { ...made, id: 'broken', areas: [{ shape: 'triangle' }] };
     const { events, warnings } = checkSavedEvents({ frogRain: tuned, broken: bad });
     expect(events.map((e) => e.id)).toEqual(['frogRain']);
     expect(warnings).toEqual([
@@ -73,15 +75,15 @@ describe('saved events (test 5)', () => {
     // JSON reads 1e999 as Infinity.
     expect(why(JSON.parse('{"goesOff": 1e999}'))).toEqual(said('goesOff must be more than 0'));
     expect(why({ lasts: 0 })).toEqual(said('lasts must be more than 0'));
-    expect(why({ area: { ...FROG_RAIN.area, width: 0 } })).toEqual(
+    expect(why({ areas: [{ ...FROG_RAIN.areas[0], width: 0 }] })).toEqual(
       said("its area's width must be more than 0"),
     );
-    expect(why({ area: { ...FROG_RAIN.area, from: 5, to: 3 } })).toEqual(
+    expect(why({ areas: [{ ...FROG_RAIN.areas[0], from: 5, to: 3 }] })).toEqual(
       said("its area's far edge must be past its near edge"),
     );
-    expect(why({ area: made.area.shape === 'circle' ? { ...made.area, radius: -1 } : {} })).toEqual(
-      said("its area's radius must be more than 0"),
-    );
+    expect(
+      why({ areas: [made.areas[0].shape === 'circle' ? { ...made.areas[0], radius: -1 } : {}] }),
+    ).toEqual(said("its area's radius must be more than 0"));
   });
 });
 
@@ -130,5 +132,45 @@ describe('spells and statuses, saved (round 5, test 5)', () => {
         why({ goesOffAs, effect: { kind: 'status', status: 'fast', on: 'everyone' } }),
       ).toEqual(said('its effect is not one the game plays'));
     }
+  });
+});
+
+describe('places and sizes, saved (field-places, test 6)', () => {
+  const said = (id: string, part: string): string[] => [
+    `saved-events.json: ${id} can’t be read (${part}), so it was left out`,
+  ];
+
+  it('one saved before places, with one `area`, reads as one area with no reach or size', () => {
+    const kept = Object.entries(made).filter(([k]) => !['areas', 'reach', 'size'].includes(k));
+    const before = { ...Object.fromEntries(kept), area: made.areas[0] };
+    const { events, warnings } = checkSavedEvents({ graveyardRain: before });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([made]);
+    expect(events[0]).not.toHaveProperty('area');
+  });
+
+  it('the taffy, with its shapes, reach and size, reads back as saved', () => {
+    const taffy: FieldEvent = { ...TAFFY_FLOOD, reach: { nearest: 4, farthest: 8 } };
+    const { events, warnings } = checkSavedEvents({ taffyFlood: taffy });
+    expect(warnings).toEqual([]);
+    expect(events).toEqual([taffy]);
+  });
+
+  it('one with no areas, a reach or size backwards, or a size of nothing, is refused with a warning', () => {
+    const why = (x: object): readonly string[] =>
+      checkSavedEvents({ taffyFlood: { ...TAFFY_FLOOD, ...x } }).warnings;
+    expect(why({ areas: [] })).toEqual(said('taffyFlood', 'it has no areas'));
+    expect(why({ reach: { nearest: 9, farthest: 3 } })).toEqual(
+      said('taffyFlood', 'its reach is not a nearest no farther than its farthest'),
+    );
+    expect(why({ reach: { nearest: 'near', farthest: 3 } })).toEqual(
+      said('taffyFlood', 'its reach is not a nearest no farther than its farthest'),
+    );
+    expect(why({ size: { smallest: 1.5, largest: 0.75 } })).toEqual(
+      said('taffyFlood', 'its size is not a smallest above 0 and no bigger than its largest'),
+    );
+    expect(why({ size: { smallest: 0, largest: 1 } })).toEqual(
+      said('taffyFlood', 'its size is not a smallest above 0 and no bigger than its largest'),
+    );
   });
 });

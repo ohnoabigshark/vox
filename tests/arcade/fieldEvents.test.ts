@@ -26,14 +26,15 @@ describe('Frog Rain is the first field event (test 1)', () => {
     expect(f.name).toBe('Frog Rain');
     expect(f.boss).toBe('misterFrog');
     // A lane in from either side, 40% of the width, a yard behind the line to 16 ahead.
-    expect(f.area).toEqual({
+    expect(f.areas).toHaveLength(1);
+    expect(f.areas[0]).toEqual({
       shape: 'lane',
       across: 'either',
       width: expect.any(Number),
       from: -1,
       to: 16,
     });
-    expect(f.area.shape === 'lane' && f.area.width / (2 * hw)).toBeCloseTo(0.4, 9);
+    expect(f.areas[0].shape === 'lane' && f.areas[0].width / (2 * hw)).toBeCloseTo(0.4, 9);
     // The frogs land 2.0 s after the snap, their shadows fill the lane 0.875 s before, and whoever they land on is flat 1.5 s.
     expect(f.goesOff / TIME_SCALE).toBeCloseTo(2.0, 9);
     expect(f.warning.buildUp / TIME_SCALE).toBeCloseTo(0.875, 9);
@@ -55,7 +56,7 @@ describe('Frog Rain is the first field event (test 1)', () => {
       const a = on!.area;
       if (a.shape !== 'rect') throw new Error('a lane is a rectangle');
       expect(a.x1 - a.x0).toBeCloseTo(
-        FROG_RAIN.area.shape === 'lane' ? FROG_RAIN.area.width : 0,
+        FROG_RAIN.areas[0].shape === 'lane' ? FROG_RAIN.areas[0].width : 0,
         9,
       );
       // Against a sideline, clear of the middle (the pumpkin).
@@ -159,21 +160,23 @@ describe('a burst (test 3)', () => {
       ],
       [{ kind: 'cover', pos: v(5, 7) }],
     );
-    s.field.fieldEvent = { event, area: placeArea(s, event.area), left: DT * 2 };
+    s.field.fieldEvent = { event, area: placeArea(s, event.areas[0]), left: DT * 2 };
     const r = run(s, 0.1);
     return ofType(r.events, 'fieldEventWentOff')[0]?.hit.slice().sort();
   };
   const circle: EventArea = { shape: 'circle', across: 'right', out: 4.5, at: 6.5, radius: 2 };
 
   it('of any shape, flattens whoever is in it as it goes off, and nobody else', () => {
-    expect(burst(ev({ area: circle }))).toEqual([100, 2]);
+    expect(burst(ev({ areas: [circle] }))).toEqual([100, 2]);
     const band: EventArea = { shape: 'band', across: 'right', width: 8, from: 5, to: 8 };
-    expect(burst(ev({ area: band }))).toEqual([100, 2]);
+    expect(burst(ev({ areas: [band] }))).toEqual([100, 2]);
   });
 
   it('on your players, or on the defenders, it catches only that side', () => {
-    expect(burst(ev({ area: circle, effect: { kind: 'flatten', on: 'yours' } }))).toEqual([2]);
-    expect(burst(ev({ area: circle, effect: { kind: 'flatten', on: 'theirs' } }))).toEqual([100]);
+    expect(burst(ev({ areas: [circle], effect: { kind: 'flatten', on: 'yours' } }))).toEqual([2]);
+    expect(burst(ev({ areas: [circle], effect: { kind: 'flatten', on: 'theirs' } }))).toEqual([
+      100,
+    ]);
   });
 });
 

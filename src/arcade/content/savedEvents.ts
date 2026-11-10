@@ -3,7 +3,9 @@
  * event editor, laid over the defaults in fieldEvents.ts. A saved file is an
  * object of events by id; one that can't be read is left out with a warning
  * (never silently), and the rest are kept. One saved before spells
- * (2026-11-07) has no `goesOffAs`, and is read as the burst it was.
+ * (2026-11-07) has no `goesOffAs`, and is read as the burst it was; one
+ * saved before places (`field-places`, 2026-11-08) has one `area` and no
+ * reach or size, and is read as one area with neither.
  *
  * It imports only types and the spell rule (spells.ts), so the hot-reload
  * server's config can check saves with it without reaching the saved file
@@ -22,6 +24,7 @@ const ACROSS: Readonly<Record<Across, true>> = {
   middle: true,
   right: true,
   either: true,
+  any: true,
 };
 const WHO: Readonly<Record<Who, true>> = { yours: true, theirs: true, everyone: true };
 const LOOKS: Readonly<Record<EventLook, true>> = {
@@ -34,6 +37,7 @@ const GOES_OFF_AS: Readonly<Record<GoesOffAs, true>> = { burst: true, spell: tru
 const EVENT_STATUSES: Readonly<Record<EventStatus, true>> = { slowed: true, ethereal: true };
 const BOSSES: Readonly<Record<BossName, true>> = { misterFrog: true, queen: true, king: true };
 
+const isNumber = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const isTree = (x: unknown): x is Tree => typeof x === 'object' && x !== null && !Array.isArray(x);
 const oneOf = <K extends string>(set: Readonly<Record<K, true>>, x: unknown): x is K =>
   typeof x === 'string' && Object.hasOwn(set, x);
@@ -44,8 +48,31 @@ export function eventProblem(id: string, x: unknown): string | null {
   if (x.id !== id) return `its id is ${String(x.id)}`;
   if (typeof x.name !== 'string' || x.name === '') return 'it has no name';
   if (x.boss !== null && !oneOf(BOSSES, x.boss)) return 'its boss is not one of the Bosses';
-  const area = areaProblem(x.area);
-  if (area) return area;
+  const areas = areasOf(x);
+  if (areas.length === 0) return 'it has no areas';
+  for (const a of areas) {
+    const area = areaProblem(a);
+    if (area) return area;
+  }
+  const reach = x.reach;
+  if (reach !== undefined && reach !== null) {
+    const ok =
+      isTree(reach) &&
+      isNumber(reach.nearest) &&
+      isNumber(reach.farthest) &&
+      reach.nearest <= reach.farthest;
+    if (!ok) return 'its reach is not a nearest no farther than its farthest';
+  }
+  const size = x.size;
+  if (size !== undefined && size !== null) {
+    const ok =
+      isTree(size) &&
+      isNumber(size.smallest) &&
+      isNumber(size.largest) &&
+      size.smallest > 0 &&
+      size.smallest <= size.largest;
+    if (!ok) return 'its size is not a smallest above 0 and no bigger than its largest';
+  }
   // An event that never goes off, or has no effect, would fail without a word (review r2).
   for (const key of ['goesOff', 'lasts'] as const) {
     if (typeof x[key] !== 'number') return `${key} is not a number`;
@@ -90,11 +117,34 @@ function areaProblem(a: unknown): string | null {
   return null;
 }
 
-/** An event `eventProblem` passed, as the game plays it: one saved before spells is a burst. */
+/** An event's areas as saved: its `areas`, or the one `area` of an event saved before places. */
+function areasOf(x: Tree): unknown[] {
+  if (Array.isArray(x.areas)) return x.areas;
+  return x.area === undefined ? [] : [x.area];
+}
+
+/**
+ * An event `eventProblem` passed, as the game plays it: one saved before
+ * spells is a burst, and one saved before places has one area and no reach
+ * or size.
+ */
 export function readEvent(x: unknown): FieldEvent {
   // Checked field by field by eventProblem.
-  const e = x as Omit<FieldEvent, 'goesOffAs'> & { goesOffAs?: GoesOffAs };
-  return { ...e, goesOffAs: e.goesOffAs ?? 'burst' };
+  const e = x as Omit<FieldEvent, 'goesOffAs' | 'areas' | 'reach' | 'size'> & {
+    goesOffAs?: GoesOffAs;
+    reach?: FieldEvent['reach'];
+    size?: FieldEvent['size'];
+  };
+  // The one `area` of an event saved before places becomes its `areas`.
+  const rest: Record<string, unknown> = { ...e };
+  delete rest.area;
+  return {
+    ...(rest as typeof e),
+    areas: areasOf(x as Tree) as unknown as FieldEvent['areas'],
+    reach: e.reach ?? null,
+    size: e.size ?? null,
+    goesOffAs: e.goesOffAs ?? 'burst',
+  };
 }
 
 /** The saved file's events that can be read, and a warning for each that can't. */

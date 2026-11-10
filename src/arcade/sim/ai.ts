@@ -18,7 +18,7 @@
  */
 import { arcadeTuning } from '../content/tuning';
 import { lobReceivers } from './ball';
-import { areaBox, comingFor } from './fieldEvents';
+import { areaBox, steerClearOf } from './fieldEvents';
 import type { Defender, Player, RunState, Vec } from './types';
 import { clearOfProps } from './props';
 import { add, dist, norm, scale, sub, v } from './vec';
@@ -265,9 +265,9 @@ export function chooseLane(state: RunState, carrier: Player): number {
       ...ahead.map((pos) => Math.abs(pos.x - x) + 0.35 * (pos.y - carrier.pos.y)),
       6,
     );
-    // A field event still to go off (Frog Rain): keep out of its area, if it's still ahead.
+    // A field event to keep out of (Frog Rain still to come, the taffy while it's on): if it's still ahead.
     const coming = state.field.fieldEvent;
-    const box = comingFor(coming) ? areaBox(coming.area) : null;
+    const box = steerClearOf(coming) ? areaBox(coming.area) : null;
     const inEvent =
       box !== null &&
       carrier.pos.y < box.y1 &&

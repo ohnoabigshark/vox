@@ -27,18 +27,23 @@ import { dist, v } from './vec';
  */
 export function placeArea(state: RunState, area: EventArea): PlacedArea {
   const { los } = state.series;
-  const side = sideOf(area.across, () => {
-    const rng = rngFor(state.seed, 'frogLane', state.seriesWon, state.series.down, state.nextId);
-    return rng.next() < 0.5 ? -1 : 1;
-  });
+  const rng = () =>
+    rngFor(state.seed, 'frogLane', state.seriesWon, state.series.down, state.nextId);
+  const side = sideOf(
+    area.across,
+    () => (rng().next() < 0.5 ? -1 : 1),
+    () => SIDES[rng().int(0, SIDES.length - 1)] ?? 0,
+  );
   if (area.shape === 'circle') {
     return { shape: 'circle', x: circleX(area.out, side), y: los + area.at, r: area.radius };
   }
   return { shape: 'rect', ...rectXs(area.width, side), y0: los + area.from, y1: los + area.to };
 }
 
-/** Which side an area sits on: −1 left, 0 the middle, 1 right; "either" as `either` picks it. */
-export function sideOf(across: Across, either: () => -1 | 1): -1 | 0 | 1 {
+const SIDES = [-1, 0, 1] as const;
+
+/** Which side an area sits on: −1 left, 0 the middle, 1 right; "either" as `either` picks it, "any" as `any` does. */
+export function sideOf(across: Across, either: () => -1 | 1, any: () => -1 | 0 | 1): -1 | 0 | 1 {
   switch (across) {
     case 'left':
       return -1;
@@ -48,6 +53,8 @@ export function sideOf(across: Across, either: () => -1 | 1): -1 | 0 | 1 {
       return 1;
     case 'either':
       return either();
+    case 'any':
+      return any();
     default:
       return assertNever(across);
   }
@@ -65,9 +72,39 @@ export function circleX(out: number, side: -1 | 0 | 1): number {
   return side * out;
 }
 
+/**
+ * The event's area for this down (docs/FIELD_EVENTS.md, `field-places`):
+ * one of its areas, each as likely; its near edge within its reach (or the
+ * area's own); its depth or radius scaled within its size. From the seed,
+ * on a stream of its own, so the cards dealt, the pickups and the side an
+ * area is on stay as they were. An event with one area, no reach and no
+ * size draws nothing: its area as it is (Frog Rain).
+ */
+export function areaFor(state: RunState, event: FieldEvent): EventArea {
+  const { areas, reach, size } = event;
+  if (areas.length === 1 && reach === null && size === null) return areas[0];
+  const rng = rngFor(state.seed, 'eventPlace', state.seriesWon, state.series.down, state.nextId);
+  const area = areas[rng.int(0, areas.length - 1)] ?? areas[0];
+  const scale = size ? between(size.smallest, size.largest, rng.next()) : 1;
+  const near = reach ? between(reach.nearest, reach.farthest, rng.next()) : nearEdge(area);
+  if (area.shape === 'circle') {
+    const radius = area.radius * scale;
+    return { ...area, at: near + radius, radius };
+  }
+  return { ...area, from: near, to: near + (area.to - area.from) * scale };
+}
+
+/** An area's near edge, in yards past the line: a lane's or band's `from`, a circle's nearest point. */
+export function nearEdge(area: EventArea): number {
+  return area.shape === 'circle' ? area.at - area.radius : area.from;
+}
+
+/** The number a share `t` (0 to 1) of the way from `a` to `b`. */
+const between = (a: number, b: number, t: number): number => a + (b - a) * t;
+
 /** The event placed for this down, not yet counting (it starts at the hike). */
 export function placeEvent(state: RunState, event: FieldEvent): FieldEventOn {
-  return { event, area: placeArea(state, event.area), left: null };
+  return { event, area: placeArea(state, areaFor(state, event)), left: null };
 }
 
 /** Whether a body is in the area (any part of it). */
@@ -165,15 +202,15 @@ export function fromEvent(event: FieldEvent): StatusSource {
 }
 
 /**
- * Whether the event is still to go off this down and would catch the
- * carrier (one of yours) to its harm: one to steer clear of. A blessing
- * (the wisps) isn't.
+ * Whether the carrier (one of yours) should steer clear of the event: it
+ * would catch him to his harm, and it's still to go off, or it's a spell
+ * that's on (`field-places`, p4). A blessing (the wisps) isn't one.
  */
-export function comingFor(on: FieldEventOn | null): on is FieldEventOn {
+export function steerClearOf(on: FieldEventOn | null): on is FieldEventOn {
   return (
     on !== null &&
     on.left !== null &&
-    on.left > 0 &&
+    (on.left > 0 || spellOn(on)) &&
     hits(on.event.effect.on, 'team') &&
     effectPolarity(on.event.effect) === 'hurts'
   );

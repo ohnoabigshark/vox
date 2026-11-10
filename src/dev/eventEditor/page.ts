@@ -7,6 +7,7 @@
  * is the page's hash, so Back from Try it returns to it.
  */
 import {
+  areaAt,
   eventKind,
   fieldEventDefaults,
   type EventArea,
@@ -36,6 +37,9 @@ import {
   circleAcross,
   dragNumber,
   eventNumbers,
+  pickArea,
+  pickedArea,
+  SIDE_CHIPS,
   eventTimeline,
   numberText,
   timelineText,
@@ -344,8 +348,8 @@ function draw(): void {
   e.kind.textContent = eventKind(ev);
   // The name follows Undo, Restore defaults and Revert to saved, unless it's being typed in (review b3).
   if (document.activeElement !== e.name) e.name.value = ev.name;
-  drawField(e.field, ev.area);
-  e.readout.textContent = areaReadout(ev.area);
+  drawField(e.field, pickedArea(e.ed));
+  e.readout.textContent = areaReadout(pickedArea(e.ed));
   e.top.replaceChildren(...topOf(e));
   syncSliders(e);
   e.parts.replaceChildren(...partsOf(e));
@@ -462,7 +466,7 @@ const sameNumber = (a: number, b: number): boolean => Math.abs(a - b) < 1e-9;
 
 /** The sliders for this event's numbers: built when the numbers change shape, otherwise shown again in place, so a drag keeps its grip. */
 function syncSliders(e: Editing): void {
-  const numbers = eventNumbers(e.ed.event);
+  const numbers = eventNumbers(e.ed.event, e.ed.picked);
   const keys = numbers.map((n) => n.key).join();
   if (keys !== e.sliderKeys) {
     e.sliderKeys = keys;
@@ -475,14 +479,14 @@ function syncSliders(e: Editing): void {
             e.sliding = null;
           },
           onReset: () => {
-            const back = eventNumbers(baselineOf(e)).find((b) => b.key === n.key);
+            const back = eventNumbers(baselineOf(e), e.ed.picked).find((b) => b.key === n.key);
             if (back) change(setNumber(e.ed, n.key, back.value));
           },
         }),
       ]),
     );
     const times = numbers.filter((n) => n.unit === 's').map((n) => e.sliders.get(n.key)?.el);
-    const places = numbers.filter((n) => n.unit === 'yd').map((n) => e.sliders.get(n.key)?.el);
+    const places = numbers.filter((n) => n.unit !== 's').map((n) => e.sliders.get(n.key)?.el);
     e.numbers.replaceChildren(
       ...times.filter((x) => x !== undefined),
       e.timeline,
@@ -490,13 +494,13 @@ function syncSliders(e: Editing): void {
     );
   }
   const baseline = baselineOf(e);
-  const base = eventNumbers(baseline);
+  const base = eventNumbers(baseline, e.ed.picked);
   const builtIn = isDefault(e.ed.event.id);
   const kept = savedVersion(e.ed.event.id);
-  const keptNumbers = kept ? eventNumbers(kept) : null;
+  const keptNumbers = kept ? eventNumbers(kept, e.ed.picked) : null;
   // A built-in event saved off its code says what's saved too, as the bench's rows do (review d1).
   const savedCopy = builtIn ? saved[e.ed.event.id] : undefined;
-  const savedOff = savedCopy ? eventNumbers(savedCopy) : null;
+  const savedOff = savedCopy ? eventNumbers(savedCopy, e.ed.picked) : null;
   for (const n of numbers) {
     const b = base.find((x) => x.key === n.key);
     const k = keptNumbers?.find((x) => x.key === n.key);
@@ -505,7 +509,7 @@ function syncSliders(e: Editing): void {
     // The default may be another shape, with no such number: then ↺ has nothing to go back to (review b2).
     const note = b
       ? `${word} ${numberText(b)}${s && !sameNumber(s.value, b.value) ? ` · saved ${numberText(s)}` : ''}`
-      : `${word}: a ${baseline.area.shape}`;
+      : `${word}: a ${areaAt(baseline, e.ed.picked).shape}`;
     e.sliders.get(n.key)?.show({
       value: n.value,
       shown: numberText(n),
@@ -541,31 +545,47 @@ function drawTimeline(box: HTMLElement, t: EventTimeline): void {
   box.append(el('div', { className: 'tl-words' }, ...words.map((w) => el('span', { text: w }))));
 }
 
-/** The area's shape and side, as chips. */
+/** Each shape's word on its chips. */
+const SHAPE_WORDS: Readonly<Record<EventArea['shape'], string>> = {
+  lane: 'Lane',
+  band: 'Band',
+  circle: 'Circle',
+};
+
+/** The areas (when there are several), then the picked area's shape and side, as chips. */
 function topOf(e: Editing): HTMLElement[] {
   const ev = e.ed.event;
+  // One chip per area when it has more than one (field-places, p5): the one picked is what's drawn and edited.
+  const areaChips =
+    ev.areas.length > 1
+      ? [
+          chips(
+            'Areas',
+            ev.areas.map((a, i) => ({
+              value: String(i),
+              text: `${i + 1}: ${SHAPE_WORDS[a.shape]}`,
+            })),
+            String(e.ed.picked),
+            (i) => {
+              if (!editing) return;
+              editing.ed = pickArea(e.ed, Number(i));
+              draw();
+            },
+          ),
+        ]
+      : [];
   return [
+    ...areaChips,
     chips(
-      'Area',
-      [
-        { value: 'lane', text: 'Lane' },
-        { value: 'band', text: 'Band' },
-        { value: 'circle', text: 'Circle' },
-      ],
-      ev.area.shape,
+      'Shape',
+      (Object.keys(SHAPE_WORDS) as EventArea['shape'][]).map((value) => ({
+        value,
+        text: SHAPE_WORDS[value],
+      })),
+      pickedArea(e.ed).shape,
       (shape) => change(setShape(e.ed, shape)),
     ),
-    chips(
-      'Side',
-      [
-        { value: 'left', text: 'Left' },
-        { value: 'middle', text: 'Middle' },
-        { value: 'right', text: 'Right' },
-        { value: 'either', text: 'Either side' },
-      ],
-      ev.area.across,
-      (across) => change(setAcross(e.ed, across)),
-    ),
+    chips('Side', SIDE_CHIPS, pickedArea(e.ed).across, (across) => change(setAcross(e.ed, across))),
   ];
 }
 
