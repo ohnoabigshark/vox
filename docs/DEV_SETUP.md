@@ -143,3 +143,70 @@ it's handed over.
   byte. The seeded-run
   digests (`statusesSameRun`, the taffy's pick) pass unchanged.
 
+
+### `dev-setup` (2026-11-10)
+
+- **The switches** (`src/arcade/content/runOptions.ts`): SNAG IT! and the
+  tip drill are `snagIt` and `tipDrill`, each `off`, `normal` or `always`;
+  `breakItKinds` the Break it! kinds a tackle deals (at least one, kept in
+  `BREAK_KINDS` order, which moved here from `sim/breakit.ts`);
+  `pickupsOn`; `fieldEvents`, `off`, `normal` or a generic event's id
+  (`taffyFlood`, `willOWisps`). Each switch is named once in `SWITCHES`:
+  its link flag, how a link and a saved value are read, and how Copy link
+  writes it. `runSwitches` gives `createRun` its part, and `RunState`
+  carries each.
+- **In play:** Off sends no contested ball to that catch test; with one
+  Always, every contested ball from series 1 goes to it (as `?snag=1`);
+  both Always pick at random; the pick between two Normals is the seed's,
+  as before. A tackle deals only the kinds on, by the same random pick
+  (all three on is the same run as before). Pickups off lays none.
+  Field events Off puts none on ordinary stretches; one chosen puts it on
+  every ordinary stretch; a Boss's own (Frog Rain) comes either way.
+- **Links** read as they did, and say more: `?snag=` and `?tip=` take
+  `off`, `normal` or `always` (`1` still means always); `?breakit=bar,juke`;
+  `?pickups=0`; `?events=off|normal|taffyFlood|willOWisps`; and `?hard=1`,
+  `?aim=2` and `?perks=0` now name the default, so a link can override a
+  saved setup. A value a switch doesn't take names nothing.
+- **The setup** (`src/arcade/content/savedSetup.ts`): localStorage
+  `getJackBack.devSetup`, only the switches that differ from the defaults,
+  as JSON. Read back switch by switch: a value no switch takes, or a name
+  that isn't a switch, is left out with a warning naming it, shown on the
+  page and as a notice in the game. Storage that can't be read, or isn't
+  JSON, is `unreadable`: the page says why and the game plays the defaults
+  (a console warning there).
+- **Layers:** `runOptionsFor(link, setup, practice)` in `runOptions.ts`, the
+  one place: the link's, else the setup's, else the defaults, switch by
+  switch. `src/main.ts` calls it; a practice link (`?try=` or `?event=`)
+  passes `practice`, so the setup never reaches it.
+- **The tag** (`src/ui/setupTag.ts`): DEV SETUP · N changed, top centre on
+  the start screen, linking to `dev/setup.html`; Reset clears the setup and
+  reloads the game, so the next run plays the defaults. A Reset that fails
+  says so on the tag.
+- **The page** (`dev/setup.html`, `src/dev/setup/page.ts`): as designed,
+  with "N changed from the defaults" under the note, a seed that isn't a
+  whole number above 0 refused, and a copy that fails showing the link to
+  copy by hand. Restore defaults resets the page and clears the saved setup
+  at once.
+- **Tests:** `tests/arcade/devSetup.test.ts` (1–9 in the sim and the
+  options), `tests/ui/setupTag.test.ts` (3), `tests/dev/setupPage.test.ts`
+  (1, 4, 8, 9 on the page), and d7 test 1 grown to the new switches.
+
+**Open questions for the user** (chosen closest to the doc, to confirm):
+
+1. **Copy link writes only the changed switches** (test 9). Opened where
+   nothing is saved it plays exactly that setup; opened on a phone with a
+   different setup saved, the switches it doesn't name come from that
+   phone's setup. Writing every switch would make it exact everywhere, at
+   the cost of a long link.
+2. **One chosen field event starts on stretch 1;** Normal's events start
+   on stretch 2 (`genericFrom`).
+3. **`?monsters` can't be turned off by a link:** it counts with any value,
+   as it always has, so a saved monster team can only be switched off on
+   the page.
+4. **Records and the play log don't keep the setup.** A run's modes keep
+   only whether SNAG IT! and the tip drill were Always; the link they keep
+   is the address bar's, so a run with a setup looks like a plain one there.
+   Runs with a setup count toward stats and achievements as any run does
+   (as `?perks=1` did).
+5. **A practice link the game can't read** opens the ordinary game, as
+   before, and still without the setup.
