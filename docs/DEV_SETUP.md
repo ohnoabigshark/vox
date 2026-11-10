@@ -168,25 +168,33 @@ it's handed over.
   `off`, `normal` or `always` (`1` still means always); `?breakit=bar,juke`;
   `?pickups=0`; `?events=off|normal|taffyFlood|willOWisps`; and `?hard=1`,
   `?aim=2` and `?perks=0` now name the default, so a link can override a
-  saved setup. A value a switch doesn't take names nothing.
+  saved setup. "Off is said" for the rest too (the two-axis review):
+  `?seed=random` sets the seed back to random over a saved one, and
+  `?monsters=0` (or `off`) turns the monster team off; bare `?monsters` and
+  any other value still turn it on, as before. `?seed=` and `?area=` go
+  through the same check as a saved value (a whole number from 1, the area
+  at most the last), so `?seed=1.5` or `?area=99` now names nothing where
+  it used to be taken (the area clamped). A value a switch doesn't take
+  names nothing. Copy link writes only changed switches, so it never needs
+  `seed=random` (the default); the word is for links typed by hand.
 - **The setup** (`src/arcade/content/savedSetup.ts`): localStorage
   `getJackBack.devSetup`, only the switches that differ from the defaults,
   as JSON. Read back switch by switch: a value no switch takes, or a name
   that isn't a switch, is left out with a warning naming it, shown on the
   page and as a notice in the game. Storage that can't be read, or isn't
-  JSON, is `unreadable`: the page says why and the game plays the defaults
-  (a console warning there).
+  JSON, is `unreadable`: the page says why, and the game plays the defaults
+  and says so in the same notice (`setupNotices`; nothing in practice).
 - **Layers:** `runOptionsFor(link, setup, practice)` in `runOptions.ts`, the
   one place: the link's, else the setup's, else the defaults, switch by
-  switch. `src/main.ts` calls it; a practice link (`?try=` or `?event=`)
-  passes `practice`, so the setup never reaches it.
+  switch. `src/main.ts` calls it with `isPracticeLink` (`content/eventLink.ts`,
+  tested): a `?try=` or `?event=` link, so the setup never reaches practice.
 - **The tag** (`src/ui/setupTag.ts`): DEV SETUP · N changed, top centre on
   the start screen, linking to `dev/setup.html`; Reset clears the setup and
   reloads the game, so the next run plays the defaults. A Reset that fails
   says so on the tag.
 - **The page** (`dev/setup.html`, `src/dev/setup/page.ts`): as designed,
-  with "N changed from the defaults" under the note, a seed that isn't a
-  whole number above 0 refused, and a copy that fails showing the link to
+  with "N changed from the defaults" under the note, a seed the link's
+  check refuses refused here too (`switchFromText`), and a copy that fails showing the link to
   copy by hand. Restore defaults resets the page and clears the saved setup
   at once.
 - **Tests:** `tests/arcade/devSetup.test.ts` (1–9 in the sim and the
@@ -194,8 +202,10 @@ it's handed over.
   (1, 4, 8, 9 on the page), and d7 test 1 grown to the new switches.
 - **Nothing plays differently with nothing saved:** the six balance
   scenarios, 8 runs each, on `run-options` (ec0b155) and on this branch
-  (fe0e701, and again after the review fix): the reports are identical,
-  byte for byte. The seeded-run digests pass unchanged.
+  (fe0e701, and again after the first review fix): the reports are
+  identical, byte for byte. The seeded-run digests pass unchanged. The
+  two-axis review's fixes touch links and messages, and the sim only by
+  refactoring (one `isBossStretch`), so the comparison wasn't rerun.
 - **The headless look** (the built game at phone size): the page, a setup
   saved, the tag on the start screen, Reset taking it away, warnings and
   an unreadable setup on the page. It led to the tag kept on one line and
@@ -211,13 +221,10 @@ it's handed over.
    the cost of a long link.
 2. **One chosen field event starts on stretch 1;** Normal's events start
    on stretch 2 (`genericFrom`).
-3. **`?monsters` can't be turned off by a link:** it counts with any value,
-   as it always has, so a saved monster team can only be switched off on
-   the page.
-4. **Records and the play log don't keep the setup.** A run's modes keep
+3. **Records and the play log don't keep the setup.** A run's modes keep
    only whether SNAG IT! and the tip drill were Always; the link they keep
    is the address bar's, so a run with a setup looks like a plain one there.
    Runs with a setup count toward stats and achievements as any run does
    (as `?perks=1` did).
-5. **A practice link the game can't read** opens the ordinary game, as
+4. **A practice link the game can't read** opens the ordinary game, as
    before, and still without the setup.
