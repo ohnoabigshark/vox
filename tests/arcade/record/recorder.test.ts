@@ -356,7 +356,7 @@ describe('along the way', () => {
       snapped,
       { events: [{ type: 'pickupTaken', id: 100, side: 'defense', kind: 'bolt', pickup: 7 }] },
       {
-        events: [{ type: 'pickupTaken', id: 2, side: 'team', kind: 'slick', pickup: 8 }],
+        events: [{ type: 'pickupTaken', id: 2, side: 'team', kind: 'gravestone', pickup: 8 }],
       },
       thrown,
       {
@@ -367,7 +367,7 @@ describe('along the way', () => {
         set: deadAt(9, 'incomplete'),
       },
     ]);
-    expect(r.pickups).toEqual(['slick']);
+    expect(r.pickups).toEqual(['gravestone']);
   });
 
   it('a down over the goal line is a touchdown, from any stretch (long field test 7)', () => {

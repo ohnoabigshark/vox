@@ -67,6 +67,13 @@ describe('saved settings in the game', () => {
     expect(arcadeTuning).toEqual(tuningDefaults);
   });
 
+  it('D: a setting saved under an old name plays under its new one, with no warning (next-job map g3)', () => {
+    // The oil slick became the gravestone; a bench save from before still counts.
+    expect(layerSaved(arcadeTuning, tuningDefaults, { 'pickups.slick.time': 2 })).toEqual([]);
+    expect(arcadeTuning.pickups.gravestone.time).toBe(2);
+    expect(tuningDefaults.pickups.gravestone.time).toBe(1.2);
+  });
+
   it('C: tuning.ts lays saved-tuning.json over the defaults as it loads, so whatever loads it plays the save', async () => {
     vi.resetModules();
     vi.doMock('../../src/arcade/content/saved-tuning.json', () => ({

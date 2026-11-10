@@ -1,13 +1,15 @@
 /**
  * Tricks and treats on the field (docs/PICKUPS.md): a gold lightning bolt
- * that hovers and turns, an oil slick lying flat with a purple sheen, each
- * where the sim has it, gone once taken. Built from voxel boxes in code
- * (there's no model file), merged so each pickup is one mesh. Anyone running at a bolt's speed trails sparks.
+ * that hovers and turns, and a gravestone leaning a little in the turf, each
+ * where the sim has it, gone once taken. The bolt is built from voxel boxes in
+ * code, merged into one mesh; the gravestone is a model
+ * (`assets-src/voxels/pickups/gravestone.voxt`). Anyone running at a bolt's speed trails sparks.
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { assertNever } from '../../assertNever';
-import { common, hexToNumber, voxel } from '../../content/palettes';
+import { hexToNumber, voxel } from '../../content/palettes';
+import { getGeometry, voxelMaterial } from '../../voxel/models';
 import { hasStatus } from '../sim/status';
 import type { Pickup, RunState } from '../sim/types';
 import { v } from '../sim/vec';
@@ -31,13 +33,6 @@ const BOLT: readonly [number, number][] = [
   [3, 5],
   [3, 6],
 ];
-/** The slick: a lopsided puddle of voxels (column, row) about a yard and a half across. */
-const SLICK: readonly [number, number][] = Array.from(
-  { length: 9 * 7 },
-  (_, i): [number, number] => [(i % 9) - 4, Math.floor(i / 9) - 3],
-).filter(([c, r]) => (c / 4.4) ** 2 + (r / 3.2) ** 2 + ((c * r) % 3) * 0.02 <= 1);
-/** The sheen on the slick: a few voxels picked out in purple. */
-const SHEEN = new Set(['-2,1', '-1,1', '0,2', '1,-1', '2,-1']);
 /** The bolt is drawn this many times its voxels' size, so it reads at a distance. */
 const BOLT_SCALE = 1.7;
 /** How many sparks a fast player trails, and how far back they reach (yards). */
@@ -45,14 +40,11 @@ const SPARKS = 6;
 const TRAIL = 1.4;
 
 const box = new THREE.BoxGeometry(VOX, VOX, VOX);
-const flatBox = new THREE.BoxGeometry(VOX, VOX * 0.25, VOX);
 const gold = new THREE.MeshLambertMaterial({
   color: hexToNumber(voxel.glow),
   emissive: hexToNumber(voxel.glow),
   emissiveIntensity: 0.6,
 });
-const oil = new THREE.MeshLambertMaterial({ color: hexToNumber(voxel.ink) });
-const sheen = new THREE.MeshLambertMaterial({ color: hexToNumber(common.candyPurple) });
 const spark = new THREE.MeshBasicMaterial({ color: hexToNumber(voxel.glow) });
 
 /** Boxes at these voxel spots, merged into one geometry (one draw call). */
@@ -68,25 +60,8 @@ function merged(
   return out;
 }
 
-/** Built once and shared by every bolt and slick. */
+/** Built once and shared by every bolt. */
 const BOLT_GEO = merged(BOLT, (c, r) => [(c - 1.5) * VOX, r * VOX, 0], box);
-const onSlick = (c: number, r: number): [number, number, number] => [c * VOX, 0.02, r * VOX];
-const isSheen = ([c, r]: [number, number]): boolean => SHEEN.has(`${c},${r}`);
-/** The slick's ink voxels then its sheen: two groups, drawn with [oil, sheen]. */
-const SLICK_GEO = (() => {
-  const ink = merged(
-    SLICK.filter((s) => !isSheen(s)),
-    onSlick,
-    flatBox,
-  );
-  const shine = merged(SLICK.filter(isSheen), onSlick, flatBox);
-  const out = mergeGeometries([ink, shine], true);
-  ink.dispose();
-  shine.dispose();
-  if (!out) throw new Error('The slick could not be merged');
-  return out;
-})();
-
 export class ArcadePickups {
   private readonly group = new THREE.Group();
   private readonly sparks: THREE.Mesh[] = [];
@@ -139,10 +114,13 @@ export class ArcadePickups {
         holder.add(bolt);
         break;
       }
-      case 'slick': {
-        const slick = new THREE.Mesh(SLICK_GEO, [oil, sheen]);
-        slick.receiveShadow = true;
-        holder.add(slick);
+      case 'gravestone': {
+        const stone = new THREE.Mesh(getGeometry('pickups/gravestone'), voxelMaterial);
+        // The model's front (+z) already faces the camera, behind the play; each leans a little.
+        stone.rotation.z = ((p.id % 5) - 2) * 0.04;
+        stone.castShadow = true;
+        stone.receiveShadow = true;
+        holder.add(stone);
         break;
       }
       default:

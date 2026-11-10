@@ -375,16 +375,20 @@ export const tuningDefaults = {
     bossBeyond: 2.5,
   },
   pickups: {
-    /** A pickup's size (yards): one of your players whose body touches it takes it. */
-    radius: 0.75,
     /** Kept this far in from the sidelines… */
     edge: 1,
     /** …and this far from any prop or Boss (edge to edge). */
     gap: 0.6,
-    /** The lightning bolt: Fast (`statuses.fast`) for this long (seconds). */
-    bolt: { time: 3 },
-    /** The oil slick: whoever slips lies on the turf this long (a carrier is tackled: SLIPPED!). */
-    slick: { time: 1.2 },
+    /**
+     * Each kind's size (yards): one of your players whose body touches it takes it. The
+     * lightning bolt gives Fast (`statuses.fast`) for this long (seconds).
+     */
+    bolt: { time: 3, radius: 0.75 },
+    /**
+     * The gravestone: whoever trips lies on the turf this long (a carrier is tackled:
+     * TRIPPED!). A yard across, a third bigger than the bolt (next-job map g1).
+     */
+    gravestone: { time: 1.2, radius: 1 },
   },
   crows: {
     /** The King's crows take off this long after the snap (seconds of live play)… */

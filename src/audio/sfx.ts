@@ -142,8 +142,19 @@ export const SFX = {
     noteStep: 0.07,
     jitter: 15,
   },
-  /** An oil slick: a sliding whoop down. */
+  /** A slide: a sliding whoop down (the taffy flood). */
   slip: { wave: 'sine', freq: 520, freqEnd: 120, attack: 0.004, decay: 0.35, volume: 0.55 },
+  /** A gravestone: a stumble, then a thud as they hit the turf. */
+  trip: {
+    wave: 'triangle',
+    freq: 150,
+    freqEnd: 55,
+    attack: 0.002,
+    decay: 0.16,
+    volume: 0.8,
+    notes: [1.8, 1],
+    noteStep: 0.1,
+  },
   uiClick: { wave: 'triangle', freq: 660, attack: 0.001, decay: 0.05, volume: 0.3, bus: 'ui' },
 } as const satisfies Record<string, SfxDef>;
 

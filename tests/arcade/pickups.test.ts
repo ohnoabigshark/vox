@@ -14,7 +14,7 @@ import { dist, v } from '../../src/arcade/sim/vec';
 const { pickups: tuning, field } = arcadeTuning;
 
 describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
-  it('are laid the same for a seed: one bolt and one slick to every 10-yard stretch', () => {
+  it('are laid the same for a seed: one bolt and one gravestone to every 10-yard stretch', () => {
     for (let seed = 1; seed <= 30; seed++) {
       const area = seed % 3;
       const pickups = pickupsForArea(seed, area);
@@ -24,7 +24,7 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
         const here = pickups.filter((p) => p.y >= from && p.y < from + 10);
         expect(here.map((p) => p.kind).sort(), `seed ${seed}, from ${from}`).toEqual([
           'bolt',
-          'slick',
+          'gravestone',
         ]);
       }
     }
@@ -54,14 +54,14 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
       for (const area of [0, 1, 2]) {
         const props = areaPropsWithBoss(seed, area, areaAt(area).boss.boss);
         for (const p of pickupsForArea(seed, area)) {
-          expect(Math.abs(p.x) + tuning.radius).toBeLessThanOrEqual(
-            field.halfWidth - tuning.edge + 1e-9,
-          );
+          // Each kind by its own size (next-job map g1): the gravestone reaches further.
+          const r = tuning[p.kind].radius;
+          expect(Math.abs(p.x) + r).toBeLessThanOrEqual(field.halfWidth - tuning.edge + 1e-9);
           for (const prop of props) {
             expect(
               dist(v(p.x, p.y), v(prop.x, prop.y)),
               `seed ${seed}, area ${area}, prop ${prop.id}`,
-            ).toBeGreaterThanOrEqual(prop.radius + tuning.radius + tuning.gap - 1e-9);
+            ).toBeGreaterThanOrEqual(prop.radius + r + tuning.gap - 1e-9);
           }
           // Where the old rule kept them out: the middle lane, 2.2 yards either side.
           if (Math.abs(p.x) < 2.2) inTheMiddle++;
@@ -81,7 +81,7 @@ describe('tricks and treats: where they lie (docs/PICKUPS.md)', () => {
 });
 
 describe('tricks and treats: taking them', () => {
-  const { bolt, slick } = arcadeTuning.pickups;
+  const { bolt, gravestone } = arcadeTuning.pickups;
   const { fast } = arcadeTuning.statuses;
   /** A Catcher (id 2) running straight upfield from (5, 0), with these pickups lying ahead. */
   const runner = (pickups: Pickup[], defenders: DefenderSpec[] = []): RunState => {
@@ -129,26 +129,37 @@ describe('tricks and treats: taking them', () => {
     expect(state.field.players.find((p) => p.id === 3)?.statuses).toEqual([]);
   });
 
-  it('an oil slick trips whoever runs through it: they lie on the turf for a moment', () => {
-    const { state, events } = run(runner([{ id: 8, kind: 'slick', x: 5, y: 0.5 }]), 0.2);
+  it('a gravestone reaches a yard, further than a bolt: a player brushing past 1.4 yards off trips', () => {
+    // The Catcher (0.45 across) runs up x 5; a gravestone is touched at 0.45 + 1 (g1).
+    expect(gravestone.radius).toBe(1);
+    expect(bolt.radius).toBe(0.75);
+    const near = run(runner([{ id: 8, kind: 'gravestone', x: 6.4, y: 2 }]), 1);
+    expect(ofType(near.events, 'pickupTaken').map((e) => e.pickup)).toEqual([8]);
+    const far = run(runner([{ id: 8, kind: 'gravestone', x: 6.55, y: 2 }]), 1);
+    expect(ofType(far.events, 'pickupTaken')).toEqual([]);
+  });
+
+  it('a gravestone trips whoever runs through it: they lie on the turf for a moment', () => {
+    const { state, events } = run(runner([{ id: 8, kind: 'gravestone', x: 5, y: 0.5 }]), 0.2);
     expect(ofType(events, 'pickupTaken')).toEqual([
-      { type: 'pickupTaken', id: 2, side: 'team', kind: 'slick', pickup: 8 },
+      { type: 'pickupTaken', id: 2, side: 'team', kind: 'gravestone', pickup: 8 },
     ]);
-    expect(body(state, 2).down).toBeGreaterThan(slick.time - 0.25);
+    expect(gravestone.time).toBe(1.2);
+    expect(body(state, 2).down).toBeGreaterThan(gravestone.time - 0.25);
     expect(state.field.pickups).toEqual([]);
   });
 
-  it('a carrier who slips is tackled there: SLIPPED!', () => {
-    const s = carry(runner([{ id: 8, kind: 'slick', x: 5, y: 0.5 }]), 2);
+  it('a carrier who trips is tackled there: TRIPPED!', () => {
+    const s = carry(runner([{ id: 8, kind: 'gravestone', x: 5, y: 0.5 }]), 2);
     const { state, events } = run(s, 0.5);
-    expect(ofType(events, 'slipped')).toEqual([{ type: 'slipped', id: 2 }]);
+    expect(ofType(events, 'tripped')).toEqual([{ type: 'tripped', id: 2 }]);
     expect(ofType(events, 'tackled')[0]?.id).toBe(2);
     expect(state.phase).toBe('downOver');
   });
 
-  it('Jack never takes one: a slick or a bolt where he stands stays put, and he stays on his feet', () => {
+  it('Jack never takes one: a gravestone or a bolt where he stands stays put, and he stays on his feet', () => {
     const s = runner([
-      { id: 8, kind: 'slick', x: 0, y: -4 },
+      { id: 8, kind: 'gravestone', x: 0, y: -4 },
       { id: 9, kind: 'bolt', x: 0.3, y: -4 },
     ]);
     const { state, events } = run(s, 0.5);
@@ -158,9 +169,9 @@ describe('tricks and treats: taking them', () => {
     expect(state.field.players.find((p) => p.id === 1)?.statuses).toEqual([]);
   });
 
-  it('a defender standing on a slick leaves it and stays on its feet (bolts: tests/arcade/mischiefBolt.test.ts)', () => {
-    const pickups: Pickup[] = [{ id: 8, kind: 'slick', x: -5, y: 1 }];
-    // A Cover standing on the slick, heading off to its mark.
+  it('a defender standing on a gravestone leaves it and stays on its feet (bolts: tests/arcade/mischiefBolt.test.ts)', () => {
+    const pickups: Pickup[] = [{ id: 8, kind: 'gravestone', x: -5, y: 1 }];
+    // A Cover standing on the gravestone, heading off to its mark.
     const s = runner(pickups, [{ kind: 'cover', pos: v(-5, 1), mark: 2 }]);
     const { state, events } = run(s, 0.5);
     expect(ofType(events, 'pickupTaken')).toEqual([]);

@@ -29,6 +29,15 @@ function resetNumbers(to: Tree, from: Tree): void {
 }
 
 /**
+ * Settings saved under an old name, and the name each plays under now, so a
+ * save from before a rename still counts. The oil slick became the gravestone
+ * (next-job map g3).
+ */
+const RENAMED: Readonly<Record<string, string>> = {
+  'pickups.slick.time': 'pickups.gravestone.time',
+};
+
+/**
  * What of `saved` can be played over `defaults`: each entry naming a number
  * in tuning.ts, with a number. Everything else is left out with a warning
  * naming it, so nothing saved is dropped silently. The server checks a save
@@ -46,7 +55,8 @@ export function checkSaved(
   }
   const settings: Record<string, number> = {};
   const warnings: string[] = [];
-  for (const [path, v] of Object.entries(saved)) {
+  for (const [savedPath, v] of Object.entries(saved)) {
+    const path = RENAMED[savedPath] ?? savedPath;
     if (!numberAt(defaults, path)) {
       warnings.push(`saved-tuning.json: ${path} is not a setting in tuning.ts, so it was left out`);
     } else if (typeof v !== 'number' || !Number.isFinite(v)) {

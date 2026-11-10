@@ -1,5 +1,5 @@
 /**
- * Tricks and treats (docs/PICKUPS.md): a lightning bolt and an oil slick on
+ * Tricks and treats (docs/PICKUPS.md): a lightning bolt and a gravestone on
  * every 10-yard stretch of the long field, laid from the run's seed the way
  * props are (sim/props.ts), so they line up from one series to the next and
  * show before the snap. Anywhere in from the sidelines, the middle included,
@@ -21,7 +21,12 @@ import { dist, v } from './vec';
 
 const { pickups: tuning, field, series: seriesTuning } = arcadeTuning;
 
-const KINDS: readonly PickupKind[] = ['bolt', 'slick'];
+const KINDS: readonly PickupKind[] = ['bolt', 'gravestone'];
+
+/** How far a pickup reaches (yards from its middle): each kind its own (next-job map g1). */
+export function pickupRadius(kind: PickupKind): number {
+  return tuning[kind].radius;
+}
 
 /**
  * The Boss standing in stretch `n`, in its own yards, if any: an area's first
@@ -41,7 +46,7 @@ export function pickupsForArea(seed: number, area: number): Pickup[] {
 }
 
 /**
- * One stretch's bolt and slick (y from 0 to 10 within it), clear of its own
+ * One stretch's bolt and gravestone (y from 0 to 10 within it), clear of its own
  * props and Boss and its neighbours', so it lies in the same place whichever area's field is
  * showing it. Ids are unique in the run.
  */
@@ -55,16 +60,17 @@ function stretchPickups(seed: number, k: number): Pickup[] {
     if (boss) props.push({ ...boss, y: boss.y + shift });
   }
   const rng = rngFor(seed, 'pickups', k);
-  const outer = field.halfWidth - tuning.edge - tuning.radius;
   const out: Pickup[] = [];
   for (const [i, kind] of KINDS.entries()) {
+    const r = pickupRadius(kind);
+    const outer = field.halfWidth - tuning.edge - r;
     // Somewhere clear of props and of the other pickup (or, rarely, none of this kind).
     for (let tries = 0; tries < 40; tries++) {
       const at = v((2 * rng.next() - 1) * outer, rng.next() * seriesTuning.distance);
-      const onProp = props.some(
-        (p) => dist(at, v(p.x, p.y)) < p.radius + tuning.radius + tuning.gap,
+      const onProp = props.some((p) => dist(at, v(p.x, p.y)) < p.radius + r + tuning.gap);
+      const onPickup = out.some(
+        (p) => dist(at, v(p.x, p.y)) < pickupRadius(p.kind) + r + tuning.gap,
       );
-      const onPickup = out.some((p) => dist(at, v(p.x, p.y)) < 2 * tuning.radius + tuning.gap);
       if (onProp || onPickup) continue;
       out.push({ id: k * 10 + i, kind, x: at.x, y: at.y });
       break;

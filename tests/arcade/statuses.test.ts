@@ -133,7 +133,7 @@ describe('the sim says so (s8)', () => {
   it('4c: every give is reported, saying whether it changed anything: a shorter one keeps the time and the source', () => {
     const p = body(field(), 2);
     const events: ArcadeEvent[] = [];
-    const other = { kind: 'pickup', pickup: 'slick' } as const;
+    const other = { kind: 'pickup', pickup: 'gravestone' } as const;
     giveStatus(p, 'fast', 3, FROM_BOLT, events);
     giveStatus(p, 'fast', 1, other, events);
     giveStatus(p, 'fast', 3, other, events);

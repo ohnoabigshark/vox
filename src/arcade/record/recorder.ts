@@ -272,7 +272,7 @@ export class RunRecorder {
       case 'seriesWon':
       case 'picked':
       case 'eventTackled':
-      case 'slipped':
+      case 'tripped':
       case 'seriesStarted':
       case 'areaCleared':
         return;

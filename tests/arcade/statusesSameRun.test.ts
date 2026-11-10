@@ -84,10 +84,14 @@ describe('statuses: the bolt as Fast plays exactly as before', () => {
  * and on field-places, where the taffy and the wisps vary in place and size.
  * With generic events off (`genericShare: 0`), it gives
  * 06fe520adac8ca51 again, as main did: the generic events are the only change.
+ * Seeds 12 and 14 re-pinned on gravestones (2026-11-10): the gravestone
+ * reaches a yard where the slick reached ¾ (next-job map g1), which moves
+ * where some lie and who trips. With its radius back at 0.75 and the old
+ * names hashed, all four give main's digests again: the size is the only change.
  */
 const EXPECTED: readonly string[] = [
   'bee0a1cd9e41aeda',
-  'a0ba0b17cb615311',
+  '4a24c80f4c0afb0c',
   'f1489c668244d302',
-  '58771ae6cd4a6038',
+  '83df61431d59efc9',
 ];
