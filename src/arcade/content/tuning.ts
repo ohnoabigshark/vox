@@ -380,13 +380,14 @@ export const tuningDefaults = {
     /** …and this far from any prop or Boss (edge to edge). */
     gap: 0.6,
     /**
-     * Each kind's size (yards): one of your players whose body touches it takes it. The
-     * lightning bolt gives Fast (`statuses.fast`) for this long (seconds).
+     * The lightning bolt: Fast (`statuses.fast`) for this long (seconds). Its reach
+     * (yards from its middle): one of your players whose body comes that close takes it.
      */
     bolt: { time: 3, radius: 0.75 },
     /**
      * The gravestone: whoever trips lies on the turf this long (a carrier is tackled:
-     * TRIPPED!). A yard across, a third bigger than the bolt (next-job map g1).
+     * TRIPPED!). Its reach is a yard from its middle, a third more than the bolt's
+     * (next-job map g1).
      */
     gravestone: { time: 1.2, radius: 1 },
   },

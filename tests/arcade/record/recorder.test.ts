@@ -3,7 +3,7 @@ import { createRun } from '../../../src/arcade/sim/run';
 import type { ArcadeEvent, RunState, Tackle } from '../../../src/arcade/sim/types';
 import { v } from '../../../src/arcade/sim/vec';
 import { RunRecorder, recordable } from '../../../src/arcade/record/recorder';
-import { JACK, type PlayResult } from '../../../src/arcade/record/types';
+import { JACK, RECORD_FORMAT, type PlayResult } from '../../../src/arcade/record/types';
 import { playState } from '../helpers';
 
 /**
@@ -515,7 +515,7 @@ describe('the run', () => {
     });
     const { rec } = feed(s, []);
     expect(rec.record).toMatchObject({
-      format: 2,
+      format: RECORD_FORMAT,
       id: 'run-1',
       build: 'abc123',
       link: 'snag=1',

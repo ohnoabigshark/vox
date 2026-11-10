@@ -31,10 +31,11 @@ function resetNumbers(to: Tree, from: Tree): void {
 /**
  * Settings saved under an old name, and the name each plays under now, so a
  * save from before a rename still counts. The oil slick became the gravestone
- * (next-job map g3).
+ * (next-job map g3), and the pickups' one shared reach the bolt's own (g1).
  */
 const RENAMED: Readonly<Record<string, string>> = {
   'pickups.slick.time': 'pickups.gravestone.time',
+  'pickups.radius': 'pickups.bolt.radius',
 };
 
 /**
@@ -57,6 +58,12 @@ export function checkSaved(
   const warnings: string[] = [];
   for (const [savedPath, v] of Object.entries(saved)) {
     const path = RENAMED[savedPath] ?? savedPath;
+    if (path !== savedPath && path in saved) {
+      warnings.push(
+        `saved-tuning.json: ${savedPath} is the old name of ${path}, which is saved too, so it was left out`,
+      );
+      continue;
+    }
     if (!numberAt(defaults, path)) {
       warnings.push(`saved-tuning.json: ${path} is not a setting in tuning.ts, so it was left out`);
     } else if (typeof v !== 'number' || !Number.isFinite(v)) {

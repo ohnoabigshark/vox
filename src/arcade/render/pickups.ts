@@ -116,8 +116,10 @@ export class ArcadePickups {
       }
       case 'gravestone': {
         const stone = new THREE.Mesh(getGeometry('pickups/gravestone'), voxelMaterial);
-        // The model's front (+z) already faces the camera, behind the play; each leans a little.
-        stone.rotation.z = ((p.id % 5) - 2) * 0.04;
+        // The model's front (+z) already faces the camera, behind the play. Each leans a
+        // little, its own way, from where it lies (ids can't: a stretch's gravestone's
+        // always ends in 1).
+        stone.rotation.z = Math.sin(p.x * 3.7 + p.y * 1.3) * 0.08;
         stone.castShadow = true;
         stone.receiveShadow = true;
         holder.add(stone);

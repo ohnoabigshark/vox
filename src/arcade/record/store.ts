@@ -45,13 +45,40 @@ export interface StatsStore {
 const KEY = 'getJackBack.stats';
 const OPEN_KEY = 'getJackBack.stats.open';
 
+/** A saved run's record with its downs' oil slicks called gravestones; anything else as it was. */
+function slicksToGravestones(record: unknown): unknown {
+  if (!isRecord(record) || !Array.isArray(record.downs)) return record;
+  const downs = record.downs.map((d: unknown) =>
+    isRecord(d) && Array.isArray(d.pickups)
+      ? { ...d, pickups: d.pickups.map((k: unknown) => (k === 'slick' ? 'gravestone' : k)) }
+      : d,
+  );
+  return { ...record, downs };
+}
+
 /**
  * Each older format brought up to the next (`UPGRADES[n]`: n to n + 1).
+ * Each step is given either blob: the closed runs (`runs`) or the run in
+ * progress (`record`).
  * 1 → 2 (2026-11-03): achievements earned, none yet, and none looked for in
  * the saved runs, so loading looks for them all (h3).
+ * 2 → 3 (2026-11-10): the oil slick became the gravestone (next-job map
+ * g3), so a down's pickups say so.
  */
 const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
   1: (saved) => ({ ...saved, format: 2, achievements: {}, checked: [] }),
+  2: (saved) => ({
+    ...saved,
+    format: 3,
+    ...(Array.isArray(saved.runs)
+      ? {
+          runs: saved.runs.map((r: unknown) =>
+            isRecord(r) ? { ...r, record: slicksToGravestones(r.record) } : r,
+          ),
+        }
+      : {}),
+    ...('record' in saved ? { record: slicksToGravestones(saved.record) } : {}),
+  }),
 };
 
 const UNAVAILABLE = "This browser isn't keeping your stats (private browsing?).";

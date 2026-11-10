@@ -72,6 +72,22 @@ describe('saved settings in the game', () => {
     expect(layerSaved(arcadeTuning, tuningDefaults, { 'pickups.slick.time': 2 })).toEqual([]);
     expect(arcadeTuning.pickups.gravestone.time).toBe(2);
     expect(tuningDefaults.pickups.gravestone.time).toBe(1.2);
+    // The pickups' one shared reach became the bolt's own.
+    expect(layerSaved(arcadeTuning, tuningDefaults, { 'pickups.radius': 0.6 })).toEqual([]);
+    expect(arcadeTuning.pickups.bolt.radius).toBe(0.6);
+    expect(arcadeTuning.pickups.gravestone.radius).toBe(1);
+  });
+
+  it('D: saved under both names, the new name plays, whichever comes first, and the old one is named', () => {
+    for (const saved of [
+      { 'pickups.slick.time': 2, 'pickups.gravestone.time': 3 },
+      { 'pickups.gravestone.time': 3, 'pickups.slick.time': 2 },
+    ]) {
+      expect(layerSaved(arcadeTuning, tuningDefaults, saved)).toEqual([
+        'saved-tuning.json: pickups.slick.time is the old name of pickups.gravestone.time, which is saved too, so it was left out',
+      ]);
+      expect(arcadeTuning.pickups.gravestone.time).toBe(3);
+    }
   });
 
   it('C: tuning.ts lays saved-tuning.json over the defaults as it loads, so whatever loads it plays the save', async () => {

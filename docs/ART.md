@@ -62,6 +62,7 @@ One unit is a yard; a body's collision radius is about 0.4–0.6.
 | Bosses | twice a player: 17×27×9 at 0.085 (Mister Frog 17×27×17, a square footprint) → ~1.45 wide, 2.3 tall, **drawn at 2×** in play (~2.9 wide, 4.6 tall; their bodies' radius 1.45 to match) | `bosses/misterFrog`, `bosses/queen`, `bosses/king` |
 | Ball | the round jack-o'-lantern at 0.15 | `team/ball` |
 | Scenery props | up to 2–3 units tall | `forestProps/pine` |
+| Pickups | about a yard wide, knee-high: 15×11×5 at 0.07 → ~1.05 wide, 0.77 tall | `pickups/gravestone` |
 
 ## The `.voxt` format
 

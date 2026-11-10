@@ -209,7 +209,7 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
   **lightning bolt** (a burst of speed), which is **mischief**, taken by
   either side once the ball is snapped. A **trick** hurts: the
   **gravestone** (the player trips and lies down; a carrier is tackled,
-  TRIPPED!), the oil slick until 2026-11-10. A pickup that moves (not built) follows a **path**. _Avoid:_
+  TRIPPED!), the oil slick until 2026-11-10 (_avoid_ "slick" now). A pickup that moves (not built) follows a **path**. _Avoid:_
   "power-up", which covers only treats, and "route" for a pickup's path.
 - **Heft, Hustle, Hands:** the three stats, which are physics: weight, speed
   and reach.

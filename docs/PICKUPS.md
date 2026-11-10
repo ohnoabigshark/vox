@@ -146,10 +146,17 @@ approved):
 - **The model** (g2, g4): a short rounded headstone carved RIP on a mossy
   mound, written by Claude (`assets-src/voxels/pickups/gravestone.voxt`),
   approved as is, and replaced by the user's Goxel pass if one comes back.
-- **A saved `pickups.slick.time`** plays as `pickups.gravestone.time` (g3,
-  `RENAMED` in `content/savedTuning.ts`).
+- **A saved `pickups.slick.time`** plays as `pickups.gravestone.time` (g3),
+  and the old shared `pickups.radius` as `pickups.bolt.radius` (`RENAMED`
+  in `content/savedTuning.ts`). Saved under both names, the new one plays
+  and the old one is named in a warning.
+- **The run's record** keeps each down's pickup kinds, so a saved record's
+  slicks become gravestones as it loads (the stats store's format 3,
+  `record/store.ts`). Nothing counts pickups by kind yet; the play log's
+  old lines keep saying `slipped`.
 - **Tests** (g5): the slick's tests renamed; a gravestone reaches a yard and
-  a bolt still ¾; the carried-over saved setting. The two pinned seeded-run
+  a bolt still ¾; the carried-over saved settings; a format-2 record
+  brought up to 3. The two pinned seeded-run
   digests (`statusesSameRun`, the taffy's pick) were re-pinned: at the
   slick's reach, with the old names, both give main's again, so the reach is
   the only change in play.
@@ -159,6 +166,8 @@ approved):
 A bolt is a gold zigzag of voxels, hovering and turning, drawn 1.7 times its
 voxels' size so it reads from the camera, built from boxes in
 `render/pickups.ts` and merged into one geometry. A gravestone is a voxel
-model (`pickups/gravestone`), its carved face to the camera, each leaning a
-little its own way. Taking a bolt zaps (`zap`), a gravestone stumbles and
+model (`pickups/gravestone`), about a yard wide, its carved face to the
+camera, each leaning a little its own way (from where it lies). Its reach
+is wider than it's drawn: a yard from its middle, so a player brushing
+half a yard past its edge trips. Taking a bolt zaps (`zap`), a gravestone stumbles and
 thuds (`trip`), and a carrier who trips gets TRIPPED!
