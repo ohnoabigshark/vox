@@ -1,3 +1,4 @@
+import { ORIGINAL_GAME } from '../../src/arcade/content/runOptions';
 import { DEFENDERS } from '../../src/arcade/content/defense';
 import { DT, arcadeTuning } from '../../src/arcade/content/tuning';
 import { BASE_STATS, ROLE_RADIUS } from '../../src/arcade/content/team';
@@ -35,11 +36,11 @@ export interface DefenderSpec {
 }
 
 /**
- * The run options these tests were written for: esrauch's original game,
- * normal mode with the one-tap sweep (`?hard=0&aim=1`), which `createRun`
- * played by default until run options (docs/DEV_SETUP.md, test 3).
+ * The run options these tests were written for: esrauch's original game
+ * (`ORIGINAL_GAME` in content/runOptions.ts), which `createRun` played by
+ * default until run options (docs/DEV_SETUP.md, test 3).
  */
-export const ORIGINAL_GAME = { hard: false, twoTapAim: false } as const;
+export { ORIGINAL_GAME };
 
 /**
  * A down already snapped, with exactly these bodies: the QB on (0, -4) with

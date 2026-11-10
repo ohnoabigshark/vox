@@ -26,6 +26,7 @@ import type {
 } from '../../arcade/sim/types';
 import { breakGrade } from '../../arcade/ui/tapTestCalls';
 import type { BenchTest } from './knobs';
+import { ORIGINAL_GAME } from '../../arcade/content/runOptions';
 
 /** Where a rep is played (k2): the series, and who's in on it. */
 export interface Situation {
@@ -139,9 +140,8 @@ export interface Rep {
 /** Start a rep of `test` in `situation`; `seed` varies where the sweet spot, the arrow and the dots fall. */
 export function startRep(test: BenchTest, situation: Situation, seed: number): Rep {
   const state = createRun(seed, startingRoster(), 0, {
-    // The bench plays each test in normal mode with the one-tap sweep, as it always has.
-    hard: false,
-    twoTapAim: false,
+    // The bench plays each test in esrauch's game (normal, one-tap), as it always has.
+    ...ORIGINAL_GAME,
     snagAlways: true,
   });
   state.series = { ...state.series, ...stretchAt(situation.series) };

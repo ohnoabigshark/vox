@@ -246,10 +246,13 @@ Still open:
   and two `createRun` calls, `run.ts`, `types.ts`): the setup mode is the
   time to gather them into one run-options object, so a new switch is one
   edit. With it, the run's `practice` flag and `practiceEvent` (field
-  events, review r14) become one practice union, as the game already has. Hard mode and two-tap throwing already travel as a pair (`Modes`
-  from `readModes`, the game's options, `createRun`'s, `RunState`), and the
-  game and `createRun` default both to off while a link defaults both to
-  on: one type with one set of defaults (release mode's review, v6).
+  events, review r14) become one practice union, as the game already has.
+  Hard mode and two-tap throwing travelled as a pair (`Modes` from
+  `readModes`), the game and `createRun` defaulting both to off while a link
+  defaulted both to on (release mode's review, v6); since `run-options`
+  (2026-11-10) there is one `RunOptions` type with one set of defaults, and
+  a new switch still touches about seven places (the type, the defaults,
+  `readLink`, `createRun`, `RunState`, the game's two `createRun` calls).
 - **More events like Frog Rain, starting with an event editor** (dev, then
   difficulty). _User, 2026-10-31: "more events like frog rain. along with
   that should be an event editor, like the tap event editor, that lets us

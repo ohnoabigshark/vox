@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { RUN_DEFAULTS, readLink, runOptionsFrom } from '../../src/arcade/content/runOptions';
 import { createRun } from '../../src/arcade/sim/run';
 import { noPerks } from '../../src/arcade/sim/team';
+import { PLAY_POOL } from '../../src/arcade/content/playPool';
+import type { Play } from '../../src/arcade/content/plays';
+import { FROG_RAIN } from '../../src/arcade/content/fieldEvents';
 
 /** docs/DEV_SETUP.md, the `run-options` tests (next-job map d7). */
 
@@ -108,5 +111,34 @@ describe('one set of defaults (test 3)', () => {
     expect(createRun(4)).toEqual(
       createRun(4, undefined, 0, { hard, twoTapAim, snagAlways, tipAlways, startWithPerks }),
     );
+  });
+});
+
+describe('practice ignores the run options it is not made for (d5, decision map t3)', () => {
+  const play = PLAY_POOL[0] as Play;
+  const withEvery = {
+    hard: true,
+    snagAlways: true,
+    tipAlways: true,
+    startWithPerks: true,
+  } as const;
+
+  it('play practice is never hard mode and holds no perks, whatever it is given', () => {
+    const s = createRun(4, undefined, 0, { ...withEvery, practice: play });
+    expect(s.hard).toBe(false);
+    expect(s.perks).toEqual(noPerks());
+  });
+
+  it('event practice too', () => {
+    const s = createRun(4, undefined, 0, {
+      ...withEvery,
+      eventPractice: { event: FROG_RAIN, stretch: 2 },
+    });
+    expect(s.hard).toBe(false);
+    expect(s.perks).toEqual(noPerks());
+  });
+
+  it('a practice run made with no options is the original game, not the defaults', () => {
+    expect(createRun(4, undefined, 0, { practice: play }).hard).toBe(false);
   });
 });

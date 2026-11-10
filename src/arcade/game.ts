@@ -19,7 +19,7 @@ import { GAME_LIGHT, setLights } from '../render/gameLight';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
-import type { RunOptions } from './content/runOptions';
+import { ORIGINAL_GAME, type RunOptions } from './content/runOptions';
 import { arcadeTuning, DT, TIME_SCALE } from './content/tuning';
 import { ArcadeBall } from './render/ball';
 import { ArcadeBodies } from './render/bodies';
@@ -973,9 +973,8 @@ export class ArcadeGame {
     const { monsters, area, hard, twoTapAim, snagAlways, tipAlways, startWithPerks } =
       this.runOptions;
     if (p)
+      // createRun keeps practice off hard mode and its perks (decision map t3, d5).
       return createRun(this.seed, firstRoster(monsters), 0, {
-        // Practice ignores hard mode (decision map t3), and every rep starts with no perks.
-        hard: false,
         twoTapAim,
         snagAlways,
         tipAlways,
@@ -1007,10 +1006,7 @@ export class ArcadeGame {
       this.seed,
       firstRoster(this.runOptions.monsters),
       arcadeTuning.run.areas - 1,
-      {
-        hard: false,
-        twoTapAim: false,
-      },
+      ORIGINAL_GAME,
     );
     setUpSeries(s, s.series.area, stretchStart(SERIES_KINDS.length - 1), [], true);
     // A new player for every TRICK OR TREAT! a full run has: most cards are

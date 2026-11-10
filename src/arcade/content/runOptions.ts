@@ -44,6 +44,17 @@ export const RUN_DEFAULTS: RunOptions = {
   monsters: false,
 };
 
+/**
+ * esrauch's original game: normal mode, one-tap throwing. What practice plays
+ * (decision map t3: practice ignores hard mode; its link carries its own
+ * throw), and what the tests, the bench and the balance bots ask for when they
+ * mean that game rather than today's defaults.
+ */
+export const ORIGINAL_GAME = {
+  hard: false,
+  twoTapAim: false,
+} as const satisfies Partial<RunOptions>;
+
 /** What a link says: the run options it names, and the switches only a link has. */
 export interface Link {
   readonly run: Partial<RunOptions>;
@@ -56,11 +67,13 @@ export interface Link {
 }
 
 /**
- * A page's query read for its options. Each flag names its option only when
- * its value is one it knows; anything else leaves the default, so old links
- * (`?hard=1&aim=2`) play the defaults. `?hard=0` and `?aim=1` turn hard mode
- * and two-tap throwing off; `?snag=1`, `?tip=1` and `?perks=1` turn theirs on;
- * `?monsters` on its own does; `?area=N` and `?seed=N` take a number.
+ * A page's query read for its options. `?hard=0` and `?aim=1` turn hard mode
+ * and two-tap throwing off, and `?snag=1`, `?tip=1` and `?perks=1` turn theirs
+ * on; any other value of those leaves the default, so old links
+ * (`?hard=1&aim=2`) play the defaults. `?monsters`, `?win` and `?video` count
+ * whatever their value, `?monsters=0` included, as they always have.
+ * `?area=N`, `?seed=N` and `?farmSong=N` take a number; blank, 0 or not a
+ * number leaves the default.
  */
 export function readLink(params: URLSearchParams): Link {
   const run: { -readonly [K in keyof RunOptions]?: RunOptions[K] } = {};

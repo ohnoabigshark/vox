@@ -116,13 +116,26 @@ it's handed over.
 - SNAG IT! and the tip drill stay booleans (`snagAlways`, `tipAlways`):
   Off, and the three new switches, come with `dev-setup`.
 - The game takes `run: RunOptions` with its seed chosen (`src/main.ts`
-  picks a random one when the link names none). Practice passes hard mode
-  off (t3); `?win=1` makes its run not hard, so it can be won.
+  picks a random one when the link names none). `?win=1` makes its run
+  `ORIGINAL_GAME`, so it can be won.
+- **Practice is never hard mode and starts with no perks**, whatever it's
+  given: the rule is in `createRun`, so a practice run made anywhere keeps
+  it (review, d5). Practice still takes its throw from its own link, and
+  SNAG IT!, the tip drill and the monster team from the run options: when
+  `dev-setup` lays a saved setup into those, practice must take them from
+  its link only (test 8 there).
 - `createRun`'s options default from `RUN_DEFAULTS`, so a bare
   `createRun(seed)` is now hard mode with two-tap throwing. What relied on
-  the old off defaults says so: the unit tests through `ORIGINAL_GAME`
-  (`tests/arcade/helpers.ts`, `?hard=0&aim=1`), the balance bots and the
-  test bench (normal mode, one-tap, as before).
+  the old off defaults says so through `ORIGINAL_GAME`, esrauch's game
+  (normal, one-tap, `?hard=0&aim=1`), defined once in `runOptions.ts`: the
+  unit tests that failed without it, the balance bots, the test bench and
+  `?win=1`. About 30 test files that call `createRun(seed)` bare passed
+  either way and now play hard mode with two-tap, the game's default (the
+  offer tests among them now roll hard mode's recruits); the spec review
+  noted it, left as is.
+- Test 1 named every Break it! kind, pickups and field events in the
+  defaults; those three switches arrive with `dev-setup`, so its test
+  grows then.
 - Test 4, nothing plays differently: `balance:compare` measures against
   `main`, which doesn't have the gravestones this branch sits on, so the
   six scenarios were run with the balance tool on `gravestones` (725942c)
