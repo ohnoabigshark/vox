@@ -69,31 +69,26 @@ function slicksToGravestones(record: unknown): unknown {
  */
 const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
   1: (saved) => ({ ...saved, format: 2, achievements: {}, checked: [] }),
-  2: (saved) => ({
-    ...saved,
-    format: 3,
-    ...(Array.isArray(saved.runs)
-      ? {
-          runs: saved.runs.map((r: unknown) =>
-            isRecord(r) ? { ...r, record: slicksToGravestones(r.record) } : r,
-          ),
-        }
-      : {}),
-    ...('record' in saved ? { record: slicksToGravestones(saved.record) } : {}),
-  }),
-  3: (saved) => ({
-    ...saved,
-    format: 4,
-    ...(Array.isArray(saved.runs)
-      ? {
-          runs: saved.runs.map((r: unknown) =>
-            isRecord(r) ? { ...r, record: withNoSetup(r.record) } : r,
-          ),
-        }
-      : {}),
-    ...('record' in saved ? { record: withNoSetup(saved.record) } : {}),
-  }),
+  2: recordsTo(3, slicksToGravestones),
+  3: recordsTo(4, withNoSetup),
 };
+
+/**
+ * A step to `format` that changes every run record in either blob: each
+ * closed run's (`runs`) and the run in progress (`record`).
+ */
+function recordsTo(format: number, fix: (record: unknown) => unknown): UpgradeStep {
+  return (saved) => ({
+    ...saved,
+    format,
+    ...(Array.isArray(saved.runs)
+      ? {
+          runs: saved.runs.map((r: unknown) => (isRecord(r) ? { ...r, record: fix(r.record) } : r)),
+        }
+      : {}),
+    ...('record' in saved ? { record: fix(saved.record) } : {}),
+  });
+}
 
 /** A run record from before format 4, made with no dev setup (one that's null stays null). */
 function withNoSetup(record: unknown): unknown {

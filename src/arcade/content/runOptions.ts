@@ -159,6 +159,9 @@ function breakKinds(value: unknown): readonly BreakKind[] | undefined {
  * flag also reads `on` and `off`.
  * A value a switch doesn't take names nothing, so the layer below holds.
  */
+/** The monster team's switch: `onOff`, read more loosely below. */
+const MONSTERS = onOff();
+
 const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
   seed: {
     flag: 'seed',
@@ -191,13 +194,9 @@ const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
   startWithPerks: { flag: 'perks', ...onOff() },
   monsters: {
     flag: 'monsters',
-    // Bare, or any value but 0 and off, as `?monsters` always counted.
-    read: (params, flag) => {
-      const text = params.get(flag);
-      return text === null ? undefined : text !== '0' && text !== 'off';
-    },
-    check: (value) => (typeof value === 'boolean' ? value : undefined),
-    write: (value) => (value ? '1' : '0'),
+    ...MONSTERS,
+    // On/off as the others, but bare or any other value means on, as `?monsters` always counted.
+    read: (params, flag) => (params.has(flag) ? (MONSTERS.read(params, flag) ?? true) : undefined),
   },
 };
 

@@ -189,8 +189,12 @@ export class ArcadeGame {
   private seed: number;
   /** The run options every run is made with (docs/DEV_SETUP.md). */
   private readonly runOptions: RunOptions;
-  /** The dev setup's part in them, as a link writes it, kept with each run ('' for none). */
-  private readonly setupQuery: string;
+  /**
+   * How this page's runs were asked for, kept with each run's record and
+   * play log line: the link's query (no `?`) and the dev setup's part, as a
+   * link writes it ('' for none).
+   */
+  private readonly madeWith: { readonly link: string; readonly setup: string };
   /** ?win=1: PLAY goes straight to the win cutscene. */
   private readonly jumpToWin: boolean;
   private readonly video: boolean;
@@ -280,7 +284,10 @@ export class ArcadeGame {
   ) {
     this.seed = options.run.seed;
     this.runOptions = options.run;
-    this.setupQuery = options.devSetup?.query ?? '';
+    this.madeWith = {
+      link: location.search.replace(/^\?/, ''),
+      setup: options.devSetup?.query ?? '',
+    };
     this.jumpToWin = options.win ?? false;
     this.video = options.video ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
@@ -557,8 +564,7 @@ export class ArcadeGame {
     const keeper = new StatsKeeper({
       store,
       build: BUILD,
-      link: location.search.replace(/^\?/, ''),
-      setup: this.setupQuery,
+      ...this.madeWith,
       newId: () => crypto.randomUUID(),
       now,
       notice: (text) => this.hud.notice(text),
@@ -619,8 +625,7 @@ export class ArcadeGame {
     const meta: LogMeta = {
       session: crypto.randomUUID().slice(0, 8),
       build: BUILD,
-      link: location.search.replace(/^\?/, ''),
-      setup: this.setupQuery,
+      ...this.madeWith,
     };
     sender.add([startLine(this.state, meta, now())], { now: true });
     return { meta, sender };
