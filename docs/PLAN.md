@@ -40,7 +40,10 @@ approved but s3):
 - **Thanksgiving is the first new set** (s3, rejected for Christmas: _"Thanksgiving
   is sooner let's do that plz"_), aiming to be playable on the tailnet
   build by Thanksgiving, 2026-11-26 (t1). Its design is planned on its own
-  map.
+  map. **Not now** (2026-11-10, the next-job map ("Pick the Next Job",
+  https://claude.ai/artifact/MP8EsnMZnfgnyX9DaE7cA8), t1–t4): merging #48, the move (#45) and the
+  set's build all wait, behind gravestones and the dev setup mode. The
+  Nov 26 date is off: Thanksgiving waits with no date (round 2, n1).
 - **Alternative sets nod to a genre** with original characters, not to one
   franchise's names or likenesses (s5).
 - **_Get Jack Back_ is the Halloween set's name** (s6); the whole game's
@@ -181,7 +184,8 @@ Still open:
   p1–p4, n1–n2, w1–w2): a Save per tab into a saved-settings file over the
   `tuning.ts` defaults, sliders that move only by their knob, a log of reps
   and saves, and seven SNAG IT! sliders with the rest behind More.
-- **Teach SNAG IT!'s closing ring.** On the bench the Coach read the ring
+- **Teach SNAG IT!'s closing ring.** **Dropped** (2026-11-10, next-job map
+  v2). On the bench the Coach read the ring
   as a countdown of the time left to tap, not as when to tap, and pressed
   too soon until working it out: every early miss came in the first few
   reps. Nothing in the game says what the ring is for. _User, 2026-10-31:
@@ -191,7 +195,34 @@ Still open:
   decided: a line under the first "SNAG IT!" of a run ("Tap as the ring
   hits the dot"); an outline on the dot that the ring closes onto; a flash
   on the dot at the moment to tap.
-- **A dev setup mode** (dev): a screen before a run starts where the Coach
+- **A dev setup mode** (dev): **picked next** (2026-11-10, next-job map v3),
+  the user's note: _"Let's do this so that it is under the /Dev route and
+  saves the config to local storage. We should also have there be a default
+  config file for all of the same toggles/values."_ Grilled on the same map;
+  round 2, all approved 2026-11-10 (d1–d6):
+  - **The defaults file** (d1): `src/arcade/content/runOptions.ts`, one
+    `RunOptions` type with one set of defaults, which the game, a link and
+    the page all read. Built first, as a refactor on its own branch
+    (`run-options`) that changes nothing in play.
+  - **A saved setup applies to every new run on that phone** (d2), stored
+    per site, and the start screen shows a **DEV SETUP** tag with Reset
+    whenever it differs from the defaults.
+  - **Layers** (d3): each switch from the link if it names it, else the
+    saved setup, else the defaults. Links keep working for the tools.
+  - **The switches** (d4): throw type, hard mode, starting area, seed,
+    SNAG IT! and the tip drill (Off / Normal / Always), every perk, a
+    monster team; new: each Break it! kind on or off, pickups on or off,
+    field events Off / Normal / one chosen event. `win`, `video` and
+    `farmSong` stay link-only.
+  - **Practice ignores the setup** (d5). _User's note: "make sure to make
+    it clear that the toggles only effect actual gameplay and not the
+    practice modes"_: the page says so at the top.
+  - **Ships with the dev pages** in releases (d6).
+  - Order (o1): gravestones, then `run-options`, then `dev-setup`.
+  - Round 3, approved 2026-11-10 (d7–d9): the tests and the whole design,
+    in `docs/DEV_SETUP.md`.
+
+  A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other
   run options, rather than typing them into the URL. _User, 2026-10-31: "a
   dev setup mode where we can enable/disable different tap events, toggle
@@ -587,7 +618,29 @@ Still open:
     and where the toggles live (the title screen beside hard mode and
     two-tap, or a settings page), and whether a toggle run still counts
     toward the same records.
-- **More passes blocked or dropped.** _User, 2026-11-04, while playing
+- **A player's menu.** Selecting a player (V1, above) opens a menu of
+  things to do with them on this play. _User, 2026-11-10: "now that we can
+  select players, we could add some functionality where there can be per
+  play perks that could be activated on some menu that displays when they
+  are selected. the start of this idea can just be the shell of the menu
+  itself and what it would look like and we could eventually add actions of
+  some sort to it. one play activated perks are one idea, route changes are
+  another, audibles are another (maybe these even are specific to the
+  selected play or player combination like a flea flicker)."_
+  - **Parked** (next-job map m1, 2026-11-10); grilled after the dev setup
+    mode.
+  - **First slice:** the menu's shell only, how it looks and opens from a
+    selected player's card, with no actions yet. Mockups first.
+  - **Actions for later:** perks used for one play; route changes (beside
+    the play editor's "route timing and speeds" and "moving the Blockers",
+    below); audibles, maybe tied to the play and the player together, such
+    as a flea flicker.
+  - Open for its grilling: where it sits against the card at the top of
+    the screen; whether it shows when it has nothing in it; how an action
+    is used up (once a play, once a series, once a run); how it meets
+    "select only" (parked, V1) and the tutorial.
+- **More passes blocked or dropped.** **Dropped** (2026-11-10, next-job map
+  l3). _User, 2026-11-04, while playing
   difficulty-3: "we will need to consider more outright blocks/drops on
   passes."_ What exists: a ball that only a defender reaches is batted;
   one both reach is caught or batted by Hands (`sim/ball.ts`), or, from
@@ -715,7 +768,14 @@ Still open:
   to 9 yards (field-wisps). Open: whether the timing (goes off at 1 s,
   lasts 3 s) is the lever instead.
 - **A native Android build** of the game. _User, 2026-10-30._
-- **Gravestones instead of oil slicks.** The trick on the field becomes a
+- **Gravestones instead of oil slicks.** **Picked next** (2026-11-10,
+  next-job map v1). Round 2, all approved 2026-11-10: the gravestone trips
+  from 1 yard, its own `pickups.gravestone.radius`, the bolt staying at
+  0.75 (g1); Claude drafts a short upright headstone for the Goxel round
+  trip (g2; the first draft, `pickups/gravestone`, approved as is in round 3, g4, to be replaced by the user's Goxel pass if one comes back); `slick` becomes
+  `gravestone` and `slipped` becomes `tripped`, and a saved
+  `pickups.slick.time` carries over (g3). Built first (o1); its tests
+  (round 3, g5) are in `docs/PICKUPS.md`. The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies
   down a moment, and a carrier is tackled there (today **SLIPPED!**,
   `docs/PICKUPS.md` k6). _User, 2026-10-31: "change oil slicks to
