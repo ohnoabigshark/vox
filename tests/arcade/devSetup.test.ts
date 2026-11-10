@@ -9,7 +9,8 @@ import {
   runOptionsFor,
   runSwitches,
 } from '../../src/arcade/content/runOptions';
-import { SETUP_KEY, setupStore } from '../../src/arcade/content/savedSetup';
+import { SETUP_KEY, setupNotices, setupStore } from '../../src/arcade/content/savedSetup';
+import { isPracticeLink } from '../../src/arcade/content/eventLink';
 import {
   createRun,
   setUpSeries,
@@ -104,10 +105,16 @@ describe('saving (test 1)', () => {
   it('what is stored but is not a setup is unreadable, and left as it is', async () => {
     const storage = memoryStorage({ [SETUP_KEY]: '{not json' });
     const read = await setupStore(storage).read();
-    expect(read.kind).toBe('unreadable');
+    expect(read).toEqual({
+      kind: 'unreadable',
+      reason: expect.stringMatching(/^The dev setup isn’t JSON \(.+\)\.$/),
+    });
     expect(storage.items.get(SETUP_KEY)).toBe('{not json');
     const notAnObject = await setupStore(memoryStorage({ [SETUP_KEY]: '[1, 2]' })).read();
-    expect(notAnObject.kind).toBe('unreadable');
+    expect(notAnObject).toEqual({
+      kind: 'unreadable',
+      reason: 'The dev setup isn’t a set of switches.',
+    });
   });
 
   it('a bad or unknown value is left out with a warning naming it', async () => {
@@ -160,7 +167,7 @@ describe('layers: the link over the saved setup over the defaults (test 2)', () 
     pickupsOn: [false, 'pickups=1', true],
     fieldEvents: ['off', 'events=taffyFlood', 'taffyFlood'],
     startWithPerks: [true, 'perks=0', false],
-    monsters: [true, 'monsters', true],
+    monsters: [true, 'monsters=0', false],
   };
   for (const key of Object.keys(cases) as (keyof RunOptions)[]) {
     const [saved, query, linked] = cases[key];
@@ -175,6 +182,29 @@ describe('layers: the link over the saved setup over the defaults (test 2)', () 
       expect(runOptionsFor(link, setup, false)[key]).toEqual(linked);
     });
   }
+
+  it('a link sets the seed back to random over a saved one (review 1)', () => {
+    const setup = { kind: 'saved', setup: { seed: 11 }, warnings: [] } as const;
+    const link = readLink(new URLSearchParams('seed=random')).run;
+    expect(link).toEqual({ seed: null });
+    expect(runOptionsFor(link, setup, false).seed).toBeNull();
+  });
+
+  it('a link turns the monster team off with 0 or off, and on with anything else (review 2)', () => {
+    const monsters = (query: string) => readLink(new URLSearchParams(query)).run.monsters;
+    expect(monsters('monsters=0')).toBe(false);
+    expect(monsters('monsters=off')).toBe(false);
+    expect(monsters('monsters')).toBe(true);
+    expect(monsters('monsters=1')).toBe(true);
+    expect(monsters('monsters=yes')).toBe(true);
+    expect(monsters('seed=3')).toBeUndefined();
+  });
+
+  it('a seed or area a saved setup would refuse, a link refuses too (review 4)', () => {
+    for (const query of ['seed=1.5', 'seed=-3', 'seed=0', 'area=99', 'area=1.5', 'area=-1']) {
+      expect(readLink(new URLSearchParams(query)).run, query).toEqual({});
+    }
+  });
 
   it('a link names one switch and the saved setup keeps the rest', () => {
     const setup = {
@@ -357,6 +387,37 @@ describe('field events (test 7)', () => {
     expect(ordinary.some((e) => e.event === undefined)).toBe(true);
     expect(ordinary.some((e) => e.event !== undefined)).toBe(true);
     expect(createRun(3)).toEqual(createRun(3, undefined, 0, { fieldEvents: 'normal' }));
+  });
+});
+
+describe('which links are practice (test 8, review 11)', () => {
+  it('the play editor’s ?try= and the event editor’s ?event=, nothing else', () => {
+    expect(isPracticeLink('?try=abc&sketch=s1&aim=2')).toBe(true);
+    expect(isPracticeLink('?event=abc&stretch=2')).toBe(true);
+    expect(isPracticeLink('?try=')).toBe(true);
+    expect(isPracticeLink('')).toBe(false);
+    expect(isPracticeLink('?seed=3&hard=0&snag=always')).toBe(false);
+  });
+});
+
+describe('what the game says about the setup (test 1, review 3)', () => {
+  it('a setup it can’t read: a notice, and the defaults', () => {
+    expect(
+      setupNotices({ kind: 'unreadable', reason: 'localStorage is unavailable' }, false),
+    ).toEqual(['The dev setup can’t be read: localStorage is unavailable; playing the defaults.']);
+  });
+
+  it('values left out: their warnings', () => {
+    expect(setupNotices({ kind: 'saved', setup: {}, warnings: ['a', 'b'] }, false)).toEqual([
+      'a',
+      'b',
+    ]);
+    expect(setupNotices({ kind: 'nothing' }, false)).toEqual([]);
+  });
+
+  it('nothing in practice, which ignores the setup', () => {
+    expect(setupNotices({ kind: 'unreadable', reason: 'x' }, true)).toEqual([]);
+    expect(setupNotices({ kind: 'saved', setup: {}, warnings: ['a'] }, true)).toEqual([]);
   });
 });
 

@@ -326,6 +326,11 @@ function placedEvent(state: RunState, spec: DefenseSpec): FieldEventOn | null {
   return generic ? placeEvent(state, generic) : null;
 }
 
+/** Whether this stretch of the run (1-based) is a Boss's: no generic or chosen event comes there. */
+function isBossStretch(stretch: number): boolean {
+  return stretchKind(stretchAt(stretch).stretch) === 'boss';
+}
+
 /** An ordinary stretch's event under the run options' `fieldEvents`: none on a Boss's stretch. */
 function ordinaryEventFor(
   seed: number,
@@ -334,7 +339,7 @@ function ordinaryEventFor(
 ): FieldEvent | null {
   if (setting === 'off') return null;
   if (setting === 'normal') return genericEventFor(seed, stretch);
-  return stretchKind(stretchAt(stretch).stretch) === 'boss' ? null : fieldEventById(setting);
+  return isBossStretch(stretch) ? null : fieldEventById(setting);
 }
 
 /**
@@ -347,7 +352,7 @@ function ordinaryEventFor(
  */
 export function genericEventFor(seed: number, stretch: number): FieldEvent | null {
   const { genericFrom, genericShare } = arcadeTuning.fieldEvents;
-  if (stretch < genericFrom || stretchKind(stretchAt(stretch).stretch) === 'boss') return null;
+  if (stretch < genericFrom || isBossStretch(stretch)) return null;
   const rng = rngFor(seed, 'stretchEvent', stretch);
   if (rng.next() >= genericShare) return null;
   const id = GENERIC_EVENTS[rng.int(0, GENERIC_EVENTS.length - 1)];

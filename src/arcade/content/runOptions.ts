@@ -130,6 +130,19 @@ const wholeUpTo = (value: unknown, most: number): number | undefined =>
     ? value
     : undefined;
 
+/** A seed the run takes: null for a random one, or a whole number from 1. */
+const checkSeed = (value: unknown): number | null | undefined =>
+  value === null ? null : wholeUpTo(value, Number.MAX_SAFE_INTEGER);
+
+/** A starting area the run takes: 1 to the last area. */
+const checkArea = (value: unknown): number | undefined => wholeUpTo(value, arcadeTuning.run.areas);
+
+/** A link's number, through the same check as a saved one (blank names nothing). */
+const linkNumber = <T>(
+  text: string | null,
+  check: (value: unknown) => T | undefined,
+): T | undefined => (text === null || text.trim() === '' ? undefined : check(Number(text)));
+
 /** Break it! kinds as the run takes them: known, at least one, each once, in `BREAK_KINDS` order. */
 function breakKinds(value: unknown): readonly BreakKind[] | undefined {
   if (!Array.isArray(value) || value.length === 0) return undefined;
@@ -138,26 +151,28 @@ function breakKinds(value: unknown): readonly BreakKind[] | undefined {
 }
 
 /**
- * Every switch, once. Today's links read as they always have: `?hard=0` and
- * `?aim=1` turn hard mode and two-tap off, `?snag=1`, `?tip=1` and `?perks=1`
- * turn theirs on, `?monsters` counts whatever its value (`?monsters=0`
- * included), and `?area=N` and `?seed=N` take a number (blank, 0 or not a
- * number names nothing). What's new says every value, "off" included:
- * `?hard=1`, `?aim=2`, `?perks=0`, `?snag=off|normal|always` (and `?tip=`),
+ * Every switch, once. Today's links read as they did: `?hard=0` and `?aim=1`
+ * turn hard mode and two-tap off, `?snag=1`, `?tip=1` and `?perks=1` turn
+ * theirs on, bare `?monsters` turns the monster team on, and `?area=N` and
+ * `?seed=N` take a number, checked as a saved one is (a whole number from 1;
+ * the area at most the last). What's new says every value, "off" included
+ * (d3): `?hard=1`, `?aim=2`, `?perks=0`, `?monsters=0` (or `off`),
+ * `?seed=random`, `?snag=off|normal|always` (and `?tip=`),
  * `?breakit=bar,mash,juke`, `?pickups=0|1`, `?events=off|normal|<event id>`.
  * A value a switch doesn't take names nothing, so the layer below holds.
  */
 const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
   seed: {
     flag: 'seed',
-    read: (params, flag) => Number(params.get(flag)) || undefined,
-    check: (value) => (value === null ? null : wholeUpTo(value, Number.MAX_SAFE_INTEGER)),
-    write: (value) => String(value),
+    read: (params, flag) =>
+      params.get(flag) === 'random' ? null : linkNumber(params.get(flag), checkSeed),
+    check: checkSeed,
+    write: (value) => (value === null ? 'random' : String(value)),
   },
   area: {
     flag: 'area',
-    read: (params, flag) => Number(params.get(flag)) || undefined,
-    check: (value) => wholeUpTo(value, arcadeTuning.run.areas),
+    read: (params, flag) => linkNumber(params.get(flag), checkArea),
+    check: checkArea,
     write: (value) => String(value),
   },
   hard: { flag: 'hard', ...onOff() },
@@ -181,9 +196,13 @@ const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
   startWithPerks: { flag: 'perks', ...onOff() },
   monsters: {
     flag: 'monsters',
-    read: (params, flag) => (params.has(flag) ? true : undefined),
+    // Bare, or any value but 0 and off, as `?monsters` always counted.
+    read: (params, flag) => {
+      const text = params.get(flag);
+      return text === null ? undefined : text !== '0' && text !== 'off';
+    },
     check: (value) => (typeof value === 'boolean' ? value : undefined),
-    write: () => '1',
+    write: (value) => (value ? '1' : '0'),
   },
 };
 
@@ -206,13 +225,32 @@ export interface Link {
 /** A page's query read for its options (each switch's flag, in `SWITCHES`), and the link-only `?win`, `?video` and `?farmSong=N`. */
 export function readLink(params: URLSearchParams): Link {
   const run: NamedOptions = {};
-  for (const key of SWITCH_NAMES) set(run, key, SWITCHES[key].read(params, SWITCHES[key].flag));
+  for (const key of SWITCH_NAMES) set(run, key, readSwitch(key, params));
   return {
     run,
     win: params.has('win'),
     video: params.has('video'),
     farmSong: Number(params.get('farmSong')) || 1,
   };
+}
+
+/** What a link's query names for this switch, if anything. */
+function readSwitch<K extends keyof RunOptions>(
+  key: K,
+  params: URLSearchParams,
+): RunOptions[K] | undefined {
+  return SWITCHES[key].read(params, SWITCHES[key].flag);
+}
+
+/**
+ * A switch's value from text, as a link reads it (the setup page's seed
+ * box): the one check a link and a saved value go through.
+ */
+export function switchFromText<K extends keyof RunOptions>(
+  key: K,
+  text: string,
+): RunOptions[K] | undefined {
+  return readSwitch(key, new URLSearchParams([[SWITCHES[key].flag, text]]));
 }
 
 /** Name `key` in `named`, if there's a value for it. */
@@ -249,16 +287,19 @@ export function changesOnly(named: Partial<RunOptions>): Partial<RunOptions> {
 /** A link's query (`?…`, or '' for none) naming every switch these options change from the defaults (Copy link, d8 test 9). */
 export function linkFor(named: Partial<RunOptions>): string {
   const params = new URLSearchParams();
-  for (const key of changedSwitches(named)) {
-    const value = named[key];
-    if (value !== undefined) params.set(SWITCHES[key].flag, write(key, value));
-  }
+  for (const key of changedSwitches(named)) writeSwitch(params, key, named[key]);
   const query = params.toString().replace(/%2C/g, ',');
   return query ? `?${query}` : '';
 }
 
-const write = <K extends keyof RunOptions>(key: K, value: RunOptions[K]): string =>
-  SWITCHES[key].write(value);
+/** Put this switch's flag in a link's query, if it has a value. */
+function writeSwitch<K extends keyof RunOptions>(
+  params: URLSearchParams,
+  key: K,
+  value: RunOptions[K] | undefined,
+): void {
+  if (value !== undefined) params.set(SWITCHES[key].flag, SWITCHES[key].write(value));
+}
 
 /**
  * Values from outside (a saved setup) checked switch by switch: each one a
@@ -322,5 +363,5 @@ export function runOptionsFor(
   practice: boolean,
 ): RunOptions {
   const saved = !practice && read.kind === 'saved' ? read.setup : {};
-  return { ...RUN_DEFAULTS, ...saved, ...link };
+  return runOptionsFrom({ ...saved, ...link });
 }

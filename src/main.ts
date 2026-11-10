@@ -1,7 +1,7 @@
 import { changedSwitches, readLink, runOptionsFor } from './arcade/content/runOptions';
-import { setupStore } from './arcade/content/savedSetup';
+import { setupNotices, setupStore } from './arcade/content/savedSetup';
 import { readPractice } from './arcade/content/playCode';
-import { readEventPractice } from './arcade/content/eventLink';
+import { isPracticeLink, readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
 import { now } from './clock';
 import { browserStorage, inGamePlays, sketchStore } from './dev/playEditor/sketches';
@@ -36,9 +36,7 @@ const eventPractice = readEventPractice(location.search);
 const link = readLink(new URLSearchParams(location.search));
 const setups = setupStore(browserStorage());
 const setup = await setups.read();
-// The setup page says why it can't be read; the game plays the defaults.
-if (setup.kind === 'unreadable') console.warn(`The dev setup can't be read: ${setup.reason}`);
-const inPractice = practice !== null || eventPractice !== null;
+const inPractice = isPracticeLink(location.search);
 const run = runOptionsFor(link.run, setup, inPractice);
 const game = new ArcadeGame(canvas, ui, {
   // A random seed unless the link names one.
@@ -57,7 +55,8 @@ const game = new ArcadeGame(canvas, ui, {
   // The start screen's DEV SETUP tag; its Reset forgets the setup and starts again without it.
   devSetup: {
     changed: setup.kind === 'saved' ? changedSwitches(setup.setup).length : 0,
-    warnings: setup.kind === 'saved' && !inPractice ? setup.warnings : [],
+    // A setup that can't be read (the defaults are played) or values left out, said on screen.
+    warnings: setupNotices(setup, inPractice),
     reset: async () => {
       await setups.clear();
       location.reload();

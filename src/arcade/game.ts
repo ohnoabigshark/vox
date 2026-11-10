@@ -140,8 +140,8 @@ export interface ArcadeOptions {
   stats?: StatsStore;
   /**
    * The saved dev setup (docs/DEV_SETUP.md): how many switches it changes,
-   * for the start screen's DEV SETUP tag, what was left out of it, said on
-   * screen, and its Reset.
+   * for the start screen's DEV SETUP tag, what to say about it on screen
+   * (`setupNotices`: it couldn't be read, or values left out), and its Reset.
    */
   devSetup?: {
     readonly changed: number;
@@ -342,7 +342,7 @@ export class ArcadeGame {
     if (this.practice?.kind === 'event') this.hud.setBackLabel('‹ Events');
     // Saved events the game couldn't read are left out: say so, never silently (docs/FIELD_EVENTS.md).
     if (savedEventWarnings.length > 0) this.hud.notice(savedEventWarnings.join(' · '));
-    // So are values left out of the saved dev setup (docs/DEV_SETUP.md, d8 test 1).
+    // So is a dev setup that couldn't be read, or values left out of it (DEV_SETUP.md, d8 test 1).
     const setupWarnings = options.devSetup?.warnings ?? [];
     if (setupWarnings.length > 0) this.hud.notice(setupWarnings.join(' · '));
     this.controls = new ArcadeControls(uiRoot, {

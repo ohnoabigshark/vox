@@ -4,6 +4,7 @@
  * the setup page; Reset forgets the setup, and the tag goes. A Reset that
  * fails says why on the tag, never silently.
  */
+import { reasonOf } from '../arcade/content/savedSetup';
 
 /** Where the setup page is, from the game's page. */
 export const SETUP_PAGE = 'dev/setup.html';
@@ -27,7 +28,7 @@ export function setupTag(changed: number, reset: () => Promise<void>): HTMLEleme
       () => tag.remove(),
       (e: unknown) => {
         button.disabled = false;
-        problem.textContent = `Couldn’t reset: ${e instanceof Error ? e.message : String(e)}`;
+        problem.textContent = `Couldn’t reset: ${reasonOf(e)}`;
       },
     );
   });

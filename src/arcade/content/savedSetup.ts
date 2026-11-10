@@ -3,8 +3,8 @@
  * dev setup page, kept in this site's localStorage, so the tailnet build and
  * the release each keep their own. Only the switches that differ from the
  * defaults are kept. What can't be read is said, never swallowed: storage
- * that can't be read at all is `unreadable` (the page shows why; the game
- * plays the defaults), and a value no switch takes is left out with a
+ * that can't be read at all is `unreadable` (the page and the game say why;
+ * the game plays the defaults), and a value no switch takes is left out with a
  * warning naming it.
  */
 import { changesOnly, checkSwitches, type RunOptions } from './runOptions';
@@ -33,6 +33,18 @@ export interface SetupStore {
 
 /** What went wrong, in words. */
 export const reasonOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+
+/**
+ * What the game says on screen about the setup: why it couldn't be read
+ * (the run plays the defaults), or the values left out. Nothing in
+ * practice, which ignores the setup (d5).
+ */
+export function setupNotices(read: SetupRead, practice: boolean): readonly string[] {
+  if (practice) return [];
+  if (read.kind === 'unreadable')
+    return [`The dev setup can’t be read: ${read.reason}; playing the defaults.`];
+  return read.kind === 'saved' ? read.warnings : [];
+}
 
 /** The setup kept in `storage` (the page's localStorage, `browserStorage()`). */
 export function setupStore(

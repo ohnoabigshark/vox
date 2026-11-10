@@ -14,6 +14,7 @@ import {
   changedSwitches,
   linkFor,
   runOptionsFrom,
+  switchFromText,
   type CatchSetting,
   type FieldEventsSetting,
   type RunOptions,
@@ -21,6 +22,7 @@ import {
 import { reasonOf, type SetupStore } from '../../arcade/content/savedSetup';
 import type { BreakKind } from '../../arcade/sim/types';
 import { el, statusLine } from '../pageKit';
+import { assertNever } from '../../assertNever';
 
 /** The line at the top of the page (d5, the user's note). */
 export const PAGE_NOTE =
@@ -133,8 +135,10 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
 
   /** The options the page shows, or what's wrong with them. */
   const read = (): { ok: true; options: RunOptions } | { ok: false; problem: string } => {
+    // Blank is a random seed; anything else goes through the link's check (runOptions.ts).
     const seedText = seed.value.trim();
-    if (seedText !== '' && !/^[1-9]\d*$/.test(seedText))
+    const seedValue = seedText === '' ? null : switchFromText('seed', seedText);
+    if (seedValue === undefined)
       return {
         ok: false,
         problem: 'The seed must be a whole number above 0, or blank for a random one.',
@@ -142,7 +146,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
     return {
       ok: true,
       options: {
-        seed: seedText === '' ? null : Number(seedText),
+        seed: seedValue,
         area: Number(area.value),
         hard: hard.checked,
         twoTapAim: twoTapAim.value === 'two',
@@ -264,5 +268,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       show(RUN_DEFAULTS);
       say(`The saved setup can’t be read: ${saved.reason} The game plays the defaults.`, true);
       break;
+    default:
+      assertNever(saved);
   }
 }
