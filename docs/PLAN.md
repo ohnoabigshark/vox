@@ -218,8 +218,9 @@ Still open:
     it clear that the toggles only effect actual gameplay and not the
     practice modes"_: the page says so at the top.
   - **Ships with the dev pages** in releases (d6).
-  - Order (o1): gravestones, then `run-options`, then `dev-setup`. Tests
-    and the whole design are on round 3.
+  - Order (o1): gravestones, then `run-options`, then `dev-setup`.
+  - Round 3, approved 2026-11-10 (d7–d9): the tests and the whole design,
+    in `docs/DEV_SETUP.md`.
 
   A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other
@@ -771,9 +772,10 @@ Still open:
   next-job map v1). Round 2, all approved 2026-11-10: the gravestone trips
   from 1 yard, its own `pickups.gravestone.radius`, the bolt staying at
   0.75 (g1); Claude drafts a short upright headstone for the Goxel round
-  trip (g2; first draft `pickups/gravestone`, round 3 g4); `slick` becomes
+  trip (g2; the first draft, `pickups/gravestone`, approved as is in round 3, g4, to be replaced by the user's Goxel pass if one comes back); `slick` becomes
   `gravestone` and `slipped` becomes `tripped`, and a saved
-  `pickups.slick.time` carries over (g3). Built first (o1). The trick on the field becomes a
+  `pickups.slick.time` carries over (g3). Built first (o1); its tests
+  (round 3, g5) are in `docs/PICKUPS.md`. The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies
   down a moment, and a carrier is tackled there (today **SLIPPED!**,
   `docs/PICKUPS.md` k6). _User, 2026-10-31: "change oil slicks to
