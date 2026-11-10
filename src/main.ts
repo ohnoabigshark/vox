@@ -1,5 +1,5 @@
 import { changedSwitches, readLink, runOptionsFor } from './arcade/content/runOptions';
-import { setupNotices, setupStore } from './arcade/content/savedSetup';
+import { setupNotices, setupQuery, setupStore } from './arcade/content/savedSetup';
 import { readPractice } from './arcade/content/playCode';
 import { isPracticeLink, readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
@@ -55,6 +55,7 @@ const game = new ArcadeGame(canvas, ui, {
   // The start screen's DEV SETUP tag; its Reset forgets the setup and starts again without it.
   devSetup: {
     changed: setup.kind === 'saved' ? changedSwitches(setup.setup).length : 0,
+    query: setupQuery(setup, inPractice),
     // A setup that can't be read (the defaults are played) or values left out, said on screen.
     warnings: setupNotices(setup, inPractice),
     reset: async () => {

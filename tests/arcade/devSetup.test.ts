@@ -12,6 +12,7 @@ import {
 import {
   SETUP_KEY,
   setupNotices,
+  setupQuery,
   setupStore,
   type SetupRead,
 } from '../../src/arcade/content/savedSetup';
@@ -424,6 +425,24 @@ describe('what the game says about the setup (test 1, review 3)', () => {
   it('nothing in practice, which ignores the setup', () => {
     expect(setupNotices({ kind: 'unreadable', reason: 'x' }, true)).toEqual([]);
     expect(setupNotices({ kind: 'saved', setup: {}, warnings: ['a'] }, true)).toEqual([]);
+  });
+});
+
+describe('a run says what setup it was made with (map round 5, q3)', () => {
+  it('the setup’s changed switches, as a link writes them', () => {
+    expect(
+      setupQuery(
+        { kind: 'saved', setup: { hard: false, breakItKinds: ['juke'], seed: 7 }, warnings: [] },
+        false,
+      ),
+    ).toBe('seed=7&hard=0&breakit=juke');
+  });
+
+  it('none: nothing saved, a setup the same as the defaults, one that can’t be read, or practice', () => {
+    expect(setupQuery({ kind: 'nothing' }, false)).toBe('');
+    expect(setupQuery({ kind: 'saved', setup: RUN_DEFAULTS, warnings: [] }, false)).toBe('');
+    expect(setupQuery({ kind: 'unreadable', reason: 'x' }, false)).toBe('');
+    expect(setupQuery({ kind: 'saved', setup: { hard: false }, warnings: [] }, true)).toBe('');
   });
 });
 

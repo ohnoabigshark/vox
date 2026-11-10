@@ -28,6 +28,8 @@ export interface RecordMeta {
   readonly id: string;
   readonly build: string;
   readonly link: string;
+  /** The dev setup the run was made with, as a link writes it ('' for none; docs/DEV_SETUP.md). */
+  readonly setup: string;
   /** When the run started (ms since the epoch, from the clock). */
   readonly now: number;
 }
@@ -93,6 +95,7 @@ export class RunRecorder {
       id: meta.id,
       build: meta.build,
       link: meta.link,
+      setup: meta.setup,
       modes: {
         hard: state.hard,
         twoTap: state.twoTapAim,

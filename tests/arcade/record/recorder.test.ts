@@ -18,7 +18,13 @@ interface Frame {
   readonly set?: (s: RunState) => void;
 }
 
-const META = { id: 'run-1', build: 'abc123', link: 'snag=1', now: Date.UTC(2026, 10, 3, 12) };
+const META = {
+  id: 'run-1',
+  build: 'abc123',
+  link: 'snag=1',
+  setup: 'hard=0&breakit=juke',
+  now: Date.UTC(2026, 10, 3, 12),
+};
 
 /** Feed `frames` to a recorder over `state`, step by step. */
 function feed(state: RunState, frames: readonly Frame[], rec = new RunRecorder(state, META)) {
@@ -519,6 +525,8 @@ describe('the run', () => {
       id: 'run-1',
       build: 'abc123',
       link: 'snag=1',
+      // A run made with a dev setup says so (map round 5, q3).
+      setup: 'hard=0&breakit=juke',
       end: 'open',
       endedAt: null,
     });

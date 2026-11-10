@@ -145,6 +145,8 @@ export interface ArcadeOptions {
    */
   devSetup?: {
     readonly changed: number;
+    /** Its changed switches as a link writes them, for the run's record and the play log ('' for none). */
+    readonly query: string;
     readonly warnings: readonly string[];
     reset(): Promise<void>;
   };
@@ -187,6 +189,8 @@ export class ArcadeGame {
   private seed: number;
   /** The run options every run is made with (docs/DEV_SETUP.md). */
   private readonly runOptions: RunOptions;
+  /** The dev setup's part in them, as a link writes it, kept with each run ('' for none). */
+  private readonly setupQuery: string;
   /** ?win=1: PLAY goes straight to the win cutscene. */
   private readonly jumpToWin: boolean;
   private readonly video: boolean;
@@ -276,6 +280,7 @@ export class ArcadeGame {
   ) {
     this.seed = options.run.seed;
     this.runOptions = options.run;
+    this.setupQuery = options.devSetup?.query ?? '';
     this.jumpToWin = options.win ?? false;
     this.video = options.video ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
@@ -553,6 +558,7 @@ export class ArcadeGame {
       store,
       build: BUILD,
       link: location.search.replace(/^\?/, ''),
+      setup: this.setupQuery,
       newId: () => crypto.randomUUID(),
       now,
       notice: (text) => this.hud.notice(text),
@@ -614,6 +620,7 @@ export class ArcadeGame {
       session: crypto.randomUUID().slice(0, 8),
       build: BUILD,
       link: location.search.replace(/^\?/, ''),
+      setup: this.setupQuery,
     };
     sender.add([startLine(this.state, meta, now())], { now: true });
     return { meta, sender };

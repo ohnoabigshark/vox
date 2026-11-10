@@ -284,15 +284,19 @@ export function changesOnly(named: Partial<RunOptions>): Partial<RunOptions> {
  * d8 test 9; map round 5, q1).
  */
 export function linkFor(options: RunOptions): string {
-  return queryOf(SWITCH_NAMES, options);
+  return `?${queryOf(SWITCH_NAMES, options)}`;
 }
 
-/** The query (`?…`, or '' for none) naming these switches of `named`, as a link writes them. */
+/** The switches these options change from the defaults, as a link's query writes them (no `?`; '' for none). */
+export function changesQuery(named: Partial<RunOptions>): string {
+  return queryOf(changedSwitches(named), named);
+}
+
+/** A query (no `?`) naming these switches of `named`, as a link writes them. */
 function queryOf(keys: readonly (keyof RunOptions)[], named: Partial<RunOptions>): string {
   const params = new URLSearchParams();
   for (const key of keys) writeSwitch(params, key, named[key]);
-  const query = params.toString().replace(/%2C/g, ',');
-  return query ? `?${query}` : '';
+  return params.toString().replace(/%2C/g, ',');
 }
 
 /** Put this switch's flag in a link's query, if it has a value. */

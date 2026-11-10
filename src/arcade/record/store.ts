@@ -64,6 +64,8 @@ function slicksToGravestones(record: unknown): unknown {
  * the saved runs, so loading looks for them all (h3).
  * 2 → 3 (2026-11-10): the oil slick became the gravestone (next-job map
  * g3), so a down's pickups say so.
+ * 3 → 4 (2026-11-10): a run says what dev setup it was made with (map
+ * round 5, q3); runs saved before had none.
  */
 const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
   1: (saved) => ({ ...saved, format: 2, achievements: {}, checked: [] }),
@@ -79,7 +81,24 @@ const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
       : {}),
     ...('record' in saved ? { record: slicksToGravestones(saved.record) } : {}),
   }),
+  3: (saved) => ({
+    ...saved,
+    format: 4,
+    ...(Array.isArray(saved.runs)
+      ? {
+          runs: saved.runs.map((r: unknown) =>
+            isRecord(r) ? { ...r, record: withNoSetup(r.record) } : r,
+          ),
+        }
+      : {}),
+    ...('record' in saved ? { record: withNoSetup(saved.record) } : {}),
+  }),
 };
+
+/** A run record from before format 4, made with no dev setup (one that's null stays null). */
+function withNoSetup(record: unknown): unknown {
+  return isRecord(record) ? { setup: '', ...record } : record;
+}
 
 const UNAVAILABLE = "This browser isn't keeping your stats (private browsing?).";
 const UNREADABLE = "Your saved stats can't be read, so this run's won't be kept.";

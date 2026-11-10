@@ -73,6 +73,7 @@ describe('whole runs, recorded', () => {
         store,
         build: 'b',
         link: '',
+        setup: '',
         newId: () => `run-${seed}`,
         now: () => Date.UTC(2026, 10, 3),
         notice: (t) => notices.push(t),

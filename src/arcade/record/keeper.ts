@@ -13,6 +13,8 @@ export interface KeeperDeps {
   readonly store: StatsStore;
   readonly build: string;
   readonly link: string;
+  /** The dev setup the run was made with, as a link writes it ('' for none; docs/DEV_SETUP.md). */
+  readonly setup: string;
   /** A new run's random id. */
   readonly newId: () => string;
   readonly now: () => number;
@@ -73,10 +75,10 @@ export class StatsKeeper {
 
   /** A new run: recorded if it's a real one (c1). */
   start(state: RunState): void {
-    const { build, link, newId, now } = this.deps;
+    const { build, link, setup, newId, now } = this.deps;
     this.popped = new Set();
     this.recorder = recordable(state)
-      ? new RunRecorder(state, { id: newId(), build, link, now: now() })
+      ? new RunRecorder(state, { id: newId(), build, link, setup, now: now() })
       : null;
   }
 

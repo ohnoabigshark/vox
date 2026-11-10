@@ -7,7 +7,7 @@
  * the game plays the defaults), and a value no switch takes is left out with a
  * warning naming it.
  */
-import { changesOnly, checkSwitches, type RunOptions } from './runOptions';
+import { changesOnly, changesQuery, checkSwitches, type RunOptions } from './runOptions';
 
 export const SETUP_KEY = 'getJackBack.devSetup';
 
@@ -44,6 +44,16 @@ export function setupNotices(read: SetupRead, practice: boolean): readonly strin
   if (read.kind === 'unreadable')
     return [`The dev setup can’t be read: ${read.reason}; playing the defaults.`];
   return read.kind === 'saved' ? read.warnings : [];
+}
+
+/**
+ * The setup a run was made with, as a link's query (no `?`): the switches it
+ * changes, for the run's record and the play log, so a run made with a
+ * setup can be told from a plain one (map round 5, q3). '' for none, and in
+ * practice, which ignores it.
+ */
+export function setupQuery(read: SetupRead, practice: boolean): string {
+  return !practice && read.kind === 'saved' ? changesQuery(read.setup) : '';
 }
 
 /** The setup kept in `storage` (the page's localStorage, `browserStorage()`). */
