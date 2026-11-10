@@ -180,6 +180,12 @@
       "source": "Original voxel model (Farm prop: hay bale), written by Claude",
       "author": "Claude",
       "license": "original"
+    },
+    {
+      "path": "assets-src/voxels/pickups/gravestone.voxt",
+      "source": "Original voxel model (pickup: gravestone), written by Claude",
+      "author": "Claude",
+      "license": "original"
     }
   ]
 }
