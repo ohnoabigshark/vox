@@ -35,13 +35,20 @@ export interface DefenderSpec {
 }
 
 /**
+ * The run options these tests were written for: esrauch's original game,
+ * normal mode with the one-tap sweep (`?hard=0&aim=1`), which `createRun`
+ * played by default until run options (docs/DEV_SETUP.md, test 3).
+ */
+export const ORIGINAL_GAME = { hard: false, twoTapAim: false } as const;
+
+/**
  * A down already snapped, with exactly these bodies: the QB on (0, -4) with
  * the ball, then the given players (ids 2 up) and defenders (ids 100 up).
  * Line of scrimmage 0, first-down line 10. Players' stats default to
  * 50 / 50 / 50, defenders' to their kind's.
  */
 export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = []): RunState {
-  const state = createRun(1);
+  const state = createRun(1, undefined, 0, ORIGINAL_GAME);
   const qbStats = BASE_STATS;
   const qb: Player = {
     id: 1,

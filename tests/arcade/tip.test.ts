@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { arcadeTuning, DT, TIME_SCALE } from '../../src/arcade/content/tuning';
 import { createRun } from '../../src/arcade/sim/run';
 import { step } from '../../src/arcade/sim/step';
@@ -115,8 +116,8 @@ describe('1. the pick (t2, t3, g5)', () => {
   });
 
   it('?snag=1 alone always gives SNAG IT! and ?tip=1 alone the tip drill, from series 1', () => {
-    expect(createRun(1, undefined, 0, { tipAlways: true }).tipAlways).toBe(true);
-    expect(createRun(1).tipAlways).toBe(false);
+    expect(createRun(1, undefined, 0, { ...ORIGINAL_GAME, tipAlways: true }).tipAlways).toBe(true);
+    expect(createRun(1, undefined, 0, ORIGINAL_GAME).tipAlways).toBe(false);
     for (const series of [1, 5, 9]) {
       expect(bulletContest(series, 60, undefined, 'snag').phase).toBe('snag');
       const t = bulletContest(series, 60, undefined, 'tip');
@@ -181,7 +182,7 @@ describe('4. the countdown (t5)', () => {
     expect(t.poppedAt).toBeCloseTo(t.startedAt + arcadeTuning.countdown.ready, 9);
     expect(tipCountdownLeft(s)).toBeCloseTo(arcadeTuning.countdown.ready, 9);
     expect(tipCountdownLeft(run(s, arcadeTuning.countdown.ready + DT).state)).toBeNull();
-    expect(tipCountdownLeft(createRun(1))).toBeNull();
+    expect(tipCountdownLeft(createRun(1, undefined, 0, ORIGINAL_GAME))).toBeNull();
   });
 
   it('a tap during the countdown does nothing', () => {
@@ -318,7 +319,7 @@ describe('8. the view (u1, w1)', () => {
   }
 
   it('no drill, no box', () => {
-    expect(tipView(createRun(1))).toBeNull();
+    expect(tipView(createRun(1, undefined, 0, ORIGINAL_GAME))).toBeNull();
   });
 
   it('the countdown: the seconds left on screen, the ball resting on the hands, no pips played', () => {

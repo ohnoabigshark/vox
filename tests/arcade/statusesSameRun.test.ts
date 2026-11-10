@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { createRun, dispatch, startingRoster } from '../../src/arcade/sim/run';
 import { canThrow, step } from '../../src/arcade/sim/step';
 import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
@@ -24,7 +25,7 @@ function digestOf(
 ): { digest: string; bolts: { team: number; defense: number } } {
   const hash = createHash('sha256');
   const bolts = { team: 0, defense: 0 };
-  let s: RunState = createRun(seed, startingRoster(), 0, { hard: true });
+  let s: RunState = createRun(seed, startingRoster(), 0, { ...ORIGINAL_GAME, hard: true });
   const note = (events: readonly ArcadeEvent[]): void => {
     for (const e of events) {
       if (STATUS_EVENTS.includes(e.type)) continue;

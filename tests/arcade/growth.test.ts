@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { physicsOf } from '../../src/arcade/sim/bodies';
 import { applyGains, gainsOf, newTally, noteGrowth } from '../../src/arcade/sim/growth';
@@ -20,7 +21,7 @@ const tally = (done: Partial<DownTally>): DownTally => ({ ...newTally(), ...done
 
 /** A run at TRICK OR TREAT! offering first a 200 recruit (it beats a weak starter). */
 const offeringRecruit = (): RunState => {
-  const s = createRun(3);
+  const s = createRun(3, undefined, 0, ORIGINAL_GAME);
   const events: ArcadeEvent[] = [];
   endDown(s, 'tackled', s.series.firstDown, events);
   nextDown(s, events);
@@ -167,7 +168,7 @@ describe('noted from the events (t1, through the real events)', () => {
 
 describe('putting gains on the roster', () => {
   it('7. no stat grows past the ceiling, and one already past it doesn’t grow', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     s.roster[0] = { ...s.roster[0]!, stats: { hustle: 145, hands: 160, heft: 50 } };
     const events: ArcadeEvent[] = [];
     applyGains(
@@ -206,7 +207,7 @@ describe('putting gains on the roster', () => {
   });
 
   it('8b. the gains since the last TRICK OR TREAT! are kept by player id', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     applyGains(s, [{ slot: 3, stat: 'hands', by: 15 }], []);
     applyGains(
       s,
@@ -220,7 +221,7 @@ describe('putting gains on the roster', () => {
   });
 
   it('9. a gain shows in the next down’s play', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     applyGains(s, [{ slot: 0, stat: 'heft', by: 20 }], []);
     setUpDown(s, []);
     const blocker = s.field.players.find((p) => p.slot === 0)!;
@@ -286,7 +287,7 @@ describe('growth in play', () => {
     return {};
   };
   const play = (seed: number, n: number) => {
-    let s = createRun(seed);
+    let s = createRun(seed, undefined, 0, ORIGINAL_GAME);
     const grew: ArcadeEvent[] = [];
     for (let i = 0; i < n && s.phase !== 'over' && s.phase !== 'won'; i++) {
       const next = betweenDowns(s, i);

@@ -425,7 +425,11 @@ function playRun(seed: number, scenario: Scenario, t: Tally): void {
     };
     return { ...p, kind, stats: plus(plus(p.stats, FORM_STATS[kind]), extra) };
   });
-  let state = createRun(seed, roster, 0, { hard: scenario.hard ?? false });
+  let state = createRun(seed, roster, 0, {
+    hard: scenario.hard ?? false,
+    // The bots throw with the one-tap sweep, as they always have.
+    twoTapAim: false,
+  });
   const plan: Plan = {
     tackleAt: -1,
     tapAt: 1,

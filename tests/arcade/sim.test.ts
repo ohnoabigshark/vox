@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { PLAY_POOL, startingPlaybook } from '../../src/arcade/content/playPool';
 import { PLAYS } from '../../src/arcade/content/plays';
 import { FROG_RAIN } from '../../src/arcade/content/fieldEvents';
@@ -48,7 +49,7 @@ const runCard = (s: RunState) => s.hand.findIndex((i) => PLAYS[i]?.handoff !== u
 
 describe('a run', () => {
   it('starts on the first series: 1st & 10, eight a side, three play cards, no draft', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     expect(s.phase).toBe('setup');
     expect(s.series).toMatchObject({ stretch: 0, kind: 'intro', down: 1, los: 0, firstDown: 10 });
     expect(downAndDistance(s)).toBe('1st & 10');
@@ -71,20 +72,21 @@ describe('a run', () => {
 
   it('deals different hands, with handoff cards among them', () => {
     const seen = new Set<number>();
-    for (let seed = 1; seed <= 40; seed++) createRun(seed).hand.forEach((i) => seen.add(i));
+    for (let seed = 1; seed <= 40; seed++)
+      createRun(seed, undefined, 0, ORIGINAL_GAME).hand.forEach((i) => seen.add(i));
     // A run deals from its starting playbook (docs/REWARDS.md, o3).
     expect(seen.size).toBe(startingPlaybook().length);
     expect(startingPlaybook().some((p) => p.handoff !== undefined)).toBe(true);
   });
 
   it('nobody but the Bats moves before the call', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     const before = s.field.players.map((p) => p.pos);
     expect(run(s, 1).state.field.players.map((p) => p.pos)).toEqual(before);
   });
 
   it('calling a card shows its play on the field; HIKE starts it', () => {
-    const s = createRun(4);
+    const s = createRun(4, undefined, 0, ORIGINAL_GAME);
     expect(dispatch(s, { type: 'hike' }).state.phase).toBe('setup'); // nothing called yet
     const called = dispatch(s, { type: 'call', hand: 1 });
     expect(called.state.phase).toBe('setup');
@@ -107,7 +109,7 @@ describe('a run', () => {
       st.field.players.flatMap((q) => (q.job.kind === 'route' ? [q.job.to.at(-1)!.x] : []));
     const sorted = (xs: number[]) => [...xs].sort((a, b) => a - b);
     for (const p of PLAY_POOL) {
-      const called = dispatch(createRun(4, undefined, 0, { playbook: [p] }), {
+      const called = dispatch(createRun(4, undefined, 0, { ...ORIGINAL_GAME, playbook: [p] }), {
         type: 'call',
         hand: 0,
       }).state;
@@ -123,7 +125,7 @@ describe('a run', () => {
   it('Flip mirrors the called play where it stands', () => {
     // esrauch's plays, which all use the standard line-up: a play with its own
     // line-up mirrors that too (playbook.test.ts, flipped line-ups).
-    const s = createRun(4, undefined, 0, { playbook: PLAYS });
+    const s = createRun(4, undefined, 0, { ...ORIGINAL_GAME, playbook: PLAYS });
     const called = dispatch(s, { type: 'call', hand: 1 }).state;
     const flipped = dispatch(called, { type: 'flip' }).state;
     expect(flipped.play.flipped).toBe(true);
@@ -143,7 +145,7 @@ describe('a run', () => {
 
   it('Flip hands the ball to the other Runner', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      const s = createRun(seed);
+      const s = createRun(seed, undefined, 0, ORIGINAL_GAME);
       const card = runCard(s);
       if (card < 0) continue;
       const called = dispatch(s, { type: 'call', hand: card }).state;
@@ -166,7 +168,7 @@ describe('a run', () => {
 
   it('a handoff card gives its Runner the ball at the hike', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      const s = createRun(seed);
+      const s = createRun(seed, undefined, 0, ORIGINAL_GAME);
       const card = runCard(s);
       if (card < 0) continue;
       const r = dispatch(dispatch(s, { type: 'call', hand: card }).state, { type: 'hike' });
@@ -734,7 +736,7 @@ describe('series and the run', () => {
   };
 
   it('a won series lines up the next one, waiting for the move on', () => {
-    const s = winSeries(createRun(3));
+    const s = winSeries(createRun(3, undefined, 0, ORIGINAL_GAME));
     expect(s.phase).toBe('draft');
     expect(s.series).toMatchObject({ stretch: 1, kind: 'challenge', down: 1, los: 10 });
     // Skip, then PLAY ON on Your team (docs/REWARDS.md, x1).
@@ -751,7 +753,7 @@ describe('series and the run', () => {
   });
 
   it('the main game is three areas of four series, each area stiffer; the last Boss wins it', () => {
-    let s = createRun(7);
+    let s = createRun(7, undefined, 0, ORIGINAL_GAME);
     const series: string[] = [];
     const coverHeft: number[] = [];
     for (let i = 0; i < 12; i++) {
@@ -769,7 +771,7 @@ describe('series and the run', () => {
 
   it('a down ended at or past the line wins the series, however it ended (B6, review b1)', () => {
     const ended = (result: 'tackled' | 'outOfBounds', at: number) => {
-      const s = createRun(1);
+      const s = createRun(1, undefined, 0, ORIGINAL_GAME);
       const events: ArcadeEvent[] = [];
       endDown(s, result, s.series.firstDown + at, events);
       return { result: s.result?.result, events: ofType(events, 'downEnded').map((e) => e.result) };
@@ -782,7 +784,7 @@ describe('series and the run', () => {
   });
 
   it('a series within 10 of the goal line goes for the end zone: "& Goal" (r3)', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     setUpSeries(s, 0, 30, [], true);
     s.series.down = 3;
     expect(downAndDistance(s)).toBe('3rd & Goal');
@@ -796,7 +798,7 @@ describe('series and the run', () => {
 describe('determinism', () => {
   /** A crude player: calls a pass card, throws a second in, taps Break it! halfway. */
   const playOut = (seed: number, steps = 3000): RunState => {
-    let s = createRun(seed, startingRoster());
+    let s = createRun(seed, startingRoster(), 0, ORIGINAL_GAME);
     for (let i = 0; i < steps && s.phase !== 'over' && s.phase !== 'won'; i++) {
       if (s.phase === 'setup') {
         s = dispatch(s, { type: 'call', hand: Math.max(0, passCard(s)) }).state;
@@ -823,7 +825,7 @@ describe('determinism', () => {
   });
 
   it('never modifies the state passed to step() or dispatch()', () => {
-    const s = createRun(3);
+    const s = createRun(3, undefined, 0, ORIGINAL_GAME);
     const before = JSON.stringify(s);
     step(s);
     dispatch(s, { type: 'call', hand: 0 });
@@ -832,7 +834,7 @@ describe('determinism', () => {
 
   it('keeps its invariants through long runs: no NaNs, nobody off the field but the carrier', () => {
     for (let seed = 1; seed <= 8; seed++) {
-      let s = createRun(seed);
+      let s = createRun(seed, undefined, 0, ORIGINAL_GAME);
       for (let i = 0; i < 2500 && s.phase !== 'over' && s.phase !== 'won'; i++) {
         if (s.phase === 'setup') {
           s = dispatch(dispatch(s, { type: 'call', hand: i % 3 }).state, { type: 'hike' }).state;
@@ -892,7 +894,7 @@ describe('crowding', () => {
   it('teammates spread out instead of piling up: no two standing players overlap', () => {
     for (const card of [runCard, passCard]) {
       for (let seed = 1; seed <= 12; seed++) {
-        let s = createRun(seed);
+        let s = createRun(seed, undefined, 0, ORIGINAL_GAME);
         const i = card(s);
         if (i < 0) continue;
         s = dispatch(dispatch(s, { type: 'call', hand: i }).state, { type: 'hike' }).state;
@@ -957,7 +959,7 @@ describe("Mister Frog's Frog Rain", () => {
 
   it('his series shows a lane each down, never over the pumpkin; he stands in the end zone', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      const s = createRun(seed);
+      const s = createRun(seed, undefined, 0, ORIGINAL_GAME);
       setUpSeries(s, 0, 30, [], true);
       expect(s.series.kind).toBe('boss');
       expect(s.field.props.some((p) => p.model === 'bosses/misterFrog')).toBe(true);
@@ -966,7 +968,7 @@ describe("Mister Frog's Frog Rain", () => {
       expect(Math.min(Math.abs(lane.x0), Math.abs(lane.x1))).toBeGreaterThan(1);
     }
     // Other series have none.
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     expect(s.field.fieldEvent).toBeNull();
   });
 
@@ -1007,7 +1009,7 @@ describe("Mister Frog's Frog Rain", () => {
   });
 
   it('they come a moment after the snap, and only once', () => {
-    const s = createRun(3);
+    const s = createRun(3, undefined, 0, ORIGINAL_GAME);
     setUpSeries(s, 0, 30, [], true);
     let st = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
     expect(st.field.fieldEvent?.left).toBe(FROG_RAIN.goesOff);
@@ -1038,7 +1040,7 @@ describe("Mister Frog's Frog Rain", () => {
 
 describe('the Candy Kingdom', () => {
   it('a run can start there (?area=2), as if the Forest were won', () => {
-    const s = createRun(3, startingRoster(), 1);
+    const s = createRun(3, startingRoster(), 1, ORIGINAL_GAME);
     expect(s.series.area).toBe(1);
     expect(s.series.stretch).toBe(0);
     expect(s.series.name).toBe('Gumdrop Lane');
@@ -1047,7 +1049,7 @@ describe('the Candy Kingdom', () => {
   });
 
   it('is the second area: its own series, and the Queen on its Boss series', () => {
-    const s = createRun(3);
+    const s = createRun(3, undefined, 0, ORIGINAL_GAME);
     setUpSeries(s, 1, 0, [], true);
     expect(s.series.name).toBe('Gumdrop Lane');
     setUpSeries(s, 1, 30, [], true);
@@ -1061,7 +1063,7 @@ describe('the Candy Kingdom', () => {
   });
 
   it("the Queen's Royal Decree bans a card each down: tapping it calls nothing", () => {
-    const s = createRun(3);
+    const s = createRun(3, undefined, 0, ORIGINAL_GAME);
     setUpSeries(s, 1, 30, [], true);
     const banned = s.banned!;
     expect(PLAYS[s.play.index]).toBe(PLAYS[s.hand[banned === 0 ? 1 : 0]!]);
@@ -1126,14 +1128,14 @@ describe('props on the field', () => {
 
 describe('the Farm', () => {
   it('is the third area, and the run ends on its last series', () => {
-    const s = createRun(5, startingRoster(), 2);
+    const s = createRun(5, startingRoster(), 2, ORIGINAL_GAME);
     expect(s.series.name).toBe('The Back Forty');
     setUpSeries(s, 2, 30, [], true);
     expect(s.series.name).toBe("The King's Patch");
   });
 
   it('the King stands guard past the goal line: a prop, not a defender, there from the area’s first series', () => {
-    const s = createRun(5, startingRoster(), 2);
+    const s = createRun(5, startingRoster(), 2, ORIGINAL_GAME);
     setUpSeries(s, 2, 30, [], true);
     const king = s.field.props.find((p) => p.model === 'bosses/king');
     expect(king).toBeDefined();
@@ -1146,7 +1148,7 @@ describe('the Farm', () => {
   });
 
   it('a Crow patrols a lane up and down the field', () => {
-    const s = createRun(5, startingRoster(), 2);
+    const s = createRun(5, startingRoster(), 2, ORIGINAL_GAME);
     setUpSeries(s, 2, 10, [], true);
     const crow = s.field.defenders.find((d) => d.kind === 'crow')!;
     expect(crow.beat).toHaveLength(2);
@@ -1288,7 +1290,7 @@ describe('Crows and Safeties', () => {
 
   it('line up deep, well past the line of scrimmage', () => {
     for (let seed = 1; seed <= 5; seed++) {
-      const s = createRun(seed);
+      const s = createRun(seed, undefined, 0, ORIGINAL_GAME);
       for (const d of s.field.defenders.filter((x) => x.kind === 'safety')) {
         expect(d.pos.y - s.series.los).toBeGreaterThanOrEqual(arcadeTuning.defense.safetyDepth);
       }
@@ -1306,7 +1308,7 @@ describe('a handoff runs its play', () => {
   });
 
   it('the carrier leans toward its planned route: a Sweep goes wide even with room in the middle', () => {
-    let s = createRun(3);
+    let s = createRun(3, undefined, 0, ORIGINAL_GAME);
     const sweep = PLAYS.findIndex((p) => p.id === 'sweep');
     s.hand = [sweep, 0, 1];
     s = dispatch(dispatch(s, { type: 'call', hand: 0 }).state, { type: 'hike' }).state;
@@ -1353,6 +1355,6 @@ describe("Break it!'s countdown left (review c1)", () => {
     expect(countdownLeft(g)).toBeCloseTo(ready, 1);
     expect(countdownLeft(run(g, ready / 2).state)).toBeCloseTo(ready / 2, 1);
     expect(countdownLeft(run(g, ready + DT).state)).toBeNull();
-    expect(countdownLeft(createRun(1))).toBeNull();
+    expect(countdownLeft(createRun(1, undefined, 0, ORIGINAL_GAME))).toBeNull();
   });
 });

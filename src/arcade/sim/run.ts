@@ -13,6 +13,7 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
+import { RUN_DEFAULTS, type RunOptions } from '../content/runOptions';
 import { pickupsForArea } from './pickups';
 import { placeEvent } from './fieldEvents';
 import { fieldEventById, GENERIC_EVENTS, type FieldEvent } from '../content/fieldEvents';
@@ -160,17 +161,11 @@ export function createRun(
   seed: number,
   roster: RosterPlayer[] = startingRoster(),
   startArea = 0,
-  options: {
-    readonly hard?: boolean;
-    readonly twoTapAim?: boolean;
-    /** ?snag=1: SNAG IT! from the first series. */
-    readonly snagAlways?: boolean;
-    /** ?tip=1: the tip drill from the first series. */
-    readonly tipAlways?: boolean;
+  options: Partial<
+    Pick<RunOptions, 'hard' | 'twoTapAim' | 'snagAlways' | 'tipAlways' | 'startWithPerks'>
+  > & {
     /** The plays it deals from; the starting playbook if not given (event practice: the whole pool). */
     readonly playbook?: readonly Play[];
-    /** ?perks=1 (docs/REWARDS.md, o4): start holding every perk TRICK OR TREAT! offers. */
-    readonly startWithPerks?: boolean;
     /**
      * Practice (the play editor's Try it): this play is the whole playbook,
      * called at every setup, and every rep lines up the same spot again.
@@ -193,10 +188,11 @@ export function createRun(
     practice: options.practice !== undefined || options.eventPractice !== undefined,
     practiceEvent: options.eventPractice?.event ?? null,
     taken: [],
-    hard: options.hard ?? false,
-    twoTapAim: options.twoTapAim ?? false,
-    snagAlways: options.snagAlways ?? false,
-    tipAlways: options.tipAlways ?? false,
+    // Any run option not given is the defaults file's (docs/DEV_SETUP.md, d1).
+    hard: options.hard ?? RUN_DEFAULTS.hard,
+    twoTapAim: options.twoTapAim ?? RUN_DEFAULTS.twoTapAim,
+    snagAlways: options.snagAlways ?? RUN_DEFAULTS.snagAlways,
+    tipAlways: options.tipAlways ?? RUN_DEFAULTS.tipAlways,
     step: 0,
     time: 0,
     phase: 'setup',
@@ -260,7 +256,8 @@ export function createRun(
   state.seriesWon = area * SERIES_KINDS.length;
   setUpSeries(state, area, 0, [], true);
   // ?perks=1 (o4): every perk TRICK OR TREAT! offers, from the start.
-  if (options.startWithPerks) for (const perk of OFFERED_PERKS) applyPerk(state.perks, perk);
+  if (options.startWithPerks ?? RUN_DEFAULTS.startWithPerks)
+    for (const perk of OFFERED_PERKS) applyPerk(state.perks, perk);
   return state;
 }
 

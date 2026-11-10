@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { layerSaved } from '../../src/arcade/content/savedTuning';
 import { arcadeTuning, DT, TIME_SCALE, tuningDefaults } from '../../src/arcade/content/tuning';
 import { createRun, stretchAt, stretchNumber } from '../../src/arcade/sim/run';
@@ -164,7 +165,7 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
   });
 
   it('?snag=1 turns it on from series 1', () => {
-    const base = createRun(1, undefined, 0, { snagAlways: true });
+    const base = createRun(1, undefined, 0, { ...ORIGINAL_GAME, snagAlways: true });
     expect(base.snagAlways).toBe(true);
     const s = playState(
       [{ pos: v(4.464, 5.814), stats: { hands: 60 }, job: stand(v(4.464, 5.814)) }],
@@ -446,6 +447,6 @@ describe('SNAG IT!: its countdown worked out in the sim, as Break it!’s (revie
     expect(snagCountdownLeft(s)).toBeCloseTo(ready, 9);
     expect(snagCountdownLeft(run(s, ready / 2).state)).toBeCloseTo(ready / 2, 1);
     expect(snagCountdownLeft(run(s, ready + DT).state)).toBeNull();
-    expect(snagCountdownLeft(createRun(1))).toBeNull();
+    expect(snagCountdownLeft(createRun(1, undefined, 0, ORIGINAL_GAME))).toBeNull();
   });
 });

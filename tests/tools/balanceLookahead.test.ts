@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from '../arcade/helpers';
 import { createRun } from '../../src/arcade/sim/run';
 import { canThrow, step } from '../../src/arcade/sim/step';
 import type { RunState } from '../../src/arcade/sim/types';
@@ -39,7 +40,7 @@ function asItWas(state: RunState, left: number): boolean {
 function pocketMoments(): RunState[] {
   const moments: RunState[] = [];
   for (const seed of [1, 2, 3]) {
-    let s = createRun(seed);
+    let s = createRun(seed, undefined, 0, ORIGINAL_GAME);
     for (let i = 0; i < 3000 && moments.length < 40 * seed; i++) {
       if (s.phase === 'over' || s.phase === 'won') break;
       const next = betweenDowns(s, i);

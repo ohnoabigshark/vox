@@ -1,4 +1,4 @@
-import { readModes } from './arcade/content/modeFlags';
+import { readLink, runOptionsFrom } from './arcade/content/runOptions';
 import { readPractice } from './arcade/content/playCode';
 import { readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
@@ -22,34 +22,23 @@ await Promise.race([
   new Promise((resolve) => setTimeout(resolve, FONT_TIMEOUT_MS)),
 ]);
 
-const params = new URLSearchParams(location.search);
-const seed = Number(params.get('seed')) || Math.floor(Math.random() * 1e9);
+// The run options: the defaults file with what the link names over it (docs/DEV_SETUP.md):
+// ?hard=0, ?aim=1, ?area=N, ?seed=N, ?snag=1, ?tip=1, ?perks=1, ?monsters; and the
+// link-only ?win=1, ?video=1 and ?farmSong=2 (all in `readLink`).
+const link = readLink(new URLSearchParams(location.search));
+const run = runOptionsFrom(link.run);
 // ?try=…&sketch=… is practice, from the play editor's Try it (dev/plays.html): that
 // one play on the field, rep after rep, with ‹ Sketch back to the editor.
 const practice = readPractice(location.search);
 // ?event=…&series=… is event practice, from the event editor's Try it (dev/events.html):
 // that field event every rep at that series, with ‹ Events back to the editor.
 const eventPractice = readEventPractice(location.search);
-// Hard mode (endless zones) and two-tap throwing (aim, then distance) are on unless
-// ?hard=0 or ?aim=1 turns them off (readModes).
-const modes = readModes(params);
-// ?monsters=1 starts with a monster team; ?area=2 or ?area=3 starts at that area.
-// ?snag=1 turns on SNAG IT! (a contested catch's dot test) from the first series, not series 5.
-// ?perks=1 starts holding every perk TRICK OR TREAT! offers (Second Wind, Candy Corn Magnet).
-// ?win=1 goes straight from PLAY to the win cutscene (with ?video=1, frame by frame for
-// the sing-along video's capture, tools/video/render.ts); ?farmSong=2 plays the second
-// Frederick's Farm song candidate (Spooky Cow) instead of Harvest Moon Hoedown.
 const game = new ArcadeGame(canvas, ui, {
-  seed,
-  monsters: params.has('monsters'),
-  area: Number(params.get('area')) || 1,
-  win: params.has('win'),
-  video: params.has('video'),
-  ...modes,
-  snagAlways: params.get('snag') === '1',
-  tipAlways: params.get('tip') === '1',
-  startWithPerks: params.get('perks') === '1',
-  farmSong: Number(params.get('farmSong')) || 1,
+  // A random seed unless the link names one.
+  run: { ...run, seed: run.seed ?? Math.floor(Math.random() * 1e9) },
+  win: link.win,
+  video: link.video,
+  farmSong: link.farmSong,
   ...(practice ? { practice } : {}),
   ...(eventPractice ? { eventPractice } : {}),
   // The play editor's sketches in the game join the plays dealt, read at every PLAY and

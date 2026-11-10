@@ -1,5 +1,6 @@
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { pocketTime, sweepSpeed } from '../../src/arcade/sim/ball';
 import { createRun, dispatch, endDown, nextDown } from '../../src/arcade/sim/run';
@@ -19,7 +20,7 @@ import { carry, ofType, playState, run, stand, tapAt, throwAt, untilGrabbed } fr
 
 /** A run just past its first won series: TRICK OR TREAT! is on. */
 const atDraft = (seed = 3): RunState => {
-  const s = createRun(seed);
+  const s = createRun(seed, undefined, 0, ORIGINAL_GAME);
   const events: ArcadeEvent[] = [];
   endDown(s, 'tackled', s.series.firstDown, events);
   nextDown(s, events);
@@ -125,7 +126,7 @@ describe('TRICK OR TREAT!', () => {
   it('a recruit prefers the position its best stat suits', () => {
     let seen = 0;
     for (let seed = 1; seed <= 60; seed++) {
-      for (const perk of rollOffer(createRun(seed))) {
+      for (const perk of rollOffer(createRun(seed, undefined, 0, ORIGINAL_GAME))) {
         if (perk.kind !== 'player') continue;
         seen++;
         const { stats, preferred } = perk.player;

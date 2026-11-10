@@ -12,6 +12,7 @@
  * Keys for a desktop: 1–3 call a card, F flips, Space hikes (then throws,
  * and taps the bar and the mash), ← and → juke, S shoos the King's crows. The music is the soundtrack only: nothing waits for the beat.
  */
+import type { RunOptions } from './content/runOptions';
 import * as THREE from 'three';
 import type { SfxId } from '../audio/sfx';
 import { Conductor } from '../game/conductor';
@@ -105,11 +106,8 @@ function unreadSketches(e: unknown): readonly Play[] {
 }
 
 export interface ArcadeOptions {
-  seed: number;
-  /** Start with a monster team (Golem Blockers, Werewolf Runners, Ghost Catchers): ?monsters=1, for a look at them. */
-  monsters?: boolean;
-  /** Start at this area (1 the Forest, 2 the Candy Kingdom, 3 the third): ?area=2, for trying later areas. */
-  area?: number;
+  /** The run options every run is made with (docs/DEV_SETUP.md), its seed chosen. */
+  run: RunOptions & { readonly seed: number };
   /** Go straight to the win cutscene after PLAY, with a full bench: ?win=1, for looking at it. */
   win?: boolean;
   /**
@@ -118,21 +116,6 @@ export interface ArcadeOptions {
    * capture evenly spaced frames (tools/video/).
    */
   video?: boolean;
-  /**
-   * Hard mode (a link's default: `readModes`): the zones go round until you lose, one more
-   * defender each (at most 12) with stats +20 a zone, Break it! tighter
-   * past the third, recruits +30 a zone (Hands slower), the sweep no faster
-   * after the third, and TRICK OR TREAT! lets you set your lineup.
-   */
-  hard?: boolean;
-  /** Two-tap throwing (a link's default: `readModes`): the first tap stops the line, the second picks how far. */
-  twoTapAim?: boolean;
-  /** SNAG IT! from the first series (?snag=1), not only from series 5 (docs/SNAG.md). */
-  snagAlways?: boolean;
-  /** ?perks=1: start holding every perk TRICK OR TREAT! offers (docs/REWARDS.md, o4). */
-  startWithPerks?: boolean;
-  /** The tip drill from the first series (?tip=1); with ?snag=1 too, either at random (docs/TIP.md). */
-  tipAlways?: boolean;
   /** Which Frederick's Farm song candidate plays (1 Harvest Moon Hoedown, 2 Spooky Cow): ?farmSong=2. */
   farmSong?: number;
   /**
@@ -189,18 +172,13 @@ const WIDTH_MARGIN = 1.06;
 
 export class ArcadeGame {
   private state: RunState;
+  /** This run's seed: the run options' at first, one more at each AGAIN. */
   private seed: number;
-  private readonly monsters: boolean;
-  /** The area runs start at (0-based). */
-  private readonly startArea: number;
+  /** The run options every run is made with (docs/DEV_SETUP.md). */
+  private readonly runOptions: RunOptions;
   /** ?win=1: PLAY goes straight to the win cutscene. */
   private readonly jumpToWin: boolean;
   private readonly video: boolean;
-  private readonly hard: boolean;
-  private readonly twoTapAim: boolean;
-  private readonly snagAlways: boolean;
-  private readonly startWithPerks: boolean;
-  private readonly tipAlways: boolean;
   /**
    * Practice: a sketch's play and its key in the play editor (‹ Sketch), or a
    * field event and the series it's tried at (‹ Events); null in an ordinary game.
@@ -285,16 +263,10 @@ export class ArcadeGame {
     private readonly uiRoot: HTMLElement,
     options: ArcadeOptions,
   ) {
-    this.seed = options.seed;
-    this.monsters = options.monsters ?? false;
-    this.startArea = Math.max(0, (options.area ?? 1) - 1);
+    this.seed = options.run.seed;
+    this.runOptions = options.run;
     this.jumpToWin = options.win ?? false;
     this.video = options.video ?? false;
-    this.hard = options.hard ?? false;
-    this.twoTapAim = options.twoTapAim ?? false;
-    this.snagAlways = options.snagAlways ?? false;
-    this.startWithPerks = options.startWithPerks ?? false;
-    this.tipAlways = options.tipAlways ?? false;
     this.sketchesInGame = options.sketchesInGame ?? null;
     const link = options.practice;
     const tryEvent = options.eventPractice;
@@ -998,22 +970,26 @@ export class ArcadeGame {
    */
   private newRun(sketches: readonly Play[] = []): RunState {
     const p = this.practice;
+    const { monsters, area, hard, twoTapAim, snagAlways, tipAlways, startWithPerks } =
+      this.runOptions;
     if (p)
-      return createRun(this.seed, firstRoster(this.monsters), 0, {
-        twoTapAim: this.twoTapAim,
-        snagAlways: this.snagAlways,
-        tipAlways: this.tipAlways,
+      return createRun(this.seed, firstRoster(monsters), 0, {
+        // Practice ignores hard mode (decision map t3), and every rep starts with no perks.
+        hard: false,
+        twoTapAim,
+        snagAlways,
+        tipAlways,
         ...(p.kind === 'sketch'
           ? { practice: p.play }
           : { eventPractice: { event: p.event, stretch: p.stretch } }),
       });
-    return createRun(this.seed, firstRoster(this.monsters), this.startArea, {
-      hard: this.hard,
-      twoTapAim: this.twoTapAim,
-      snagAlways: this.snagAlways,
-      tipAlways: this.tipAlways,
+    return createRun(this.seed, firstRoster(monsters), Math.max(0, area - 1), {
+      hard,
+      twoTapAim,
+      snagAlways,
+      tipAlways,
       playbook: startingPlaybook(sketches),
-      startWithPerks: this.startWithPerks,
+      startWithPerks,
     });
   }
 
@@ -1025,7 +1001,16 @@ export class ArcadeGame {
 
   /** ?win=1: the run as if just won (on the King's series, eleven new players on the bench), and the win cutscene. */
   private skipToWin(): void {
-    const s = createRun(this.seed, firstRoster(this.monsters), arcadeTuning.run.areas - 1);
+    // Not hard: a hard run goes round again rather than winning.
+    const s = createRun(
+      this.seed,
+      firstRoster(this.runOptions.monsters),
+      arcadeTuning.run.areas - 1,
+      {
+        hard: false,
+        twoTapAim: false,
+      },
+    );
     setUpSeries(s, s.series.area, stretchStart(SERIES_KINDS.length - 1), [], true);
     // A new player for every TRICK OR TREAT! a full run has: most cards are
     // plays, so offers are rolled until that many players have come up.
