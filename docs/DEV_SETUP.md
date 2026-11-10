@@ -192,6 +192,15 @@ it's handed over.
 - **Tests:** `tests/arcade/devSetup.test.ts` (1–9 in the sim and the
   options), `tests/ui/setupTag.test.ts` (3), `tests/dev/setupPage.test.ts`
   (1, 4, 8, 9 on the page), and d7 test 1 grown to the new switches.
+- **Nothing plays differently with nothing saved:** the six balance
+  scenarios, 8 runs each, on `run-options` (ec0b155) and on this branch
+  (fe0e701, and again after the review fix): the reports are identical,
+  byte for byte. The seeded-run digests pass unchanged.
+- **The headless look** (the built game at phone size): the page, a setup
+  saved, the tag on the start screen, Reset taking it away, warnings and
+  an unreadable setup on the page. It led to the tag kept on one line and
+  shorter field-event choices. A setup's warnings, like the saved events',
+  show as a notice once PLAY has taken the start screen away.
 
 **Open questions for the user** (chosen closest to the doc, to confirm):
 
