@@ -98,8 +98,8 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
   const pickupsOn = checkbox('pickupsOn');
   const fieldEvents = select('fieldEvents', [
     ['off', 'Off'],
-    ['normal', 'Normal (the seed’s, from stretch 2)'],
-    ...GENERIC_EVENTS.map((id) => [id, `${fieldEventById(id).name} on every stretch`] as const),
+    ['normal', 'Normal (the seed’s)'],
+    ...GENERIC_EVENTS.map((id) => [id, `Always ${fieldEventById(id).name}`] as const),
   ]);
   const startWithPerks = checkbox('startWithPerks');
   const monsters = checkbox('monsters');
@@ -228,7 +228,11 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       {},
       el('h2', { text: 'On the field' }),
       row('Pickups (bolts, gravestones)', pickupsOn),
-      row('Field events', fieldEvents, 'Frog Rain stays Mister Frog’s either way.'),
+      row(
+        'Field events',
+        fieldEvents,
+        'Always: that event on every stretch but a Boss’s. Frog Rain stays Mister Frog’s either way.',
+      ),
       row('Start with every perk', startWithPerks),
       row('Monster team', monsters),
     ),
