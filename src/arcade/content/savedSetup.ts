@@ -7,7 +7,14 @@
  * the game plays the defaults), and a value no switch takes is left out with a
  * warning naming it.
  */
-import { changesOnly, changesQuery, checkSwitches, type RunOptions } from './runOptions';
+import {
+  changesOnly,
+  changesQuery,
+  checkSwitches,
+  setupInUse,
+  suppliedBySetup,
+  type RunOptions,
+} from './runOptions';
 
 export const SETUP_KEY = 'getJackBack.devSetup';
 
@@ -35,25 +42,24 @@ export interface SetupStore {
 export const reasonOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 /**
- * What the game says on screen about the setup: why it couldn't be read
- * (the run plays the defaults), or the values left out. Nothing in
- * practice, which ignores the setup (d5).
+ * What the game says on screen about the setup in use (`setupInUse`): why
+ * it couldn't be read (the run plays the defaults), or the values left out.
  */
 export function setupNotices(read: SetupRead, practice: boolean): readonly string[] {
-  if (practice) return [];
-  if (read.kind === 'unreadable')
-    return [`The dev setup can’t be read: ${read.reason}; playing the defaults.`];
-  return read.kind === 'saved' ? read.warnings : [];
+  const used = setupInUse(read, practice);
+  if (used.kind === 'unreadable')
+    return [`The dev setup can’t be read: ${used.reason}; playing the defaults.`];
+  return used.kind === 'saved' ? used.warnings : [];
 }
 
 /**
- * The setup a run was made with, as a link's query (no `?`): the switches it
- * changes, for the run's record and the play log, so a run made with a
- * setup can be told from a plain one (map round 5, q3). '' for none, and in
- * practice, which ignores it.
+ * The setup a run was made with, as a link's query (no `?`): the switches
+ * it supplied (`suppliedBySetup`), for the run's record and the play log, so
+ * a run made with a setup can be told from a plain one (map round 5, q3).
+ * '' when it supplied none.
  */
-export function setupQuery(read: SetupRead, practice: boolean): string {
-  return !practice && read.kind === 'saved' ? changesQuery(read.setup) : '';
+export function setupQuery(link: Partial<RunOptions>, read: SetupRead, practice: boolean): string {
+  return changesQuery(suppliedBySetup(link, read, practice));
 }
 
 /** The setup kept in `storage` (the page's localStorage, `browserStorage()`). */

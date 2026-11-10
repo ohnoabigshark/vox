@@ -155,7 +155,8 @@ function breakKinds(value: unknown): readonly BreakKind[] | undefined {
  * the area at most the last). What's new says every value, "off" included
  * (d3): `?hard=1`, `?aim=2`, `?perks=0`, `?monsters=0` (or `off`),
  * `?seed=random`, `?snag=off|normal|always` (and `?tip=`),
- * `?breakit=bar,mash,juke`, `?pickups=0|1`, `?events=off|normal|<event id>`.
+ * `?breakit=bar,mash,juke`, `?pickups=0|1`, `?events=0|1`; every on/off
+ * flag also reads `on` and `off`.
  * A value a switch doesn't take names nothing, so the layer below holds.
  */
 const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
@@ -359,16 +360,44 @@ export function runOptionsFrom(named: Partial<RunOptions>): RunOptions {
 }
 
 /**
+ * The setup a run uses (d5): what was read, or nothing in practice (a play
+ * or event practice link), which ignores the setup, even one that couldn't
+ * be read. The one place that rule is: the run options, the tag, the notices
+ * and the run's record all start from it.
+ */
+export function setupInUse(read: SetupRead, practice: boolean): SetupRead {
+  return practice ? { kind: 'nothing' } : read;
+}
+
+/** The switches a setup gives: none when nothing was saved or it couldn't be read. */
+export function setupSwitches(read: SetupRead): Partial<RunOptions> {
+  return read.kind === 'saved' ? read.setup : {};
+}
+
+/**
  * The run options a page plays (d3, d5), switch by switch: the link's, else
- * the saved setup's, else the defaults. Practice (a play or event practice
- * link) ignores the saved setup: its link and the defaults only. A setup that
- * couldn't be read counts as nothing saved.
+ * the setup's (`setupInUse`), else the defaults.
  */
 export function runOptionsFor(
   link: Partial<RunOptions>,
   read: SetupRead,
   practice: boolean,
 ): RunOptions {
-  const saved = !practice && read.kind === 'saved' ? read.setup : {};
-  return runOptionsFrom({ ...saved, ...link });
+  return runOptionsFrom({ ...setupSwitches(setupInUse(read, practice)), ...link });
+}
+
+/**
+ * The switches the setup actually supplied to a run: in use, changed from
+ * the defaults, and not named by its link, which wins over them (map round
+ * 5, q3, as the review corrected it).
+ */
+export function suppliedBySetup(
+  link: Partial<RunOptions>,
+  read: SetupRead,
+  practice: boolean,
+): Partial<RunOptions> {
+  const setup = setupSwitches(setupInUse(read, practice));
+  const out: NamedOptions = {};
+  for (const key of changedSwitches(setup)) if (link[key] === undefined) set(out, key, setup[key]);
+  return out;
 }

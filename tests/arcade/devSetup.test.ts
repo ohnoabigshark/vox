@@ -8,6 +8,7 @@ import {
   readLink,
   runOptionsFor,
   runSwitches,
+  setupInUse,
 } from '../../src/arcade/content/runOptions';
 import {
   SETUP_KEY,
@@ -429,20 +430,42 @@ describe('what the game says about the setup (test 1, review 3)', () => {
 });
 
 describe('a run says what setup it was made with (map round 5, q3)', () => {
+  const saved = {
+    kind: 'saved',
+    setup: { hard: false, breakItKinds: ['juke'], seed: 7 },
+    warnings: [],
+  } as const;
+  const link = (query: string) => readLink(new URLSearchParams(query)).run;
+
   it('the setup’s changed switches, as a link writes them', () => {
-    expect(
-      setupQuery(
-        { kind: 'saved', setup: { hard: false, breakItKinds: ['juke'], seed: 7 }, warnings: [] },
-        false,
-      ),
-    ).toBe('seed=7&hard=0&breakit=juke');
+    expect(setupQuery({}, saved, false)).toBe('seed=7&hard=0&breakit=juke');
+  });
+
+  it('only the switches the setup supplied: a link naming every switch leaves none (review)', () => {
+    const copied = link(linkFor({ ...RUN_DEFAULTS, monsters: true }));
+    expect(setupQuery(copied, saved, false)).toBe('');
+  });
+
+  it('a link naming some leaves the setup’s others (review)', () => {
+    expect(setupQuery(link('hard=1'), saved, false)).toBe('seed=7&breakit=juke');
   });
 
   it('none: nothing saved, a setup the same as the defaults, one that can’t be read, or practice', () => {
-    expect(setupQuery({ kind: 'nothing' }, false)).toBe('');
-    expect(setupQuery({ kind: 'saved', setup: RUN_DEFAULTS, warnings: [] }, false)).toBe('');
-    expect(setupQuery({ kind: 'unreadable', reason: 'x' }, false)).toBe('');
-    expect(setupQuery({ kind: 'saved', setup: { hard: false }, warnings: [] }, true)).toBe('');
+    expect(setupQuery({}, { kind: 'nothing' }, false)).toBe('');
+    expect(setupQuery({}, { kind: 'saved', setup: RUN_DEFAULTS, warnings: [] }, false)).toBe('');
+    expect(setupQuery({}, { kind: 'unreadable', reason: 'x' }, false)).toBe('');
+    expect(setupQuery({}, saved, true)).toBe('');
+  });
+});
+
+describe('the setup a run uses: one rule for practice (review)', () => {
+  it('practice uses none, whatever is saved or unreadable; a real run uses what was read', () => {
+    const unreadable = { kind: 'unreadable', reason: 'x' } as const;
+    const saved = { kind: 'saved', setup: { hard: false }, warnings: ['w'] } as const;
+    expect(setupInUse(saved, true)).toEqual({ kind: 'nothing' });
+    expect(setupInUse(unreadable, true)).toEqual({ kind: 'nothing' });
+    expect(setupInUse(saved, false)).toBe(saved);
+    expect(setupInUse(unreadable, false)).toBe(unreadable);
   });
 });
 
