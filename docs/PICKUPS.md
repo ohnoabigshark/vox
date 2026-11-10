@@ -12,7 +12,7 @@ pickups, more kinds and placing them in the editor are later rounds
 (`PLAN.md`).
 
 - **Where** (k2): each 10-yard stretch of the field gets one **lightning
-  bolt** and one **oil slick**, laid from the run's seed the way props are
+  bolt** and one **gravestone** (an oil slick until 2026-11-10, below), laid from the run's seed the way props are
   (`sim/props.ts`), so a seeded run lays them out the same every time.
   Anywhere in from the sidelines, the middle lane included, but never on a
   prop, or on the Boss standing just past an area's goal line. _The middle
@@ -23,7 +23,7 @@ pickups, more kinds and placing them in the editor are later rounds
   series comes. Since the long field (`docs/LONG_FIELD.md`, a2) an area's
   every stretch is laid out from its first series. They
   show before the snap, so you can call a play, or Flip it, to run through a
-  bolt and clear of a slick.
+  bolt and clear of a gravestone.
 - **Taken** (k3): the first body allowed to take it (k4) that runs through a
   pickup takes it, and it's gone for everyone: it doesn't come back at the next down or the next series (the
   map said "for the rest of the drive"; a pickup used up ahead would otherwise
@@ -31,13 +31,13 @@ pickups, more kinds and placing them in the editor are later rounds
 - **Who** (k4, the user's note on k3 and k4: "Only offense for now"; since
   2026-11-05 the bolt is mischief, below): your team takes them, the carrier
   included, but never Jack: he stands
-  still where the ball is spotted, so a slick under him couldn't be dodged,
+  still where the ball is spotted, so a gravestone under him couldn't be dodged,
   and a bolt would do nothing. (Added by Claude with the midfield and
-  confirmed by the user, 2026-11-05.) Defenders run over slicks and leave
+  confirmed by the user, 2026-11-05.) Defenders run over gravestones and leave
   them be, but take bolts (the mischief bolt, below). A player lined up on a pickup (it showed before the snap) takes
   it the moment the play starts. Since the midfield that includes a
   Blocker beside the ball, who goes down at the snap, and a handoff's
-  Runner, tackled there before the play starts (SLIPPED!). Flip moves the
+  Runner, tackled there before the play starts (TRIPPED!). Flip moves the
   Runner, not the Blockers.
 - **One of each, nearly always:** each kind gets 40 tries to find a clear
   spot in its stretch; if every try lands on a prop, that kind is left out
@@ -47,14 +47,16 @@ pickups, more kinds and placing them in the editor are later rounds
   sparks, with a zap. Both numbers are in `tuning.ts`. Since 2026-11-06 the
   speed is the **Fast** status the bolt gives (`docs/STATUSES.md`):
   `pickups.bolt.time` is how long, `statuses.fast.faster` how much.
-- **The slick** (k6): whoever runs through it slips and lies on the turf for
-  a moment, as Frog Rain flattens. A carrier who slips is tackled there:
-  **SLIPPED!** A Catcher lying down can't catch (the existing rule for anyone
+- **The gravestone** (k6, the slick until 2026-11-10): whoever runs through
+  it trips and lies on the turf for a moment (1.2 s,
+  `pickups.gravestone.time`), as Frog Rain flattens. A carrier who trips is
+  tackled there: **TRIPPED!** A Catcher lying down can't catch (the existing rule for anyone
   down).
-- **Reach:** a player takes a pickup when its body comes within 0.75 yards
-  of the pickup's middle (`tuning.pickups.radius`; it was 0.5 until the
-  user asked for 50% more, 2026-10-30), so a route or lane that brushes past
-  one takes it.
+- **Reach:** a player takes a pickup when its body comes within the
+  pickup's reach of its middle: 0.75 yards for a bolt
+  (`pickups.bolt.radius`; it was 0.5 until the user asked for 50% more,
+  2026-10-30) and a yard for a gravestone (`pickups.gravestone.radius`,
+  next-job map g1), so a route or lane that brushes past one takes it.
 - **Nobody steers for them** (k7): routes run as drawn, and carriers and
   defenders pick their lanes as they do today.
 - **Not in practice or the editor** (k8): practice has none, so a rep tests
@@ -67,8 +69,8 @@ pickups, more kinds and placing them in the editor are later rounds
    sometimes in the middle lane. Jack never takes one.
 2. **The bolt:** running through it speeds that player by half for 3 seconds,
    then back; it's taken, and nobody else gets it.
-3. **The slick:** a player who runs through it lies down; a carrier is
-   tackled there (SLIPPED!); a defender runs over it and it stays.
+3. **The gravestone:** a player who runs through it lies down; a carrier is
+   tackled there (TRIPPED!); a defender runs over it and it stays.
 4. **The series:** taken pickups stay gone at the next down and the next
    series; the rest stay put.
 5. **Practice** has none.
@@ -90,12 +92,12 @@ never aims for or away from pickups (k7):
 | Passes of 10+ yards | 13% | 16% |
 
 Within the noise of 40 runs (the win rate is 14 runs against 12): bolts add
-a little to passes, slicks take a little away. The bot calls handoffs only
+a little to passes, slicks (now gravestones) take a little away. The bot calls handoffs only
 when it has no pass card, 9 a scenario, too few to read.
 
 Opening the middle (2026-11-05) went in without a balance run, at the
 user's word. A probe of 500 seeds, three areas, a snap from every yard:
-7% of snaps then have a slick under a Blocker beside the ball, and 13%
+7% of snaps then had a slick (now a gravestone, which reaches further) under a Blocker beside the ball, and 13%
 under a Blocker or a Runner lined up a yard off the middle.
 
 ## The mischief bolt (difficulty map b1–b6)
@@ -114,7 +116,7 @@ Approved on the difficulty map, round 4, built on `difficulty-4`.
 - **Which defenders** (b2): any on the move, Bats and Crows in the air
   included; not a planted Scarecrow, one hanging onto the carrier, or one
   lying down. The Boss is a prop, not a defender, and never takes one.
-- **Slicks stay your side's trick** (b3).
+- **Gravestones stay your side's trick** (b3, said of slicks then).
 - **Nobody steers for them** (b4, k7 stays): a defender takes one only when
   its chase crosses it. The balance report counts bolts taken by each side
   (`BoltWatch` in `tools/balanceCount.ts`).
@@ -124,12 +126,39 @@ Approved on the difficulty map, round 4, built on `difficulty-4`.
   after the snap, half as fast again, and it wears off; it's gone for your
   players too; a Bat before the snap leaves it; a planted, hanging or downed
   defender leaves it (fails if any of the three is dropped); a defender
-  leaves a slick; the record and the balance count by side.
+  leaves a gravestone; the record and the balance count by side.
+
+## Gravestones (next-job map, 2026-11-10)
+
+The oil slick became a gravestone, with the same effect. _User,
+2026-10-31: "change oil slicks to gravestones. same effect as it currently
+has."_ Decided on the field events map (v1, 2026-10-31) and on the next-job
+map (https://claude.ai/artifact/MP8EsnMZnfgnyX9DaE7cA8, rounds 1 to 3, all
+approved):
+
+- **Same effect and numbers** (v1): down 1.2 s, a carrier tackled there.
+- **The call is TRIPPED!**; the sound a stumble and a thud (`trip`); the word
+  "gravestone" everywhere (`PickupKind`, the `tripped` event, the docs,
+  `CONTEXT.md`), nothing left saying slick but the history.
+- **A yard's reach** (g1), up from the slick's 0.75, its own
+  `pickups.gravestone.radius`; the bolt keeps its 0.75. Placement measures
+  each kind by its own reach (`pickupRadius` in `sim/pickups.ts`).
+- **The model** (g2, g4): a short rounded headstone carved RIP on a mossy
+  mound, written by Claude (`assets-src/voxels/pickups/gravestone.voxt`),
+  approved as is, and replaced by the user's Goxel pass if one comes back.
+- **A saved `pickups.slick.time`** plays as `pickups.gravestone.time` (g3,
+  `RENAMED` in `content/savedTuning.ts`).
+- **Tests** (g5): the slick's tests renamed; a gravestone reaches a yard and
+  a bolt still ¾; the carried-over saved setting. The two pinned seeded-run
+  digests (`statusesSameRun`, the taffy's pick) were re-pinned: at the
+  slick's reach, with the old names, both give main's again, so the reach is
+  the only change in play.
 
 ## On screen
 
 A bolt is a gold zigzag of voxels, hovering and turning, drawn 1.7 times its
-voxels' size so it reads from the camera; a slick is a flat ink puddle with a
-purple sheen. Both are built from boxes in `render/pickups.ts` (no model
-file), merged once into one geometry each, so a pickup is one draw call. Taking a bolt zaps (`zap`), a slick whoops (`slip`), and a carrier who
-slips gets SLIPPED!
+voxels' size so it reads from the camera, built from boxes in
+`render/pickups.ts` and merged into one geometry. A gravestone is a voxel
+model (`pickups/gravestone`), its carved face to the camera, each leaning a
+little its own way. Taking a bolt zaps (`zap`), a gravestone stumbles and
+thuds (`trip`), and a carrier who trips gets TRIPPED!

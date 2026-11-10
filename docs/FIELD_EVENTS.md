@@ -397,7 +397,7 @@ last two played before they merge.
   (`render/taffyFlood.ts`): the band faint pink from before the snap,
   bubbles swelling and popping through the build-up, candy ground while
   it's on (fading in its last moment), and strings of taffy from the turf
-  behind whoever it holds. Its sound is the slick's slip.
+  behind whoever it holds. Its sound is the slide's `slip`, once the slick's.
 - **The generic pick** is `genericEventFor(seed, stretch)` in `sim/run.ts`,
   on its own random stream (`stretchEvent`): none before stretch
   `fieldEvents.genericFrom` (2), none on a Boss's, and a third

@@ -97,7 +97,8 @@ slice 0
 `assets-src/voxels/forest/chaser.voxt`. Folders: `team/` (our players, the
 ball), `forest/` (defenders and the Witch), `candy/` (the Candy Kingdom's
 defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses),
-`forestProps/`, `candyProps/` and `farmProps/` (scenery). A model's front
+`forestProps/`, `candyProps/` and `farmProps/` (scenery), `pickups/` (the
+gravestone). A model's front
 (slice 0) faces +z; in play, bodies turn to face where they're going.
 
 ## Two ways in
@@ -105,7 +106,7 @@ defenders), `farm/` (the Farm's crows), `bosses/` (the three Bosses),
 Both end as `.voxt` (map p2). The first new set tries each on at least one
 model, to learn which suits what.
 
-**A. Claude writes it** (how all 29 models so far were made). The user
+**A. Claude writes it** (how all 30 models so far were made). The user
 describes the thing, or sends a sketch or a reference; Claude writes the
 `.voxt`, previews it and iterates until it reads, and the user judges it in
 the viewer.

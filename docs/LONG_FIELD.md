@@ -74,7 +74,7 @@ The item numbers below are the map's.
 ### The play (b1–b4, c1–c2)
 
 - **Past the first-down line the play goes on** (b1). The carrier runs
-  until it is tackled (a Break it! BAD, a Safety, SLIPPED!, FROGGED!, the
+  until it is tackled (a Break it! BAD, a Safety, TRIPPED!, FROGGED!, the
   crows), runs out of bounds, or crosses the goal line. A down that ends at
   or past the line to gain wins the series (B6's rule, `endDown`).
 - **The call comes at the end of the down** (b2, rejected for it: _"I don't
@@ -99,7 +99,7 @@ The item numbers below are the map's.
   defense."_ **Since the patrols** (`docs/DIFFICULTY.md`, "The long
   field", 2026-11-04): each stretch ahead keeps its Scarecrows, Bats and
   Crows on the field. The rest of its defense is still the down's only.
-- **Carriers still don't steer for pickups** (c2, k7). Bolts and slicks past
+- **Carriers still don't steer for pickups** (c2, k7). Bolts and gravestones past
   the line come into play on their own.
 
 ### The camera and the deep routes (d1–d2)
