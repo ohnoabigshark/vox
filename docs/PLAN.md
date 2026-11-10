@@ -42,7 +42,8 @@ approved but s3):
   build by Thanksgiving, 2026-11-26 (t1). Its design is planned on its own
   map. **Not now** (2026-11-10, the next-job map ("Pick the Next Job",
   https://claude.ai/artifact/MP8EsnMZnfgnyX9DaE7cA8), t1–t4): merging #48, the move (#45) and the
-  set's build all wait, behind gravestones and the dev setup mode.
+  set's build all wait, behind gravestones and the dev setup mode. The
+  Nov 26 date is off: Thanksgiving waits with no date (round 2, n1).
 - **Alternative sets nod to a genre** with original characters, not to one
   franchise's names or likenesses (s5).
 - **_Get Jack Back_ is the Halloween set's name** (s6); the whole game's
@@ -197,8 +198,30 @@ Still open:
 - **A dev setup mode** (dev): **picked next** (2026-11-10, next-job map v3),
   the user's note: _"Let's do this so that it is under the /Dev route and
   saves the config to local storage. We should also have there be a default
-  config file for all of the same toggles/values."_ Grilled on the same map
-  from round 2. A screen before a run starts where the Coach
+  config file for all of the same toggles/values."_ Grilled on the same map;
+  round 2, all approved 2026-11-10 (d1–d6):
+  - **The defaults file** (d1): `src/arcade/content/runOptions.ts`, one
+    `RunOptions` type with one set of defaults, which the game, a link and
+    the page all read. Built first, as a refactor on its own branch
+    (`run-options`) that changes nothing in play.
+  - **A saved setup applies to every new run on that phone** (d2), stored
+    per site, and the start screen shows a **DEV SETUP** tag with Reset
+    whenever it differs from the defaults.
+  - **Layers** (d3): each switch from the link if it names it, else the
+    saved setup, else the defaults. Links keep working for the tools.
+  - **The switches** (d4): throw type, hard mode, starting area, seed,
+    SNAG IT! and the tip drill (Off / Normal / Always), every perk, a
+    monster team; new: each Break it! kind on or off, pickups on or off,
+    field events Off / Normal / one chosen event. `win`, `video` and
+    `farmSong` stay link-only.
+  - **Practice ignores the setup** (d5). _User's note: "make sure to make
+    it clear that the toggles only effect actual gameplay and not the
+    practice modes"_: the page says so at the top.
+  - **Ships with the dev pages** in releases (d6).
+  - Order (o1): gravestones, then `run-options`, then `dev-setup`. Tests
+    and the whole design are on round 3.
+
+  A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other
   run options, rather than typing them into the URL. _User, 2026-10-31: "a
   dev setup mode where we can enable/disable different tap events, toggle
@@ -603,6 +626,8 @@ Still open:
   some sort to it. one play activated perks are one idea, route changes are
   another, audibles are another (maybe these even are specific to the
   selected play or player combination like a flea flicker)."_
+  - **Parked** (next-job map m1, 2026-11-10); grilled after the dev setup
+    mode.
   - **First slice:** the menu's shell only, how it looks and opens from a
     selected player's card, with no actions yet. Mockups first.
   - **Actions for later:** perks used for one play; route changes (beside
@@ -743,7 +768,12 @@ Still open:
   lasts 3 s) is the lever instead.
 - **A native Android build** of the game. _User, 2026-10-30._
 - **Gravestones instead of oil slicks.** **Picked next** (2026-11-10,
-  next-job map v1); its last open choices on the same map, round 2. The trick on the field becomes a
+  next-job map v1). Round 2, all approved 2026-11-10: the gravestone trips
+  from 1 yard, its own `pickups.gravestone.radius`, the bolt staying at
+  0.75 (g1); Claude drafts a short upright headstone for the Goxel round
+  trip (g2; first draft `pickups/gravestone`, round 3 g4); `slick` becomes
+  `gravestone` and `slipped` becomes `tripped`, and a saved
+  `pickups.slick.time` carries over (g3). Built first (o1). The trick on the field becomes a
   gravestone, with the same effect: whoever runs through it trips and lies
   down a moment, and a carrier is tackled there (today **SLIPPED!**,
   `docs/PICKUPS.md` k6). _User, 2026-10-31: "change oil slicks to
