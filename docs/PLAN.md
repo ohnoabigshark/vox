@@ -41,6 +41,10 @@ approved but s3):
   is sooner let's do that plz"_), aiming to be playable on the tailnet
   build by Thanksgiving, 2026-11-26 (t1). Its design is planned on its own
   map.
+  Its story cutscenes and its own songs wait for a later pass, after the
+  gameplay and artwork work (Thanksgiving map j5 and j6, rejected
+  2026-11-06: _"We don't need a story or videos for this yet. That can be
+  another pass."_); until then it plays Halloween's songs.
 - **Alternative sets nod to a genre** with original characters, not to one
   franchise's names or likenesses (s5).
 - **_Get Jack Back_ is the Halloween set's name** (s6); the whole game's
@@ -61,6 +65,15 @@ approved but s3):
     refactor proven by identical seeded runs and `balance:compare`
     reports; then Thanksgiving is built in its own folder (c4). This
     replaces round 1's p7.
+    The proof, built before the first piece (Thanksgiving map j7,
+    2026-11-06, branch `move-tests`): twelve seeded bot runs pinned by a
+    digest of what they did (`tests/arcade/sameRuns.test.ts`),
+    `balance:compare` showing no difference from main, the wall test
+    (`tests/sets/wall.test.ts`, c2), the `?set=` link
+    (`tests/sets/setLink.test.ts`), and a screenshot of each area's first
+    down before and after (`npm run screenshot -- 8 call area=N before-areaN`). The
+    pieces: areas, defenses and colours; gimmicks and perks behind one
+    interface (j3); names, story and songs. Each merges before the next.
   - A shared base palette (the team's gold and orange, ink, bone, the
     glow, the defenders' purple) stays with the engine; each set adds its
     own named colours, and a test keeps a set's models to its own (c5).
@@ -69,7 +82,9 @@ approved but s3):
   - A set has a fixed number, and a link picks it: `?set=1` Halloween,
     the default, and `?set=2` Thanksgiving (c7, the user's note: _"Can we
     just do enums so I can send a number as the value"_). A picker screen
-    comes later, with mockups.
+    comes later, with mockups. The link is read by `readSetLink` in
+    `src/sets/index.ts`, the list of sets: a number with no set behind it
+    plays Halloween with a notice saying so (j7).
   - Each set's design is in `docs/sets/<set>.md` (c8).
 
 Still open:
