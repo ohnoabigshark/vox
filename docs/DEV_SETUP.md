@@ -101,3 +101,32 @@ Each is tested first, reviewed and merged before the next. Gravestones
 
 Then a headless look at the page and the tag on the served build before
 it's handed over.
+
+## As built
+
+### `run-options` (2026-11-10)
+
+- `src/arcade/content/runOptions.ts`: `RunOptions` (seed, area, hard,
+  twoTapAim, snagAlways, tipAlways, startWithPerks, monsters) and
+  `RUN_DEFAULTS`; `readLink`, which returns the run options a link names
+  (a `Partial`) and the link-only `win`, `video` and `farmSong`; and
+  `runOptionsFrom`, which lays them over the defaults. `readModes` and
+  `content/modeFlags.ts` are gone, their tests folded into
+  `tests/arcade/runOptions.test.ts`.
+- SNAG IT! and the tip drill stay booleans (`snagAlways`, `tipAlways`):
+  Off, and the three new switches, come with `dev-setup`.
+- The game takes `run: RunOptions` with its seed chosen (`src/main.ts`
+  picks a random one when the link names none). Practice passes hard mode
+  off (t3); `?win=1` makes its run not hard, so it can be won.
+- `createRun`'s options default from `RUN_DEFAULTS`, so a bare
+  `createRun(seed)` is now hard mode with two-tap throwing. What relied on
+  the old off defaults says so: the unit tests through `ORIGINAL_GAME`
+  (`tests/arcade/helpers.ts`, `?hard=0&aim=1`), the balance bots and the
+  test bench (normal mode, one-tap, as before).
+- Test 4, nothing plays differently: `balance:compare` measures against
+  `main`, which doesn't have the gravestones this branch sits on, so the
+  six scenarios were run with the balance tool on `gravestones` (725942c)
+  and on this branch, 8 runs each: the six reports are identical, byte for
+  byte. The seeded-run
+  digests (`statusesSameRun`, the taffy's pick) pass unchanged.
+

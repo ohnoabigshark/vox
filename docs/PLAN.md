@@ -221,6 +221,9 @@ Still open:
   - Order (o1): gravestones, then `run-options`, then `dev-setup`.
   - Round 3, approved 2026-11-10 (d7–d9): the tests and the whole design,
     in `docs/DEV_SETUP.md`.
+  - **`run-options` built** 2026-11-10: one `RunOptions` type and its
+    defaults (`content/runOptions.ts`), one link reader, nothing playing
+    differently (`docs/DEV_SETUP.md`, "As built"). `dev-setup` is next.
 
   A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other

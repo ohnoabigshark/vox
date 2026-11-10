@@ -27,6 +27,12 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 ## The run
 
 - **Run:** one game, from PLAY to a loss or the win dance.
+- **Run options** _(ours)_: the switches a run is made with (hard mode,
+  two-tap throwing, the starting area, the seed, SNAG IT! and the tip drill
+  always, every perk, a monster team), one `RunOptions` value with its
+  defaults in `content/runOptions.ts`. A link names the ones it changes.
+  **The setup** (not built yet, `docs/DEV_SETUP.md`): the run options the
+  Coach saves on the dev setup page.
 - **Set** _(ours)_: a whole run's skin: its areas, Bosses and gimmicks,
   team look, defender looks and on-screen names, over the same rules.
   Holiday sets are the main line (Halloween's is _Get Jack Back_;
