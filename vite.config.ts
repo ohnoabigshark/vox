@@ -84,6 +84,7 @@ export default defineConfig({
               devPlays: resolve(import.meta.dirname, 'dev/plays.html'),
               devBench: resolve(import.meta.dirname, 'dev/bench.html'),
               devEvents: resolve(import.meta.dirname, 'dev/events.html'),
+              devSetup: resolve(import.meta.dirname, 'dev/setup.html'),
             }),
       },
     },

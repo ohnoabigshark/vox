@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dev Setup · Dev</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0.5rem 0.75rem 2rem;
+        font-family: 'Creepster', system-ui, sans-serif;
+        background: #2b2140;
+        color: #f7f1e3;
+      }
+      main {
+        max-width: 34rem;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        gap: 1rem;
+        align-items: baseline;
+      }
+      a {
+        color: #8fd3ff;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin: 1.1rem 0 0.4rem;
+      }
+      .note {
+        font-family: system-ui, sans-serif;
+        font-size: 0.9rem;
+        background: #4a3d66;
+        border-left: 4px solid #ffb347;
+        padding: 0.5rem 0.7rem;
+        border-radius: 6px;
+      }
+      .changed {
+        font-family: system-ui, sans-serif;
+        font-size: 0.85rem;
+        opacity: 0.85;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.3rem 0.8rem;
+        min-height: 2.6rem;
+        padding: 0.2rem 0.6rem;
+        margin: 0.25rem 0;
+        background: #3a2f55;
+        border-radius: 8px;
+        font-family: system-ui, sans-serif;
+        font-size: 0.95rem;
+      }
+      .row small,
+      section > small {
+        flex-basis: 100%;
+        font-size: 0.75rem;
+        opacity: 0.75;
+        font-family: system-ui, sans-serif;
+      }
+      input[type='checkbox'] {
+        width: 1.4rem;
+        height: 1.4rem;
+      }
+      select,
+      input:not([type]) {
+        font: inherit;
+        font-size: 0.9rem;
+        padding: 0.3rem 0.4rem;
+        border-radius: 6px;
+        border: 0;
+        max-width: 60%;
+      }
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.2rem;
+      }
+      button {
+        font: inherit;
+        font-size: 1rem;
+        padding: 0.6rem 1rem;
+        border: 0;
+        border-radius: 8px;
+        background: #a259ff;
+        color: white;
+      }
+      button.quiet {
+        background: #4a3d66;
+      }
+      .status {
+        margin-top: 0.8rem;
+        padding: 0.5rem 0.7rem;
+        border-radius: 6px;
+        background: #1d1630;
+        font-family: system-ui, sans-serif;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .status.bad {
+        background: #6b1f2a;
+      }
+    </style>
+    <link rel="stylesheet" href="/src/ui/fonts.css" />
+  </head>
+  <body>
+    <!-- Dev tool (docs/DEV_SETUP.md): the run options saved on this phone for every new run. -->
+    <main id="setup"></main>
+    <script type="module" src="/src/dev/setup/main.ts"></script>
+  </body>
+</html>
