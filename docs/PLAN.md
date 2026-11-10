@@ -783,6 +783,17 @@ Still open:
   further up the field (one in the Intro, two in the Challenge, and so
   on), so a long run is likelier to meet one. _User: "It's a good thing to
   tune but I want to focus on the defenders first."_
+- **A pickup's moment of being taken.** Each pickup gets an animation as
+  it's taken, a "taken" model left on the field afterwards, or both: a
+  gravestone crumbles into a pile of rubble, say. Today a taken pickup
+  just disappears (`render/pickups.ts`). _User, 2026-11-10, after playing
+  the true-to-size gravestones: "add a future note for power ups to have
+  a pickup animation and /or a "picked up" model for after they have been
+  interacted with. eg. gravestones would crumble into a pile."_ Open for
+  its grilling: which pickups get which (the bolt's spark, the
+  gravestone's rubble); whether a pile stays for the rest of the series
+  or the stretch; whether it can trip anyone again (today one gravestone
+  trips once); and the models, drafted for the Goxel round trip.
 - **The art pipeline** (`docs/ART.md`; map round 1,
   https://claude.ai/artifact/5CvJdCRtTedcMrwLYx5NUt, 2026-11-03):
   - **The Goxel round trip** (round 3, a1 and a2, 2026-11-06; the user's
