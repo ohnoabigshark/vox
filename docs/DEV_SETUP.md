@@ -157,8 +157,10 @@ it's handed over.
   carries each.
 - **In play:** Off sends no contested ball to that catch test; with one
   Always, every contested ball from series 1 goes to it (as `?snag=1`);
-  both Always pick at random; the pick between two Normals is the seed's,
-  as before. A tackle deals only the kinds on, by the same random pick
+  both Always pick at random. Normal is today's rule: from series 5 the
+  seed sends some contested balls to a catch test and picks one, half and
+  half; a pick that is Off goes to today's rule instead, so Off on one
+  leaves the other on Normal exactly as it was (review fix). A tackle deals only the kinds on, by the same random pick
   (all three on is the same run as before). Pickups off lays none.
   Field events Off puts none on ordinary stretches; one chosen puts it on
   every ordinary stretch; a Boss's own (Frog Rain) comes either way.

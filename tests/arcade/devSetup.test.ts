@@ -287,6 +287,16 @@ describe('SNAG IT! and the tip drill (test 5)', () => {
     expect(new Set(goesTo(1, 'always', 'always'))).toEqual(new Set(['snag', 'tip']));
   });
 
+  it('Off leaves the other on Normal as it was: the same contested balls go to it (review)', () => {
+    for (const series of [5, 9, 13]) {
+      const both = goesTo(series, 'normal', 'normal');
+      const snagOnly = goesTo(series, 'normal', 'off');
+      const tipOnly = goesTo(series, 'off', 'normal');
+      expect(snagOnly, `snag ${series}`).toEqual(both.map((t) => (t === 'snag' ? t : null)));
+      expect(tipOnly, `tip ${series}`).toEqual(both.map((t) => (t === 'tip' ? t : null)));
+    }
+  });
+
   it('Normal: none before series 5, then some', () => {
     expect(new Set(goesTo(4, 'normal', 'normal'))).toEqual(new Set([null]));
     expect(goesTo(5, 'normal', 'normal').some((t) => t !== null)).toBe(true);

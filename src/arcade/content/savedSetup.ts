@@ -31,7 +31,8 @@ export interface SetupStore {
   clear(): Promise<void>;
 }
 
-const reasonOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+/** What went wrong, in words. */
+export const reasonOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 /** The setup kept in `storage` (the page's localStorage, `browserStorage()`). */
 export function setupStore(

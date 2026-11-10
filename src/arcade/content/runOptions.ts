@@ -190,7 +190,7 @@ const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
 const SWITCH_NAMES = Object.keys(RUN_DEFAULTS) as (keyof RunOptions)[];
 
 /** Some of the run options, each named one with its value. */
-export type NamedOptions = { -readonly [K in keyof RunOptions]?: RunOptions[K] };
+type NamedOptions = { -readonly [K in keyof RunOptions]?: RunOptions[K] };
 
 /** What a link says: the run options it names, and the switches only a link has. */
 export interface Link {

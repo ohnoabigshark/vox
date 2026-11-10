@@ -27,41 +27,38 @@ const settings = (state: RunState): Readonly<Record<CatchTest, CatchSetting>> =>
 const forced = (state: RunState): boolean =>
   state.snagIt === 'always' || state.tipDrill === 'always';
 
-/** The catch tests a contested ball can go to: those set to always, if any; else those set to normal. */
-function candidates(state: RunState): CatchTest[] {
-  const set = settings(state);
-  const tests: CatchTest[] = ['snag', 'tip'];
-  const always = tests.filter((t) => set[t] === 'always');
-  return always.length > 0 ? always : tests.filter((t) => set[t] === 'normal');
-}
+const CATCH_TESTS: readonly CatchTest[] = ['snag', 'tip'];
 
 /** Whether a contested ball can go to a catch test on this down's stretch. */
 export function catchTestsOn(state: RunState): boolean {
   if (forced(state)) return true;
-  return candidates(state).length > 0 && stretchNumber(state.series) >= ct.fromStretch;
+  const set = settings(state);
+  const anyOn = CATCH_TESTS.some((t) => set[t] !== 'off');
+  return anyOn && stretchNumber(state.series) >= ct.fromStretch;
 }
 
-/**
- * Which catch test a contested ball goes to (docs/TIP.md, t2): the only one
- * it can, or else either, half and half, from the run's seed.
- */
-function whichCatchTest(state: RunState): CatchTest {
-  const from = candidates(state);
-  const only = from.length === 1 ? from[0] : undefined;
-  if (only) return only;
-  return rngFor(state.seed, 'catch', state.step).next() < 0.5 ? 'snag' : 'tip';
-}
+/** Half and half, from the run's seed (docs/TIP.md, t2). */
+const eitherBySeed = (state: RunState): CatchTest =>
+  rngFor(state.seed, 'catch', state.step).next() < 0.5 ? 'snag' : 'tip';
 
 /**
- * The catch test this contested ball goes to, or null for today's rule:
- * none before `fromStretch`; from then on `chance` of them, from the run's
- * seed; every one when one is set to always; never one set to off. The roll
- * has its own label, so it draws a number apart from the pick's.
+ * The catch test this contested ball goes to, or null for today's rule.
+ * With one set to always, every contested ball goes to it (with both, half
+ * and half). Otherwise none before `fromStretch`; from then on `chance` of
+ * them, each half and half, from the run's seed; a ball whose pick is set to
+ * off goes to today's rule, so Off on one leaves the other as it was. The
+ * roll has its own label, so it draws a number apart from the pick's.
  */
 export function catchTestFor(state: RunState): CatchTest | null {
   if (!catchTestsOn(state)) return null;
-  const rolled = rngFor(state.seed, 'catchChance', state.step).next() < ct.chance;
-  return forced(state) || rolled ? whichCatchTest(state) : null;
+  const set = settings(state);
+  if (forced(state)) {
+    const always = CATCH_TESTS.filter((t) => set[t] === 'always');
+    return always.length === 1 && always[0] ? always[0] : eitherBySeed(state);
+  }
+  if (rngFor(state.seed, 'catchChance', state.step).next() >= ct.chance) return null;
+  const pick = eitherBySeed(state);
+  return set[pick] === 'off' ? null : pick;
 }
 
 /** The freeze: the ball hangs a yard short of the receiver's hands, on its way from `from`. */

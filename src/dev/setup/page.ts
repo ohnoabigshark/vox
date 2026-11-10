@@ -18,7 +18,7 @@ import {
   type FieldEventsSetting,
   type RunOptions,
 } from '../../arcade/content/runOptions';
-import type { SetupStore } from '../../arcade/content/savedSetup';
+import { reasonOf, type SetupStore } from '../../arcade/content/savedSetup';
 import type { BreakKind } from '../../arcade/sim/types';
 import { el, statusLine } from '../pageKit';
 
@@ -174,7 +174,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
     try {
       await deps.store.save(now.options);
     } catch (e) {
-      return say(`Couldn’t save the setup: ${e instanceof Error ? e.message : String(e)}`, true);
+      return say(`Couldn’t save the setup: ${reasonOf(e)}`, true);
     }
     deps.go(deps.gameUrl);
   };
@@ -187,7 +187,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       await deps.copy(url);
       say('Copied the link.');
     } catch (e) {
-      say(`Couldn’t copy (${e instanceof Error ? e.message : String(e)}). The link: ${url}`, true);
+      say(`Couldn’t copy (${reasonOf(e)}). The link: ${url}`, true);
     }
   };
 
@@ -197,7 +197,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       await deps.store.clear();
       say('Back to the defaults, and nothing saved.');
     } catch (e) {
-      say(`Couldn’t clear the saved setup: ${e instanceof Error ? e.message : String(e)}`, true);
+      say(`Couldn’t clear the saved setup: ${reasonOf(e)}`, true);
     }
   };
 
