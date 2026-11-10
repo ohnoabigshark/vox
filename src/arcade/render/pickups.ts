@@ -9,7 +9,9 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { assertNever } from '../../assertNever';
 import { hexToNumber, voxel } from '../../content/palettes';
-import { getGeometry, voxelMaterial } from '../../voxel/models';
+import { getGeometry, getModel, voxelMaterial } from '../../voxel/models';
+import type { VoxelModel } from '../../voxel/voxt';
+import { arcadeTuning } from '../content/tuning';
 import { hasStatus } from '../sim/status';
 import type { Pickup, RunState } from '../sim/types';
 import { v } from '../sim/vec';
@@ -35,6 +37,22 @@ const BOLT: readonly [number, number][] = [
 ];
 /** The bolt is drawn this many times its voxels' size, so it reads at a distance. */
 const BOLT_SCALE = 1.7;
+/** How tall a gravestone is drawn (yards): knee-to-waist on a player, whatever its width. */
+export const GRAVESTONE_TALL = 0.9;
+
+/**
+ * How much a gravestone's model is stretched to be drawn true to size (the
+ * user, 2026-11-10): as wide and deep as what it trips, twice its reach, so
+ * a player trips where its body meets the stone; and `GRAVESTONE_TALL` high,
+ * so a wider stone doesn't stand over the players.
+ */
+export function gravestoneShape(model: VoxelModel, reach: number): { wide: number; tall: number } {
+  return {
+    wide: (2 * reach) / (model.width * model.scale),
+    tall: GRAVESTONE_TALL / (model.height * model.scale),
+  };
+}
+
 /** How many sparks a fast player trails, and how far back they reach (yards). */
 const SPARKS = 6;
 const TRAIL = 1.4;
@@ -116,6 +134,11 @@ export class ArcadePickups {
       }
       case 'gravestone': {
         const stone = new THREE.Mesh(getGeometry('pickups/gravestone'), voxelMaterial);
+        const { wide, tall } = gravestoneShape(
+          getModel('pickups/gravestone'),
+          arcadeTuning.pickups.gravestone.radius,
+        );
+        stone.scale.set(wide, tall, wide);
         // The model's front (+z) already faces the camera, behind the play. Each leans a
         // little, its own way, from where it lies (ids can't: a stretch's gravestone's
         // always ends in 1).

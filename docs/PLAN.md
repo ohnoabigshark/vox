@@ -776,7 +776,9 @@ Still open:
   effect and numbers, the call **TRIPPED!**, a stumble and a thud, the word
   "gravestone" everywhere, a yard's reach (up from the slick's 0.75, the
   bolt keeping 0.75), and Claude's model, approved as is, to be replaced by
-  the user's Goxel pass if one comes back.
+  the user's Goxel pass if one comes back. After playing it (2026-11-10):
+  drawn true to size, as wide as its reach, and in a lighter stone
+  (next-job map round 4; g6's ring rejected).
   For the long field (difficulty map c2, parked 2026-11-04): more of them
   further up the field (one in the Intro, two in the Challenge, and so
   on), so a long run is likelier to meet one. _User: "It's a good thing to

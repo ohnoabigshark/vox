@@ -4,10 +4,10 @@ size 15 11 5
 voxel 0.07
 colors
   B barkDark
-  S stoneDark
+  S graveStoneDark
   k ink
   m moss
-  s stone
+  s graveStone
 slice 0
   ...............
   ...............

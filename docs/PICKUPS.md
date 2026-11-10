@@ -166,8 +166,12 @@ approved):
 A bolt is a gold zigzag of voxels, hovering and turning, drawn 1.7 times its
 voxels' size so it reads from the camera, built from boxes in
 `render/pickups.ts` and merged into one geometry. A gravestone is a voxel
-model (`pickups/gravestone`), about a yard wide, its carved face to the
-camera, each leaning a little its own way (from where it lies). Its reach
-is wider than it's drawn: a yard from its middle, so a player brushing
-half a yard past its edge trips. Taking a bolt zaps (`zap`), a gravestone stumbles and
+model (`pickups/gravestone`), its carved face to the camera, each leaning a
+little its own way (from where it lies). It is drawn **true to size** (the
+user, 2026-11-10, after playing: "make the gravestones both true to size and
+slightly brighter"): stretched as wide and deep as what it trips, twice its
+reach (2 yards), and kept 0.9 yards high (`gravestoneShape` in
+`render/pickups.ts`), in its own lighter stone (`graveStone`,
+`graveStoneDark` in `palettes.ts`). Round 4's g6 had asked whether to mark
+the reach with a ring instead; the user chose this. Taking a bolt zaps (`zap`), a gravestone stumbles and
 thuds (`trip`), and a carrier who trips gets TRIPPED!
