@@ -262,7 +262,10 @@ const DEFAULTS: Readonly<Record<DefaultEventId, FieldEvent>> = {
  * in any of its three areas (sim/run.ts, `genericEventFor`). Another set
  * gets its own.
  */
-export const GENERIC_EVENTS: readonly DefaultEventId[] = ['taffyFlood', 'willOWisps'];
+export const GENERIC_EVENTS: readonly GenericEventId[] = ['taffyFlood', 'willOWisps'];
+
+/** A generic event's id: one an ordinary stretch can get. */
+export type GenericEventId = Exclude<DefaultEventId, 'frogRain'>;
 
 /** Every field event as the code has it. */
 export const fieldEventDefaults: readonly FieldEvent[] = Object.values(DEFAULTS);

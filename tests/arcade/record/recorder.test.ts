@@ -510,8 +510,8 @@ describe('the run', () => {
     const s = createRun(4, undefined, 0, {
       hard: false,
       twoTapAim: false,
-      snagAlways: true,
-      tipAlways: true,
+      snagIt: 'always',
+      tipDrill: 'always',
     });
     const { rec } = feed(s, []);
     expect(rec.record).toMatchObject({
@@ -544,7 +544,7 @@ describe('the run', () => {
 
 describe('what counts', () => {
   it('every real run, whatever its link options; never practice or an event’s practice', () => {
-    const real = createRun(1, undefined, 0, { snagAlways: true, tipAlways: true });
+    const real = createRun(1, undefined, 0, { snagIt: 'always', tipDrill: 'always' });
     expect(recordable(real)).toBe(true);
     expect(recordable({ ...real, practice: true })).toBe(false);
     expect(recordable({ ...real, practiceEvent: {} as RunState['practiceEvent'] })).toBe(false);

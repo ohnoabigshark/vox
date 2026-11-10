@@ -19,7 +19,7 @@ import { GAME_LIGHT, setLights } from '../render/gameLight';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
 import { Hud } from '../ui/hud';
-import { ORIGINAL_GAME, type RunOptions } from './content/runOptions';
+import { ORIGINAL_GAME, runSwitches, type RunOptions } from './content/runOptions';
 import { arcadeTuning, DT, TIME_SCALE } from './content/tuning';
 import { ArcadeBall } from './render/ball';
 import { ArcadeBodies } from './render/bodies';
@@ -92,6 +92,7 @@ import type { Practice } from './content/playCode';
 import { startingPlaybook } from './content/playPool';
 import type { Play } from './content/plays';
 import { fieldCard, trickOrTreatView } from './ui/trickOrTreat';
+import { setupTag } from '../ui/setupTag';
 
 /** The sound of taking each kind of pickup (docs/PICKUPS.md). */
 const PICKUP_SOUND: Readonly<Record<PickupKind, SfxId>> = { bolt: 'zap', gravestone: 'trip' };
@@ -137,6 +138,16 @@ export interface ArcadeOptions {
   sketchesInGame?: () => Promise<readonly Play[]>;
   /** Where the run's record is kept (docs/STATS.md); none, and nothing is recorded. */
   stats?: StatsStore;
+  /**
+   * The saved dev setup (docs/DEV_SETUP.md): how many switches it changes,
+   * for the start screen's DEV SETUP tag, what was left out of it, said on
+   * screen, and its Reset.
+   */
+  devSetup?: {
+    readonly changed: number;
+    readonly warnings: readonly string[];
+    reset(): Promise<void>;
+  };
 }
 
 /** The starting team, or (with `monsters`) the same players turned into each position's monster. */
@@ -331,6 +342,9 @@ export class ArcadeGame {
     if (this.practice?.kind === 'event') this.hud.setBackLabel('‹ Events');
     // Saved events the game couldn't read are left out: say so, never silently (docs/FIELD_EVENTS.md).
     if (savedEventWarnings.length > 0) this.hud.notice(savedEventWarnings.join(' · '));
+    // So are values left out of the saved dev setup (docs/DEV_SETUP.md, d8 test 1).
+    const setupWarnings = options.devSetup?.warnings ?? [];
+    if (setupWarnings.length > 0) this.hud.notice(setupWarnings.join(' · '));
     this.controls = new ArcadeControls(uiRoot, {
       onThrow: () => this.press({ throw: true }),
       onBreakTap: () => this.press({ breakTap: true }),
@@ -372,6 +386,11 @@ export class ArcadeGame {
       });
       this.startScreen.append(stats, count);
     }
+    // DEV SETUP · N changed, with Reset, when the saved setup changes anything (d2).
+    const tag = options.devSetup
+      ? setupTag(options.devSetup.changed, options.devSetup.reset)
+      : null;
+    if (tag) this.startScreen.append(tag);
     if (!this.practice) uiRoot.append(this.startScreen);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'hidden') return;
@@ -970,25 +989,20 @@ export class ArcadeGame {
    */
   private newRun(sketches: readonly Play[] = []): RunState {
     const p = this.practice;
-    const { monsters, area, hard, twoTapAim, snagAlways, tipAlways, startWithPerks } =
-      this.runOptions;
+    const { monsters, area } = this.runOptions;
+    const switches = runSwitches(this.runOptions);
     if (p)
-      // createRun keeps practice off hard mode and its perks (decision map t3, d5).
+      // createRun keeps practice off hard mode and its perks (decision map t3, d5); the
+      // rest of a practice run's options came from its link alone (main.ts, d8 test 8).
       return createRun(this.seed, firstRoster(monsters), 0, {
-        twoTapAim,
-        snagAlways,
-        tipAlways,
+        ...switches,
         ...(p.kind === 'sketch'
           ? { practice: p.play }
           : { eventPractice: { event: p.event, stretch: p.stretch } }),
       });
     return createRun(this.seed, firstRoster(monsters), Math.max(0, area - 1), {
-      hard,
-      twoTapAim,
-      snagAlways,
-      tipAlways,
+      ...switches,
       playbook: startingPlaybook(sketches),
-      startWithPerks,
     });
   }
 

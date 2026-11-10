@@ -4,6 +4,7 @@
  * start, how many dots or pops a situation gives, and how much quicker they
  * get past stretch 10.
  */
+import type { CatchSetting } from '../content/runOptions';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { stretchNumber } from './run';
@@ -16,34 +17,51 @@ const ct = arcadeTuning.catchTests;
 /** The catch tests: SNAG IT! and the tip drill. */
 export type CatchTest = 'snag' | 'tip';
 
-/** Whether ?snag=1 or ?tip=1 is on: every contested ball a catch test, from the first stretch. */
-const forcedByLink = (state: RunState): boolean => state.snagAlways || state.tipAlways;
+/** Each catch test's setting in this run (the run options' `snagIt` and `tipDrill`). */
+const settings = (state: RunState): Readonly<Record<CatchTest, CatchSetting>> => ({
+  snag: state.snagIt,
+  tip: state.tipDrill,
+});
+
+/** Whether one is set to always (`?snag=1`, `?tip=1`): every contested ball a catch test, from the first stretch. */
+const forced = (state: RunState): boolean =>
+  state.snagIt === 'always' || state.tipDrill === 'always';
+
+/** The catch tests a contested ball can go to: those set to always, if any; else those set to normal. */
+function candidates(state: RunState): CatchTest[] {
+  const set = settings(state);
+  const tests: CatchTest[] = ['snag', 'tip'];
+  const always = tests.filter((t) => set[t] === 'always');
+  return always.length > 0 ? always : tests.filter((t) => set[t] === 'normal');
+}
 
 /** Whether a contested ball can go to a catch test on this down's stretch. */
 export function catchTestsOn(state: RunState): boolean {
-  return forcedByLink(state) || stretchNumber(state.series) >= ct.fromStretch;
+  if (forced(state)) return true;
+  return candidates(state).length > 0 && stretchNumber(state.series) >= ct.fromStretch;
 }
 
 /**
- * Which catch test a contested ball goes to (docs/TIP.md, t2): the one
- * ?snag=1 or ?tip=1 forces, or else either, half and half, from the run's
- * seed.
+ * Which catch test a contested ball goes to (docs/TIP.md, t2): the only one
+ * it can, or else either, half and half, from the run's seed.
  */
 function whichCatchTest(state: RunState): CatchTest {
-  if (state.snagAlways !== state.tipAlways) return state.snagAlways ? 'snag' : 'tip';
+  const from = candidates(state);
+  const only = from.length === 1 ? from[0] : undefined;
+  if (only) return only;
   return rngFor(state.seed, 'catch', state.step).next() < 0.5 ? 'snag' : 'tip';
 }
 
 /**
  * The catch test this contested ball goes to, or null for today's rule:
  * none before `fromStretch`; from then on `chance` of them, from the run's
- * seed; every one with ?snag=1 or ?tip=1. The roll has its own label, so it
- * draws a number apart from the pick's.
+ * seed; every one when one is set to always; never one set to off. The roll
+ * has its own label, so it draws a number apart from the pick's.
  */
 export function catchTestFor(state: RunState): CatchTest | null {
   if (!catchTestsOn(state)) return null;
   const rolled = rngFor(state.seed, 'catchChance', state.step).next() < ct.chance;
-  return forcedByLink(state) || rolled ? whichCatchTest(state) : null;
+  return forced(state) || rolled ? whichCatchTest(state) : null;
 }
 
 /** The freeze: the ball hangs a yard short of the receiver's hands, on its way from `from`. */

@@ -1,4 +1,5 @@
-import { readLink, runOptionsFrom } from './arcade/content/runOptions';
+import { changedSwitches, readLink, runOptionsFor } from './arcade/content/runOptions';
+import { setupStore } from './arcade/content/savedSetup';
 import { readPractice } from './arcade/content/playCode';
 import { readEventPractice } from './arcade/content/eventLink';
 import { ArcadeGame } from './arcade/game';
@@ -22,17 +23,23 @@ await Promise.race([
   new Promise((resolve) => setTimeout(resolve, FONT_TIMEOUT_MS)),
 ]);
 
-// The run options: the defaults file with what the link names over it (docs/DEV_SETUP.md):
-// ?hard=0, ?aim=1, ?area=N, ?seed=N, ?snag=1, ?tip=1, ?perks=1, ?monsters; and the
-// link-only ?win=1, ?video=1 and ?farmSong=2 (all in `readLink`).
-const link = readLink(new URLSearchParams(location.search));
-const run = runOptionsFrom(link.run);
 // ?try=…&sketch=… is practice, from the play editor's Try it (dev/plays.html): that
 // one play on the field, rep after rep, with ‹ Sketch back to the editor.
 const practice = readPractice(location.search);
 // ?event=…&series=… is event practice, from the event editor's Try it (dev/events.html):
 // that field event every rep at that series, with ‹ Events back to the editor.
 const eventPractice = readEventPractice(location.search);
+// The run options (docs/DEV_SETUP.md), switch by switch: what the link names (?hard=0,
+// ?aim=1, ?snag=off… all in `readLink`), else the dev setup saved on this phone (the
+// setup page, dev/setup.html), else the defaults file. Practice ignores the setup (d5).
+// The link-only ?win=1, ?video=1 and ?farmSong=2 are the link's alone.
+const link = readLink(new URLSearchParams(location.search));
+const setups = setupStore(browserStorage());
+const setup = await setups.read();
+// The setup page says why it can't be read; the game plays the defaults.
+if (setup.kind === 'unreadable') console.warn(`The dev setup can't be read: ${setup.reason}`);
+const inPractice = practice !== null || eventPractice !== null;
+const run = runOptionsFor(link.run, setup, inPractice);
 const game = new ArcadeGame(canvas, ui, {
   // A random seed unless the link names one.
   run: { ...run, seed: run.seed ?? Math.floor(Math.random() * 1e9) },
@@ -47,6 +54,15 @@ const game = new ArcadeGame(canvas, ui, {
     inGamePlays((await sketchStore(browserStorage(), now).list()).sketches),
   // The run's record, kept on this phone (docs/STATS.md).
   stats: statsStore(browserStorage(), now),
+  // The start screen's DEV SETUP tag; its Reset forgets the setup and starts again without it.
+  devSetup: {
+    changed: setup.kind === 'saved' ? changedSwitches(setup.setup).length : 0,
+    warnings: setup.kind === 'saved' && !inPractice ? setup.warnings : [],
+    reset: async () => {
+      await setups.clear();
+      location.reload();
+    },
+  },
 });
 
 // Dev builds expose the game for debugging from the console.

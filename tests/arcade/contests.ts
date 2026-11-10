@@ -19,8 +19,8 @@ export function onSeries(state: RunState, series: number): RunState {
 
 /** Turn on ?snag=1 or ?tip=1 for this run. */
 export function forced(state: RunState, force: Force | undefined): RunState {
-  if (force === 'snag') Object.assign(state, { snagAlways: true });
-  if (force === 'tip') Object.assign(state, { tipAlways: true });
+  if (force === 'snag') Object.assign(state, { snagIt: 'always' });
+  if (force === 'tip') Object.assign(state, { tipDrill: 'always' });
   return state;
 }
 

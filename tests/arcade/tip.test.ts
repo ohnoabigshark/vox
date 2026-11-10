@@ -116,8 +116,10 @@ describe('1. the pick (t2, t3, g5)', () => {
   });
 
   it('?snag=1 alone always gives SNAG IT! and ?tip=1 alone the tip drill, from series 1', () => {
-    expect(createRun(1, undefined, 0, { ...ORIGINAL_GAME, tipAlways: true }).tipAlways).toBe(true);
-    expect(createRun(1, undefined, 0, ORIGINAL_GAME).tipAlways).toBe(false);
+    expect(createRun(1, undefined, 0, { ...ORIGINAL_GAME, tipDrill: 'always' }).tipDrill).toBe(
+      'always',
+    );
+    expect(createRun(1, undefined, 0, ORIGINAL_GAME).tipDrill).toBe('normal');
     for (const series of [1, 5, 9]) {
       expect(bulletContest(series, 60, undefined, 'snag').phase).toBe('snag');
       const t = bulletContest(series, 60, undefined, 'tip');

@@ -1,9 +1,29 @@
 /**
  * Run options (docs/DEV_SETUP.md): the switches a run is made with, and their
- * defaults, in one place. The game, a link and (later) the dev setup page all
- * start from `RUN_DEFAULTS`; a link says only what it changes (`readLink`),
- * laid over the defaults by `runOptionsFrom`.
+ * defaults, in one place. The game, a link and the dev setup page all start
+ * from `RUN_DEFAULTS`. Each switch is one value, named once in `SWITCHES` with
+ * its link flag and what it takes. A run's options come in layers, switch by
+ * switch: the link if it names it, else the saved setup, else the defaults
+ * (`runOptionsFor`).
  */
+import type { BreakKind } from '../sim/types';
+import { GENERIC_EVENTS, type GenericEventId } from './fieldEvents';
+import type { SetupRead } from './savedSetup';
+import { arcadeTuning } from './tuning';
+
+/**
+ * SNAG IT! or the tip drill (docs/SNAG.md, docs/TIP.md): `off`, never;
+ * `normal`, from stretch 5 on some contested balls; `always`, every contested
+ * ball from the first series (with both `always`, either at random).
+ */
+export type CatchSetting = 'off' | 'normal' | 'always';
+export const CATCH_SETTINGS: readonly CatchSetting[] = ['off', 'normal', 'always'];
+
+/** Field events (docs/FIELD_EVENTS.md): `off`, none on ordinary stretches; `normal`, the seed's; or one generic event on every ordinary stretch. */
+export type FieldEventsSetting = 'off' | 'normal' | GenericEventId;
+
+/** Every Break it! kind, in the order the deal picks from. */
+export const BREAK_KINDS: readonly BreakKind[] = ['bar', 'mash', 'juke'];
 
 export interface RunOptions {
   /** The run's seed; null for a random one. */
@@ -19,10 +39,16 @@ export interface RunOptions {
   readonly hard: boolean;
   /** Two-tap throwing: the first tap stops the line, the second picks how far. */
   readonly twoTapAim: boolean;
-  /** SNAG IT! from the first series, not only from series 5 (docs/SNAG.md). */
-  readonly snagAlways: boolean;
-  /** The tip drill from the first series; with SNAG IT! too, either at random (docs/TIP.md). */
-  readonly tipAlways: boolean;
+  /** SNAG IT!: off, normal or always. */
+  readonly snagIt: CatchSetting;
+  /** The tip drill: off, normal or always. */
+  readonly tipDrill: CatchSetting;
+  /** The Break it! kinds a tackle can deal, at least one, in `BREAK_KINDS` order. */
+  readonly breakItKinds: readonly BreakKind[];
+  /** Bolts and gravestones on the field (docs/PICKUPS.md). */
+  readonly pickupsOn: boolean;
+  /** Field events on ordinary stretches; a Boss's own (Frog Rain) comes either way. */
+  readonly fieldEvents: FieldEventsSetting;
   /** Start holding every perk TRICK OR TREAT! offers (docs/REWARDS.md, o4). */
   readonly startWithPerks: boolean;
   /** A monster team (Golem Blockers, Werewolf Runners, Ghost Catchers), for a look at them. */
@@ -31,15 +57,19 @@ export interface RunOptions {
 
 /**
  * The defaults: hard mode and two-tap throwing, the way the user plays
- * (release map b2), from the Forest with a random seed.
+ * (release map b2), from the Forest with a random seed, and the game as it
+ * comes: every tap test, pickups and field events.
  */
 export const RUN_DEFAULTS: RunOptions = {
   seed: null,
   area: 1,
   hard: true,
   twoTapAim: true,
-  snagAlways: false,
-  tipAlways: false,
+  snagIt: 'normal',
+  tipDrill: 'normal',
+  breakItKinds: BREAK_KINDS,
+  pickupsOn: true,
+  fieldEvents: 'normal',
   startWithPerks: false,
   monsters: false,
 };
@@ -55,6 +85,113 @@ export const ORIGINAL_GAME = {
   twoTapAim: false,
 } as const satisfies Partial<RunOptions>;
 
+/** One switch: its flag in a link, how a link's text and a saved value are read, and how a link writes it. */
+interface Switch<T> {
+  readonly flag: string;
+  /** What the link names, or undefined when it names nothing this switch takes. */
+  read(params: URLSearchParams, flag: string): T | undefined;
+  /** A value from outside (a saved setup) as the run takes it, or undefined when it isn't one. */
+  check(value: unknown): T | undefined;
+  /** The flag's text for this value. */
+  write(value: T): string;
+}
+
+/** A switch that takes one of these words (in a link and saved alike), and maybe old link words for some. */
+function oneOf<T extends string>(
+  words: readonly T[],
+  old: Readonly<Record<string, T>> = {},
+): Omit<Switch<T>, 'flag'> {
+  const check = (value: unknown): T | undefined => words.find((w) => w === value);
+  return {
+    read: (params, flag) => {
+      const text = params.get(flag);
+      return text === null ? undefined : (check(text) ?? old[text]);
+    },
+    check,
+    write: (value) => value,
+  };
+}
+
+/** A switch on or off: `1` or `0` in a link (or the words given), true or false saved. */
+function onOff(on = '1', off = '0'): Omit<Switch<boolean>, 'flag'> {
+  return {
+    read: (params, flag) => {
+      const text = params.get(flag);
+      return text === on ? true : text === off ? false : undefined;
+    },
+    check: (value) => (typeof value === 'boolean' ? value : undefined),
+    write: (value) => (value ? on : off),
+  };
+}
+
+/** A whole number from 1 to `most`. */
+const wholeUpTo = (value: unknown, most: number): number | undefined =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= most
+    ? value
+    : undefined;
+
+/** Break it! kinds as the run takes them: known, at least one, each once, in `BREAK_KINDS` order. */
+function breakKinds(value: unknown): readonly BreakKind[] | undefined {
+  if (!Array.isArray(value) || value.length === 0) return undefined;
+  if (!value.every((k) => BREAK_KINDS.some((b) => b === k))) return undefined;
+  return BREAK_KINDS.filter((k) => value.includes(k));
+}
+
+/**
+ * Every switch, once. Today's links read as they always have: `?hard=0` and
+ * `?aim=1` turn hard mode and two-tap off, `?snag=1`, `?tip=1` and `?perks=1`
+ * turn theirs on, `?monsters` counts whatever its value (`?monsters=0`
+ * included), and `?area=N` and `?seed=N` take a number (blank, 0 or not a
+ * number names nothing). What's new says every value, "off" included:
+ * `?hard=1`, `?aim=2`, `?perks=0`, `?snag=off|normal|always` (and `?tip=`),
+ * `?breakit=bar,mash,juke`, `?pickups=0|1`, `?events=off|normal|<event id>`.
+ * A value a switch doesn't take names nothing, so the layer below holds.
+ */
+const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
+  seed: {
+    flag: 'seed',
+    read: (params, flag) => Number(params.get(flag)) || undefined,
+    check: (value) => (value === null ? null : wholeUpTo(value, Number.MAX_SAFE_INTEGER)),
+    write: (value) => String(value),
+  },
+  area: {
+    flag: 'area',
+    read: (params, flag) => Number(params.get(flag)) || undefined,
+    check: (value) => wholeUpTo(value, arcadeTuning.run.areas),
+    write: (value) => String(value),
+  },
+  hard: { flag: 'hard', ...onOff() },
+  twoTapAim: { flag: 'aim', ...onOff('2', '1') },
+  snagIt: { flag: 'snag', ...oneOf(CATCH_SETTINGS, { '1': 'always' }) },
+  tipDrill: { flag: 'tip', ...oneOf(CATCH_SETTINGS, { '1': 'always' }) },
+  breakItKinds: {
+    flag: 'breakit',
+    read: (params, flag) => {
+      const text = params.get(flag);
+      return text === null ? undefined : breakKinds(text.split(','));
+    },
+    check: breakKinds,
+    write: (value) => value.join(','),
+  },
+  pickupsOn: { flag: 'pickups', ...onOff() },
+  fieldEvents: {
+    flag: 'events',
+    ...oneOf<FieldEventsSetting>(['off', 'normal', ...GENERIC_EVENTS]),
+  },
+  startWithPerks: { flag: 'perks', ...onOff() },
+  monsters: {
+    flag: 'monsters',
+    read: (params, flag) => (params.has(flag) ? true : undefined),
+    check: (value) => (typeof value === 'boolean' ? value : undefined),
+    write: () => '1',
+  },
+};
+
+const SWITCH_NAMES = Object.keys(RUN_DEFAULTS) as (keyof RunOptions)[];
+
+/** Some of the run options, each named one with its value. */
+export type NamedOptions = { -readonly [K in keyof RunOptions]?: RunOptions[K] };
+
 /** What a link says: the run options it names, and the switches only a link has. */
 export interface Link {
   readonly run: Partial<RunOptions>;
@@ -66,27 +203,10 @@ export interface Link {
   readonly farmSong: number;
 }
 
-/**
- * A page's query read for its options. `?hard=0` and `?aim=1` turn hard mode
- * and two-tap throwing off, and `?snag=1`, `?tip=1` and `?perks=1` turn theirs
- * on; any other value of those leaves the default, so old links
- * (`?hard=1&aim=2`) play the defaults. `?monsters`, `?win` and `?video` count
- * whatever their value, `?monsters=0` included, as they always have.
- * `?area=N`, `?seed=N` and `?farmSong=N` take a number; blank, 0 or not a
- * number leaves the default.
- */
+/** A page's query read for its options (each switch's flag, in `SWITCHES`), and the link-only `?win`, `?video` and `?farmSong=N`. */
 export function readLink(params: URLSearchParams): Link {
-  const run: { -readonly [K in keyof RunOptions]?: RunOptions[K] } = {};
-  const seed = Number(params.get('seed'));
-  if (seed) run.seed = seed;
-  const area = Number(params.get('area'));
-  if (area) run.area = area;
-  if (params.get('hard') === '0') run.hard = false;
-  if (params.get('aim') === '1') run.twoTapAim = false;
-  if (params.get('snag') === '1') run.snagAlways = true;
-  if (params.get('tip') === '1') run.tipAlways = true;
-  if (params.get('perks') === '1') run.startWithPerks = true;
-  if (params.has('monsters')) run.monsters = true;
+  const run: NamedOptions = {};
+  for (const key of SWITCH_NAMES) set(run, key, SWITCHES[key].read(params, SWITCHES[key].flag));
   return {
     run,
     win: params.has('win'),
@@ -95,7 +215,112 @@ export function readLink(params: URLSearchParams): Link {
   };
 }
 
+/** Name `key` in `named`, if there's a value for it. */
+function set<K extends keyof RunOptions>(
+  named: NamedOptions,
+  key: K,
+  value: RunOptions[K] | undefined,
+): void {
+  if (value !== undefined) named[key] = value;
+}
+
+/** Whether two values of a switch are the same: Break it! kinds as a set. */
+function same<K extends keyof RunOptions>(key: K, a: RunOptions[K], b: RunOptions[K]): boolean {
+  if (Array.isArray(a) && Array.isArray(b))
+    return a.length === b.length && a.every((k: BreakKind) => b.includes(k));
+  return a === b;
+}
+
+/** The switches these options name with a value other than the default, in `RUN_DEFAULTS` order. */
+export function changedSwitches(named: Partial<RunOptions>): (keyof RunOptions)[] {
+  return SWITCH_NAMES.filter((key) => {
+    const value = named[key];
+    return value !== undefined && !same(key, value, RUN_DEFAULTS[key]);
+  });
+}
+
+/** Only the switches these options change from the defaults. */
+export function changesOnly(named: Partial<RunOptions>): Partial<RunOptions> {
+  const out: NamedOptions = {};
+  for (const key of changedSwitches(named)) set(out, key, named[key]);
+  return out;
+}
+
+/** A link's query (`?…`, or '' for none) naming every switch these options change from the defaults (Copy link, d8 test 9). */
+export function linkFor(named: Partial<RunOptions>): string {
+  const params = new URLSearchParams();
+  for (const key of changedSwitches(named)) {
+    const value = named[key];
+    if (value !== undefined) params.set(SWITCHES[key].flag, write(key, value));
+  }
+  const query = params.toString().replace(/%2C/g, ',');
+  return query ? `?${query}` : '';
+}
+
+const write = <K extends keyof RunOptions>(key: K, value: RunOptions[K]): string =>
+  SWITCHES[key].write(value);
+
+/**
+ * Values from outside (a saved setup) checked switch by switch: each one a
+ * switch takes, and the rest, named so they can be warned about.
+ */
+export function checkSwitches(raw: Readonly<Record<string, unknown>>): {
+  readonly named: Partial<RunOptions>;
+  readonly bad: readonly { readonly key: string; readonly value: unknown }[];
+  readonly unknown: readonly string[];
+} {
+  const named: NamedOptions = {};
+  const bad: { key: string; value: unknown }[] = [];
+  const unknown: string[] = [];
+  for (const [key, value] of Object.entries(raw)) {
+    const name = SWITCH_NAMES.find((k) => k === key);
+    if (!name) {
+      unknown.push(key);
+      continue;
+    }
+    const checked = SWITCHES[name].check(value);
+    if (checked === undefined) bad.push({ key, value });
+    else set(named, name, checked);
+  }
+  return { named, bad, unknown };
+}
+
+/**
+ * The switches the sim's `createRun` takes: all but the seed and the area
+ * (its own arguments) and the monster team (the roster it's given).
+ */
+export type RunSwitches = Omit<RunOptions, 'seed' | 'area' | 'monsters'>;
+
+/** The switches of these run options that `createRun` takes. */
+export function runSwitches(o: RunOptions): RunSwitches {
+  return {
+    hard: o.hard,
+    twoTapAim: o.twoTapAim,
+    snagIt: o.snagIt,
+    tipDrill: o.tipDrill,
+    breakItKinds: o.breakItKinds,
+    pickupsOn: o.pickupsOn,
+    fieldEvents: o.fieldEvents,
+    startWithPerks: o.startWithPerks,
+  };
+}
+
 /** The run options played: each named one, and the defaults for the rest. */
 export function runOptionsFrom(named: Partial<RunOptions>): RunOptions {
   return { ...RUN_DEFAULTS, ...named };
+}
+
+/**
+ * The run options a page plays (d3, d5), switch by switch: the link's, else
+ * the saved setup's, else the defaults. Practice (a play or event practice
+ * link) ignores the saved setup: its link and the defaults only. A setup that
+ * couldn't be read counts as nothing saved.
+ */
+export function runOptionsFor(
+  link: Partial<RunOptions>,
+  read: SetupRead,
+  practice: boolean,
+): RunOptions {
+  const saved = !practice && read.kind === 'saved' ? read.setup : {};
+  return { ...RUN_DEFAULTS, ...saved, ...link };
 }

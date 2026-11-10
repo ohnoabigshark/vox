@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { RUN_DEFAULTS, readLink, runOptionsFrom } from '../../src/arcade/content/runOptions';
+import {
+  RUN_DEFAULTS,
+  readLink,
+  runOptionsFrom,
+  runSwitches,
+} from '../../src/arcade/content/runOptions';
 import { createRun } from '../../src/arcade/sim/run';
 import { noPerks } from '../../src/arcade/sim/team';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
@@ -12,14 +17,17 @@ import { FROG_RAIN } from '../../src/arcade/content/fieldEvents';
 const played = (query: string) => runOptionsFrom(readLink(new URLSearchParams(query)).run);
 
 describe('the defaults file (test 1)', () => {
-  it('names every switch: hard mode and two-tap on, area 1, a random seed, the rest off', () => {
+  it('names every switch: hard mode and two-tap on, area 1, a random seed, SNAG IT! and the tip drill Normal, every Break it! kind, pickups and field events on, perks and monsters off', () => {
     expect(RUN_DEFAULTS).toEqual({
       seed: null,
       area: 1,
       hard: true,
       twoTapAim: true,
-      snagAlways: false,
-      tipAlways: false,
+      snagIt: 'normal',
+      tipDrill: 'normal',
+      breakItKinds: ['bar', 'mash', 'juke'],
+      pickupsOn: true,
+      fieldEvents: 'normal',
       startWithPerks: false,
       monsters: false,
     });
@@ -45,12 +53,12 @@ describe("today's links read the same (test 2)", () => {
       ['?hard=0&aim=1', { hard: false, twoTapAim: false }],
       ['?area=3', { area: 3 }],
       ['?seed=5', { seed: 5 }],
-      ['?snag=1', { snagAlways: true }],
-      ['?tip=1', { tipAlways: true }],
+      ['?snag=1', { snagIt: 'always' }],
+      ['?tip=1', { tipDrill: 'always' }],
       ['?perks=1', { startWithPerks: true }],
       ['?monsters', { monsters: true }],
       ['?monsters=1', { monsters: true }],
-      ['?seed=7&hard=0&snag=1&aim=1', { seed: 7, hard: false, snagAlways: true, twoTapAim: false }],
+      ['?seed=7&hard=0&snag=1&aim=1', { seed: 7, hard: false, snagIt: 'always', twoTapAim: false }],
     ];
     for (const [query, named] of cases) {
       expect(readLink(new URLSearchParams(query)).run, query).toEqual(named);
@@ -93,13 +101,19 @@ describe('one set of defaults (test 3)', () => {
     expect({
       hard: s.hard,
       twoTapAim: s.twoTapAim,
-      snagAlways: s.snagAlways,
-      tipAlways: s.tipAlways,
+      snagIt: s.snagIt,
+      tipDrill: s.tipDrill,
+      breakItKinds: s.breakItKinds,
+      pickupsOn: s.pickupsOn,
+      fieldEvents: s.fieldEvents,
     }).toEqual({
       hard: RUN_DEFAULTS.hard,
       twoTapAim: RUN_DEFAULTS.twoTapAim,
-      snagAlways: RUN_DEFAULTS.snagAlways,
-      tipAlways: RUN_DEFAULTS.tipAlways,
+      snagIt: RUN_DEFAULTS.snagIt,
+      tipDrill: RUN_DEFAULTS.tipDrill,
+      breakItKinds: RUN_DEFAULTS.breakItKinds,
+      pickupsOn: RUN_DEFAULTS.pickupsOn,
+      fieldEvents: RUN_DEFAULTS.fieldEvents,
     });
     expect(s.hard).toBe(true);
     expect(s.twoTapAim).toBe(true);
@@ -107,10 +121,8 @@ describe('one set of defaults (test 3)', () => {
   });
 
   it('a run made with the defaults spelled out is the same run', () => {
-    const { hard, twoTapAim, snagAlways, tipAlways, startWithPerks } = RUN_DEFAULTS;
-    expect(createRun(4)).toEqual(
-      createRun(4, undefined, 0, { hard, twoTapAim, snagAlways, tipAlways, startWithPerks }),
-    );
+    const switches = runSwitches(RUN_DEFAULTS);
+    expect(createRun(4)).toEqual(createRun(4, undefined, 0, switches));
   });
 });
 
@@ -118,8 +130,8 @@ describe('practice ignores the run options it is not made for (d5, decision map 
   const play = PLAY_POOL[0] as Play;
   const withEvery = {
     hard: true,
-    snagAlways: true,
-    tipAlways: true,
+    snagIt: 'always',
+    tipDrill: 'always',
     startWithPerks: true,
   } as const;
 

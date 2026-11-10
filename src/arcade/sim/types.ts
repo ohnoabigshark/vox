@@ -9,6 +9,7 @@
  * series n (from 0) starts its line of scrimmage at y = 10n, its first-down
  * line at 10n + 10, and the goal line is at 40. Times are seconds.
  */
+import type { CatchSetting, FieldEventsSetting } from '../content/runOptions';
 import type { EventLook, FieldEvent } from '../content/fieldEvents';
 import type { Play } from '../content/plays';
 import type { StatusName } from '../content/statuses';
@@ -453,10 +454,16 @@ export interface RunState {
   readonly hard: boolean;
   /** Two-tap throwing (on by default: `RUN_DEFAULTS`): the first THROW stops the line, the second lobs it as far as the marker. */
   readonly twoTapAim: boolean;
-  /** ?snag=1: SNAG IT! from the first series, not only from series 5 (docs/SNAG.md). */
-  readonly snagAlways: boolean;
-  /** ?tip=1: the tip drill from the first series (docs/TIP.md); with ?snag=1 too, either at random. */
-  readonly tipAlways: boolean;
+  /** SNAG IT! off, normal (from series 5) or always (from the first; docs/SNAG.md); the run options' `snagIt`. */
+  readonly snagIt: CatchSetting;
+  /** The tip drill, as `snagIt` (docs/TIP.md); with both always, either at random. */
+  readonly tipDrill: CatchSetting;
+  /** The Break it! kinds a tackle can deal (the run options', in `BREAK_KINDS` order). */
+  readonly breakItKinds: readonly BreakKind[];
+  /** Whether pickups are laid on the field (the run options' `pickupsOn`). */
+  readonly pickupsOn: boolean;
+  /** Field events on ordinary stretches: off, the seed's, or one chosen (the run options'). */
+  readonly fieldEvents: FieldEventsSetting;
   /** Fixed steps since the run began, and the time they add up to. */
   step: number;
   time: number;

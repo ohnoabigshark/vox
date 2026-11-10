@@ -96,8 +96,10 @@ export class RunRecorder {
       modes: {
         hard: state.hard,
         twoTap: state.twoTapAim,
-        snag: state.snagAlways,
-        tip: state.tipAlways,
+        // Whether each catch test was on for every contested ball (?snag=1, ?tip=1, or the
+        // dev setup's Always); Off and the other new switches aren't kept (DEV_SETUP.md).
+        snag: state.snagIt === 'always',
+        tip: state.tipDrill === 'always',
       },
       startedAt: new Date(meta.now).toISOString(),
       endedAt: null,
