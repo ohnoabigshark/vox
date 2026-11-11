@@ -6,12 +6,14 @@
  * puts it at https://…ts.net:8443/vox-log/ on the tailnet.
  *
  * It also carries models to and from the phone for the Goxel round trip,
- * under /models (docs/ART.md, The round trip): the second half of this file.
+ * under /models (docs/ART.md, The round trip), and serves the built game
+ * under /vox (docs/BUGS.md B11), so the phone asks for the page each time.
  *
  * Node runs this file as it is (`node tools/playLog/server.ts`, Node 24
- * strips the types), so it imports nothing but Node's own modules. That is
- * why its request handling repeats the bench log's (tools/benchLog.ts)
- * rather than sharing it: sharing would need a build step (review r7).
+ * strips the types), so it imports no other file of ours, only Node's own
+ * modules and installed packages (sirv). That is why its request handling
+ * repeats the bench log's (tools/benchLog.ts) rather than sharing it:
+ * sharing would need a build step (review r7).
  */
 import {
   appendFile,
@@ -23,9 +25,10 @@ import {
   stat,
   writeFile,
 } from 'node:fs/promises';
-import { createServer } from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { basename, dirname, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import sirv from 'sirv';
 
 /** Started fresh once past this; the last `KEEP` old ones kept (l6). */
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -112,6 +115,8 @@ export function configFrom(env: Record<string, string | undefined>): {
   port: number;
   /** The models folder (VOX_MODELS); blank leaves the models refusing, not the play log. */
   models: string;
+  /** The built game's folder (VOX_GAME, the `current` symlink); blank leaves /vox refusing, not the play log. */
+  game: string;
 } {
   const file = env.PLAY_LOG ?? '';
   const portText = env.PLAY_LOG_PORT ?? '';
@@ -121,7 +126,51 @@ export function configFrom(env: Record<string, string | undefined>): {
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
     throw new Error(`PLAY_LOG_PORT is not a port: ${portText}`);
   }
-  return { file, port, models: env.VOX_MODELS ?? '' };
+  return { file, port, models: env.VOX_MODELS ?? '', game: env.VOX_GAME ?? '' };
+}
+
+/** Where the built game is, as the service sees it (`tailscale serve` proxies /vox/ here with the path kept). */
+const GAME_PATH = '/vox';
+
+/** The paths the built game answers. */
+export const isGamePath = (path: string): boolean =>
+  path === GAME_PATH || path.startsWith(`${GAME_PATH}/`);
+
+/** A year: the longest a browser is told to keep a file whose name carries its contents' hash. */
+const A_YEAR = 365 * 24 * 60 * 60;
+
+/**
+ * The built game from `dir` (docs/BUGS.md B11). Every page answers
+ * `no-cache` with an ETag, so a browser asks each time and gets a 304 until
+ * the build changes; Vite's `assets/`, named by a hash of their contents,
+ * are kept a year. sirv's `dev` mode looks each request up on disk rather
+ * than listing the folder once, so a swapped `current` symlink is served on
+ * the next request; it also keeps every path inside `dir`.
+ */
+export function gameServer(dir: string): (req: IncomingMessage, res: ServerResponse) => void {
+  if (!dir) {
+    return (_req, res) => {
+      console.error('503: VOX_GAME is blank');
+      res
+        .writeHead(503, { 'content-type': 'text/plain; charset=utf-8' })
+        .end("VOX_GAME is blank: name the built game's folder");
+    };
+  }
+  const files = sirv(dir, {
+    dev: true,
+    etag: true,
+    setHeaders: (res, path) => {
+      if (path.startsWith('/assets/')) {
+        res.setHeader('Cache-Control', `public, max-age=${A_YEAR}, immutable`);
+      }
+    },
+  });
+  return (req, res) => {
+    const url = req.url ?? '/';
+    // sirv answers from the folder's root: take off /vox, keeping the query.
+    req.url = url.slice(GAME_PATH.length) || '/';
+    files(req, res);
+  };
 }
 
 /**
@@ -363,9 +412,10 @@ export function folderStore(dir: string): ModelStore {
 }
 
 function serve(): void {
-  const { file, port, models } = configFrom(process.env);
+  const { file, port, models, game } = configFrom(process.env);
   const append = rotatingAppend(file, MAX_BYTES, KEEP);
   const store = models ? folderStore(models) : null;
+  const serveGame = gameServer(game);
   const answer = (
     method: string,
     path: string,
@@ -384,6 +434,10 @@ function serve(): void {
           type: 'text/plain',
         }));
   const server = createServer((req, res) => {
+    if (isGamePath((req.url ?? '/').split('?')[0] ?? '/')) {
+      serveGame(req, res);
+      return;
+    }
     const chunks: Buffer[] = [];
     let size = 0;
     req.on('data', (c: Buffer) => {
@@ -414,7 +468,7 @@ function serve(): void {
   // Loopback only: the droplet has a public address (CLAUDE.md, This machine).
   server.listen(port, '127.0.0.1', () => {
     console.log(
-      `vox-log: appending to ${file}, models in ${models || '(VOX_MODELS is blank)'}, on 127.0.0.1:${port}`,
+      `vox-log: appending to ${file}, models in ${models || '(VOX_MODELS is blank)'}, the game from ${game || '(VOX_GAME is blank)'}, on 127.0.0.1:${port}`,
     );
   });
 }
