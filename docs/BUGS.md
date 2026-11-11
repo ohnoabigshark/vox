@@ -218,7 +218,7 @@ case and a sweep of 2,000 starting lines failed on the old code ("1st & 11")
 and pass now; a part yard still rounding up passed on its first run, a
 regression guard.
 
-## B11. The phone kept playing an old build after a new one was served
+## B11. The phone kept playing an old build after a new one was served (fixed)
 
 Found by the user **2026-11-11 08:35 New York** (13:35 UTC): Route was
 greyed on the player's menu, though hot routes (`bd7f329`) had been served
@@ -256,3 +256,15 @@ server on a temporary build folder:
 
 Then live: the served page's headers through Tailscale, and a new build
 showing on the phone without incognito.
+
+**Fixed 2026-11-11** on `fresh-page`: `gameServer` in
+`tools/playLog/server.ts`; `vox-log` has `VOX_GAME` (its unit,
+`.claude/systemd/vox-log.service` in `/root/projects`), and `tailscale
+serve` proxies `/vox` to it (`docs/stacks/vox.md` h2 there, with how to go
+back). The six tests went red, then green. Probing it live found a seventh:
+`/vox` without its slash got the page, whose relative paths then miss the
+folder; it redirects to `/vox/` now (red, then green), and the mount is
+`/vox`, not `/vox/`, so Tailscale passes the bare path on. Live through
+Tailscale: the page and the dev pages `no-cache` with an ETag, a 304 asked
+again with it, `assets/` a year, and the play log and the models page as
+before.

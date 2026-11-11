@@ -36,7 +36,11 @@ esrauch's roadmap is `MILESTONES.md`.
 - **The built game is served at `https://…ts.net:8443/vox/`,** rebuilt by git
   hooks after every commit, merge and branch checkout in this checkout, and
   swapped in only if the build passes (`docs/stacks/vox.md` in
-  `/root/projects`; log: `/root/.local/share/vox-serve/rebuild.log`).
+  `/root/projects`; log: `/root/.local/share/vox-serve/rebuild.log`). The
+  `vox-log` service hands it out, telling browsers to ask for the page each
+  time, so a new build shows on the phone's next open (`docs/BUGS.md` B11).
+  It runs from this checkout: restart it (`systemctl restart vox-log`) after
+  checking out a branch that changes `tools/playLog/`.
 - **The play log** (`docs/PLAY_LOG.md`): every game on a tailnet build sends
   each sim event, timestamped in UTC, to
   `/root/.local/share/vox-serve/play.jsonl`, through the `vox-log` service.

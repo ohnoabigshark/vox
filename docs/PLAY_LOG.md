@@ -15,7 +15,9 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   Node directly (no build step), and appends to the file named by
   `PLAY_LOG`. It also hands models to and from the phone for Goxel, under
   `/vox-log/models` (`docs/ART.md`, The round trip), from the folder named
-  by `VOX_MODELS`.
+  by `VOX_MODELS`, and since 2026-11-11 serves the built game itself at
+  `/vox/`, from `VOX_GAME`, with pages marked `no-cache` (`docs/BUGS.md`
+  B11).
 - **What a line holds (l2):** one line per sim event: every event the sim
   reports is a moment (a snap, a throw, a catch, a tap test's start and
   grade, a tackle, a pickup, a field event, the crows, the down's end, a
