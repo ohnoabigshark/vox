@@ -667,6 +667,18 @@ Still open:
     a changed route lasts this down only and the card stays as drawn (a5);
     the new route is picked from a short list of set routes, not dragged
     (a6).
+    Round 2, 2026-11-11: Route works for Catchers and a Runner on a
+    passing play, greyed for Blockers and a handoff's Runner (b1); six set
+    routes, Go 16 yards, Slant 2 up then in to 12, Out 5 up, out 5 and up
+    to 14, Post 8 up then in to 16, Corner 8 up then out to 16, Curl 10 up
+    and back (b2); "out" is toward the player's own sideline (b3); Flip
+    keeps a changed route, mirrored, and calling a card drops every change
+    (b4); free, as often as you like until HIKE! (b5); the word is **hot
+    route**, a game action in the record and the play log (b7). b6's route
+    list was rejected: _"Tapping route just goes through a linked list of
+    the route changes. We don't need a card we can just show the route on
+    the screen."_ Round 3 (c1–c4) asks that loop, the tests and the whole
+    design.
   - **Changing a route after the call** (the user, 2026-11-11: "one thing
     to consider with the player menu is the ability to change their route.
     I don't know if we have the ability to edit the play after it's chosen
