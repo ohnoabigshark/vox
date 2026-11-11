@@ -3,11 +3,12 @@
  * from the sim's events. Plain data, saved as JSON, so a field added here
  * needs a format step in store.ts.
  */
+import type { HotRoute } from '../content/hotRoutes';
 import type { Play } from '../content/plays';
 import type { DefenderKind, Form, Grade, PickupKind, Position, TipResult } from '../sim/types';
 
 /** The saved format's version; store.ts brings older ones up to it. */
-export const RECORD_FORMAT = 4;
+export const RECORD_FORMAT = 5;
 
 /** Jack's id in the record: he throws every pass, and isn't on the roster (y2). */
 export const JACK = 0;
@@ -41,6 +42,8 @@ export interface PlayResult {
   /** The call: the play's id (its copy is in the record's `plays`), and whether it was flipped. */
   readonly play: string | null;
   readonly flipped: boolean;
+  /** The hot routes run in place of the card's (docs/PLAYER_MENU.md, b7): who ran which, in roster order. */
+  readonly hotRoutes: readonly { readonly player: number; readonly route: HotRoute }[];
   readonly kind: PlayKind;
   readonly outcome: Outcome;
   /** Yards gained, as the game counted them. */

@@ -65,6 +65,7 @@ const down: PlayResult = {
   los: 0,
   play: 'dive',
   flipped: false,
+  hotRoutes: [],
   kind: 'rush',
   outcome: 'tackled',
   gained: 4,
@@ -293,7 +294,50 @@ describe('a run made with a dev setup (map round 5, q3)', () => {
     const { saved, problem } = await loaded(statsStore(storage, clock));
     expect(problem).toBeNull();
     expect(saved.runs.map((r) => r.record?.setup)).toEqual(['', '']);
-    expect(RECORD_FORMAT).toBe(4);
+  });
+});
+
+describe('a down with hot routes (docs/PLAYER_MENU.md, b7)', () => {
+  it('a format-4 save is brought up to format 5: its downs had no hot routes', async () => {
+    const storage = fakeStorage();
+    /** A record as format 4 kept it: downs with no hot routes. */
+    const asFormat4 = (r: RunRecord) => ({
+      ...r,
+      downs: r.downs.map((d) =>
+        Object.fromEntries(Object.entries(d).filter(([k]) => k !== 'hotRoutes')),
+      ),
+    });
+    const ended = { ...run('a', { downs: [down] }), endedAt: '2026-11-03T12:00:00.000Z' };
+    const allTime = { hard: emptyAllTime(), normal: emptyAllTime() };
+    storage.data.set(
+      'getJackBack.stats',
+      JSON.stringify({
+        format: 4,
+        runs: [{ summary: summaryOf(ended), record: asFormat4(ended) }],
+        allTime,
+        achievements: {},
+        checked: ACHIEVEMENTS.map((a) => a.id),
+      }),
+    );
+    storage.data.set(
+      'getJackBack.stats.open',
+      JSON.stringify({ format: 4, record: asFormat4(run('b', { downs: [down] })), savedAt: NOW }),
+    );
+    const { saved, problem } = await loaded(statsStore(storage, clock));
+    expect(problem).toBeNull();
+    expect(saved.runs.map((r) => r.record?.downs.map((d) => d.hotRoutes))).toEqual([[[]], [[]]]);
+    expect(RECORD_FORMAT).toBe(5);
+  });
+
+  it('a down’s hot routes are kept as they were', async () => {
+    const storage = fakeStorage();
+    const hot = { ...down, hotRoutes: [{ player: 5, route: 'slant' as const }] };
+    const ended = { ...run('a', { downs: [hot] }), endedAt: '2026-11-03T12:00:00.000Z' };
+    const store = statsStore(storage, clock);
+    await store.load();
+    await store.close(ended);
+    const { saved } = await loaded(statsStore(storage, clock));
+    expect(saved.runs[0]?.record?.downs[0]?.hotRoutes).toEqual([{ player: 5, route: 'slant' }]);
   });
 });
 

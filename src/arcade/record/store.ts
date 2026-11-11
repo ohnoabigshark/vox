@@ -66,11 +66,14 @@ function slicksToGravestones(record: unknown): unknown {
  * g3), so a down's pickups say so.
  * 3 → 4 (2026-11-10): a run says what dev setup it was made with (map
  * round 5, q3); runs saved before had none.
+ * 4 → 5 (2026-11-11): a down says who ran a hot route (docs/PLAYER_MENU.md,
+ * b7); downs saved before had none.
  */
 const UPGRADES: Readonly<Record<number, UpgradeStep>> = {
   1: (saved) => ({ ...saved, format: 2, achievements: {}, checked: [] }),
   2: recordsTo(3, slicksToGravestones),
   3: recordsTo(4, withNoSetup),
+  4: recordsTo(5, withNoHotRoutes),
 };
 
 /**
@@ -93,6 +96,13 @@ function recordsTo(format: number, fix: (record: unknown) => unknown): UpgradeSt
 /** A run record from before format 4, made with no dev setup (one that's null stays null). */
 function withNoSetup(record: unknown): unknown {
   return isRecord(record) ? { setup: '', ...record } : record;
+}
+
+/** A run record from before format 5: its downs had no hot routes. */
+function withNoHotRoutes(record: unknown): unknown {
+  if (!isRecord(record) || !Array.isArray(record.downs)) return record;
+  const downs = record.downs.map((d: unknown) => (isRecord(d) ? { hotRoutes: [], ...d } : d));
+  return { ...record, downs };
 }
 
 const UNAVAILABLE = "This browser isn't keeping your stats (private browsing?).";

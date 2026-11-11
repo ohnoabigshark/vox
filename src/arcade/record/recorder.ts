@@ -49,6 +49,7 @@ interface Draft {
   readonly los: number;
   play: string | null;
   flipped: boolean;
+  hotRoutes: PlayResult['hotRoutes'];
   thrown: boolean;
   handedOff: boolean;
   sacked: boolean;
@@ -148,7 +149,11 @@ export class RunRecorder {
         return;
       }
       case 'snapped':
-        this.draftOf(prev);
+        // The hot routes as they stood at the snap: whatever calls and Flips came before.
+        this.draftOf(prev).hotRoutes = hotRoutesOf(prev);
+        return;
+      // A change before the snap: the snap records what stood (above).
+      case 'hotRoute':
         return;
       case 'thrown':
         this.draftOf(prev).thrown = true;
@@ -313,6 +318,7 @@ function newDraft(state: RunState): Draft {
     los: series.los,
     play: state.called === null ? null : (play?.id ?? null),
     flipped: state.play.flipped,
+    hotRoutes: [],
     thrown: false,
     handedOff: false,
     sacked: false,
@@ -347,6 +353,7 @@ function finished(d: Draft, next: RunState, result: DownResult, gained: number):
     los: d.los,
     play: d.play,
     flipped: d.flipped,
+    hotRoutes: d.hotRoutes,
     kind,
     outcome,
     gained,
@@ -375,6 +382,14 @@ function endSpot(next: RunState, d: Draft): number {
   if (ball.at === 'dead') return ball.pos.y;
   if (ball.at === 'carried') return spot(next, ball.by) ?? d.los;
   return d.los;
+}
+
+/** Who has which hot route, by record id, in roster order. */
+function hotRoutesOf(state: RunState): PlayResult['hotRoutes'] {
+  return state.roster.flatMap((p, slot) => {
+    const route = state.hotRoutes[slot];
+    return route ? [{ player: p.id, route }] : [];
+  });
 }
 
 /** A body's record id: Jack for the QB, else the roster player in its slot. */
