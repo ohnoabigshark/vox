@@ -217,3 +217,42 @@ measures, so 10.000000000000004 reads 10 and 1.53 still reads 2. Tests in
 case and a sweep of 2,000 starting lines failed on the old code ("1st & 11")
 and pass now; a part yard still rounding up passed on its first run, a
 regression guard.
+
+## B11. The phone kept playing an old build after a new one was served
+
+Found by the user **2026-11-11 08:35 New York** (13:35 UTC): Route was
+greyed on the player's menu, though hot routes (`bd7f329`) had been served
+since 13:30 UTC. The play log's lines from 13:35 to 13:37 say build
+`a2a80f0`, the strip-only build; an incognito tab showed the new one.
+
+**Why:** the built game is served from disk by `tailscale serve`
+(`docs/stacks/vox.md` h2 in `/root/projects`), which sends `Last-Modified`
+and no `Cache-Control`. A browser then keeps the page for a guessed time,
+about a tenth of its age: `a2a80f0` had been up since 02:00 UTC, the phone
+loaded it at 12:41, so it was kept until about 13:45 without asking. It
+happens whenever a build is replaced, more often the longer the old one was
+up. `tailscale serve` can't add headers.
+
+**Decided 2026-11-11** (the player's menu map, round 5, s1): the play log's
+service, `vox-log`, already resident, serves the built game at `/vox/`
+from `VOX_GAME` (the `current` symlink), through `sirv`, a maintained
+static file server, rather than code of our own. Every page answers
+`Cache-Control: no-cache`, so the browser asks each time and gets a 304
+while the build is the same; `assets/`, whose names carry a hash of their
+contents, are kept for a year (`immutable`). `tailscale serve` then
+proxies `/vox/` to it. Alternatives not taken: the game checking for a
+newer build when it opens (it would also cover the Pages site, which keeps
+pages 10 minutes), or leaving it.
+
+**Tests, written first** (`tests/tools/gameServe.test.ts`), against a real
+server on a temporary build folder:
+
+1. A page (`/vox/`, `index.html`, a dev page) answers `no-cache` with an
+   ETag, and asking again with that ETag answers 304.
+2. A file under `assets/` answers a year, `immutable`.
+3. Swapping the `current` symlink serves the new build on the next request.
+4. A path that climbs out of the build (`..`, encoded or not) gets no file.
+5. A blank `VOX_GAME` answers 503 naming it, and the play log still works.
+
+Then live: the served page's headers through Tailscale, and a new build
+showing on the phone without incognito.
