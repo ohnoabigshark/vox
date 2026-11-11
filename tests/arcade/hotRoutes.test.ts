@@ -199,7 +199,7 @@ describe('the routes (test 3)', () => {
     ]);
     expect(shape(3)).toEqual([
       { x: 0, y: 5 },
-      { x: 5, y: 6 },
+      { x: 5, y: 5 },
       { x: 5, y: 14 },
     ]);
     expect(shape(4)).toEqual([
@@ -283,6 +283,24 @@ describe('Flip and cards (test 5)', () => {
     const flipped = dispatch(s, { type: 'flip' }).state;
     expect(flipped.hotRoutes).toEqual({ [C1]: 'slant' });
     expect(routeFrom(flipped, C1)).toEqual(routeFrom(s, C1));
+  });
+
+  it('Flip drops a hot route its player can no longer take: R2 on Dive becomes the handoff Runner', () => {
+    const s = acted(calledRun(DIVE), ...taps(R2, 1));
+    expect(s.hotRoutes).toEqual({ [R2]: 'go' });
+    const { state: flipped, events } = dispatch(s, { type: 'flip' });
+    expect(flipped.hotRoutes).toEqual({});
+    expect(routeWorks(flipped, R2)).toBe(false);
+    expect(events).toContainEqual({ type: 'hotRoute', id: body(s, R2).id, slot: R2, route: null });
+  });
+
+  it('Flip drops a hot route that would now leave the field: C2’s Out on Flipper', () => {
+    const FLIPPER = PLAY_POOL.find((p) => p.id === 'flipper')!;
+    const s = acted(calledRun(FLIPPER), ...taps(C2, 3));
+    expect(s.hotRoutes).toEqual({ [C2]: 'out' });
+    const { state: flipped, events } = dispatch(s, { type: 'flip' });
+    expect(flipped.hotRoutes).toEqual({});
+    expect(events).toContainEqual({ type: 'hotRoute', id: body(s, C2).id, slot: C2, route: null });
   });
 
   it('calling another card, or the same one, drops them all', () => {

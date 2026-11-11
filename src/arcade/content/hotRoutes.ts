@@ -20,7 +20,7 @@ export const HOT_ROUTES: readonly HotRoute[] = ['go', 'slant', 'out', 'post', 'c
 export type HotRoutes = Partial<Record<number, HotRoute>>;
 
 /** These hot routes with this roster slot's set to `route`, or taken away (null: back on the card's). */
-export function hotRouteSet(hot: HotRoutes, slot: number, route: HotRoute | null): HotRoutes {
+export function hotRoutesWith(hot: HotRoutes, slot: number, route: HotRoute | null): HotRoutes {
   const rest = Object.fromEntries(Object.entries(hot).filter(([k]) => Number(k) !== slot));
   return route ? { ...rest, [slot]: route } : rest;
 }
@@ -40,7 +40,7 @@ const SHAPES: Readonly<Record<HotRoute, readonly (readonly [number, number])[]>>
   ],
   out: [
     [0, 5],
-    [5, 6],
+    [5, 5],
     [5, 14],
   ],
   post: [

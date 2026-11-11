@@ -8,7 +8,7 @@ import { AREAS, DEFENDERS, areaAt, type DefenseSpec } from '../content/defense';
 import { PLAY_POOL, startingPlaybook } from '../content/playPool';
 import { OFFERED_PERKS } from '../content/perks';
 import type { Play } from '../content/plays';
-import { hotRouteSet, hotRoutesFor, nextHotRoute, withHotRoutes } from '../content/hotRoutes';
+import { hotRoutesWith, hotRoutesFor, nextHotRoute, withHotRoutes } from '../content/hotRoutes';
 import { playSlot } from '../content/team';
 import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
@@ -370,7 +370,7 @@ export function setUpDown(state: RunState, events: ArcadeEvent[]): void {
   state.play = { index: state.hand[first] ?? 0, flipped: state.flipped };
   // A hot route is the down's only (a5).
   state.hotRoutes = {};
-  const play = state.playbook[state.play.index];
+  const play = cardNow(state);
   if (!play) throw new Error('The playbook has no plays');
   const players = lineUpTeam(state, play, state.flipped, series.los, state.nextId);
   state.nextId += players.length;
@@ -492,22 +492,29 @@ function call(state: RunState, hand: number, events: ArcadeEvent[]): void {
   events.push({ type: 'called', id: play.id, play: play.name, flipped: state.flipped });
 }
 
+/** The card `state.play` points at: the called one, once a card is called. */
+function cardNow(state: RunState): Play | undefined {
+  return state.playbook[state.play.index];
+}
+
 /**
  * Flip: the cards mirrored, and a called play mirrored where it stands, its
  * hot routes with it (b4). A hot route that would now leave the field from
- * where its player lines up goes back to the card's (it can, on a play
- * whose line-up isn't the same on both sides).
+ * where its player lines up, or that its player can no longer take, goes
+ * back to the card's, with a line saying so. Flip swaps mirror partners'
+ * places, so on Dive or Sweep the Runner with a hot route becomes the one
+ * who takes the handoff; on a lopsided line-up a route can leave the field.
  */
 function flip(state: RunState, events: ArcadeEvent[]): void {
   if (state.phase !== 'setup') return;
   state.flipped = !state.flipped;
-  const play = state.playbook[state.play.index];
+  const play = cardNow(state);
   if (state.called === null || !play) return;
   state.play = { index: state.play.index, flipped: state.flipped };
   const dropped = Object.entries(state.hotRoutes)
     .map(([slot, route]) => ({ slot: Number(slot), route }))
     .filter(({ slot, route }) => route && !hotRoutesFor(play, slot, state.flipped).includes(route));
-  for (const { slot } of dropped) state.hotRoutes = hotRouteSet(state.hotRoutes, slot, null);
+  for (const { slot } of dropped) state.hotRoutes = hotRoutesWith(state.hotRoutes, slot, null);
   relineTeam(state);
   events.push({ type: 'called', id: play.id, play: play.name, flipped: state.flipped });
   for (const { slot } of dropped) events.push(hotRouteEvent(state, slot));
@@ -520,7 +527,7 @@ function flip(state: RunState, events: ArcadeEvent[]): void {
  * otherwise, and the action does nothing.
  */
 export function routeWorks(state: RunState, slot: number): boolean {
-  const play = state.playbook[state.play.index];
+  const play = cardNow(state);
   if (state.phase !== 'setup' || state.called === null || !play || !state.roster[slot])
     return false;
   return hotRoutesFor(play, slot, state.flipped).length > 0;
@@ -528,24 +535,25 @@ export function routeWorks(state: RunState, slot: number): boolean {
 
 /** Route on the player's menu: their next hot route round the loop, drawn on the field at once (c1). Free, as often as you like, until HIKE! (b5). */
 function hotRoute(state: RunState, slot: number, events: ArcadeEvent[]): void {
-  const play = state.playbook[state.play.index];
+  const play = cardNow(state);
   if (!play || !routeWorks(state, slot)) return;
   const next = nextHotRoute(play, slot, state.flipped, state.hotRoutes[slot] ?? null);
-  state.hotRoutes = hotRouteSet(state.hotRoutes, slot, next);
+  state.hotRoutes = hotRoutesWith(state.hotRoutes, slot, next);
   relineTeam(state);
   events.push(hotRouteEvent(state, slot));
 }
 
 /** The play log's line for a player's hot route as it now stands (b7). */
 function hotRouteEvent(state: RunState, slot: number): ArcadeEvent {
-  // Every roster slot is on the field before the snap (lineUpTeam), so -1 is never written.
-  const id = state.field.players.find((p) => p.slot === slot)?.id ?? -1;
+  // Every roster slot is on the field before the snap (lineUpTeam); a line without one would be wrong.
+  const id = state.field.players.find((p) => p.slot === slot)?.id;
+  if (id === undefined) throw new Error(`hotRoute: roster slot ${slot} isn't on the field`);
   return { type: 'hotRoute', id, slot, route: state.hotRoutes[slot] ?? null };
 }
 
 /** The hike: the called play starts, Covers pick their marks, and a handoff play gives its Runner the ball. */
 function hike(state: RunState, events: ArcadeEvent[]): void {
-  const play = state.playbook[state.play.index];
+  const play = cardNow(state);
   if (state.phase !== 'setup' || state.called === null || !play) return;
   state.phase = 'play';
   state.snappedAt = state.time;
@@ -641,7 +649,7 @@ function leaveDraft(state: RunState): void {
  * up again once it's on the field.
  */
 function relineTeam(state: RunState): void {
-  const card = state.playbook[state.play.index];
+  const card = cardNow(state);
   const firstId = state.field.players[0]?.id;
   if (!card || firstId === undefined) return;
   const play = withHotRoutes(card, state.hotRoutes, state.flipped);

@@ -188,7 +188,7 @@ function lineUpProblems(play: Play): PlayProblem[] {
         `${name} lines up too deep. Line up no more than ${yards(FARTHEST_BACK)} behind the line.`,
       );
     }
-    if (Math.abs(spot.x) > arcadeTuning.field.halfWidth) {
+    if (offField([spot])) {
       tell(`${name} lines up off the field. Line up inside the sidelines.`);
     }
     if (!apart(spot, jack))

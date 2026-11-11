@@ -147,7 +147,7 @@ Then a headless look at the strip on the served build.
 
 - **The routes and the rules** (`src/arcade/content/hotRoutes.ts`): the six
   shapes, drawn for a player on the right with x out, in yards: Go (0, 16);
-  Slant (0, 2), (-6, 12); Out (0, 5), (5, 6), (5, 14); Post (0, 8),
+  Slant (0, 2), (-6, 12); Out (0, 5), (5, 5), (5, 14); Post (0, 8),
   (-5, 16); Corner (0, 8), (5, 16); Curl (0, 10), (-1.5, 8.5), back in at
   an angle like `plays.ts`'s curls. Out is the side of the play the player
   lines up on, a middle spot counting as the right, in the play's own
@@ -171,9 +171,10 @@ Then a headless look at the strip on the served build.
   Flip keeps them with their players: Flip swaps mirror partners' jobs, so
   C1 still lines up on the left and their Slant still goes in, the same
   route on the field, while C3 (no partner) moves across and theirs is
-  mirrored. One that no longer fits after Flip (only on a play whose
-  line-up isn't the same both sides) goes back to the card's, with a
-  `hotRoute` event saying so. `setUpDown` clears them for the next down.
+  mirrored. One its player can no longer take after Flip goes back to the
+  card's, with a `hotRoute` event saying so: on Dive and Sweep, Flip makes
+  the Runner with a hot route the one who takes the handoff, and on a
+  lopsided line-up (Flipper's C2, Out) a route can leave the field. `setUpDown` clears them for the next down.
 - **Before a card is called** Route is greyed: a hot route is in place of
   the card's, and calling a card would drop it.
 - **The trace:** every change is an event, `{ type: 'hotRoute', id, slot,
@@ -194,9 +195,17 @@ Then a headless look at the strip on the served build.
   `tests/ui/playerMenu.test.ts` (Route works and tells the game), and the
   format 4 → 5 step in `tests/arcade/record/store.test.ts`.
 - **Balance unchanged:** the bots never send `hotRoute`, so a run without
-  one plays as before.
+  one plays as before: the six balance scenarios, 8 runs each, gave
+  reports identical byte for byte with main at b58aa5b.
 - **Review:** inline only, against both axes, by the fork that built it,
   which can't start separate reviewers. Fixes: `TECHNICAL.md` names hot
   routes, this section says what Flip does to a partnered player's hot
-  route, and a comment on the event's fallback id. The separate two-axis
-  review is still to run before the merge.
+  route, and a comment on the event's fallback id. Then the two-axis review, with separate
+  reviewers, found no hard-rule breaks. Its fixes: Out cuts flat at 5
+  (it climbed a yard), as b2 says; Flip dropping a hot route tested on
+  Dive and Flipper, and the comment that said it could only happen on a
+  lopsided line-up corrected; `hotRouteSet` renamed `hotRoutesWith`; the
+  event throws rather than writing id -1; `cardNow` for the card the run
+  points at; the line-up's sideline check through `offField`. Test 8's
+  replay is the seeded-run digest, the same actions on the same seed, as
+  the other replay tests are: the game keeps no action log to replay.
