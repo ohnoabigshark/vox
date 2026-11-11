@@ -67,6 +67,11 @@ const HAIR = 1e-9;
 /** How deep a route may go: a little short of the longest throw, so it can still be reached. */
 export const DEEPEST = arcadeTuning.throw.maxAhead - 2;
 
+/** Whether a path (yards from the line, as `routePath` gives it) goes past a sideline. */
+export function offField(path: readonly { x: number; y: number }[]): boolean {
+  return path.some((p) => Math.abs(p.x) > arcadeTuning.field.halfWidth);
+}
+
 /** Every rule this play breaks, in slot order; none for a legal play. */
 export function playProblems(play: Play): PlayProblem[] {
   const problems: PlayProblem[] = [];
@@ -131,7 +136,7 @@ export function playProblems(play: Play): PlayProblem[] {
         message: `${name}'s route goes past a throw's reach. Keep it within ${DEEPEST} yards of the line.`,
       });
     }
-    if (path.some((p) => Math.abs(p.x) > arcadeTuning.field.halfWidth)) {
+    if (offField(path)) {
       problems.push({
         slot,
         rule: 'inRange',
