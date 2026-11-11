@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { breakHardness } from '../../src/arcade/sim/breakit';
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { lobLanding, sweepSpeed } from '../../src/arcade/sim/ball';
@@ -30,20 +31,20 @@ const winSeries = (s: RunState): RunState => {
 
 describe('hard mode', () => {
   it('goes round the zones again after the last Boss, instead of winning', () => {
-    let s = createRun(3, undefined, arcadeTuning.run.areas - 1, { hard: true });
+    let s = createRun(3, undefined, arcadeTuning.run.areas - 1, { ...ORIGINAL_GAME, hard: true });
     for (let i = 0; i < SERIES_KINDS.length; i++) s = winSeries(s);
     expect(s.phase).not.toBe('won');
     expect(s.series.area).toBe(arcadeTuning.run.areas);
     expect(s.series.stretch).toBe(0);
     // The same run, not hard, is won.
-    let easy = createRun(3, undefined, arcadeTuning.run.areas - 1);
+    let easy = createRun(3, undefined, arcadeTuning.run.areas - 1, ORIGINAL_GAME);
     for (let i = 0; i < SERIES_KINDS.length; i++) easy = winSeries(easy);
     expect(easy.phase).toBe('won');
   });
 
   it('lines up one more defender every zone, never more than 12 on the field (docs/DIFFICULTY.md)', () => {
-    const hard = createRun(3, undefined, 0, { hard: true });
-    const easy = createRun(3);
+    const hard = createRun(3, undefined, 0, { ...ORIGINAL_GAME, hard: true });
+    const easy = createRun(3, undefined, 0, ORIGINAL_GAME);
     for (const area of [0, 1, 2]) {
       const extra =
         seriesDefense(hard, area, 1).defenders.length -
@@ -63,8 +64,8 @@ describe('hard mode', () => {
   });
 
   it('defenders gain 20 a zone in hard mode, 10 otherwise', () => {
-    const hard = createRun(3, undefined, 0, { hard: true });
-    const easy = createRun(3);
+    const hard = createRun(3, undefined, 0, { ...ORIGINAL_GAME, hard: true });
+    const easy = createRun(3, undefined, 0, ORIGINAL_GAME);
     for (const area of [0, 1, 2, 5]) {
       const spec = seriesDefense(easy, area, 1);
       expect(defenseBoost(hard, area, 'challenge', spec) - spec.boost, `zone ${area + 1}`).toBe(
@@ -79,7 +80,7 @@ describe('hard mode', () => {
     const total = (p: { stats: { hustle: number; hands: number; heft: number } }) =>
       p.stats.hustle + p.stats.hands + p.stats.heft;
     for (const area of [0, 2, 9]) {
-      const s = createRun(5, undefined, 0, { hard: true });
+      const s = createRun(5, undefined, 0, { ...ORIGINAL_GAME, hard: true });
       setUpSeries(s, area, 10, [], false);
       for (const perk of rollOffer(s)) {
         if (perk.kind !== 'player') continue;
@@ -91,7 +92,7 @@ describe('hard mode', () => {
   });
 
   it("the sweep doesn't get faster after the third zone", () => {
-    const s = createRun(3, undefined, 0, { hard: true });
+    const s = createRun(3, undefined, 0, { ...ORIGINAL_GAME, hard: true });
     setUpSeries(s, 2, 0, [], true);
     const third = sweepSpeed(s);
     setUpSeries(s, 7, 0, [], true);
@@ -99,7 +100,7 @@ describe('hard mode', () => {
   });
 
   it('TRICK OR TREAT! lets you set your lineup', () => {
-    const s = createRun(3, undefined, 0, { hard: true });
+    const s = createRun(3, undefined, 0, { ...ORIGINAL_GAME, hard: true });
     const events: ArcadeEvent[] = [];
     endDown(s, 'tackled', s.series.firstDown, events);
     nextDown(s, events);

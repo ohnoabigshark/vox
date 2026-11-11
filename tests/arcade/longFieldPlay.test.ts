@@ -1,5 +1,6 @@
 import { arcadeTuning } from '../../src/arcade/content/tuning';
 import { describe, expect, it } from 'vitest';
+import { ORIGINAL_GAME } from './helpers';
 import { PLAY_POOL } from '../../src/arcade/content/playPool';
 import type { Play } from '../../src/arcade/content/plays';
 import { catchTestsOn } from '../../src/arcade/sim/catchTests';
@@ -52,7 +53,7 @@ function carrying(at: { x: number; y: number }, state = playState([])): RunState
 
 describe('the long field, part 2', () => {
   it('1: football’s first downs: 10 yards from wherever the series starts, & Goal inside the last 10', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     ended(s, 'tackled', 14);
     expect(s.phase).toBe('draft');
     expect(s.series).toMatchObject({ start: 14, los: 14, firstDown: 24, down: 1 });
@@ -65,7 +66,7 @@ describe('the long field, part 2', () => {
   });
 
   it('2: each down faces the defense of its line’s stretch, the Boss’s gimmick included', () => {
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     ended(s, 'tackled', 14);
     let t = skipDraft(s);
     expect(t.series).toMatchObject({ stretch: 1, kind: 'challenge' });
@@ -79,7 +80,7 @@ describe('the long field, part 2', () => {
     ended(t, 'sacked', 18); // Back over 20: the Challenge's defense again.
     expect(t.series).toMatchObject({ down: 3, stretch: 1, kind: 'challenge', firstDown: 24 });
 
-    t = createRun(1);
+    t = createRun(1, undefined, 0, ORIGINAL_GAME);
     setUpSeries(t, 0, 32, [], true);
     expect(t.series).toMatchObject({ stretch: 3, kind: 'boss' });
     expect(t.field.fieldEvent?.event.id).toBe('frogRain');
@@ -92,7 +93,7 @@ describe('the long field, part 2', () => {
   it('3: what grows grows with the stretch number, however many series it took', () => {
     // One long first down out of the Forest's Intro, then the Candy Queendom from its 0:
     // two series in, and catch tests are on, as on its stretch 5.
-    const s = createRun(1);
+    const s = createRun(1, undefined, 0, ORIGINAL_GAME);
     setUpSeries(s, 1, 0, [], true);
     s.seriesWon = 1;
     expect(stretchNumber(s.series)).toBe(5);
@@ -148,7 +149,7 @@ describe('the long field, part 2', () => {
     expect(r.state.series).toMatchObject({ area: 1, start: 0, los: 0, stretch: 0 });
 
     // On the Farm in normal mode, it's the win.
-    const farm = createRun(1, undefined, 2);
+    const farm = createRun(1, undefined, 2, ORIGINAL_GAME);
     const f = carrying({ x: 3, y: 38 }, farm);
     const won = run(f, 1);
     nextDown(won.state, []);
@@ -156,7 +157,10 @@ describe('the long field, part 2', () => {
   });
 
   it('8: in practice the rep goes on past the line, and the next lines up at the same spot', () => {
-    const practice = createRun(5, undefined, 0, { practice: PLAY_POOL[0] as Play });
+    const practice = createRun(5, undefined, 0, {
+      ...ORIGINAL_GAME,
+      practice: PLAY_POOL[0] as Play,
+    });
     const s = carrying({ x: 3, y: 8 }, practice);
     const r = run(s, 1.5);
     expect(r.state.phase).toBe('play');

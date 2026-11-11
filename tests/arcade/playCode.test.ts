@@ -6,7 +6,7 @@ import {
   practiceQuery,
   readPractice,
 } from '../../src/arcade/content/playCode';
-import { readModes } from '../../src/arcade/content/modeFlags';
+import { readLink, runOptionsFrom } from '../../src/arcade/content/runOptions';
 import { PLAYS, type Assignment, type Play } from '../../src/arcade/content/plays';
 
 const block: Assignment = { kind: 'block' };
@@ -105,11 +105,14 @@ describe('the practice link (Try it)', () => {
     });
   });
 
-  // Two-tap throwing is the game's default (readModes), so Try with: Two-tap
+  // Two-tap throwing is the game's default (`RUN_DEFAULTS`), so Try with: Two-tap
   // off has to say so in the link (release mode's map, b2).
   it('plays the throw Try with: Two-tap chose, on or off', () => {
-    expect(readModes(new URLSearchParams(practiceQuery(mine, 'd1', true))).twoTapAim).toBe(true);
-    expect(readModes(new URLSearchParams(practiceQuery(mine, 'd1', false))).twoTapAim).toBe(false);
+    const throwOf = (twoTap: boolean) =>
+      runOptionsFrom(readLink(new URLSearchParams(practiceQuery(mine, 'd1', twoTap))).run)
+        .twoTapAim;
+    expect(throwOf(true)).toBe(true);
+    expect(throwOf(false)).toBe(false);
   });
 
   it('a broken play still says why, and still knows its sketch', () => {

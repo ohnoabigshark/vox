@@ -18,7 +18,7 @@ esrauch's roadmap is `MILESTONES.md`.
 - **Speak the glossary** (`CONTEXT.md`): an area's march is a **drive** of
   four **series**; esrauch's "drive" is a series.
 - **The game defaults to hard mode with two-tap throwing,** the way the user
-  plays (`readModes` in `src/arcade/content/modeFlags.ts`); `?hard=0` and
+  plays (`RUN_DEFAULTS` in `src/arcade/content/runOptions.ts`); `?hard=0` and
   `?aim=1` turn them off. Try changes in the default and in esrauch's
   original game, `?hard=0&aim=1`. Old links with `?hard=1&aim=2` still play
   the default. Practice links (the play editor's Try it) carry `aim=2` or

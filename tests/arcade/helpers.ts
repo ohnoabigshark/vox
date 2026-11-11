@@ -1,3 +1,4 @@
+import { ORIGINAL_GAME } from '../../src/arcade/content/runOptions';
 import { DEFENDERS } from '../../src/arcade/content/defense';
 import { DT, arcadeTuning } from '../../src/arcade/content/tuning';
 import { BASE_STATS, ROLE_RADIUS } from '../../src/arcade/content/team';
@@ -35,13 +36,20 @@ export interface DefenderSpec {
 }
 
 /**
+ * The run options these tests were written for: esrauch's original game
+ * (`ORIGINAL_GAME` in content/runOptions.ts), which `createRun` played by
+ * default until run options (docs/DEV_SETUP.md, test 3).
+ */
+export { ORIGINAL_GAME };
+
+/**
  * A down already snapped, with exactly these bodies: the QB on (0, -4) with
  * the ball, then the given players (ids 2 up) and defenders (ids 100 up).
  * Line of scrimmage 0, first-down line 10. Players' stats default to
  * 50 / 50 / 50, defenders' to their kind's.
  */
 export function playState(players: PlayerSpec[], defenders: DefenderSpec[] = []): RunState {
-  const state = createRun(1);
+  const state = createRun(1, undefined, 0, ORIGINAL_GAME);
   const qbStats = BASE_STATS;
   const qb: Player = {
     id: 1,
