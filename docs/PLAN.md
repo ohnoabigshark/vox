@@ -677,8 +677,9 @@ Still open:
     route**, a game action in the record and the play log (b7). b6's route
     list was rejected: _"Tapping route just goes through a linked list of
     the route changes. We don't need a card we can just show the route on
-    the screen."_ Round 3 (c1–c4) asks that loop, the tests and the whole
-    design.
+    the screen."_ Round 3, 2026-11-11: each tap of Route moves to the next
+    route in a loop (c1, confirmed with c4), the tests (c2, c3) and the
+    whole design (c4) approved; written up as `docs/PLAYER_MENU.md`.
   - **Changing a route after the call** (the user, 2026-11-11: "one thing
     to consider with the player menu is the ability to change their route.
     I don't know if we have the ability to edit the play after it's chosen
