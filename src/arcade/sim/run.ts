@@ -538,6 +538,7 @@ function hotRoute(state: RunState, slot: number, events: ArcadeEvent[]): void {
 
 /** The play log's line for a player's hot route as it now stands (b7). */
 function hotRouteEvent(state: RunState, slot: number): ArcadeEvent {
+  // Every roster slot is on the field before the snap (lineUpTeam), so -1 is never written.
   const id = state.field.players.find((p) => p.slot === slot)?.id ?? -1;
   return { type: 'hotRoute', id, slot, route: state.hotRoutes[slot] ?? null };
 }

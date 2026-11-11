@@ -168,9 +168,12 @@ Then a headless look at the strip on the served build.
   `hotRoutes` (by roster slot) and lines the team up again through
   `relineTeam`, the one place a down's team is lined up again, with
   `withHotRoutes`. Calling a card, the same one included, clears them;
-  Flip keeps them, and one that no longer fits after Flip (only on a play
-  whose line-up isn't the same both sides) goes back to the card's, with
-  a `hotRoute` event saying so. `setUpDown` clears them for the next down.
+  Flip keeps them with their players: Flip swaps mirror partners' jobs, so
+  C1 still lines up on the left and their Slant still goes in, the same
+  route on the field, while C3 (no partner) moves across and theirs is
+  mirrored. One that no longer fits after Flip (only on a play whose
+  line-up isn't the same both sides) goes back to the card's, with a
+  `hotRoute` event saying so. `setUpDown` clears them for the next down.
 - **Before a card is called** Route is greyed: a hot route is in place of
   the card's, and calling a card would drop it.
 - **The trace:** every change is an event, `{ type: 'hotRoute', id, slot,
@@ -192,4 +195,8 @@ Then a headless look at the strip on the served build.
   format 4 → 5 step in `tests/arcade/record/store.test.ts`.
 - **Balance unchanged:** the bots never send `hotRoute`, so a run without
   one plays as before.
-
+- **Review:** inline only, against both axes, by the fork that built it,
+  which can't start separate reviewers. Fixes: `TECHNICAL.md` names hot
+  routes, this section says what Flip does to a partnered player's hot
+  route, and a comment on the event's fallback id. The separate two-axis
+  review is still to run before the merge.
