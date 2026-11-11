@@ -658,6 +658,46 @@ Still open:
     the screen; whether it shows when it has nothing in it; how an action
     is used up (once a play, once a series, once a run); how it meets
     "select only" (parked, V1) and the tutorial.
+  - **Grilled on its own map**, https://claude.ai/artifact/6qjgoC72xLeSWPXw2VCDpJ.
+    Round 1, all approved 2026-11-11: the menu is a strip above the play
+    cards (a1, the user: "Yeah I like c"); three slots, Route, Perk and
+    Audible, each greyed until it works (a2); it shows only with a dev
+    setup switch, "Player menu", off by default, until an action works
+    (a3); the shell first, then a route change, each its own branch (a4);
+    a changed route lasts this down only and the card stays as drawn (a5);
+    the new route is picked from a short list of set routes, not dragged
+    (a6).
+    Round 2, 2026-11-11: Route works for Catchers and a Runner on a
+    passing play, greyed for Blockers and a handoff's Runner (b1); six set
+    routes, Go 16 yards, Slant 2 up then in to 12, Out 5 up, out 5 and up
+    to 14, Post 8 up then in to 16, Corner 8 up then out to 16, Curl 10 up
+    and back (b2); "out" is toward the player's own sideline (b3); Flip
+    keeps a changed route, mirrored, and calling a card drops every change
+    (b4); free, as often as you like until HIKE! (b5); the word is **hot
+    route**, a game action in the record and the play log (b7). b6's route
+    list was rejected: _"Tapping route just goes through a linked list of
+    the route changes. We don't need a card we can just show the route on
+    the screen."_ Round 3, 2026-11-11: each tap of Route moves to the next
+    route in a loop (c1, confirmed with c4), the tests (c2, c3) and the
+    whole design (c4) approved; written up as `docs/PLAYER_MENU.md`.
+  - **Changing a route after the call** (the user, 2026-11-11: "one thing
+    to consider with the player menu is the ability to change their route.
+    I don't know if we have the ability to edit the play after it's chosen
+    or adjust a specific route but we will need it once we start adding
+    capabilities to the player menu"). What exists: between the call and
+    the hike you can call another card or Flip, and each one lines your
+    players up again from the card (`call` and `flip` in `sim/run.ts`).
+    Nothing changes one player's route. Calling a card already copies each
+    route onto its player for that down (`job: { kind: 'route', to }`,
+    `sim/bodies.ts`), so a new action could change one player's copy for
+    this down and leave the playbook alone. Routes are drawn and dragged
+    only in the play editor (`dev/playEditor/editor.ts`), and checked by
+    `playProblems` (`content/playRules.ts`). Open for the grilling: whether
+    a change lasts one down or changes the card; picking from set routes
+    (a go, a slant, a curl) or dragging waypoints as the editor does;
+    whether Flip or calling another card undoes it; whether the Runner's
+    handoff route can change; and whether it's free or a menu action
+    that's used up.
 - **More passes blocked or dropped.** **Dropped** (2026-11-10, next-job map
   l3). _User, 2026-11-04, while playing
   difficulty-3: "we will need to consider more outright blocks/drops on
