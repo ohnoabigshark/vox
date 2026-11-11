@@ -145,6 +145,16 @@ Then a headless look at the strip on the served build.
 
 ### `menu-routes` (2026-11-11)
 
+_Map round 5, all approved 2026-11-11 with no notes, after the user had
+tried Route ("route looks good"): r1 keep b2's lengths, so in the standard
+line-up Out and Corner are skipped for the Catchers and only the Runners
+get all six; r2 Flip keeps a hot route with its player; r3 Flip drops a
+hot route its player can no longer take (Dive and Sweep, Flipper's C2);
+r4 the Runner who doesn't take a handoff can still take one; r5 Route is
+greyed until a card is called; r6 an old saved switch or `?menu=` is
+ignored without a warning; p2 merge. Each is as described below._
+
+
 - **The routes and the rules** (`src/arcade/content/hotRoutes.ts`): the six
   shapes, drawn for a player on the right with x out, in yards: Go (0, 16);
   Slant (0, 2), (-6, 12); Out (0, 5), (5, 5), (5, 14); Post (0, 8),
