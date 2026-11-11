@@ -28,7 +28,7 @@ menu."_
   greyed slot does nothing. Perk and Audible are planned later.
 - **Who sees it** (a3): only with the dev setup's **Player menu** switch,
   off by default, until Route works; then the switch goes and every run has
-  the menu.
+  the menu. (Gone with `menu-routes`, 2026-11-11.)
 - **A hot route** (a5, a6, c1): each tap of Route gives the player the next
   route in a loop: as drawn, Go, Slant, Out, Post, Corner, Curl, then as
   drawn again. Their route on the field changes at once; there's no list
@@ -142,3 +142,54 @@ Then a headless look at the strip on the served build.
   ✕ and the field taps tested through `selectionAfter`, which the game now
   calls; a seeded-run digest with the switch on and off; the slots as a
   union; this section's distances and comments corrected.
+
+### `menu-routes` (2026-11-11)
+
+- **The routes and the rules** (`src/arcade/content/hotRoutes.ts`): the six
+  shapes, drawn for a player on the right with x out, in yards: Go (0, 16);
+  Slant (0, 2), (-6, 12); Out (0, 5), (5, 6), (5, 14); Post (0, 8),
+  (-5, 16); Corner (0, 8), (5, 16); Curl (0, 10), (-1.5, 8.5), back in at
+  an angle like `plays.ts`'s curls. Out is the side of the play the player
+  lines up on, a middle spot counting as the right, in the play's own
+  frame, so Flip mirrors it with the rest (a middle spot is then on the
+  left). `takesHotRoute` (not a Blocker, not the handoff's Runner),
+  `hotRoutesFor` (the loop's routes, less any that leave the field:
+  `offField`, the check `playProblems` makes, now named in `playRules.ts`),
+  `nextHotRoute` (the loop) and `withHotRoutes` (the card with them in
+  their players' places) are the one place for each rule.
+- **Who gets which, in the standard line-up:** the sideline is 9.1 yards
+  out, so Out and Corner (5 out) leave the field from the outside Catchers
+  (7 out) and from C3 (4.2 out): they get Go, Slant, Post and Curl. The
+  Runners (1.1 out) get all six. A play with its own line-up can differ.
+- **The sim** (`sim/run.ts`): the action `{ type: 'hotRoute', slot }`
+  moves that roster slot round the loop; it does nothing unless
+  `routeWorks` (before the snap, a card called, a player who can take one
+  with one that fits), which also greys Route on the strip. The run keeps
+  `hotRoutes` (by roster slot) and lines the team up again through
+  `relineTeam`, the one place a down's team is lined up again, with
+  `withHotRoutes`. Calling a card, the same one included, clears them;
+  Flip keeps them, and one that no longer fits after Flip (only on a play
+  whose line-up isn't the same both sides) goes back to the card's, with
+  a `hotRoute` event saying so. `setUpDown` clears them for the next down.
+- **Before a card is called** Route is greyed: a hot route is in place of
+  the card's, and calling a card would drop it.
+- **The trace:** every change is an event, `{ type: 'hotRoute', id, slot,
+  route }` (route null: back on the card's), so the play log has a line for
+  it. The record's down has `hotRoutes`, who ran which by record id, read
+  from the run at the snap (format 5; older downs had none).
+- **The strip** (`ui/playerMenu.ts`, `playerMenu(state, selected)`): Route
+  works per `routeWorks`; a tap sends `onMenu('route')`, and the game
+  dispatches `hotRoute` for the selected player, who stays selected; the
+  button stays "Route" and the field redraws the route at once (the routes'
+  drawing keys on the waypoints). Perk and Audible stay greyed.
+- **The switch went:** `playerMenu` is gone from `RunOptions`, the setup
+  page and Copy link (`docs/DEV_SETUP.md`). A saved setup that still has it
+  is read without a warning (`RETIRED` in `runOptions.ts`); a link's `menu=`
+  is ignored.
+- **Tests:** `tests/arcade/hotRoutes.test.ts` (c3 1–9),
+  `tests/arcade/playerMenu.test.ts` (the strip, and the switch gone),
+  `tests/ui/playerMenu.test.ts` (Route works and tells the game), and the
+  format 4 → 5 step in `tests/arcade/record/store.test.ts`.
+- **Balance unchanged:** the bots never send `hotRoute`, so a run without
+  one plays as before.
+

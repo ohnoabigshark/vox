@@ -83,6 +83,8 @@ Three events gain fields, and each player an id:
 
 - the situation: series number, down, yards to go, line of scrimmage
 - the call: the play's id, and whether it was flipped
+- the hot routes run in place of the card's, as they stood at the snap: who
+  ran which (`hotRoutes`, format 5, `docs/PLAYER_MENU.md`, b7)
 - the kind, by what happened, not by the play's name: **pass**, **rush** or
   **sack**
 - the outcome (first down, touchdown, tackled, incomplete, batted, sacked,
@@ -287,7 +289,7 @@ The record branch's scenarios (f2), written first and watched go red:
 
 The `record` branch, 2026-11-03. Everything is in `src/arcade/record/`:
 
-- `types.ts`: the record's shape, `RECORD_FORMAT` (4 since the dev setup; the steps are in `store.ts`), and Jack's id (0).
+- `types.ts`: the record's shape, `RECORD_FORMAT` (5 since hot routes, 4 since the dev setup; the steps are in `store.ts`), and Jack's id (0).
 - `recorder.ts`: `RunRecorder`, pure, fed each step's events with the
   state before and after; `recordable`, the one rule for which runs count.
 - `stats.ts`: `runStats`, `playerStats` and `playsStats`, read from a

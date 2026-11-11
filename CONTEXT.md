@@ -109,10 +109,10 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Names switch** _(ours)_: **Aa**, beside ⚑ before the snap: your seven's
   names on the field on or off, remembered on the phone.
 - **The player's menu** _(ours)_: the strip of buttons above the play cards
-  a selected player gets before the snap: Route, Perk and Audible, each
-  greyed until it works (`ui/playerMenu.ts`, `docs/PLAYER_MENU.md`). Shown
-  only with the dev setup's Player menu switch until Route works. _Avoid:_
-  "actions bar", "context menu".
+  a selected player gets before the snap, in every run: Route, Perk and
+  Audible, each greyed until it works; Route gives the player a hot route
+  (`ui/playerMenu.ts`, `docs/PLAYER_MENU.md`). _Avoid:_ "actions bar",
+  "context menu".
 
 ## Plays
 
@@ -122,9 +122,11 @@ added are marked _ours_. Decided on the fork's decision map, items g1–g5,
 - **Route:** a player's path in a play, as waypoints in yards from where that
   player lines up. Only players run routes.
 - **Hot route** _(ours)_: a route a player is given for this down only, from
-  the player's menu, in place of the card's; the card stays as drawn
-  (`docs/PLAYER_MENU.md`; planned, slice 2). _Avoid:_ "audible" (a slot of
-  its own), "route change" for the result.
+  the player's menu, in place of the card's; the card stays as drawn. One of
+  six (Go, Slant, Out, Post, Corner, Curl), taken in a loop with each tap of
+  Route; a game action, in the record and the play log
+  (`content/hotRoutes.ts`, `docs/PLAYER_MENU.md`). _Avoid:_ "audible" (a
+  slot of its own), "route change" for the result.
 - **Line-up:** where each of the seven slots stands at the snap. Each play
   can set its own (`Play.lineup`, map item l7); the **standard line-up**
   (`LINEUP`) is the one a play uses when it doesn't. _Avoid:_ "lineup" for

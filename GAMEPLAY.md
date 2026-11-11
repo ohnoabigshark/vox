@@ -154,6 +154,7 @@ The test for any feature: **does it make a run faster, funnier, more readable, o
 | **Before the snap** | **Tap Flip** (once a play is called) | Mirror the play. |
 | **Before the snap** | **Tap a card** | Call that play: its routes show on the field. Tap another to switch. |
 | **Before the snap** | **Tap one of your players** | Select them: their route lights up, the others dim, and their card shows at the top. Tap them again, the field or ✕ to clear it. |
+| **Before the snap** | **Tap Route** on a selected player's strip *(fork, `docs/PLAYER_MENU.md`)* | Their next hot route, this down only: Go, Slant, Out, Post, Corner, Curl, then the card's again. Flip keeps it; calling a card drops it. |
 | **Before the snap** | **Aa** | Show or hide your players' names. |
 | **Before the snap** | **HIKE!** | Start the called play. |
 | **Pass play** | **THROW** | Fire a bullet along the sweeping line. |
