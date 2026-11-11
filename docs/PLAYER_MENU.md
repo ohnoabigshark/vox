@@ -95,3 +95,41 @@ Then a headless look at the strip on the served build.
 8. Recorded: a recorded run replays to the same result, and the play log has
    a line saying who took which hot route.
 9. Balance unchanged: the bots never use it, so the reports match.
+
+## As built
+
+### `player-menu` (2026-11-11)
+
+- **The switch** (`src/arcade/content/runOptions.ts`): `playerMenu`, flag
+  `menu` (`?menu=0|1`, or `on`/`off`), off in `RUN_DEFAULTS`; a toggle,
+  Player menu, under On the field on `dev/setup.html`. It is the HUD's, not
+  the game's: `RunSwitches` leaves it out, so `createRun` never sees it.
+  Like every switch, a run's record and play log name it when the saved
+  setup supplied it (`docs/DEV_SETUP.md`, q3).
+- **The strip** (`src/arcade/ui/playerMenu.ts`, `playerMenu(on, selected)`):
+  null with the switch off or nobody selected, otherwise Route, Perk and
+  Audible, each `works: false`. The game passes the selection as it shows
+  (`selectionNow`, null but before the snap), so ✕, a tap elsewhere and
+  HIKE! clear the strip with the card, and the intro, the outro and a pause
+  hide it.
+- **On screen** (`Hud.setPlayerMenu`, `.hud-menu` in `src/ui/hud.css`):
+  three bone buttons with ink edges, as the play cards and Flip are, in the
+  hand's three columns, 4px above the cards. It is placed over the field,
+  out of the HUD's flow, so the cards and the camera's fit never move. A
+  greyed slot is the banned card's grey and is a disabled button: a tap does
+  nothing and sends nothing to the game. The strip takes taps
+  (`interactive`), so a tap on it doesn't clear the selection.
+- **Tests:** `tests/arcade/playerMenu.test.ts` (c2 1–4) and
+  `tests/ui/playerMenu.test.ts` (the HUD's strip, 2 and 3); the every-switch
+  fixtures in `runOptions.test.ts`, `devSetup.test.ts` and
+  `setupPage.test.ts` grew the new switch.
+- **Nothing plays differently:** the six balance scenarios, 8 runs each, on
+  `player-menu-plan` (b0dfb5e) and on this branch gave identical reports,
+  byte for byte, and the seeded-run digests pass unchanged.
+- **The headless look** (phone size, seed 3, a local build of the branch,
+  not the served one): the strip with Hollis Hollow selected, none with
+  nobody selected, and none with the switch off. It sits on the empty turf
+  above the cards and covers nothing.
+- **Review:** done inline, without separate reviewers (built by a fork,
+  which can't start them). It changed the greyed text's colour to
+  `color-mix`, as the rest of `hud.css` writes it.
