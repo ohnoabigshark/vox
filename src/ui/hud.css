@@ -252,7 +252,7 @@
 
 /* Greyed until it works (a2), as a banned card is. */
 .hud-menu-slot.soon {
-  color: rgb(from var(--ink) r g b / 0.5);
+  color: color-mix(in srgb, var(--ink) 50%, transparent);
   background: color-mix(in srgb, var(--bone) 55%, var(--ink));
 }
 
