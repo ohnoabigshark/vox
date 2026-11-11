@@ -7,6 +7,7 @@
 import type { FieldEvent } from './fieldEvents';
 import { eventProblem, readEvent } from './savedEvents';
 import { arcadeTuning } from './tuning';
+import { readPractice } from './playCode';
 
 /** An event read from a link, or why it can't be played. */
 export type EventFromLink =
@@ -61,4 +62,13 @@ export function eventEditorLink(gameHref: string, id: string): string {
   editor.search = '';
   editor.hash = id;
   return editor.href;
+}
+
+/**
+ * Whether a page's query is a practice link: the play editor's Try it
+ * (`?try=`) or the event editor's (`?event=`), read or not. Practice ignores
+ * the saved setup (docs/DEV_SETUP.md, d5).
+ */
+export function isPracticeLink(search: string): boolean {
+  return readPractice(search) !== null || readEventPractice(search) !== null;
 }

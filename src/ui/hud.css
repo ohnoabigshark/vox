@@ -812,3 +812,49 @@ button.hud-offer:active {
 .hud-dots i.on {
   background: var(--pumpkin);
 }
+
+/* DEV SETUP · N changed, with Reset, at the top of the start screen (docs/DEV_SETUP.md, d2). */
+.setup-tag {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 14px);
+  left: 0;
+  right: 0;
+  width: fit-content;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  padding: 6px 8px 6px 12px;
+  border: 3px solid var(--ink);
+  font:
+    800 0.85rem/1.2 system-ui,
+    sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: #ffe7b8;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.setup-tag a {
+  color: inherit;
+}
+
+.setup-tag button {
+  font: inherit;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  color: white;
+  background: var(--candy-purple);
+}
+
+.setup-tag-problem:empty {
+  display: none;
+}
+
+.setup-tag-problem {
+  flex-basis: 100%;
+  color: #8a1c1c;
+}

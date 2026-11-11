@@ -91,6 +91,7 @@ const run = (id: string, more: Partial<RunRecord> = {}): RunRecord => ({
   id,
   build: 'b',
   link: '',
+  setup: '',
   modes: { hard: true, twoTap: true, snag: false, tip: false },
   startedAt: '2026-11-03T12:00:00.000Z',
   endedAt: null,
@@ -264,6 +265,35 @@ describe('the stats store', () => {
       ['gravestone', 'bolt'],
       null,
     ]);
+  });
+});
+
+describe('a run made with a dev setup (map round 5, q3)', () => {
+  it('a format-3 save is brought up to format 4: its runs were made with no setup', async () => {
+    const storage = fakeStorage();
+    /** A record as format 3 kept it: no setup. */
+    const asFormat3 = (r: RunRecord) =>
+      Object.fromEntries(Object.entries(r).filter(([k]) => k !== 'setup'));
+    const ended = { ...run('a', { downs: [down] }), endedAt: '2026-11-03T12:00:00.000Z' };
+    const allTime = { hard: emptyAllTime(), normal: emptyAllTime() };
+    storage.data.set(
+      'getJackBack.stats',
+      JSON.stringify({
+        format: 3,
+        runs: [{ summary: summaryOf(ended), record: asFormat3(ended) }],
+        allTime,
+        achievements: {},
+        checked: ACHIEVEMENTS.map((a) => a.id),
+      }),
+    );
+    storage.data.set(
+      'getJackBack.stats.open',
+      JSON.stringify({ format: 3, record: asFormat3(run('b', { downs: [down] })), savedAt: NOW }),
+    );
+    const { saved, problem } = await loaded(statsStore(storage, clock));
+    expect(problem).toBeNull();
+    expect(saved.runs.map((r) => r.record?.setup)).toEqual(['', '']);
+    expect(RECORD_FORMAT).toBe(4);
   });
 });
 

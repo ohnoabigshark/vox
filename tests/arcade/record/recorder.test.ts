@@ -18,7 +18,13 @@ interface Frame {
   readonly set?: (s: RunState) => void;
 }
 
-const META = { id: 'run-1', build: 'abc123', link: 'snag=1', now: Date.UTC(2026, 10, 3, 12) };
+const META = {
+  id: 'run-1',
+  build: 'abc123',
+  link: 'snag=1',
+  setup: 'hard=0&breakit=juke',
+  now: Date.UTC(2026, 10, 3, 12),
+};
 
 /** Feed `frames` to a recorder over `state`, step by step. */
 function feed(state: RunState, frames: readonly Frame[], rec = new RunRecorder(state, META)) {
@@ -510,8 +516,8 @@ describe('the run', () => {
     const s = createRun(4, undefined, 0, {
       hard: false,
       twoTapAim: false,
-      snagAlways: true,
-      tipAlways: true,
+      snagIt: 'always',
+      tipDrill: 'always',
     });
     const { rec } = feed(s, []);
     expect(rec.record).toMatchObject({
@@ -519,6 +525,8 @@ describe('the run', () => {
       id: 'run-1',
       build: 'abc123',
       link: 'snag=1',
+      // A run made with a dev setup says so (map round 5, q3).
+      setup: 'hard=0&breakit=juke',
       end: 'open',
       endedAt: null,
     });
@@ -544,7 +552,7 @@ describe('the run', () => {
 
 describe('what counts', () => {
   it('every real run, whatever its link options; never practice or an event’s practice', () => {
-    const real = createRun(1, undefined, 0, { snagAlways: true, tipAlways: true });
+    const real = createRun(1, undefined, 0, { snagIt: 'always', tipDrill: 'always' });
     expect(recordable(real)).toBe(true);
     expect(recordable({ ...real, practice: true })).toBe(false);
     expect(recordable({ ...real, practiceEvent: {} as RunState['practiceEvent'] })).toBe(false);

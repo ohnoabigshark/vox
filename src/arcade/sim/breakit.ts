@@ -16,8 +16,6 @@ const b = arcadeTuning.breakit;
 
 export type BreakOutcome = 'break' | 'drag' | 'tackle';
 
-const BREAK_KINDS: readonly BreakKind[] = ['bar', 'mash', 'juke'];
-
 /** How hard the three tests are: the bar's sweet spot, the mash's fill per tap, the juke's window. */
 export type BreakHardness = { -readonly [K in keyof (typeof b.byArea)[number]]: number };
 
@@ -40,7 +38,11 @@ export function breakHardness(area: number): BreakHardness {
   };
 }
 
-/** Start Break it! for a carrier the `tacklers` have grabbed. `kind` forces one (for tests); otherwise it's random. */
+/**
+ * Start Break it! for a carrier the `tacklers` have grabbed. `kind` forces
+ * one (for tests); otherwise it's one of the run's Break it! kinds at random
+ * (all three by default, picked as before run options).
+ */
 export function startBreakIt(
   state: RunState,
   carrier: Player,
@@ -63,7 +65,8 @@ export function startBreakIt(
     tacklers,
     dragYards: clamp(b.dragYards + b.dragPerHeft * heftGap, b.minDrag, b.maxDrag),
   };
-  const pick = kind ?? BREAK_KINDS[rng.int(0, BREAK_KINDS.length - 1)] ?? 'bar';
+  const kinds = state.breakItKinds;
+  const pick = kind ?? kinds[rng.int(0, kinds.length - 1)] ?? 'bar';
   let tackle: Tackle;
   switch (pick) {
     case 'mash':

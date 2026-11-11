@@ -25,8 +25,13 @@ have there be a default config file for all of the same toggles/values."_
   - _Tap tests:_ each Break it! kind (the bar, MASH!, JUKE!) on or off, at
     least one staying on; SNAG IT! and the tip drill each Off, Normal or
     Always.
-  - _On the field:_ pickups on or off; field events Off, Normal or one
-    chosen event; start with every perk; a monster team.
+  - _On the field:_ pickups on or off; field events on or off; start with
+    every perk; a monster team.
+  - Every on/off switch is the editors' toggle (`.tog`), and the
+    dropdowns and the seed box stay (map round 5, p2, 2026-11-10: "Toggles
+    where the checkboxes are. Field events should also just be a toggle for
+    them on or off, no extra specificity. I don't think we have a drop-down
+    concept so we can keep that for now").
   - _Save & play_, _Copy link_, _Restore defaults_.
   - At the top: _"These switches change runs of the game only. Practice
     from the play and event editors ignores them."_ (d5, the user's note:
@@ -44,7 +49,9 @@ have there be a default config file for all of the same toggles/values."_
 - **Layers** (d3): each switch comes from the link if the link names it,
   else the saved setup, else the defaults. Every switch is one value, so
   "off" is said, not left out. Links keep working for the tools,
-  screenshots and balance runs, and a Copy link plays exactly that setup.
+  screenshots and balance runs, and a Copy link plays exactly that setup:
+  it names every switch, so it plays the same on any phone (map round 5,
+  q1).
 - **Link-only** (d4): `win`, `video` and `farmSong`, for the sing-along
   video tool, stay off the page.
 - **Practice ignores the setup** (d5): play practice and event practice
@@ -92,12 +99,15 @@ Each is tested first, reviewed and merged before the next. Gravestones
 5. SNAG IT! and the tip drill: Off, a contested ball never goes to it;
    Always, every contested ball from series 1 does.
 6. Pickups off: no bolts or gravestones on the field.
-7. Field events: Off, none on ordinary stretches; one chosen, that event on
-   every ordinary stretch. Frog Rain stays Mister Frog's either way.
+7. Field events: Off, none on ordinary stretches, and Frog Rain still
+   Mister Frog's; On, the same run as today (map round 5, p2: the one
+   chosen event is gone).
 8. Practice is untouched: play and event practice links make the same run
    with a setup saved as without, and the page says so at the top.
-9. Copy link writes every changed switch, and reading it back gives the
-   same setup.
+9. Copy link writes every switch, and reads back the same setup on a phone
+   with a different setup saved (map round 5, q1).
+10. A run made with a setup says so: its changed switches, as a link
+    writes them, in the play log and the run's record (map round 5, q3).
 
 Then a headless look at the page and the tag on the served build before
 it's handed over.
@@ -143,3 +153,106 @@ it's handed over.
   byte. The seeded-run
   digests (`statusesSameRun`, the taffy's pick) pass unchanged.
 
+
+### `dev-setup` (2026-11-10)
+
+- **The switches** (`src/arcade/content/runOptions.ts`): SNAG IT! and the
+  tip drill are `snagIt` and `tipDrill`, each `off`, `normal` or `always`;
+  `breakItKinds` the Break it! kinds a tackle deals (at least one, kept in
+  `BREAK_KINDS` order, which moved here from `sim/breakit.ts`);
+  `pickupsOn`; `fieldEventsOn` (on is the seed's generic events, as
+  always; a chosen event on every stretch was built, then taken out on
+  map round 5, p2). Each switch is named once in `SWITCHES`:
+  its link flag, how a link and a saved value are read, and how Copy link
+  writes it. `runSwitches` gives `createRun` its part, and `RunState`
+  carries each.
+- **In play:** Off sends no contested ball to that catch test; with one
+  Always, every contested ball from series 1 goes to it (as `?snag=1`);
+  both Always pick at random. Normal is today's rule: from series 5 the
+  seed sends some contested balls to a catch test and picks one, half and
+  half; a pick that is Off goes to today's rule instead, so Off on one
+  leaves the other on Normal exactly as it was (review fix). A tackle deals
+  only the kinds on, by the same random pick (all three on is the same run
+  as before). Pickups off lays none. Field events off puts none on ordinary
+  stretches; a Boss's own (Frog Rain) comes either way.
+- **Links** read as they did, and say more: `?snag=` and `?tip=` take
+  `off`, `normal` or `always` (`1` still means always); `?breakit=bar,juke`;
+  `?pickups=0`; `?events=0` (or `off`); every on/off flag also reads `on`
+  and `off`; and `?hard=1`, `?aim=2` and `?perks=0` now name the default,
+  so a link can override a saved setup. Since field events became on or
+  off (map round 5), `?events=normal` names nothing (so events stay on),
+  and a setup saved in the old shape (`fieldEvents: 'off'`) is left out
+  with its warning, so events come back on: said, never silent, so it has
+  no migration. "Off is said" for the rest too (the two-axis review):
+  `?seed=random` sets the seed back to random over a saved one, and
+  `?monsters=0` (or `off`) turns the monster team off; bare `?monsters` and
+  any other value still turn it on, as before. `?seed=` and `?area=` go
+  through the same check as a saved value (a whole number from 1, the area
+  at most the last), so `?seed=1.5` or `?area=99` now names nothing where
+  it used to be taken (the area clamped). A value a switch doesn't take
+  names nothing.
+- **Copy link** (`linkFor`) names every switch, the defaults, `seed=random`
+  and `monsters=0` included, so the link plays the same setup on any phone
+  whatever is saved there (map round 5, q1), e.g. `?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0`.
+- **A run says what setup it was made with** (map round 5, q3): the
+  switches the setup actually supplied (`suppliedBySetup`: changed from the
+  defaults and not named by the link, so a full Copy link over a saved
+  setup is a plain run), as a link writes them (`setupQuery`; '' for
+  none, and in practice), are on every play log line as `setup`, beside
+  `link`, and in the run's record as `setup`. The record format is 4; the
+  stats store's upgrade step 3 → 4 gives older runs a blank setup. Setup
+  runs still count toward stats and achievements.
+- **The setup** (`src/arcade/content/savedSetup.ts`): localStorage
+  `getJackBack.devSetup`, only the switches that differ from the defaults,
+  as JSON. Read back switch by switch: a value no switch takes, or a name
+  that isn't a switch, is left out with a warning naming it, shown on the
+  page and as a notice in the game. Storage that can't be read, or isn't
+  JSON, is `unreadable`: the page says why, and the game plays the defaults
+  and says so in the same notice (`setupNotices`).
+- **Layers:** `runOptionsFor(link, setup, practice)` in `runOptions.ts`: the
+  link's, else the setup's, else the defaults, switch by switch.
+  **Practice ignores the setup** in one place, `setupInUse` (nothing in
+  practice, even a setup that couldn't be read), which the run options,
+  the tag's count, the notices and the run's record all go through.
+  `src/main.ts` passes `isPracticeLink` (`content/eventLink.ts`, tested): a
+  `?try=` or `?event=` link.
+- **The tag** (`src/ui/setupTag.ts`): DEV SETUP · N changed, top centre on
+  the start screen, linking to `dev/setup.html`; Reset clears the setup and
+  reloads the game, so the next run plays the defaults. A Reset that fails
+  says so on the tag.
+- **The page** (`dev/setup.html`, `src/dev/setup/page.ts`): as designed,
+  its on/off switches the editors' toggles (map round 5, p2): the `.tog`
+  style and the editors' palette moved into `src/dev/controls.css`, which
+  the play editor imports (the event editor through it) and the page
+  links; the editors' headless screenshots are the same, byte for byte,
+  before and after. The last Break it! kind on is held, its toggle
+  disabled and dimmed. The page has "N changed from the defaults" under the note, a seed the link's
+  check refuses refused here too (`switchFromText`), and a copy that fails showing the link to
+  copy by hand. Restore defaults resets the page and clears the saved setup
+  at once.
+- **Tests:** `tests/arcade/devSetup.test.ts` (1–10 in the sim and the
+  options), `tests/ui/setupTag.test.ts` (3), `tests/dev/setupPage.test.ts`
+  (1, 4, 8, 9 and the toggles on the page), the play log, recorder, keeper
+  and store tests (10), and d7 test 1 grown to the new switches.
+- **Nothing plays differently with nothing saved:** the six balance
+  scenarios, 8 runs each, on `run-options` (ec0b155) and on this branch
+  (fe0e701, and again after the first review fix): the reports are
+  identical, byte for byte. The seeded-run digests pass unchanged. The
+  two-axis review's fixes touch links and messages, and map round 5 took
+  only the chosen-event path out of the sim (`sim/run.ts` is run-options'
+  but for the off check), so the comparison wasn't rerun.
+- **The headless look** (the built game at phone size): the page, a setup
+  saved, the tag on the start screen, Reset taking it away, warnings and
+  an unreadable setup on the page. It led to the tag kept on one line.
+  Retaken with the toggles (map round 5). A setup's warnings, like the
+  saved events', show as a notice once PLAY has taken the start screen
+  away.
+
+**Answered on map round 5** (2026-11-10; these were the open questions):
+
+1. **Copy link writes every switch** (q1, approved): built, above.
+2. **The chosen field event** (q2, approved, then superseded by p2): field
+   events are on or off only, and the chosen-event option is gone.
+3. **A run made with a setup says so** (q3, approved): built, above.
+4. **A practice link the game can't read** opens the ordinary game, as
+   before, and still without the setup (q4, approved: kept as built).

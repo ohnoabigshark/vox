@@ -165,13 +165,13 @@ describe('SNAG IT!: when (c2, c3, c6)', () => {
   });
 
   it('?snag=1 turns it on from series 1', () => {
-    const base = createRun(1, undefined, 0, { ...ORIGINAL_GAME, snagAlways: true });
-    expect(base.snagAlways).toBe(true);
+    const base = createRun(1, undefined, 0, { ...ORIGINAL_GAME, snagIt: 'always' });
+    expect(base.snagIt).toBe('always');
     const s = playState(
       [{ pos: v(4.464, 5.814), stats: { hands: 60 }, job: stand(v(4.464, 5.814)) }],
       [{ kind: 'cover', pos: v(3.536, 6.186), stats: { hands: 60 } }],
     );
-    const on = { ...s, snagAlways: true };
+    const on = { ...s, snagIt: 'always' as const };
     expect(run(on, 2, throwAt(on, v(4, 6))).state.phase).toBe('snag');
   });
 

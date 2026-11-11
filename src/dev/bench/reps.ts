@@ -142,7 +142,7 @@ export function startRep(test: BenchTest, situation: Situation, seed: number): R
   const state = createRun(seed, startingRoster(), 0, {
     // The bench plays each test in esrauch's game (normal, one-tap), as it always has.
     ...ORIGINAL_GAME,
-    snagAlways: true,
+    snagIt: 'always',
   });
   state.series = { ...state.series, ...stretchAt(situation.series) };
   state.phase = 'play';

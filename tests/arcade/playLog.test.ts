@@ -7,7 +7,12 @@ import { carry, playState } from './helpers';
 
 /** docs/PLAY_LOG.md: the lines, one per event, with the down they happened in. */
 
-const meta: LogMeta = { session: 's1', build: 'abc1234', link: 'aim=2&snag=1' };
+const meta: LogMeta = {
+  session: 's1',
+  build: 'abc1234',
+  link: 'aim=2&snag=1',
+  setup: 'hard=0&breakit=juke',
+};
 const NOW = Date.UTC(2026, 10, 1, 16, 21, 7, 512);
 
 /** A Catcher (id 2) carrying at (3.14159, 11.4567), on the 4 with the line at 10. */
@@ -33,6 +38,8 @@ describe('the play log: its lines (l2)', () => {
       seed: s.seed,
       build: 'abc1234',
       link: 'aim=2&snag=1',
+      // The dev setup's changed switches, as a link writes them (map round 5, q3).
+      setup: 'hard=0&breakit=juke',
       practice: false,
     });
   });

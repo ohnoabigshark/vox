@@ -71,6 +71,7 @@ const record = (downs: PlayResult[], more: Partial<RunRecord> = {}): RunRecord =
   id: 'r',
   build: 'b',
   link: '',
+  setup: '',
   modes: { hard: true, twoTap: true, snag: false, tip: false },
   startedAt: '2026-11-03T12:00:00.000Z',
   endedAt: null,

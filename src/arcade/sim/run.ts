@@ -13,7 +13,7 @@ import { assertNever } from '../../assertNever';
 import { arcadeTuning } from '../content/tuning';
 import { rngFor } from './random';
 import { assignMarks } from './ai';
-import { RUN_DEFAULTS, runOptionsFrom, type RunOptions } from '../content/runOptions';
+import { RUN_DEFAULTS, runOptionsFrom, type RunSwitches } from '../content/runOptions';
 import { pickupsForArea } from './pickups';
 import { placeEvent } from './fieldEvents';
 import { fieldEventById, GENERIC_EVENTS, type FieldEvent } from '../content/fieldEvents';
@@ -161,9 +161,7 @@ export function createRun(
   seed: number,
   roster: RosterPlayer[] = startingRoster(),
   startArea = RUN_DEFAULTS.area - 1,
-  options: Partial<
-    Pick<RunOptions, 'hard' | 'twoTapAim' | 'snagAlways' | 'tipAlways' | 'startWithPerks'>
-  > & {
+  options: Partial<RunSwitches> & {
     /** The plays it deals from; the starting playbook if not given (event practice: the whole pool). */
     readonly playbook?: readonly Play[];
     /**
@@ -195,8 +193,11 @@ export function createRun(
     taken: [],
     hard: run.hard,
     twoTapAim: run.twoTapAim,
-    snagAlways: run.snagAlways,
-    tipAlways: run.tipAlways,
+    snagIt: run.snagIt,
+    tipDrill: run.tipDrill,
+    breakItKinds: run.breakItKinds,
+    pickupsOn: run.pickupsOn,
+    fieldEventsOn: run.fieldEventsOn,
     step: 0,
     time: 0,
     phase: 'setup',
@@ -293,10 +294,12 @@ export function setUpSeries(
   state.field = {
     ...state.field,
     props,
-    // Practice tests the play by itself (map item k8); a pickup taken never comes back (k3).
-    pickups: state.practice
-      ? []
-      : pickupsForArea(state.seed, area).filter((p) => !state.taken.includes(p.id)),
+    // Practice tests the play by itself (map item k8), and the run options can turn pickups
+    // off (docs/DEV_SETUP.md); a pickup taken never comes back (k3).
+    pickups:
+      state.practice || !state.pickupsOn
+        ? []
+        : pickupsForArea(state.seed, area).filter((p) => !state.taken.includes(p.id)),
   };
   events.push({ type: 'seriesStarted', stretch: at.stretch, name: at.name });
   setUpDown(state, events);
@@ -306,13 +309,13 @@ export function setUpSeries(
 /**
  * This down's field event, placed: the one practice tries; else its
  * stretch's own (Frog Rain); else its stretch's generic event, if the seed
- * gave it one. The play editor's practice tests the play alone, as with
- * pickups.
+ * gave it one and the run options have field events on. The play editor's
+ * practice tests the play alone, as with pickups.
  */
 function placedEvent(state: RunState, spec: DefenseSpec): FieldEventOn | null {
   if (state.practiceEvent) return placeEvent(state, state.practiceEvent);
   if (spec.fieldEvent) return placeEvent(state, fieldEventById(spec.fieldEvent));
-  if (state.practice) return null;
+  if (state.practice || !state.fieldEventsOn) return null;
   const generic = genericEventFor(state.seed, stretchNumber(state.series));
   return generic ? placeEvent(state, generic) : null;
 }

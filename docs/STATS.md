@@ -167,8 +167,12 @@ or unreadable shows a notice; the game still plays.
 
 **What counts** (c1). Every real run is recorded, with the modes it was
 played in (hard or not, two-tap or one, which tap tests are on), link
-options included. Practice (Try it), the test bench and an event's practice
-link are drills and are never recorded.
+options included. A run made with a dev setup counts too, and its record
+says so: `setup` holds the switches the setup supplied (not the ones the
+link named) as a link writes them,
+'' for none (format 4, `docs/DEV_SETUP.md`, map round 5, q3). Practice (Try
+it), the test bench and an event's practice link are drills and are never
+recorded.
 
 **All time** (s3), hard and normal kept apart:
 
@@ -283,7 +287,7 @@ The record branch's scenarios (f2), written first and watched go red:
 
 The `record` branch, 2026-11-03. Everything is in `src/arcade/record/`:
 
-- `types.ts`: the record's shape, `RECORD_FORMAT` (1), and Jack's id (0).
+- `types.ts`: the record's shape, `RECORD_FORMAT` (4 since the dev setup; the steps are in `store.ts`), and Jack's id (0).
 - `recorder.ts`: `RunRecorder`, pure, fed each step's events with the
   state before and after; `recordable`, the one rule for which runs count.
 - `stats.ts`: `runStats`, `playerStats` and `playsStats`, read from a
@@ -361,7 +365,7 @@ over the record, either for mid-run (`down`: checked after each down, and
 popped) or for the whole run (`run`: checked as it closes, on the card).
 Settled while building:
 
-- **They're kept in the saved stats,** whose format is 2: the earned ones
+- **They're kept in the saved stats,** from format 2 on: the earned ones
   (the first run to earn each and when, and the hard mark) and which
   achievements have been looked for in the saved runs. Format 1 comes up
   through the first real upgrade step, so a phone with saved runs earns

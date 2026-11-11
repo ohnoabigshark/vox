@@ -15,6 +15,8 @@ export interface LogMeta {
   readonly build: string;
   /** The link's query string, e.g. `aim=2&hard=1&snag=1`. */
   readonly link: string;
+  /** The dev setup the page's runs are made with, as a link writes it ('' for none; docs/DEV_SETUP.md). */
+  readonly setup: string;
 }
 
 export interface PlayLogLine {
@@ -26,6 +28,8 @@ export interface PlayLogLine {
   readonly seed: number;
   readonly build: string;
   readonly link: string;
+  /** The dev setup's changed switches, as a link writes them ('' for none): a run made with one says so. */
+  readonly setup: string;
   readonly practice: boolean;
   /** The down as it was played. */
   readonly series: { readonly area: number; readonly stretch: number; readonly kind: SeriesKind };
@@ -88,6 +92,7 @@ function context(
     seed: prev.seed,
     build: meta.build,
     link: meta.link,
+    setup: meta.setup,
     practice: prev.practice,
     series: { area: series.area, stretch: series.stretch, kind: series.kind },
     down: series.down,

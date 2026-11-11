@@ -82,6 +82,7 @@ export const runOf = (downs: PlayResult[], more: Partial<RunRecord> = {}): RunRe
   id: 'run',
   build: 'b',
   link: '',
+  setup: '',
   modes: HARD,
   startedAt: '2026-11-03T12:00:00.000Z',
   endedAt: '2026-11-03T12:10:00.000Z',

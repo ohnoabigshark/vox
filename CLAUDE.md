@@ -23,6 +23,13 @@ esrauch's roadmap is `MILESTONES.md`.
   original game, `?hard=0&aim=1`. Old links with `?hard=1&aim=2` still play
   the default. Practice links (the play editor's Try it) carry `aim=2` or
   `aim=1`, whichever Try with chose, and ignore hard mode (decision map t3).
+- **The dev setup** (`dev/setup.html`, `docs/DEV_SETUP.md`) saves run
+  options on the phone for every new run, under whatever the link names;
+  the start screen shows **DEV SETUP · N changed** while one is saved.
+  The play log's lines say which setup a run was made with (`setup`,
+  beside `link`), so read them before guessing at a cause. Copy link names
+  every switch, so a copied link plays the same on any phone. Practice
+  ignores the setup.
 - **Releases go to `https://ohnoabigshark.github.io/vox/`** only when the user
   asks: the `Deploy` workflow runs by hand on `main` and nothing else
   (`docs/PLAN.md`, release mode). Merging to `main` publishes nothing.

@@ -7,7 +7,7 @@ import type { Play } from '../content/plays';
 import type { DefenderKind, Form, Grade, PickupKind, Position, TipResult } from '../sim/types';
 
 /** The saved format's version; store.ts brings older ones up to it. */
-export const RECORD_FORMAT = 3;
+export const RECORD_FORMAT = 4;
 
 /** Jack's id in the record: he throws every pass, and isn't on the roster (y2). */
 export const JACK = 0;
@@ -107,6 +107,12 @@ export interface RunRecord {
   readonly build: string;
   /** The link's query string, e.g. `snag=1&tip=1`. */
   readonly link: string;
+  /**
+   * The dev setup it was made with (docs/DEV_SETUP.md): the switches the
+   * saved setup changed, as a link writes them, e.g. `hard=0&breakit=juke`;
+   * '' for none. The link's switches win over these (map round 5, q3).
+   */
+  readonly setup: string;
   readonly modes: RunModes;
   readonly startedAt: string;
   endedAt: string | null;

@@ -212,7 +212,8 @@ Still open:
   - **The switches** (d4): throw type, hard mode, starting area, seed,
     SNAG IT! and the tip drill (Off / Normal / Always), every perk, a
     monster team; new: each Break it! kind on or off, pickups on or off,
-    field events Off / Normal / one chosen event. `win`, `video` and
+    field events Off / Normal / one chosen event (on or off only since map
+    round 5, p2). `win`, `video` and
     `farmSong` stay link-only.
   - **Practice ignores the setup** (d5). _User's note: "make sure to make
     it clear that the toggles only effect actual gameplay and not the
@@ -223,19 +224,30 @@ Still open:
     in `docs/DEV_SETUP.md`.
   - **`run-options` built** 2026-11-10: one `RunOptions` type and its
     defaults (`content/runOptions.ts`), one link reader, nothing playing
-    differently (`docs/DEV_SETUP.md`, "As built"). `dev-setup` is next.
+    differently (`docs/DEV_SETUP.md`, "As built").
+  - **`dev-setup` built** 2026-11-10: the page (`dev/setup.html`), the
+    setup saved per site, the start screen's DEV SETUP tag with Reset, and
+    the three new switches (Break it! kinds, pickups, field events) with
+    SNAG IT! and the tip drill Off / Normal / Always
+    (`docs/DEV_SETUP.md`, "As built").
+  - Map round 5 (2026-11-10): Copy link names every switch (q1); field
+    events are only on or off, the chosen event dropped (q2, p2); a run
+    made with a setup says so in the play log and its record (q3); the
+    page's on/off switches are the editors' toggles, the dropdowns kept
+    (p2: _"Please use consistent UI components like we have from our other
+    editors. Toggles where the checkboxes are."_).
 
   A screen before a run starts where the Coach
   turns each tap test on or off, picks the throw type, and sets the other
   run options, rather than typing them into the URL. _User, 2026-10-31: "a
   dev setup mode where we can enable/disable different tap events, toggle
-  throw type etc before starting a run."_ Today those options are URL
+  throw type etc before starting a run."_ Before it, those options were URL
   flags read once in `src/main.ts` (two-tap throwing and hard mode, on unless
   `?aim=1` or `?hard=0`,
   `?snag=1` SNAG IT! from the first series, `?area=N`, `?seed=N`,
-  `?monsters`, `?win`), and Break it! always deals one of its three
-  (`bar`, `mash`, `juke`, `BREAK_KINDS` in `sim/breakit.ts`); nothing turns
-  one off. It is the dev panel `docs/rules.md` asks for ("Build a dev panel
+  `?monsters`, `?win`), and Break it! always dealt one of its three
+  (`bar`, `mash`, `juke`, `BREAK_KINDS`, now in `content/runOptions.ts`);
+  nothing turned one off. It is the dev panel `docs/rules.md` asks for ("Build a dev panel
   from the start"), which `?snag=1` stood in for (`docs/SNAG.md`). Open for
   its grilling: where it lives (a screen in the game behind a dev flag, or
   a dev page that builds the link); which switches (each Break it! kind and
@@ -251,8 +263,9 @@ Still open:
   `readModes`), the game and `createRun` defaulting both to off while a link
   defaulted both to on (release mode's review, v6); since `run-options`
   (2026-11-10) there is one `RunOptions` type with one set of defaults, and
-  a new switch still touches about seven places (the type, the defaults,
-  `readLink`, `createRun`, `RunState`, the game's two `createRun` calls).
+  since `dev-setup` a new switch touches the type, the defaults, its entry
+  in `SWITCHES` (its link flag and checks), `runSwitches`, `RunState` and
+  `createRun`, the sim where it acts, and a control on the setup page.
 - **More events like Frog Rain, starting with an event editor** (dev, then
   difficulty). _User, 2026-10-31: "more events like frog rain. along with
   that should be an event editor, like the tap event editor, that lets us

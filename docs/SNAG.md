@@ -57,10 +57,11 @@ to get there._
   mode's fourth zone 13–16, and so on). From series 5, in normal and hard
   mode alike; before it, contests are settled as today.
 - **`?snag=1`** turns it on from the first series, to try it without playing
-  four series first. It stands in for the dev panel's "force the next
-  contest" button (u1): vox has no dev panel, and its URL options are how it
-  forces states (`TECHNICAL.md` §21). Practice follows the same rule, so a
-  rep only meets SNAG IT! with `?snag=1`.
+  four series first. It stood in for the dev panel's "force the next
+  contest" button (u1); the dev setup page (`docs/DEV_SETUP.md`) now has
+  SNAG IT! Off, Normal or Always, and `?snag=1` reads as Always. Practice
+  follows the same rule, so a rep only meets SNAG IT! with `?snag=1` (the
+  saved setup doesn't reach practice).
 
 ## The test (c1, s2, s3, s5, s6)
 

@@ -36,7 +36,7 @@ describe('the catch tests’ shared settings (TIP.md, step 2)', () => {
     const s = playState([], []);
     expect(catchTestsOn(onSeries(s, 4))).toBe(false);
     expect(catchTestsOn(onSeries(s, 5))).toBe(true);
-    expect(catchTestsOn(onSeries({ ...s, snagAlways: true }, 1))).toBe(true);
+    expect(catchTestsOn(onSeries({ ...s, snagIt: 'always' as const }, 1))).toBe(true);
   });
 
   it('the pace: the usual up to series 10, 5% quicker a series after, down to 62.5% from series 18', () => {

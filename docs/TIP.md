@@ -27,7 +27,8 @@ Times are on screen, as in `GAMEPLAY.md`; the sim runs at 0.8 of that, so
   one.
 - **`?tip=1`** makes every contested ball a tip drill from the first series,
   as `?snag=1` does for SNAG IT!; with both, each picks at random from the
-  first series. The parked dev setup mode will replace these with switches.
+  first series. The dev setup (`docs/DEV_SETUP.md`) has both as switches,
+  Off, Normal or Always; these links still read as Always.
 
 ## The drill (t1, t5, u1)
 
@@ -192,4 +193,4 @@ changed:
   pop (t5: "sounds and buzz" as SNAG IT!'s); `tipPops`, which names the
   extra pop; the `sn`/`tp`/`ct` tuning aliases, the existing convention.
 - **Deferred:** gathering the link options into one run-options object, to
-  the dev setup mode (`PLAN.md`).
+  the dev setup mode (`PLAN.md`); done there (`docs/DEV_SETUP.md`).
