@@ -26,7 +26,8 @@ have there be a default config file for all of the same toggles/values."_
     least one staying on; SNAG IT! and the tip drill each Off, Normal or
     Always.
   - _On the field:_ pickups on or off; field events on or off; start with
-    every perk; a monster team.
+    every perk; a monster team; the player's menu (`docs/PLAYER_MENU.md`,
+    a3, added 2026-11-11).
   - Every on/off switch is the editors' toggle (`.tog`), and the
     dropdowns and the seed box stay (map round 5, p2, 2026-11-10: "Toggles
     where the checkboxes are. Field events should also just be a toggle for
@@ -193,7 +194,7 @@ it's handed over.
   names nothing.
 - **Copy link** (`linkFor`) names every switch, the defaults, `seed=random`
   and `monsters=0` included, so the link plays the same setup on any phone
-  whatever is saved there (map round 5, q1), e.g. `?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0`.
+  whatever is saved there (map round 5, q1), e.g. `?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0&menu=0`.
 - **A run says what setup it was made with** (map round 5, q3): the
   switches the setup actually supplied (`suppliedBySetup`: changed from the
   defaults and not named by the link, so a full Copy link over a saved
@@ -256,3 +257,13 @@ it's handed over.
 3. **A run made with a setup says so** (q3, approved): built, above.
 4. **A practice link the game can't read** opens the ordinary game, as
    before, and still without the setup (q4, approved: kept as built).
+
+### The player's menu switch (2026-11-11, `player-menu`)
+
+- **Player menu** (`playerMenu`, `?menu=0|1`, off by default), a toggle
+  under On the field: the player's menu shows on a selected player
+  (`docs/PLAYER_MENU.md`, a3) until Route works, when the switch goes. It
+  layers, saves and is written by Copy link like every switch, and practice
+  ignores it with the rest of the setup. It is the HUD's, not the game's:
+  `RunSwitches` leaves it out, so `createRun` never sees it and no run
+  changes.

@@ -6,6 +6,7 @@
  * it never touches the sim.
  */
 import type { RunState, Vec } from '../sim/types';
+import { assertNever } from '../../assertNever';
 
 /** How far a tap may land from a body and still be on it: about a thumb's width (CSS pixels; docs/SELECT.md, s1). */
 export const TAP_REACH = 40;
@@ -50,6 +51,22 @@ export function slotAt(
 /** What a tap does: on a player, selects them (or clears it, if already selected); on nothing, clears it. */
 export function tapSelect(current: number | null, hit: number | null): number | null {
   return hit === null || hit === current ? null : hit;
+}
+
+/** What changes a selection: a tap on the field (on one of your seven, or `hit` null for none), or ✕ on the card. */
+export type SelectInput =
+  { readonly kind: 'tap'; readonly hit: number | null } | { readonly kind: 'close' };
+
+/** The selection after this input (s1), the one place the game changes it, so the card and the player's menu go with it. */
+export function selectionAfter(current: number | null, input: SelectInput): number | null {
+  switch (input.kind) {
+    case 'tap':
+      return tapSelect(current, input.hit);
+    case 'close':
+      return null;
+    default:
+      return assertNever(input);
+  }
 }
 
 /** The selection as it stands now: only before the snap, and only a slot with a player in it. */

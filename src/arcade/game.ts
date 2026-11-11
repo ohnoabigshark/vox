@@ -43,7 +43,7 @@ import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
 import { ArcadeNames } from './render/names';
 import { nameTags } from './ui/nameTags';
-import { fieldPoints, keptSelection, slotAt, tapSelect } from './ui/select';
+import { fieldPoints, keptSelection, selectionAfter, slotAt } from './ui/select';
 import { loadSettings, saveSettings } from '../settings';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
@@ -92,6 +92,7 @@ import type { Practice } from './content/playCode';
 import { startingPlaybook } from './content/playPool';
 import type { Play } from './content/plays';
 import { fieldCard, trickOrTreatView } from './ui/trickOrTreat';
+import { playerMenu } from './ui/playerMenu';
 import { setupTag } from '../ui/setupTag';
 
 /** The sound of taking each kind of pickup (docs/PICKUPS.md). */
@@ -341,7 +342,7 @@ export class ArcadeGame {
       onFlag: () => this.flag(),
       onNames: () => this.toggleNames(),
       onUnselect: () => {
-        this.selected = null;
+        this.selected = selectionAfter(this.selected, { kind: 'close' });
         this.syncHud();
       },
     });
@@ -860,6 +861,7 @@ export class ArcadeGame {
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
       this.hud.setSelected(null);
+      this.hud.setPlayerMenu(null);
       this.hud.setNamesSwitch(null);
       this.hud.setPrompt(null, null);
       return;
@@ -870,6 +872,7 @@ export class ArcadeGame {
       this.hud.setHand(null, null);
       this.hud.setDraft(null);
       this.hud.setSelected(null);
+      this.hud.setPlayerMenu(null);
       this.hud.setNamesSwitch(null);
       this.hud.setPrompt(null, null);
       return;
@@ -896,6 +899,8 @@ export class ArcadeGame {
     // The selected player's card takes "Pick a play"'s place (s3).
     const selected = this.selectionNow();
     this.hud.setSelected(selected === null ? null : fieldCard(this.state, selected));
+    // The player's menu goes with the selection (docs/PLAYER_MENU.md, a1, a3).
+    this.hud.setPlayerMenu(playerMenu(this.runOptions.playerMenu, selected));
     this.hud.setNamesSwitch(this.beforeSnap() ? this.namesOn : null);
     const pick = called === null && selected === null ? 'Pick a play' : null;
     if (!this.live) this.hud.setPrompt(null, null);
@@ -918,7 +923,7 @@ export class ArcadeGame {
       toScreen(toWorld(pos, this.origin, BODY_MIDDLE), this.view.camera, canvas),
     );
     const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top });
-    this.selected = tapSelect(this.selected, hit);
+    this.selected = selectionAfter(this.selected, { kind: 'tap', hit });
     this.syncHud();
   }
 

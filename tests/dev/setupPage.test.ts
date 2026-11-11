@@ -144,6 +144,7 @@ describe('the editors’ toggles (map round 5, p2)', () => {
       'fieldEventsOn',
       'startWithPerks',
       'monsters',
+      'playerMenu',
     ])
       expect(tog(root, name), name).not.toBeNull();
     expect(root.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);

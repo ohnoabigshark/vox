@@ -647,9 +647,12 @@ Still open:
   another, audibles are another (maybe these even are specific to the
   selected play or player combination like a flea flicker)."_
   - **Parked** (next-job map m1, 2026-11-10); grilled after the dev setup
-    mode.
+    mode, on its own map (2026-11-11).
   - **First slice:** the menu's shell only, how it looks and opens from a
-    selected player's card, with no actions yet. Mockups first.
+    selected player's card, with no actions yet. Mockups first. **Built**
+    2026-11-11 on `player-menu`: the strip above the play cards with Route,
+    Perk and Audible greyed, behind the dev setup's Player menu switch
+    (`docs/PLAYER_MENU.md`, As built). Next: `menu-routes`, hot routes.
   - **Actions for later:** perks used for one play; route changes (beside
     the play editor's "route timing and speeds" and "moving the Blockers",
     below); audibles, maybe tied to the play and the player together, such

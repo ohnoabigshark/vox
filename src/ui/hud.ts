@@ -119,6 +119,21 @@ export interface DraftView {
   readonly swappable: boolean;
 }
 
+/** A slot in the player's menu (docs/PLAYER_MENU.md, a2). */
+export type MenuSlot = 'route' | 'perk' | 'audible';
+
+/** What each slot says. */
+const MENU_LABELS: Readonly<Record<MenuSlot, string>> = {
+  route: 'Route',
+  perk: 'Perk',
+  audible: 'Audible',
+};
+
+/** The player's menu (docs/PLAYER_MENU.md): its slots, each greyed until it works. */
+export interface PlayerMenuView {
+  readonly slots: readonly { readonly slot: MenuSlot; readonly works: boolean }[];
+}
+
 /** What a card face shows. */
 export interface CardFace {
   readonly name: string;
@@ -140,6 +155,8 @@ export class Hud {
   private readonly namesButton: HTMLButtonElement;
   private readonly selectedCard: HTMLElement;
   private selectedKey = '';
+  private readonly menu: HTMLElement;
+  private menuKey = '';
   private readonly draft: HTMLElement;
   private popTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly bigEl: HTMLElement;
@@ -169,6 +186,7 @@ export class Hud {
       <div class="hud-pop"></div>
       <div class="hud-big"></div>
       <div class="hud-bottom">
+        <div class="hud-menu interactive" hidden></div>
         <div class="hud-hand"></div>
         <div class="hud-controls">
           <button class="hud-flip interactive">⇄ Flip</button>
@@ -200,6 +218,7 @@ export class Hud {
     this.namesButton = q<HTMLButtonElement>('.hud-names');
     this.namesButton.addEventListener('click', () => handlers.onNames?.());
     this.selectedCard = q('.hud-selected');
+    this.menu = q('.hud-menu');
     this.bigEl = q('.hud-big');
     this.draft = q('.hud-draft');
 
@@ -405,6 +424,26 @@ export class Hud {
       statBars(card.stats),
     );
     this.selectedCard.replaceChildren(body, close);
+  }
+
+  /**
+   * The player's menu, a strip just above the play cards (a1); null hides it.
+   * A slot that doesn't work yet is greyed and can't be tapped (a2).
+   */
+  setPlayerMenu(view: PlayerMenuView | null): void {
+    const key = view ? JSON.stringify(view) : '';
+    if (key === this.menuKey) return;
+    this.menuKey = key;
+    this.menu.hidden = !view;
+    this.menu.replaceChildren(
+      ...(view?.slots ?? []).map((slot) => {
+        const b = document.createElement('button');
+        b.className = slot.works ? 'hud-menu-slot' : 'hud-menu-slot soon';
+        b.textContent = MENU_LABELS[slot.slot];
+        b.disabled = !slot.works;
+        return b;
+      }),
+    );
   }
 
   /** ⚑: shown (only a game with a play log calls this), red while the log can't be reached. */

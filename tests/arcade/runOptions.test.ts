@@ -17,7 +17,7 @@ import { FROG_RAIN } from '../../src/arcade/content/fieldEvents';
 const played = (query: string) => runOptionsFrom(readLink(new URLSearchParams(query)).run);
 
 describe('the defaults file (test 1)', () => {
-  it('names every switch: hard mode and two-tap on, area 1, a random seed, SNAG IT! and the tip drill Normal, every Break it! kind, pickups and field events on, perks and monsters off', () => {
+  it('names every switch: hard mode and two-tap on, area 1, a random seed, SNAG IT! and the tip drill Normal, every Break it! kind, pickups and field events on, perks, monsters and the player’s menu off', () => {
     expect(RUN_DEFAULTS).toEqual({
       seed: null,
       area: 1,
@@ -30,6 +30,7 @@ describe('the defaults file (test 1)', () => {
       fieldEventsOn: true,
       startWithPerks: false,
       monsters: false,
+      playerMenu: false,
     });
   });
 });
