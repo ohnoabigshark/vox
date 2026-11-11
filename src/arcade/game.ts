@@ -43,7 +43,7 @@ import { ArcadeQueenCrown } from './render/queenCrown';
 import { ArcadeRoyalCrows } from './render/royalCrows';
 import { ArcadeNames } from './render/names';
 import { nameTags } from './ui/nameTags';
-import { fieldPoints, keptSelection, slotAt, tapSelect } from './ui/select';
+import { fieldPoints, keptSelection, selectionAfter, slotAt } from './ui/select';
 import { loadSettings, saveSettings } from '../settings';
 import { ArcadeRoutes } from './render/routes';
 import { ArcadeSweep, litPlayers } from './render/sweep';
@@ -342,7 +342,7 @@ export class ArcadeGame {
       onFlag: () => this.flag(),
       onNames: () => this.toggleNames(),
       onUnselect: () => {
-        this.selected = null;
+        this.selected = selectionAfter(this.selected, { kind: 'close' });
         this.syncHud();
       },
     });
@@ -923,7 +923,7 @@ export class ArcadeGame {
       toScreen(toWorld(pos, this.origin, BODY_MIDDLE), this.view.camera, canvas),
     );
     const hit = slotAt(points, { x: e.clientX - rect.left, y: e.clientY - rect.top });
-    this.selected = tapSelect(this.selected, hit);
+    this.selected = selectionAfter(this.selected, { kind: 'tap', hit });
     this.syncHud();
   }
 

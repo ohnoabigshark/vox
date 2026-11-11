@@ -8,16 +8,18 @@ import type { PlayerMenuView } from '../../ui/hud';
 
 /**
  * The strip for this selection, or null when it doesn't show: the switch off,
- * or nobody selected (the selection is already null but before the snap,
- * `keptSelection`, so ✕, a tap elsewhere and HIKE! clear the strip too).
+ * or nobody selected. The game passes the selection as it shows
+ * (`selectionNow`, null but before the snap: `beforeSnap`), so HIKE!, the
+ * intro, the outro and a pause hide the strip, and ✕ or a tap elsewhere
+ * (`selectionAfter`) clear it with the card.
  */
 export function playerMenu(on: boolean, selected: number | null): PlayerMenuView | null {
   if (!on || selected === null) return null;
   return {
     slots: [
-      { name: 'Route', works: false },
-      { name: 'Perk', works: false },
-      { name: 'Audible', works: false },
+      { slot: 'route', works: false },
+      { slot: 'perk', works: false },
+      { slot: 'audible', works: false },
     ],
   };
 }

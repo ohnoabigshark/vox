@@ -119,9 +119,19 @@ export interface DraftView {
   readonly swappable: boolean;
 }
 
+/** A slot in the player's menu (docs/PLAYER_MENU.md, a2). */
+export type MenuSlot = 'route' | 'perk' | 'audible';
+
+/** What each slot says. */
+const MENU_LABELS: Readonly<Record<MenuSlot, string>> = {
+  route: 'Route',
+  perk: 'Perk',
+  audible: 'Audible',
+};
+
 /** The player's menu (docs/PLAYER_MENU.md): its slots, each greyed until it works. */
 export interface PlayerMenuView {
-  readonly slots: readonly { readonly name: string; readonly works: boolean }[];
+  readonly slots: readonly { readonly slot: MenuSlot; readonly works: boolean }[];
 }
 
 /** What a card face shows. */
@@ -429,7 +439,7 @@ export class Hud {
       ...(view?.slots ?? []).map((slot) => {
         const b = document.createElement('button');
         b.className = slot.works ? 'hud-menu-slot' : 'hud-menu-slot soon';
-        b.textContent = slot.name;
+        b.textContent = MENU_LABELS[slot.slot];
         b.disabled = !slot.works;
         return b;
       }),

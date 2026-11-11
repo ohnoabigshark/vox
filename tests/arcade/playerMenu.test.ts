@@ -1,6 +1,8 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import {
   RUN_DEFAULTS,
+  type RunOptions,
   linkFor,
   readLink,
   runOptionsFor,
@@ -10,7 +12,9 @@ import {
 import { isPracticeLink } from '../../src/arcade/content/eventLink';
 import { createRun, dispatch } from '../../src/arcade/sim/run';
 import { startingRoster } from '../../src/arcade/sim/team';
-import { keptSelection } from '../../src/arcade/ui/select';
+import { canThrow, step } from '../../src/arcade/sim/step';
+import type { ArcadeEvent, RunState } from '../../src/arcade/sim/types';
+import { keptSelection, selectionAfter } from '../../src/arcade/ui/select';
 import { playerMenu } from '../../src/arcade/ui/playerMenu';
 
 /** docs/PLAYER_MENU.md, the `player-menu` tests (the menu's map, c2). */
@@ -60,6 +64,27 @@ describe('the switch (test 1)', () => {
 
 describe('when the strip shows (test 2)', () => {
   const called = dispatch(createRun(1), { type: 'call', hand: 0 }).state;
+  /** The strip after this input, through the function the game calls for ✕ and for a tap on the field. */
+  const after = (selected: number | null, input: Parameters<typeof selectionAfter>[1]) =>
+    playerMenu(true, keptSelection(called, selectionAfter(selected, input)));
+
+  it('a tap on one of your seven shows it', () => {
+    expect(after(null, { kind: 'tap', hit: 3 })).not.toBeNull();
+  });
+
+  it('✕ on the card clears it', () => {
+    expect(after(3, { kind: 'close' })).toBeNull();
+  });
+
+  it('a tap on empty field, or on the same player again, clears it', () => {
+    expect(after(3, { kind: 'tap', hit: null })).toBeNull();
+    expect(after(3, { kind: 'tap', hit: 3 })).toBeNull();
+  });
+
+  it('a tap on another player moves it to them', () => {
+    expect(selectionAfter(3, { kind: 'tap', hit: 5 })).toBe(5);
+    expect(after(3, { kind: 'tap', hit: 5 })).not.toBeNull();
+  });
 
   it('with the switch on and one of your seven selected before the snap', () => {
     expect(playerMenu(true, keptSelection(called, 3))).not.toBeNull();
@@ -84,9 +109,9 @@ describe('what it holds (test 3)', () => {
   it('Route, Perk and Audible, all greyed in this slice', () => {
     expect(playerMenu(true, 3)).toEqual({
       slots: [
-        { name: 'Route', works: false },
-        { name: 'Perk', works: false },
-        { name: 'Audible', works: false },
+        { slot: 'route', works: false },
+        { slot: 'perk', works: false },
+        { slot: 'audible', works: false },
       ],
     });
   });
@@ -99,9 +124,53 @@ describe('nothing plays differently (test 4)', () => {
     expect(Object.keys(on)).not.toContain('playerMenu');
   });
 
+  it('seeded runs made with the switch on play step for step as with it off', () => {
+    for (const seed of [11, 12]) {
+      expect(digestOf(seed, runOptionsFrom({ playerMenu: true })), `seed ${seed}`).toBe(
+        digestOf(seed, runOptionsFrom({ playerMenu: false })),
+      );
+    }
+  });
+
   it('the same run either way', () => {
     const run = (playerMenu: boolean) =>
       createRun(7, startingRoster(), 0, runSwitches(runOptionsFrom({ playerMenu })));
     expect(JSON.stringify(run(true))).toBe(JSON.stringify(run(false)));
   });
 });
+
+/** A run made from these run options and driven by its seed alone: a digest of its events and positions, step for step. */
+function digestOf(seed: number, options: RunOptions): string {
+  const hash = createHash('sha256');
+  const note = (events: readonly ArcadeEvent[]): void => {
+    for (const e of events) hash.update(JSON.stringify(e));
+  };
+  let s: RunState = createRun(seed, startingRoster(), options.area - 1, runSwitches(options));
+  for (let i = 0; i < 3000 && s.phase !== 'over' && s.phase !== 'won'; i++) {
+    if (s.phase === 'setup') {
+      const called = dispatch(s, { type: 'call', hand: i % 3 });
+      note(called.events);
+      const hiked = dispatch(called.state, { type: 'hike' });
+      note(hiked.events);
+      s = hiked.state;
+    }
+    if (s.phase === 'draft') {
+      const skipped = dispatch(s, { type: 'skipDraft' });
+      note(skipped.events);
+      s = skipped.state;
+    }
+    const input =
+      s.phase === 'breakit'
+        ? { breakTap: i % 7 === 0 }
+        : canThrow(s) && i % 50 === 0
+          ? { throw: true }
+          : {};
+    const result = step(s, input);
+    note(result.events);
+    s = result.state;
+    for (const b of [...s.field.players, ...s.field.defenders]) {
+      hash.update(`${b.id}:${b.pos.x},${b.pos.y};`);
+    }
+  }
+  return hash.digest('hex');
+}

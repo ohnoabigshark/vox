@@ -34,6 +34,11 @@ describe('the strip', () => {
     expect(strip.hidden).toBe(true);
   });
 
+  it('takes its own taps, so a tap on it never reaches the field behind (the overlay lets taps through only where nothing is interactive)', () => {
+    const { root } = make();
+    expect(root.querySelector('.hud-menu')!.classList.contains('interactive')).toBe(true);
+  });
+
   it('a tap on a greyed slot does nothing and sends nothing to the game', () => {
     const { root, hud, calls } = make();
     hud.setPlayerMenu(playerMenu(true, 2));
