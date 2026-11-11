@@ -658,6 +658,24 @@ Still open:
     the screen; whether it shows when it has nothing in it; how an action
     is used up (once a play, once a series, once a run); how it meets
     "select only" (parked, V1) and the tutorial.
+  - **Changing a route after the call** (the user, 2026-11-11: "one thing
+    to consider with the player menu is the ability to change their route.
+    I don't know if we have the ability to edit the play after it's chosen
+    or adjust a specific route but we will need it once we start adding
+    capabilities to the player menu"). What exists: between the call and
+    the hike you can call another card or Flip, and each one lines your
+    players up again from the card (`call` and `flip` in `sim/run.ts`).
+    Nothing changes one player's route. Calling a card already copies each
+    route onto its player for that down (`job: { kind: 'route', to }`,
+    `sim/bodies.ts`), so a new action could change one player's copy for
+    this down and leave the playbook alone. Routes are drawn and dragged
+    only in the play editor (`dev/playEditor/editor.ts`), and checked by
+    `playProblems` (`content/playRules.ts`). Open for the grilling: whether
+    a change lasts one down or changes the card; picking from set routes
+    (a go, a slant, a curl) or dragging waypoints as the editor does;
+    whether Flip or calling another card undoes it; whether the Runner's
+    handoff route can change; and whether it's free or a menu action
+    that's used up.
 - **More passes blocked or dropped.** **Dropped** (2026-11-10, next-job map
   l3). _User, 2026-11-04, while playing
   difficulty-3: "we will need to consider more outright blocks/drops on
