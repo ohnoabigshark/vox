@@ -49,8 +49,6 @@ export interface RunOptions {
   readonly startWithPerks: boolean;
   /** A monster team (Golem Blockers, Werewolf Runners, Ghost Catchers), for a look at them. */
   readonly monsters: boolean;
-  /** The player's menu on a selected player (docs/PLAYER_MENU.md, a3), until it does something. */
-  readonly playerMenu: boolean;
 }
 
 /**
@@ -70,7 +68,6 @@ export const RUN_DEFAULTS: RunOptions = {
   fieldEventsOn: true,
   startWithPerks: false,
   monsters: false,
-  playerMenu: false,
 };
 
 /**
@@ -158,7 +155,7 @@ function breakKinds(value: unknown): readonly BreakKind[] | undefined {
  * the area at most the last). What's new says every value, "off" included
  * (d3): `?hard=1`, `?aim=2`, `?perks=0`, `?monsters=0` (or `off`),
  * `?seed=random`, `?snag=off|normal|always` (and `?tip=`),
- * `?breakit=bar,mash,juke`, `?pickups=0|1`, `?events=0|1`, `?menu=0|1`; every on/off
+ * `?breakit=bar,mash,juke`, `?pickups=0|1`, `?events=0|1`; every on/off
  * flag also reads `on` and `off`.
  * A value a switch doesn't take names nothing, so the layer below holds.
  */
@@ -201,10 +198,16 @@ const SWITCHES: { readonly [K in keyof RunOptions]: Switch<RunOptions[K]> } = {
     // On/off as the others, but bare or any other value means on, as `?monsters` always counted.
     read: (params, flag) => (params.has(flag) ? (MONSTERS.read(params, flag) ?? true) : undefined),
   },
-  playerMenu: { flag: 'menu', ...onOff() },
 };
 
 const SWITCH_NAMES = Object.keys(RUN_DEFAULTS) as (keyof RunOptions)[];
+
+/**
+ * Switches there are no more, which a setup saved before may still hold:
+ * left out without a word, as what they did is now how every run plays.
+ * Player menu (`playerMenu`) went when Route worked (docs/PLAYER_MENU.md, a3).
+ */
+const RETIRED: readonly string[] = ['playerMenu'];
 
 /** Some of the run options, each named one with its value. */
 type NamedOptions = { -readonly [K in keyof RunOptions]?: RunOptions[K] };
@@ -327,7 +330,7 @@ export function checkSwitches(raw: Readonly<Record<string, unknown>>): {
   for (const [key, value] of Object.entries(raw)) {
     const name = SWITCH_NAMES.find((k) => k === key);
     if (!name) {
-      unknown.push(key);
+      if (!RETIRED.includes(key)) unknown.push(key);
       continue;
     }
     const checked = SWITCHES[name].check(value);
@@ -339,10 +342,9 @@ export function checkSwitches(raw: Readonly<Record<string, unknown>>): {
 
 /**
  * The switches the sim's `createRun` takes: all but the seed and the area
- * (its own arguments), the monster team (the roster it's given) and the
- * player's menu (the HUD's, never the game's).
+ * (its own arguments) and the monster team (the roster it's given).
  */
-export type RunSwitches = Omit<RunOptions, 'seed' | 'area' | 'monsters' | 'playerMenu'>;
+export type RunSwitches = Omit<RunOptions, 'seed' | 'area' | 'monsters'>;
 
 /** The switches of these run options that `createRun` takes. */
 export function runSwitches(o: RunOptions): RunSwitches {

@@ -73,7 +73,6 @@ const EVERY_CHANGED: RunOptions = {
   fieldEventsOn: false,
   startWithPerks: true,
   monsters: true,
-  playerMenu: true,
 };
 
 describe('saving (test 1)', () => {
@@ -176,7 +175,6 @@ describe('layers: the link over the saved setup over the defaults (test 2)', () 
     fieldEventsOn: [false, 'events=on', true],
     startWithPerks: [true, 'perks=0', false],
     monsters: [true, 'monsters=0', false],
-    playerMenu: [true, 'menu=0', false],
   };
   for (const key of Object.keys(cases) as (keyof RunOptions)[]) {
     const [saved, query, linked] = cases[key];
@@ -536,7 +534,6 @@ describe('Copy link (test 9)', () => {
         fieldEventsOn: !o.fieldEventsOn,
         startWithPerks: !o.startWithPerks,
         monsters: !o.monsters,
-        playerMenu: !o.playerMenu,
       },
       warnings: [],
     });
@@ -552,7 +549,7 @@ describe('Copy link (test 9)', () => {
   it('says random and off out loud', () => {
     const query = linkFor(RUN_DEFAULTS);
     expect(query).toBe(
-      '?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0&menu=0',
+      '?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0',
     );
   });
 });

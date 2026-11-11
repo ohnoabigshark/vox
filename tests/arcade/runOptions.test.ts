@@ -30,7 +30,6 @@ describe('the defaults file (test 1)', () => {
       fieldEventsOn: true,
       startWithPerks: false,
       monsters: false,
-      playerMenu: false,
     });
   });
 });

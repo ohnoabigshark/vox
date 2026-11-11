@@ -18,7 +18,8 @@ import { Conductor } from '../game/conductor';
 import { GAME_LIGHT, setLights } from '../render/gameLight';
 import { ForestScenery } from '../render/scenery';
 import { View } from '../render/view';
-import { Hud } from '../ui/hud';
+import { Hud, type MenuSlot } from '../ui/hud';
+import { assertNever } from '../assertNever';
 import { ORIGINAL_GAME, runSwitches, type RunOptions } from './content/runOptions';
 import { arcadeTuning, DT, TIME_SCALE } from './content/tuning';
 import { ArcadeBall } from './render/ball';
@@ -345,6 +346,7 @@ export class ArcadeGame {
         this.selected = selectionAfter(this.selected, { kind: 'close' });
         this.syncHud();
       },
+      onMenu: (slot) => this.onMenu(slot),
     });
     this.playLog = PLAY_LOG_URL ? this.startPlayLog(PLAY_LOG_URL) : null;
     this.statsScreens = options.stats ? new StatsScreens(uiRoot) : null;
@@ -526,6 +528,25 @@ export class ArcadeGame {
   private call(hand: number): void {
     this.conductor.play('uiClick');
     this.act({ type: 'call', hand });
+  }
+
+  /** A tap on the player's menu, for the player selected (docs/PLAYER_MENU.md). */
+  private onMenu(slot: MenuSlot): void {
+    const selected = this.selectionNow();
+    if (selected === null) return;
+    switch (slot) {
+      case 'route':
+        // Their next hot route; the field draws it at once, and they stay selected (c1).
+        this.conductor.play('uiClick');
+        this.act({ type: 'hotRoute', slot: selected });
+        return;
+      case 'perk':
+      case 'audible':
+        // Greyed, so never tapped: nothing in them works yet (a2).
+        return;
+      default:
+        assertNever(slot);
+    }
   }
 
   /** A button press, applied on the next step (if it means anything right now). */
@@ -899,8 +920,8 @@ export class ArcadeGame {
     // The selected player's card takes "Pick a play"'s place (s3).
     const selected = this.selectionNow();
     this.hud.setSelected(selected === null ? null : fieldCard(this.state, selected));
-    // The player's menu goes with the selection (docs/PLAYER_MENU.md, a1, a3).
-    this.hud.setPlayerMenu(playerMenu(this.runOptions.playerMenu, selected));
+    // The player's menu goes with the selection (docs/PLAYER_MENU.md, a1).
+    this.hud.setPlayerMenu(playerMenu(this.state, selected));
     this.hud.setNamesSwitch(this.beforeSnap() ? this.namesOn : null);
     const pick = called === null && selected === null ? 'Pick a play' : null;
     if (!this.live) this.hud.setPrompt(null, null);
