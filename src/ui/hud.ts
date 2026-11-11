@@ -33,6 +33,8 @@ export interface HudHandlers {
   onNames?(): void;
   /** ✕ on the selected player's card: clear the selection (s1). */
   onUnselect?(): void;
+  /** A working slot tapped on the player's menu (docs/PLAYER_MENU.md): Route gives the selected player their next hot route. */
+  onMenu?(slot: MenuSlot): void;
 }
 
 /** ⚑'s look once shown (it starts hidden, and stays so with no play log): plain, or red when the log can't be reached. */
@@ -428,7 +430,8 @@ export class Hud {
 
   /**
    * The player's menu, a strip just above the play cards (a1); null hides it.
-   * A slot that doesn't work yet is greyed and can't be tapped (a2).
+   * A working slot's tap goes to the game (`onMenu`); one that doesn't work
+   * is greyed and can't be tapped (a2).
    */
   setPlayerMenu(view: PlayerMenuView | null): void {
     const key = view ? JSON.stringify(view) : '';
@@ -441,6 +444,7 @@ export class Hud {
         b.className = slot.works ? 'hud-menu-slot' : 'hud-menu-slot soon';
         b.textContent = MENU_LABELS[slot.slot];
         b.disabled = !slot.works;
+        b.addEventListener('click', () => this.handlers.onMenu?.(slot.slot));
         return b;
       }),
     );

@@ -652,7 +652,13 @@ Still open:
     selected player's card, with no actions yet. Mockups first. **Built**
     2026-11-11 on `player-menu`: the strip above the play cards with Route,
     Perk and Audible greyed, behind the dev setup's Player menu switch
-    (`docs/PLAYER_MENU.md`, As built). Next: `menu-routes`, hot routes.
+    (`docs/PLAYER_MENU.md`, As built); merged 2026-11-11 (#58, #59).
+  - **Second slice, hot routes:** **built** 2026-11-11 on `menu-routes`:
+    Route gives a selected player the next of six set routes round a loop,
+    for this down; it's a sim action, in the record (format 5) and the play
+    log, and the switch went, so every run has the menu
+    (`docs/PLAYER_MENU.md`, As built). The builder's six open choices (r1–r6)
+    and the merge (p2) were approved on map round 5, 2026-11-11.
   - **Actions for later:** perks used for one play; route changes (beside
     the play editor's "route timing and speeds" and "moving the Blockers",
     below); audibles, maybe tied to the play and the player together, such

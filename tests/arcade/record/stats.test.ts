@@ -17,6 +17,7 @@ const blank: PlayResult = {
   los: 0,
   play: 'slants',
   flipped: false,
+  hotRoutes: [],
   kind: 'pass',
   outcome: 'incomplete',
   gained: 0,

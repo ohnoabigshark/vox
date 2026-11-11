@@ -26,8 +26,8 @@ have there be a default config file for all of the same toggles/values."_
     least one staying on; SNAG IT! and the tip drill each Off, Normal or
     Always.
   - _On the field:_ pickups on or off; field events on or off; start with
-    every perk; a monster team; the player's menu (`docs/PLAYER_MENU.md`,
-    a3, added 2026-11-11).
+    every perk; a monster team. (The player's menu had a switch here from
+    2026-11-11 until Route worked the same day: `docs/PLAYER_MENU.md`, a3.)
   - Every on/off switch is the editors' toggle (`.tog`), and the
     dropdowns and the seed box stay (map round 5, p2, 2026-11-10: "Toggles
     where the checkboxes are. Field events should also just be a toggle for
@@ -194,7 +194,7 @@ it's handed over.
   names nothing.
 - **Copy link** (`linkFor`) names every switch, the defaults, `seed=random`
   and `monsters=0` included, so the link plays the same setup on any phone
-  whatever is saved there (map round 5, q1), e.g. `?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0&menu=0`.
+  whatever is saved there (map round 5, q1), e.g. `?seed=random&area=1&hard=1&aim=2&snag=normal&tip=normal&breakit=bar,mash,juke&pickups=1&events=1&perks=0&monsters=0`.
 - **A run says what setup it was made with** (map round 5, q3): the
   switches the setup actually supplied (`suppliedBySetup`: changed from the
   defaults and not named by the link, so a full Copy link over a saved
@@ -267,3 +267,9 @@ it's handed over.
   ignores it with the rest of the setup. It is the HUD's, not the game's:
   `RunSwitches` leaves it out, so `createRun` never sees it and no run
   changes.
+- **Gone** (2026-11-11, `menu-routes`): once Route worked, every run has
+  the menu and the switch went. A link's `menu=` is ignored like any flag
+  no switch takes. A saved setup that still holds `playerMenu` plays the
+  rest and says nothing about it: it is retired (`RETIRED` in
+  `runOptions.ts`), not unknown, since what it asked for is how every run
+  plays now, and the page's next save leaves it out.

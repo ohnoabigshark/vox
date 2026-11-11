@@ -46,7 +46,10 @@ https://claude.ai/artifact/M8ojJKewTknTjpmxx3eEcY (l1–l6, all approved
   - the ball and the carrier's spot just after the event;
   - the event itself, as the sim reported it (since 2026-11-03's record
     branch, `called` carries the play's id, `batted` its target and
-    `joined` the recruit's id: `docs/STATS.md`). A `downEnded` line also
+    `joined` the recruit's id: `docs/STATS.md`; since 2026-11-11's
+    `menu-routes`, `hotRoute` says who took which hot route: the body's
+    `id`, the roster `slot` and the `route`, null for back on the card's,
+    `docs/PLAYER_MENU.md`). A `downEnded` line also
     carries where the line of scrimmage moved to (`next.los`, yards from the
     area's start since 2026-11-04's long field; from the series' start
     before), but not the

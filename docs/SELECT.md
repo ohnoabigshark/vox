@@ -29,9 +29,11 @@ about that player that pops up somewhere near the top of the screen"._
   show; a selected player's name always shows, at the front and bigger.
 - Selecting is drawing only, not a sim action: it never changes a play,
   the record or the play log.
-- **The player's menu** (2026-11-11, `docs/PLAYER_MENU.md`): with the dev
-  setup's Player menu switch on, a selected player also gets a strip of
-  buttons above the play cards, which goes with the selection.
+- **The player's menu** (2026-11-11, `docs/PLAYER_MENU.md`): a selected
+  player also gets a strip of buttons above the play cards, which goes with
+  the selection (behind a dev setup switch until `menu-routes`, in every run
+  since). Its Route is a sim action, a hot route; selecting itself stays
+  drawing only.
 
 ## Tests (n6), written first
 

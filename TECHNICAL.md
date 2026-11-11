@@ -100,7 +100,7 @@ The scale is sixteen-odd circle bodies on one field, so plain typed objects and 
 | File | What it holds |
 |---|---|
 | `types.ts` | `RunState`, bodies, the ball's states, `Tackle`, `Action`, `StepInput`, `ArcadeEvent`, roster and perk types. |
-| `run.ts` | `createRun`, series and downs (`setUpSeries`, `setUpDown` lines up the down's defense and the patrols ahead (`patrolsAhead`, docs/DIFFICULTY.md) and deals three cards from the run's playbook; in practice its one play, already called), `dispatch` (call, Flip, hike, and TRICK OR TREAT's pick, swap, skipDraft), `endDown`, `nextDown` (in practice, the same spot again; otherwise the offer after a won series), `downAndDistance`, `cloneRun` (the copy `step` and `dispatch` change, sharing the read-only playbook). The hike hands off on a handoff card. |
+| `run.ts` | `createRun`, series and downs (`setUpSeries`, `setUpDown` lines up the down's defense and the patrols ahead (`patrolsAhead`, docs/DIFFICULTY.md) and deals three cards from the run's playbook; in practice its one play, already called), `dispatch` (call, Flip, a hot route (`routeWorks`, docs/PLAYER_MENU.md), hike, and TRICK OR TREAT's pick, swap, skipDraft), `endDown`, `nextDown` (in practice, the same spot again; otherwise the offer after a won series), `downAndDistance`, `cloneRun` (the copy `step` and `dispatch` change, sharing the read-only playbook). The hike hands off on a handoff card. |
 | `step.ts` | The 60 Hz step above (`step`, a copy then `stepInPlace`, which the balance tool calls directly); `canThrow`, `giveBall`, Break it! resolution, the pocket, the drag, tackles. |
 | `ai.ts` | Each body's target. Blockers stand between a rusher and the QB; route runners follow their waypoints; once someone has the ball, each helper takes **its own** threat (`carryBlocks`), and on a handoff the Catchers keep running their routes as decoys. Rushers charge the QB, Covers trail their mark, the Owl hangs deep, Bats loop. **The play fake:** for a moment after a handoff the defense keeps playing the pass. `chooseLane`, `assignMarks`. |
 | `physics.ts` | Moving and pushing apart by weight. Scarecrows can't be moved; teammates give way to the carrier; bodies lying down get nudged aside; blocked defenders are slowed; nobody but the carrier is shoved out of bounds. `canTouch` is Ethereal's one rule: yours and theirs can't lay hands on each other (grab, tackle, block, shove) when either is Ethereal; `touching` asks it, so every contact check does. |
@@ -196,6 +196,7 @@ src/arcade/content/
   ourPlays.ts  // OUR_PLAYS: plays kept from the play editor, apart from esrauch's (fork)
   playPool.ts  // PLAY_POOL: PLAYS then OUR_PLAYS; with your sketches in the game, a run's playbook (fork)
   playRules.ts // playProblems: the play rules, used by the tests and the play editor (fork)
+  hotRoutes.ts // the six hot routes, which way is out, who can take one and the loop (docs/PLAYER_MENU.md) (fork)
   playCode.ts  // a play (and its line-up) in a practice link (?try=), and as plays.ts source for Copy code (fork)
   fieldEvents.ts // field events: Frog Rain and the rest, as data (docs/FIELD_EVENTS.md); savedEvents.ts lays saved-events.json over them
   eventLink.ts // an event in a practice link (?event=), the event editor's Try it

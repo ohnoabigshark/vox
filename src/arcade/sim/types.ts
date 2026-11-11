@@ -11,6 +11,7 @@
  */
 import type { CatchSetting } from '../content/runOptions';
 import type { EventLook, FieldEvent } from '../content/fieldEvents';
+import type { HotRoute, HotRoutes } from '../content/hotRoutes';
 import type { Play } from '../content/plays';
 import type { StatusName } from '../content/statuses';
 
@@ -492,6 +493,12 @@ export interface RunState {
   flipped: boolean;
   /** The play called (or, before the call, the first card's), and whether it's mirrored. */
   play: { readonly index: number; readonly flipped: boolean };
+  /**
+   * Hot routes (docs/PLAYER_MENU.md): who has which this down, by roster
+   * slot, in place of the called card's. Flip keeps them; calling a card
+   * and the next down drop them.
+   */
+  hotRoutes: HotRoutes;
   /** Break it!, while it's on. */
   tackle: Tackle | null;
   /** SNAG IT!, while it's on. */
@@ -551,6 +558,8 @@ export type Action =
   | { readonly type: 'call'; readonly hand: number }
   /** Mirror the cards (and the called play). */
   | { readonly type: 'flip' }
+  /** Route on the player's menu: this roster slot's next hot route round the loop (docs/PLAYER_MENU.md, c1). */
+  | { readonly type: 'hotRoute'; readonly slot: number }
   /** HIKE: start the called play. */
   | { readonly type: 'hike' }
   | { readonly type: 'skipDraft' }
@@ -569,6 +578,13 @@ export type ArcadeEvent =
     }
   /** A card banned by the Queen's Royal Decree was tapped: it can't be called. */
   | { readonly type: 'banned' }
+  /** A player (body `id`, roster `slot`) given a hot route, or back on the card's own (`route` null). */
+  | {
+      readonly type: 'hotRoute';
+      readonly id: number;
+      readonly slot: number;
+      readonly route: HotRoute | null;
+    }
   | { readonly type: 'snapped' }
   | { readonly type: 'handoff'; readonly id: number }
   | { readonly type: 'thrown'; readonly target: Vec; readonly landsAt: number }
