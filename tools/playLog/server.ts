@@ -167,8 +167,14 @@ export function gameServer(dir: string): (req: IncomingMessage, res: ServerRespo
   });
   return (req, res) => {
     const url = req.url ?? '/';
+    const rest = url.slice(GAME_PATH.length);
+    // The page's paths are relative (vite.config.ts, base './'): from /vox they'd miss the folder.
+    if (!rest.startsWith('/')) {
+      res.writeHead(301, { location: `${GAME_PATH}/${rest}` }).end();
+      return;
+    }
     // sirv answers from the folder's root: take off /vox, keeping the query.
-    req.url = url.slice(GAME_PATH.length) || '/';
+    req.url = rest;
     files(req, res);
   };
 }

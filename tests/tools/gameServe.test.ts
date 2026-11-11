@@ -110,6 +110,15 @@ describe('the built game, served by vox-log (B11)', () => {
     }
   });
 
+  it('/vox without its slash is sent to /vox/, keeping the query, so the page’s relative paths resolve', async () => {
+    const { current } = await serveFolder();
+    const server = await listening(current);
+    const bare = await get(server, '/vox');
+    expect(bare.status).toBe(301);
+    expect(bare.headers.location).toBe('/vox/');
+    expect((await get(server, '/vox?seed=3&menu=1')).headers.location).toBe('/vox/?seed=3&menu=1');
+  });
+
   it('a blank VOX_GAME answers 503 naming it, and the play log still starts', async () => {
     const server = await listening('');
     const got = await get(server, '/vox/');
