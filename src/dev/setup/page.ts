@@ -132,6 +132,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
   const fieldEventsOn = toggle('fieldEventsOn', 'Field events', refresh);
   const startWithPerks = toggle('startWithPerks', 'Every perk', refresh);
   const monsters = toggle('monsters', 'Monster team', refresh);
+  const playerMenu = toggle('playerMenu', 'Player menu', refresh);
   const changed = el('p', { className: 'changed' });
   const status = el('div', { className: 'status' });
   status.hidden = true;
@@ -156,6 +157,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
     fieldEventsOn.set(o.fieldEventsOn);
     startWithPerks.set(o.startWithPerks);
     monsters.set(o.monsters);
+    playerMenu.set(o.playerMenu);
     refresh();
   };
 
@@ -183,6 +185,7 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
         fieldEventsOn: fieldEventsOn.on,
         startWithPerks: startWithPerks.on,
         monsters: monsters.on,
+        playerMenu: playerMenu.on,
       },
     };
   };
@@ -257,8 +260,8 @@ export async function mountSetupPage(root: HTMLElement, deps: SetupPageDeps): Pr
       {},
       el('h2', { text: 'On the field' }),
       toggles(
-        [pickupsOn, fieldEventsOn, startWithPerks, monsters],
-        'Pickups: bolts and gravestones. Field events off: none from the seed; Frog Rain stays Mister Frog’s. Every perk: start holding them all.',
+        [pickupsOn, fieldEventsOn, startWithPerks, monsters, playerMenu],
+        'Pickups: bolts and gravestones. Field events off: none from the seed; Frog Rain stays Mister Frog’s. Every perk: start holding them all. Player menu: a strip of buttons for a selected player, nothing in it works yet.',
       ),
     ),
     el(
