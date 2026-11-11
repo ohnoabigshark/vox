@@ -268,3 +268,13 @@ folder; it redirects to `/vox/` now (red, then green), and the mount is
 Tailscale: the page and the dev pages `no-cache` with an ETag, a 304 asked
 again with it, `assets/` a year, and the play log and the models page as
 before.
+
+The two-axis review (separate reviewers) found no hard break in the code;
+its fixes, each test red first: any folder named without its slash, such
+as `/vox/dev`, redirects like `/vox` does; only a path still under
+`assets/` once normalised is kept a year; `gameServer` answers only `/vox`
+paths itself, the one place that rule lives; a `VOX_GAME` naming no folder
+answers 503 naming it; the service's requests are `listener`, so a test
+shows the play log taking lines with `VOX_GAME` blank. `sirv` is a
+dependency, not a dev one, since the resident service needs it; the unit
+and `docs/stacks/vox.md` h4 no longer say otherwise.

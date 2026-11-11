@@ -25,8 +25,9 @@ import {
   stat,
   writeFile,
 } from 'node:fs/promises';
+import { existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { basename, dirname, extname, join } from 'node:path';
+import { basename, dirname, extname, join, normalize, posix, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import sirv from 'sirv';
 
@@ -129,8 +130,11 @@ export function configFrom(env: Record<string, string | undefined>): {
   return { file, port, models: env.VOX_MODELS ?? '', game: env.VOX_GAME ?? '' };
 }
 
-/** Where the built game is, as the service sees it (`tailscale serve` proxies /vox/ here with the path kept). */
+/** Where the built game is, as the service sees it (`tailscale serve` proxies /vox here with the path kept). */
 const GAME_PATH = '/vox';
+
+/** A request's path, without its query. */
+const pathOf = (url: string | undefined): string => (url ?? '/').split('?')[0] ?? '/';
 
 /** The paths the built game answers. */
 export const isGamePath = (path: string): boolean =>
@@ -139,41 +143,73 @@ export const isGamePath = (path: string): boolean =>
 /** A year: the longest a browser is told to keep a file whose name carries its contents' hash. */
 const A_YEAR = 365 * 24 * 60 * 60;
 
+/** A plain-text refusal, logged for journald. */
+function refuse(res: ServerResponse, status: number, why: string): void {
+  console.error(`${status}: ${why}`);
+  res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8' }).end(why);
+}
+
+/** Whether `path` (sirv's, from the folder's root) is a folder inside `dir`. */
+function isFolderIn(dir: string, path: string): boolean {
+  const abs = normalize(join(dir, safeDecode(path)));
+  if (!abs.startsWith(resolve(dir) + sep)) return false;
+  try {
+    return statSync(abs).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/** A path as sirv reads it (`decodeURI`), or as sent if it isn't valid. */
+function safeDecode(path: string): string {
+  try {
+    return decodeURI(path);
+  } catch {
+    return path;
+  }
+}
+
 /**
  * The built game from `dir` (docs/BUGS.md B11). Every page answers
  * `no-cache` with an ETag, so a browser asks each time and gets a 304 until
  * the build changes; Vite's `assets/`, named by a hash of their contents,
  * are kept a year. sirv's `dev` mode looks each request up on disk rather
  * than listing the folder once, so a swapped `current` symlink is served on
- * the next request; it also keeps every path inside `dir`.
+ * the next request, and it keeps every path inside `dir`. Its readme warns
+ * against dev mode in production for the cost of a lookup per request,
+ * which one phone doesn't feel.
  */
 export function gameServer(dir: string): (req: IncomingMessage, res: ServerResponse) => void {
   if (!dir) {
-    return (_req, res) => {
-      console.error('503: VOX_GAME is blank');
-      res
-        .writeHead(503, { 'content-type': 'text/plain; charset=utf-8' })
-        .end("VOX_GAME is blank: name the built game's folder");
-    };
+    return (_req, res) => refuse(res, 503, "VOX_GAME is blank: name the built game's folder");
   }
   const files = sirv(dir, {
     dev: true,
     etag: true,
     setHeaders: (res, path) => {
-      if (path.startsWith('/assets/')) {
+      if (posix.normalize(path).startsWith('/assets/')) {
         res.setHeader('Cache-Control', `public, max-age=${A_YEAR}, immutable`);
       }
+    },
+    onNoMatch: (_req, res) => {
+      if (existsSync(dir)) res.writeHead(404).end();
+      else refuse(res, 503, `VOX_GAME names no folder: ${dir}`);
     },
   });
   return (req, res) => {
     const url = req.url ?? '/';
-    const rest = url.slice(GAME_PATH.length);
-    // The page's paths are relative (vite.config.ts, base './'): from /vox they'd miss the folder.
-    if (!rest.startsWith('/')) {
-      res.writeHead(301, { location: `${GAME_PATH}/${rest}` }).end();
+    if (!isGamePath(pathOf(url))) {
+      res.writeHead(404).end();
       return;
     }
     // sirv answers from the folder's root: take off /vox, keeping the query.
+    const rest = url.slice(GAME_PATH.length);
+    const path = pathOf(rest);
+    // The page's paths are relative (vite.config.ts, base './'): from /vox, or /vox/dev, they'd miss the folder.
+    if (path === '' || (!path.endsWith('/') && isFolderIn(dir, path))) {
+      res.writeHead(301, { location: `${GAME_PATH}${path}/${rest.slice(path.length)}` }).end();
+      return;
+    }
     req.url = rest;
     files(req, res);
   };
@@ -417,11 +453,16 @@ export function folderStore(dir: string): ModelStore {
   };
 }
 
-function serve(): void {
-  const { file, port, models, game } = configFrom(process.env);
-  const append = rotatingAppend(file, MAX_BYTES, KEEP);
-  const store = models ? folderStore(models) : null;
-  const serveGame = gameServer(game);
+/** What the service answers with: the play log's file, the models folder (null when blank) and the game. */
+export type Parts = {
+  readonly append: (text: string) => Promise<void>;
+  readonly store: ModelStore | null;
+  readonly game: (req: IncomingMessage, res: ServerResponse) => void;
+};
+
+/** The service's requests: the built game under /vox, the models under /models, the play log otherwise. */
+export function listener(parts: Parts): (req: IncomingMessage, res: ServerResponse) => void {
+  const { append, store, game } = parts;
   const answer = (
     method: string,
     path: string,
@@ -429,7 +470,7 @@ function serve(): void {
     fromPage: boolean,
   ): Promise<ModelAnswer> =>
     isModelsPath(path)
-      ? // The clock is here, not in src/clock: Node runs this file as it is, importing only its own modules.
+      ? // The clock is here, not in src/clock: Node runs this file as it is, importing no other file of ours.
         handleModels(
           { method, path, body: new Uint8Array(body), fromPage },
           store,
@@ -439,9 +480,10 @@ function serve(): void {
           ...a,
           type: 'text/plain',
         }));
-  const server = createServer((req, res) => {
-    if (isGamePath((req.url ?? '/').split('?')[0] ?? '/')) {
-      serveGame(req, res);
+  return (req, res) => {
+    const path = pathOf(req.url);
+    if (isGamePath(path)) {
+      game(req, res);
       return;
     }
     const chunks: Buffer[] = [];
@@ -457,7 +499,6 @@ function serve(): void {
     });
     req.on('end', () => {
       if (res.writableEnded) return;
-      const path = (req.url ?? '/').split('?')[0] ?? '/';
       void answer(
         req.method ?? '',
         path,
@@ -470,7 +511,18 @@ function serve(): void {
         res.writeHead(a.status, { 'content-type': a.type, ...a.headers }).end(a.body);
       });
     });
-  });
+  };
+}
+
+function serve(): void {
+  const { file, port, models, game } = configFrom(process.env);
+  const server = createServer(
+    listener({
+      append: rotatingAppend(file, MAX_BYTES, KEEP),
+      store: models ? folderStore(models) : null,
+      game: gameServer(game),
+    }),
+  );
   // Loopback only: the droplet has a public address (CLAUDE.md, This machine).
   server.listen(port, '127.0.0.1', () => {
     console.log(

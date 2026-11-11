@@ -4,7 +4,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { configFrom, gameServer, isGamePath } from '../../tools/playLog/server';
+import { configFrom, gameServer, isGamePath, listener } from '../../tools/playLog/server';
 
 /**
  * docs/BUGS.md B11: vox-log serves the built game at /vox/ so a phone asks
@@ -34,7 +34,10 @@ afterEach(async () => {
 });
 
 async function listening(dir: string): Promise<Server> {
-  const server = createServer(gameServer(dir));
+  return listen(createServer(gameServer(dir)));
+}
+
+async function listen(server: Server): Promise<Server> {
   servers.push(server);
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   return server;
@@ -49,6 +52,7 @@ async function serveFolder(): Promise<{ root: string; current: string }> {
     await mkdir(join(build, 'dev'), { recursive: true });
     await writeFile(join(build, 'index.html'), `<p>build ${name}</p>`);
     await writeFile(join(build, 'dev', 'setup.html'), `<p>setup ${name}</p>`);
+    await writeFile(join(build, 'dev', 'index.html'), `<p>dev ${name}</p>`);
     await writeFile(join(build, 'assets', 'main-AbC123.js'), `/* ${name} */`);
   }
   await writeFile(join(root, 'secret.txt'), 'outside the build');
@@ -129,6 +133,62 @@ describe('the built game, served by vox-log (B11)', () => {
       configFrom({ PLAY_LOG: '/tmp/p.jsonl', PLAY_LOG_PORT: '9320', VOX_GAME: '/srv/current' })
         .game,
     ).toBe('/srv/current');
+  });
+
+  it('a folder named without its slash is sent to it with the slash, as /vox is', async () => {
+    const { current } = await serveFolder();
+    const server = await listening(current);
+    const got = await get(server, '/vox/dev?x=1');
+    expect(got.status).toBe(301);
+    expect(got.headers.location).toBe('/vox/dev/?x=1');
+    expect((await get(server, '/vox/dev/')).body).toBe('<p>dev a</p>');
+  });
+
+  it('only a page under assets/ is kept a year: a path that climbs back out is not', async () => {
+    const { current } = await serveFolder();
+    const server = await listening(current);
+    const got = await get(server, '/vox/assets/../index.html');
+    expect(got.status).toBe(200);
+    expect(got.headers['cache-control']).toBe('no-cache');
+  });
+
+  it('the game answers only its own paths', async () => {
+    const { current } = await serveFolder();
+    const server = await listening(current);
+    const got = await get(server, '/voxels');
+    expect(got.status).toBe(404);
+    expect(got.headers.location).toBeUndefined();
+  });
+
+  it('a VOX_GAME that names no folder answers 503 naming it', async () => {
+    const { root } = await serveFolder();
+    const missing = join(root, 'nowhere');
+    const server = await listening(missing);
+    const got = await get(server, '/vox/');
+    expect(got.status).toBe(503);
+    expect(got.body).toBe(`VOX_GAME names no folder: ${missing}`);
+  });
+
+  it('with VOX_GAME blank the play log still takes lines', async () => {
+    const written: string[] = [];
+    const server = await listen(
+      createServer(
+        listener({
+          append: async (text) => void written.push(text),
+          store: null,
+          game: gameServer(''),
+        }),
+      ),
+    );
+    const { port } = server.address() as AddressInfo;
+    const line = { at: '2026-11-11T14:00:00.000Z', kind: 'event' };
+    const posted = await fetch(`http://127.0.0.1:${port}/`, {
+      method: 'POST',
+      body: JSON.stringify([line]),
+    });
+    expect(posted.status).toBe(204);
+    expect(written).toEqual([`${JSON.stringify(line)}\n`]);
+    expect((await get(server, '/vox/')).status).toBe(503);
   });
 
   it('only /vox and under is the game; the play log and models keep theirs', () => {
