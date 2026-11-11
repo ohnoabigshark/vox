@@ -658,6 +658,15 @@ Still open:
     the screen; whether it shows when it has nothing in it; how an action
     is used up (once a play, once a series, once a run); how it meets
     "select only" (parked, V1) and the tutorial.
+  - **Grilled on its own map**, https://claude.ai/artifact/6qjgoC72xLeSWPXw2VCDpJ.
+    Round 1, all approved 2026-11-11: the menu is a strip above the play
+    cards (a1, the user: "Yeah I like c"); three slots, Route, Perk and
+    Audible, each greyed until it works (a2); it shows only with a dev
+    setup switch, "Player menu", off by default, until an action works
+    (a3); the shell first, then a route change, each its own branch (a4);
+    a changed route lasts this down only and the card stays as drawn (a5);
+    the new route is picked from a short list of set routes, not dragged
+    (a6).
   - **Changing a route after the call** (the user, 2026-11-11: "one thing
     to consider with the player menu is the ability to change their route.
     I don't know if we have the ability to edit the play after it's chosen
