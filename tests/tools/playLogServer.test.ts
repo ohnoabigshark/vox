@@ -59,11 +59,12 @@ describe('the play log service: what it takes', () => {
 });
 
 describe('the play log service: its settings', () => {
-  it('reads the file and the port (and the models folder, blank here: modelHandoff.test.ts)', () => {
+  it('reads the file and the port (the models folder and the game, blank here: modelTrip.test.ts, gameServe.test.ts)', () => {
     expect(configFrom({ PLAY_LOG: '/x/play.jsonl', PLAY_LOG_PORT: '9320' })).toEqual({
       file: '/x/play.jsonl',
       port: 9320,
       models: '',
+      game: '',
     });
   });
 

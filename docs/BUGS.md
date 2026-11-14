@@ -217,3 +217,64 @@ measures, so 10.000000000000004 reads 10 and 1.53 still reads 2. Tests in
 case and a sweep of 2,000 starting lines failed on the old code ("1st & 11")
 and pass now; a part yard still rounding up passed on its first run, a
 regression guard.
+
+## B11. The phone kept playing an old build after a new one was served (fixed)
+
+Found by the user **2026-11-11 08:35 New York** (13:35 UTC): Route was
+greyed on the player's menu, though hot routes (`bd7f329`) had been served
+since 13:30 UTC. The play log's lines from 13:35 to 13:37 say build
+`a2a80f0`, the strip-only build; an incognito tab showed the new one.
+
+**Why:** the built game is served from disk by `tailscale serve`
+(`docs/stacks/vox.md` h2 in `/root/projects`), which sends `Last-Modified`
+and no `Cache-Control`. A browser then keeps the page for a guessed time,
+about a tenth of its age: `a2a80f0` had been up since 02:00 UTC, the phone
+loaded it at 12:41, so it was kept until about 13:45 without asking. It
+happens whenever a build is replaced, more often the longer the old one was
+up. `tailscale serve` can't add headers.
+
+**Decided 2026-11-11** (the player's menu map, round 5, s1): the play log's
+service, `vox-log`, already resident, serves the built game at `/vox/`
+from `VOX_GAME` (the `current` symlink), through `sirv`, a maintained
+static file server, rather than code of our own. Every page answers
+`Cache-Control: no-cache`, so the browser asks each time and gets a 304
+while the build is the same; `assets/`, whose names carry a hash of their
+contents, are kept for a year (`immutable`). `tailscale serve` then
+proxies `/vox/` to it. Alternatives not taken: the game checking for a
+newer build when it opens (it would also cover the Pages site, which keeps
+pages 10 minutes), or leaving it.
+
+**Tests, written first** (`tests/tools/gameServe.test.ts`), against a real
+server on a temporary build folder:
+
+1. A page (`/vox/`, `index.html`, a dev page) answers `no-cache` with an
+   ETag, and asking again with that ETag answers 304.
+2. A file under `assets/` answers a year, `immutable`.
+3. Swapping the `current` symlink serves the new build on the next request.
+4. A path that climbs out of the build (`..`, encoded or not) gets no file.
+5. A blank `VOX_GAME` answers 503 naming it, and the play log still works.
+
+Then live: the served page's headers through Tailscale, and a new build
+showing on the phone without incognito.
+
+**Fixed 2026-11-11** on `fresh-page`: `gameServer` in
+`tools/playLog/server.ts`; `vox-log` has `VOX_GAME` (its unit,
+`.claude/systemd/vox-log.service` in `/root/projects`), and `tailscale
+serve` proxies `/vox` to it (`docs/stacks/vox.md` h2 there, with how to go
+back). The six tests went red, then green. Probing it live found a seventh:
+`/vox` without its slash got the page, whose relative paths then miss the
+folder; it redirects to `/vox/` now (red, then green), and the mount is
+`/vox`, not `/vox/`, so Tailscale passes the bare path on. Live through
+Tailscale: the page and the dev pages `no-cache` with an ETag, a 304 asked
+again with it, `assets/` a year, and the play log and the models page as
+before.
+
+The two-axis review (separate reviewers) found no hard break in the code;
+its fixes, each test red first: any folder named without its slash, such
+as `/vox/dev`, redirects like `/vox` does; only a path still under
+`assets/` once normalised is kept a year; `gameServer` answers only `/vox`
+paths itself, the one place that rule lives; a `VOX_GAME` naming no folder
+answers 503 naming it; the service's requests are `listener`, so a test
+shows the play log taking lines with `VOX_GAME` blank. `sirv` is a
+dependency, not a dev one, since the resident service needs it; the unit
+and `docs/stacks/vox.md` h4 no longer say otherwise.
